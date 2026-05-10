@@ -786,4 +786,38 @@
 • Your App ID and App Secret</string>
     <string name="feishu_credentials_help">Enter your App ID and App Secret from the Feishu Developer Console.</string>
     <string name="feishu_app_id_prefix">App IDs start with "cli_"</string>
+
+    <!-- Gateway auto-restart -->
+    <string name="gateway_auto_restart_category">Auto-Recovery</string>
+    <string name="gateway_auto_restart_title">Auto-Restart on Failure</string>
+    <string name="gateway_auto_restart_summary">Automatically restart gateway when it crashes</string>
+    <string name="gateway_max_restarts_title">Max Restart Attempts</string>
+    <string name="gateway_max_restarts_summary">Maximum consecutive restart attempts before giving up</string>
+    <string name="gateway_restart_delay_title">Restart Delay</string>
+    <string name="gateway_restart_delay_summary">Seconds to wait before attempting restart</string>
+
+    <string-array name="gateway_restart_count_names">
+        <item>1 attempt</item>
+        <item>3 attempts</item>
+        <item>5 attempts</item>
+        <item>Unlimited</item>
+    </string-array>
+    <string-array name="gateway_restart_count_values">
+        <item>1</item>
+        <item>3</item>
+        <item>5</item>
+        <item>-1</item>
+    </string-array>
+    <string-array name="gateway_restart_delay_names">
+        <item>10 seconds</item>
+        <item>30 seconds</item>
+        <item>60 seconds</item>
+        <item>120 seconds</item>
+    </string-array>
+    <string-array name="gateway_restart_delay_values">
+        <item>10</item>
+        <item>30</item>
+        <item>60</item>
+        <item>120</item>
+    </string-array>
 </resources>
