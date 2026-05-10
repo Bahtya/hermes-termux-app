@@ -126,6 +126,13 @@
             android:theme="@style/Theme.TermuxApp.DayNight.DarkActionBar" />
 
         <activity
+            android:name=".app.hermes.WhatsAppSetupActivity"
+            android:exported="false"
+            android:label="@string/whatsapp_setup_title"
+            android:parentActivityName=".app.hermes.HermesConfigActivity"
+            android:theme="@style/Theme.TermuxApp.DayNight.DarkActionBar" />
+
+        <activity
             android:name="com.termux.app.hermes.HermesWebActivity"
             android:exported="false"
             android:label="@string/hermes_web_title"

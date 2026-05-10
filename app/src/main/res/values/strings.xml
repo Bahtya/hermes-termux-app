@@ -1108,7 +1108,10 @@
 • You can change settings anytime from Hermes Settings</string>
     <string name="whatsapp_configured">WhatsApp Business configured</string>
     <string name="whatsapp_not_configured">Not configured</string>
-
+    <string name="whatsapp_setup_intro_desc">Hermes will connect to WhatsApp Business API so your AI assistant can respond to WhatsApp messages. You\'ll need your Phone Number ID and Access Token from Meta Developer Portal.</string>
+    <string name="whatsapp_credentials_title">Enter WhatsApp Credentials</string>
+    <string name="whatsapp_phone_required">Phone Number ID is required</string>
+    <string name="whatsapp_complete_summary">Connected with token: %s</string>
 
     <!-- Gateway auto-update -->
     <string name="gateway_update_title">Gateway Update</string>
