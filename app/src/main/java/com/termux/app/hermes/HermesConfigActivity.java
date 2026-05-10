@@ -2,18 +2,20 @@ package com.termux.app.hermes;
 
 import android.content.Context;
 import android.content.Intent;
+import android.Manifest;
+import android.content.pm.PackageManager;
+import android.os.Build;
 import android.os.Bundle;
 import android.view.MenuItem;
-import android.view.View;
-import android.widget.AdapterView;
-import android.widget.ArrayAdapter;
-import android.widget.Spinner;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.ActionBar;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.activity.result.ActivityResultLauncher;
+import androidx.activity.result.contract.ActivityResultContracts;
+import androidx.core.content.ContextCompat;
 import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentTransaction;
 import androidx.preference.ListPreference;
@@ -60,6 +62,16 @@ public class HermesConfigActivity extends AppCompatActivity {
     public static class HermesConfigFragment extends PreferenceFragmentCompat {
 
         private HermesConfigManager mConfigManager;
+        private ActivityResultLauncher<String> mNotificationPermLauncher;
+
+        @Override
+        public void onCreate(Bundle savedInstanceState) {
+            super.onCreate(savedInstanceState);
+            mNotificationPermLauncher = registerForActivityResult(
+                    new ActivityResultContracts.RequestPermission(), isGranted -> {
+                        updateNotificationPermStatus();
+                    });
+        }
 
         @Override
         public void onCreatePreferences(Bundle savedInstanceState, String rootKey) {
@@ -153,6 +165,9 @@ public class HermesConfigActivity extends AppCompatActivity {
                 });
             }
 
+            // Notification permission status
+            updateNotificationPermStatus();
+
             // Show LLM config status
             Preference llmPref = findPreference("hermes_llm_config");
             if (llmPref != null) {
@@ -201,8 +216,8 @@ public class HermesConfigActivity extends AppCompatActivity {
                 case "hermes_llm_config":
                     showFragment(new LlmConfigFragment());
                     return true;
-                case "hermes_llm_quick_switch":
-                    showQuickSwitchDialog();
+                case "hermes_notification_perm":
+                    requestNotificationPermission();
                     return true;
                 case "hermes_feishu_setup":
                     startActivity(new Intent(requireContext(), FeishuSetupActivity.class));
@@ -239,80 +254,41 @@ public class HermesConfigActivity extends AppCompatActivity {
             return super.onPreferenceTreeClick(preference);
         }
 
-        private void showQuickSwitchDialog() {
-            View dialogView = getLayoutInflater().inflate(R.layout.dialog_quick_switch, null);
-            Spinner providerSpinner = dialogView.findViewById(R.id.quick_switch_provider);
-            Spinner modelSpinner = dialogView.findViewById(R.id.quick_switch_model);
+        private void updateNotificationPermStatus() {
+            Preference permPref = findPreference("hermes_notification_perm");
+            if (permPref == null) return;
 
-            String[] providerNames = getResources().getStringArray(R.array.llm_provider_names);
-            String[] providerValues = getResources().getStringArray(R.array.llm_provider_values);
-
-            ArrayAdapter<String> providerAdapter = new ArrayAdapter<>(requireContext(),
-                    android.R.layout.simple_spinner_item, providerNames);
-            providerAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
-            providerSpinner.setAdapter(providerAdapter);
-
-            String currentProvider = mConfigManager.getModelProvider();
-            int providerIdx = 0;
-            for (int i = 0; i < providerValues.length; i++) {
-                if (providerValues[i].equals(currentProvider)) { providerIdx = i; break; }
+            if (Build.VERSION.SDK_INT < 33) {
+                permPref.setVisible(false);
+                return;
             }
-            providerSpinner.setSelection(providerIdx);
 
-            updateModelSpinner(modelSpinner, currentProvider);
-            String currentModel = mConfigManager.getModelName();
-
-            providerSpinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
-                @Override
-                public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
-                    String selected = providerValues[position];
-                    updateModelSpinner(modelSpinner, selected);
-                }
-                @Override
-                public void onNothingSelected(AdapterView<?> parent) {}
-            });
-
-            new AlertDialog.Builder(requireContext())
-                    .setTitle(R.string.llm_quick_switch_dialog_title)
-                    .setView(dialogView)
-                    .setPositiveButton(android.R.string.ok, (d, w) -> {
-                        int pos = providerSpinner.getSelectedItemPosition();
-                        String newProvider = providerValues[pos];
-                        String newModel = (String) modelSpinner.getSelectedItem();
-                        mConfigManager.setModelProvider(newProvider);
-                        mConfigManager.setModelName(newModel);
-                        Toast.makeText(requireContext(),
-                                getString(R.string.llm_quick_switch_saved, newProvider, newModel),
-                                Toast.LENGTH_SHORT).show();
-                    })
-                    .setNegativeButton(android.R.string.cancel, null)
-                    .show();
+            boolean granted = ContextCompat.checkSelfPermission(requireContext(),
+                    Manifest.permission.POST_NOTIFICATIONS) == PackageManager.PERMISSION_GRANTED;
+            permPref.setSummary(granted
+                    ? getString(R.string.notification_perm_granted)
+                    : getString(R.string.notification_perm_denied));
         }
 
-        private void updateModelSpinner(Spinner spinner, String provider) {
-            int arrayResId = getModelArrayResId(provider);
-            if (arrayResId != 0) {
-                String[] models = getResources().getStringArray(arrayResId);
-                ArrayAdapter<String> adapter = new ArrayAdapter<>(requireContext(),
-                        android.R.layout.simple_spinner_item, models);
-                adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
-                spinner.setAdapter(adapter);
-            }
-        }
+        private void requestNotificationPermission() {
+            if (Build.VERSION.SDK_INT < 33) return;
 
-        private int getModelArrayResId(String provider) {
-            switch (provider) {
-                case "openai": return R.array.llm_models_openai;
-                case "anthropic": return R.array.llm_models_anthropic;
-                case "google": return R.array.llm_models_google;
-                case "deepseek": return R.array.llm_models_deepseek;
-                case "openrouter": return R.array.llm_models_openrouter;
-                case "xai": return R.array.llm_models_xai;
-                case "alibaba": return R.array.llm_models_alibaba;
-                case "mistral": return R.array.llm_models_mistral;
-                case "nvidia": return R.array.llm_models_nvidia;
-                case "ollama": return R.array.llm_models_ollama;
-                default: return 0;
+            if (ContextCompat.checkSelfPermission(requireContext(),
+                    Manifest.permission.POST_NOTIFICATIONS) == PackageManager.PERMISSION_GRANTED) {
+                Toast.makeText(requireContext(), R.string.notification_perm_granted, Toast.LENGTH_SHORT).show();
+                return;
+            }
+
+            if (shouldShowRequestPermissionRationale(Manifest.permission.POST_NOTIFICATIONS)) {
+                new AlertDialog.Builder(requireContext())
+                        .setTitle(R.string.notification_perm_rationale_title)
+                        .setMessage(R.string.notification_perm_rationale_message)
+                        .setPositiveButton(android.R.string.ok, (d, w) ->
+                                mNotificationPermLauncher.launch(Manifest.permission.POST_NOTIFICATIONS))
+                        .setNegativeButton(android.R.string.cancel, null)
+                        .show();
+            } else {
+                mNotificationPermLauncher.launch(Manifest.permission.POST_NOTIFICATIONS);
             }
         }
 

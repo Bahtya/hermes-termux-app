@@ -170,6 +170,12 @@ App ID 以"cli_"开头，约 10-20 个字符。App Secret 较长（30+ 字符）
     <string name="battery_optimization_prompt_message">您的设备可能会为了省电而终止 Hermes 网关。将应用加入电池优化白名单可确保网关稳定运行。\n\n这仅影响 Hermes — 不会显著影响电池续航。</string>
     <string name="battery_optimization_open_settings">打开设置</string>
     <string name="battery_optimization_skip">跳过</string>
+    <!-- Notification Permission -->
+    <string name="notification_perm_title">通知权限</string>
+    <string name="notification_perm_granted">通知已启用</string>
+    <string name="notification_perm_denied">通知被禁止 — 网关状态将不可见</string>
+    <string name="notification_perm_rationale_title">允许通知？</string>
+    <string name="notification_perm_rationale_message">Hermes 需要通知权限来显示网关运行状态。没有此权限，您将无法看到网关是否正在运行。</string>
 
     <string name="gateway_stop_title">停止网关</string>
     <string name="gateway_stop_summary">停止运行中的网关</string>
