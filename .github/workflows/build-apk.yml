@@ -27,12 +27,12 @@ jobs:
       - name: Build debug APK
         env:
           TERMUX_PACKAGE_VARIANT: ${{ matrix.package_variant }}
-        run: ./gradlew assembleDebug
+        run: ./gradlew downloadBootstraps assembleDebug
 
       - name: Build release APK (unsigned)
         env:
           TERMUX_PACKAGE_VARIANT: ${{ matrix.package_variant }}
-        run: ./gradlew assembleRelease
+        run: ./gradlew downloadBootstraps assembleRelease
 
       - name: Upload debug APKs
         uses: actions/upload-artifact@v6

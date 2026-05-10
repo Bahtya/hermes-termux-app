@@ -52,12 +52,12 @@ jobs:
           TAG_NAME="${GITHUB_REF#refs/tags/}"
           APK_DIR_PATH="./app/build/outputs/apk/release"
           APK_VERSION_TAG="$TAG_NAME+${{ matrix.package_variant }}-github-release"
-          APK_BASENAME_PREFIX="termux-app_$APK_VERSION_TAG"
+          APK_BASENAME_PREFIX="hermes-termux-app_$APK_VERSION_TAG"
 
           export TERMUX_APP_VERSION_NAME="${TAG_NAME#v}"
           export TERMUX_APK_VERSION_TAG="$APK_VERSION_TAG"
 
-          ./gradlew assembleRelease
+          ./gradlew downloadBootstraps assembleRelease
 
           echo "Generating sha256sums"
           (cd "$APK_DIR_PATH" && sha256sum *.apk > "${APK_BASENAME_PREFIX}_sha256sums")
