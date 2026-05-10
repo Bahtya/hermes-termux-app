@@ -256,6 +256,61 @@
     <string name="hermes_not_installed_banner_installing">Installing Hermes Agent…</string>
     <string name="hermes_not_installed_banner_installed">Hermes Agent installed successfully!</string>
     <string name="hermes_not_installed_banner_failed">Installation failed. Tap to retry.</string>
+
+    <!-- Help & FAQ -->
+    <string name="hermes_help_faq_title">Help &amp; FAQ</string>
+    <string name="hermes_help_faq_summary">Common questions and troubleshooting tips</string>
+    <string name="hermes_help_faq_dialog_title">Help &amp; FAQ</string>
+    <string name="hermes_help_copy_debug">Copy Debug Info</string>
+    <string name="hermes_help_debug_copied">Debug info copied to clipboard</string>
+    <string name="hermes_help_faq_content" formatted="false"><![CDATA[
+<h3>Getting Started</h3>
+<p><b>What do I need to use Hermes?</b><br/>
+You need: ① An AI provider API key (e.g. OpenAI, Anthropic) and ② At least one messaging platform (Feishu, Telegram, or Discord). Use the setup progress tracker on the dashboard to guide you.</p>
+
+<h3>API Key Issues</h3>
+<p><b>Where do I get an API key?</b><br/>
+• OpenAI: platform.openai.com → API Keys<br/>
+• Anthropic: console.anthropic.com → Keys<br/>
+• DeepSeek: platform.deepseek.com → API Keys<br/>
+• Google AI: aistudio.google.com → Get API Key</p>
+
+<p><b>My API key doesn\'t work</b><br/>
+1. Check for extra spaces at the beginning/end<br/>
+2. Make sure you selected the correct provider<br/>
+3. Verify your key hasn\'t expired or been revoked<br/>
+4. Use the "Test Connection" button in LLM config to verify</p>
+
+<h3>Gateway Won\'t Start</h3>
+<p><b>Gateway shows "not installed"</b><br/>
+Wait for the Hermes installation to complete (first launch can take 2–5 minutes). Check the notification bar for progress.</p>
+
+<p><b>Gateway keeps crashing</b><br/>
+1. Open Gateway Log to see error messages<br/>
+2. Verify your API key is correct<br/>
+3. Check that at least one messaging platform is configured<br/>
+4. Try restarting the gateway from Gateway Control</p>
+
+<h3>Connection Issues</h3>
+<p><b>Ollama: Can\'t connect to localhost</b><br/>
+Make sure Ollama is running on the same device. The default URL is http://localhost:11434. If Ollama is on another machine, set the correct IP in "API Base URL".</p>
+
+<p><b>Network errors</b><br/>
+1. Check your internet connection<br/>
+2. If behind a firewall/VPN, try disabling it<br/>
+3. Use "Connection Diagnostic" in Gateway Control</p>
+
+<h3>Feishu Setup</h3>
+<p><b>How to create a Feishu bot</b><br/>
+1. Open open.feishu.cn → Create App → Bot<br/>
+2. Enable "Bot" capability in the app<br/>
+3. Copy App ID (starts with cli_) and App Secret<br/>
+4. Use the setup wizard in Hermes Settings</p>
+
+<p><b>App ID format</b><br/>
+App ID starts with "cli_" and is about 10–20 characters. App Secret is longer (30+ characters).</p>
+]]></string>
+
     <string name="hermes_check_update_title">Check for Updates</string>
     <string name="hermes_check_update_summary">Check if a newer version of Hermes Agent is available</string>
     <string name="hermes_run_wizard_title">Run Setup Wizard</string>

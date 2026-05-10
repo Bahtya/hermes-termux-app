@@ -62,9 +62,6 @@ public class HermesConfigActivity extends AppCompatActivity {
             setPreferencesFromResource(R.xml.hermes_preferences, rootKey);
             mConfigManager = HermesConfigManager.getInstance();
 
-            // --- Setup progress tracker ---
-            updateSetupProgress();
-
             // --- Dashboard: Gateway status ---
             Preference dashGateway = findPreference("hermes_dashboard_gateway");
             if (dashGateway != null) {
@@ -197,8 +194,8 @@ public class HermesConfigActivity extends AppCompatActivity {
             if (key == null) return super.onPreferenceTreeClick(preference);
 
             switch (key) {
-                case "hermes_setup_action":
-                    handleSetupAction();
+                case "hermes_help_faq":
+                    showFaqDialog();
                     return true;
                 case "hermes_llm_config":
                     showFragment(new LlmConfigFragment());
@@ -222,9 +219,6 @@ public class HermesConfigActivity extends AppCompatActivity {
                 case "hermes_check_update":
                     checkForUpdate(preference);
                     return true;
-                case "hermes_update_now":
-                    runUpgrade();
-                    return true;
                 case "hermes_gateway_log":
                     startActivity(new Intent(requireContext(), GatewayLogActivity.class));
                     return true;
@@ -241,117 +235,40 @@ public class HermesConfigActivity extends AppCompatActivity {
             return super.onPreferenceTreeClick(preference);
         }
 
-        @Override
-        public void onResume() {
-            super.onResume();
-            updateSetupProgress();
+        private void showFaqDialog() {
+            android.widget.ScrollView scrollView = new android.widget.ScrollView(requireContext());
+            android.widget.TextView textView = new android.widget.TextView(requireContext());
+            textView.setText(android.text.Html.fromHtml(getString(R.string.hermes_help_faq_content)));
+            textView.setPadding(48, 32, 48, 32);
+            textView.setTextIsSelectable(true);
+            scrollView.addView(textView);
+
+            new AlertDialog.Builder(requireContext())
+                    .setTitle(R.string.hermes_help_faq_dialog_title)
+                    .setView(scrollView)
+                    .setNeutralButton(R.string.hermes_help_copy_debug, (d, w) -> copyDebugInfo())
+                    .setPositiveButton(android.R.string.ok, null)
+                    .show();
         }
 
-        private void updateSetupProgress() {
-            String provider = mConfigManager.getModelProvider();
-            String apiKey = mConfigManager.getApiKey(provider);
-            boolean hasProvider = provider != null && !provider.isEmpty();
-            boolean hasApiKey = apiKey != null && !apiKey.isEmpty();
-            boolean hasIm = mConfigManager.isFeishuConfigured()
-                    || !mConfigManager.getEnvVar("TELEGRAM_BOT_TOKEN").isEmpty()
-                    || !mConfigManager.getEnvVar("DISCORD_BOT_TOKEN").isEmpty();
+        private void copyDebugInfo() {
+            HermesConfigManager config = HermesConfigManager.getInstance();
+            StringBuilder sb = new StringBuilder();
+            sb.append("=== Hermes Debug Info ===\n");
+            sb.append("Provider: ").append(config.getModelProvider()).append("\n");
+            sb.append("Model: ").append(config.getModelName()).append("\n");
+            String apiKey = config.getApiKey(config.getModelProvider());
+            sb.append("API Key: ").append(apiKey.isEmpty() ? "not set" : "set (" + apiKey.length() + " chars)").append("\n");
+            sb.append("Feishu: ").append(config.isFeishuConfigured() ? "configured" : "not configured").append("\n");
+            sb.append("Telegram: ").append(config.getEnvVar("TELEGRAM_BOT_TOKEN").isEmpty() ? "not configured" : "configured").append("\n");
+            sb.append("Discord: ").append(config.getEnvVar("DISCORD_BOT_TOKEN").isEmpty() ? "not configured" : "configured").append("\n");
+            sb.append("Config dir: ").append(config.getConfigDir()).append("\n");
 
-            int completed = 0;
-            int total = 4;
-            if (hasProvider) completed++;
-            if (hasApiKey) completed++;
-            if (hasIm) completed++;
-
-            Preference progressPref = findPreference("hermes_setup_progress");
-            Preference actionPref = findPreference("hermes_setup_action");
-            if (progressPref == null) return;
-
-            boolean[] steps = {hasProvider, hasApiKey, hasIm, false};
-            String[] labels = {
-                    getString(R.string.setup_progress_step_llm_provider),
-                    getString(R.string.setup_progress_step_api_key),
-                    getString(R.string.setup_progress_step_im),
-                    getString(R.string.setup_progress_step_gateway)
-            };
-
-            // Check gateway status asynchronously
-            HermesGatewayStatus.checkAsync((status, detail) -> {
-                if (getActivity() == null) return;
-                getActivity().runOnUiThread(() -> {
-                    boolean gatewayRunning = status == HermesGatewayStatus.Status.RUNNING;
-                    if (gatewayRunning) {
-                        steps[3] = true;
-                        int finalCompleted = completed + (gatewayRunning ? 1 : 0);
-
-                        StringBuilder sb = new StringBuilder();
-                        if (finalCompleted == total) {
-                            progressPref.setSummary(getString(R.string.setup_progress_all_done));
-                        } else {
-                            progressPref.setSummary(getString(R.string.setup_progress_steps, finalCompleted, total));
-                        }
-
-                        updateActionPreference(!hasProvider || !hasApiKey, !hasApiKey, !hasIm, !gatewayRunning,
-                                hasProvider, provider);
-                    }
-                });
-            });
-        }
-
-        private void updateActionPreference(boolean needsLlm, boolean needsApiKey, boolean needsIm,
-                                             boolean needsGateway, boolean hasProvider, String provider) {
-            Preference actionPref = findPreference("hermes_setup_action");
-            if (actionPref == null) return;
-
-            if (needsLlm) {
-                if (hasProvider && needsApiKey) {
-                    actionPref.setTitle(getString(R.string.setup_action_enter_api_key));
-                    actionPref.setSummary(getString(R.string.setup_action_enter_api_key_summary, provider));
-                } else {
-                    actionPref.setTitle(getString(R.string.setup_action_configure_llm));
-                    actionPref.setSummary(getString(R.string.setup_action_configure_llm_summary));
-                }
-                actionPref.setVisible(true);
-            } else if (needsIm) {
-                actionPref.setTitle(getString(R.string.setup_action_connect_im));
-                actionPref.setSummary(getString(R.string.setup_action_connect_im_summary));
-                actionPref.setVisible(true);
-            } else if (needsGateway) {
-                actionPref.setTitle(getString(R.string.setup_action_start_gateway));
-                actionPref.setSummary(getString(R.string.setup_action_start_gateway_summary));
-                actionPref.setVisible(true);
-            } else {
-                actionPref.setTitle(getString(R.string.setup_action_start_gateway));
-                actionPref.setSummary(getString(R.string.setup_progress_all_done));
-                actionPref.setVisible(false);
-            }
-        }
-
-        private void handleSetupAction() {
-            String provider = mConfigManager.getModelProvider();
-            String apiKey = mConfigManager.getApiKey(provider);
-            boolean hasProvider = provider != null && !provider.isEmpty();
-            boolean hasApiKey = apiKey != null && !apiKey.isEmpty();
-            boolean hasIm = mConfigManager.isFeishuConfigured()
-                    || !mConfigManager.getEnvVar("TELEGRAM_BOT_TOKEN").isEmpty()
-                    || !mConfigManager.getEnvVar("DISCORD_BOT_TOKEN").isEmpty();
-
-            if (!hasProvider || !hasApiKey) {
-                showFragment(new LlmConfigFragment());
-            } else if (!hasIm) {
-                startActivity(new Intent(requireContext(), FeishuSetupActivity.class));
-            } else {
-                HermesGatewayStatus.checkAsync((status, detail) -> {
-                    if (getActivity() == null) return;
-                    getActivity().runOnUiThread(() -> {
-                        if (status != HermesGatewayStatus.Status.RUNNING) {
-                            requireContext().startService(new Intent(requireContext(), HermesGatewayService.class)
-                                    .setAction(HermesGatewayService.ACTION_START));
-                            Toast.makeText(requireContext(), R.string.gateway_started, Toast.LENGTH_SHORT).show();
-                            updateSetupProgress();
-                        }
-                    });
-                });
-            }
+            android.content.ClipboardManager clipboard = (android.content.ClipboardManager)
+                    requireContext().getSystemService(Context.CLIPBOARD_SERVICE);
+            android.content.ClipData clip = android.content.ClipData.newPlainText("Hermes Debug Info", sb.toString());
+            clipboard.setPrimaryClip(clip);
+            Toast.makeText(requireContext(), R.string.hermes_help_debug_copied, Toast.LENGTH_SHORT).show();
         }
 
         private void showFragment(Fragment fragment) {
@@ -370,26 +287,18 @@ public class HermesConfigActivity extends AppCompatActivity {
             new Thread(() -> {
                 String[] result = fetchVersionInfo();
                 requireActivity().runOnUiThread(() -> {
-                    Preference updateNowPref = findPreference("hermes_update_now");
                     if (result == null) {
                         if (updatePref != null) {
                             updatePref.setSummary(getString(R.string.hermes_update_failed));
                         }
-                        if (updateNowPref != null) updateNowPref.setVisible(false);
                     } else {
                         String current = result[0];
                         String latest = result[1];
                         if (updatePref != null) {
                             if (latest != null && !latest.equals(current)) {
                                 updatePref.setSummary(getString(R.string.hermes_update_available, latest, current));
-                                if (updateNowPref != null) {
-                                    updateNowPref.setSummary(
-                                            getString(R.string.hermes_update_now_summary) + " → " + latest);
-                                    updateNowPref.setVisible(true);
-                                }
                             } else {
                                 updatePref.setSummary(getString(R.string.hermes_up_to_date, current));
-                                if (updateNowPref != null) updateNowPref.setVisible(false);
                             }
                         }
                     }
@@ -400,12 +309,9 @@ public class HermesConfigActivity extends AppCompatActivity {
         private String[] fetchVersionInfo() {
             try {
                 String binPath = TermuxConstants.TERMUX_BIN_PREFIX_DIR_PATH;
-
-                // Get current installed version
                 ProcessBuilder pb = new ProcessBuilder(binPath + "/bash", "-c",
-                        "pip show hermes-agent 2>/dev/null | grep Version | head -1 | cut -d' ' -f2");
+                        "hermes --version 2>/dev/null | head -1");
                 pb.environment().put("PATH", binPath + ":/system/bin");
-                pb.environment().put("HOME", TermuxConstants.TERMUX_HOME_DIR_PATH);
                 pb.redirectErrorStream(true);
                 Process p = pb.start();
                 p.waitFor();
@@ -414,101 +320,23 @@ public class HermesConfigActivity extends AppCompatActivity {
                 String current = reader.readLine();
                 if (current != null) current = current.trim();
 
-                if (current == null || current.isEmpty()) current = "unknown";
-
-                // Get latest version from PyPI
-                String latest = null;
                 ProcessBuilder pb2 = new ProcessBuilder(binPath + "/bash", "-c",
-                        "curl -s https://pypi.org/pypi/hermes-agent/json 2>/dev/null | grep -o '\"version\":\"[^\"]*\"' | head -1 | cut -d'\"' -f4");
+                        "pip show hermes-agent 2>/dev/null | grep Version | head -1 | cut -d' ' -f2");
                 pb2.environment().put("PATH", binPath + ":/system/bin");
+                pb2.environment().put("HOME", TermuxConstants.TERMUX_HOME_DIR_PATH);
                 pb2.redirectErrorStream(true);
                 Process p2 = pb2.start();
-                p2.waitFor(10, java.util.concurrent.TimeUnit.SECONDS);
+                p2.waitFor();
                 java.io.BufferedReader reader2 = new java.io.BufferedReader(
                         new java.io.InputStreamReader(p2.getInputStream()));
-                String line = reader2.readLine();
-                if (line != null && !line.trim().isEmpty()) {
-                    latest = line.trim();
-                }
+                String pipVersion = reader2.readLine();
+                if (pipVersion != null) pipVersion = pipVersion.trim();
 
-                return new String[]{current, latest};
+                if (current == null || current.isEmpty()) current = "unknown";
+                return new String[]{pipVersion != null ? pipVersion : current, null};
             } catch (Exception e) {
                 return null;
             }
-        }
-
-        private void runUpgrade() {
-            Preference updateNowPref = findPreference("hermes_update_now");
-            if (updateNowPref != null) {
-                updateNowPref.setSummary(getString(R.string.hermes_update_running));
-                updateNowPref.setEnabled(false);
-            }
-            new Thread(() -> {
-                try {
-                    String binPath = TermuxConstants.TERMUX_BIN_PREFIX_DIR_PATH;
-                    ProcessBuilder pb = new ProcessBuilder(binPath + "/bash", "-c",
-                            "pip install --upgrade hermes-agent 2>&1");
-                    pb.environment().put("PATH", binPath + ":/system/bin");
-                    pb.environment().put("HOME", TermuxConstants.TERMUX_HOME_DIR_PATH);
-                    pb.redirectErrorStream(true);
-                    Process p = pb.start();
-                    p.waitFor(120, java.util.concurrent.TimeUnit.SECONDS);
-
-                    // Read last few lines for the result
-                    java.io.BufferedReader reader = new java.io.BufferedReader(
-                            new java.io.InputStreamReader(p.getInputStream()));
-                    String lastLine = null;
-                    String line;
-                    while ((line = reader.readLine()) != null) {
-                        lastLine = line;
-                    }
-
-                    boolean success = p.exitValue() == 0;
-
-                    // Get new version
-                    String newVersion = "unknown";
-                    ProcessBuilder pbv = new ProcessBuilder(binPath + "/bash", "-c",
-                            "pip show hermes-agent 2>/dev/null | grep Version | head -1 | cut -d' ' -f2");
-                    pbv.environment().put("PATH", binPath + ":/system/bin");
-                    pbv.environment().put("HOME", TermuxConstants.TERMUX_HOME_DIR_PATH);
-                    pbv.redirectErrorStream(true);
-                    Process pv = pbv.start();
-                    pv.waitFor();
-                    java.io.BufferedReader vr = new java.io.BufferedReader(
-                            new java.io.InputStreamReader(pv.getInputStream()));
-                    String v = vr.readLine();
-                    if (v != null && !v.trim().isEmpty()) newVersion = v.trim();
-
-                    String finalNewVersion = newVersion;
-                    requireActivity().runOnUiThread(() -> {
-                        if (success) {
-                            Toast.makeText(requireContext(),
-                                    getString(R.string.hermes_update_success, finalNewVersion),
-                                    Toast.LENGTH_LONG).show();
-                            if (updateNowPref != null) updateNowPref.setVisible(false);
-                            Preference checkPref = findPreference("hermes_check_update");
-                            if (checkPref != null) {
-                                checkPref.setSummary(getString(R.string.hermes_up_to_date, finalNewVersion));
-                            }
-                        } else {
-                            String err = lastLine != null ? lastLine : "exit " + p.exitValue();
-                            Toast.makeText(requireContext(),
-                                    getString(R.string.hermes_update_error, err),
-                                    Toast.LENGTH_LONG).show();
-                            if (updateNowPref != null) {
-                                updateNowPref.setEnabled(true);
-                                updateNowPref.setSummary(getString(R.string.hermes_update_now_summary));
-                            }
-                        }
-                    });
-                } catch (Exception e) {
-                    requireActivity().runOnUiThread(() -> {
-                        Toast.makeText(requireContext(),
-                                getString(R.string.hermes_update_error, e.getMessage()),
-                                Toast.LENGTH_LONG).show();
-                    });
-                }
-            }).start();
         }
 
         private void showResetConfirmDialog() {
