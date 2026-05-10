@@ -1844,7 +1844,12 @@ public class HermesConfigActivity extends AppCompatActivity {
                 return true;
             }
             if ("llm_get_api_key".equals(key)) {
-                openProviderUrl(getApiKeyUrl());
+                String provider = mConfigManager.getModelProvider();
+                if ("ollama".equals(provider)) {
+                    showOllamaSetupGuide();
+                } else {
+                    openProviderUrl(getApiKeyUrl());
+                }
                 return true;
             }
             if ("llm_docs".equals(key)) {
@@ -1860,6 +1865,69 @@ public class HermesConfigActivity extends AppCompatActivity {
                 Intent intent = new Intent(Intent.ACTION_VIEW, android.net.Uri.parse(url));
                 startActivity(intent);
             } catch (Exception ignored) {}
+        }
+
+        private void showOllamaSetupGuide() {
+            ScrollView scrollView = new ScrollView(requireContext());
+            LinearLayout layout = new LinearLayout(requireContext());
+            layout.setOrientation(LinearLayout.VERTICAL);
+            int pad = dp(16);
+            layout.setPadding(pad, pad, pad, pad);
+
+            TextView title = new TextView(requireContext());
+            title.setText("Ollama Setup Guide");
+            title.setTextSize(20);
+            title.setTypeface(null, android.graphics.Typeface.BOLD);
+            title.setPadding(0, 0, 0, dp(12));
+            layout.addView(title);
+
+            TextView intro = new TextView(requireContext());
+            intro.setText("Ollama runs AI models locally on your device. No API key needed, completely free and private.");
+            intro.setTextSize(14);
+            intro.setPadding(0, 0, 0, dp(12));
+            layout.addView(intro);
+
+            TextView stepsTitle = new TextView(requireContext());
+            stepsTitle.setText("Installation Steps");
+            stepsTitle.setTextSize(16);
+            stepsTitle.setTypeface(null, android.graphics.Typeface.BOLD);
+            stepsTitle.setPadding(0, dp(8), 0, dp(8));
+            layout.addView(stepsTitle);
+
+            String[] steps = {
+                    "1. Open the Termux terminal (Bash tab)",
+                    "2. Run: curl -fsSL https://ollama.com/install.sh | sh",
+                    "3. Wait for installation to complete",
+                    "4. Start Ollama: ollama serve &",
+                    "5. Pull a model: ollama pull llama3",
+                    "6. Come back here and select your model"
+            };
+            for (String step : steps) {
+                TextView stepView = new TextView(requireContext());
+                stepView.setText(step);
+                stepView.setTextSize(13);
+                stepView.setPadding(dp(8), dp(4), 0, dp(4));
+                layout.addView(stepView);
+            }
+
+            TextView popularModels = new TextView(requireContext());
+            popularModels.setText("\nPopular Models:\n• llama3 - Best general purpose (4.7GB)\n• mistral - Fast and capable (4.1GB)\n• codellama - Code generation\n• phi3 - Small and fast (2.3GB)\n• gemma2 - Google's open model");
+            popularModels.setTextSize(13);
+            popularModels.setPadding(0, dp(8), 0, dp(8));
+            layout.addView(popularModels);
+
+            scrollView.addView(layout);
+
+            new AlertDialog.Builder(requireContext())
+                    .setTitle("Ollama Setup")
+                    .setView(scrollView)
+                    .setPositiveButton("Open Terminal", (d, w) -> {
+                        // Switch to bash tab
+                        requireActivity().setResult(RESULT_FIRST_USER);
+                        requireActivity().finish();
+                    })
+                    .setNegativeButton(android.R.string.cancel, null)
+                    .show();
         }
 
         private String getApiKeyUrl() {
