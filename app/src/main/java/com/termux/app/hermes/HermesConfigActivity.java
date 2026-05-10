@@ -229,6 +229,10 @@ public class HermesConfigActivity extends AppCompatActivity {
                 case "hermes_check_update":
                     checkForUpdate(preference);
                     return true;
+                case "hermes_run_wizard":
+                    HermesSetupWizardActivity.clearDismissedFlag(requireContext());
+                    startActivity(new Intent(requireContext(), HermesSetupWizardActivity.class));
+                    return true;
                 case "hermes_gateway_log":
                     startActivity(new Intent(requireContext(), GatewayLogActivity.class));
                     return true;

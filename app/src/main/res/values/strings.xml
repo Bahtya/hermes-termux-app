@@ -258,6 +258,8 @@
     <string name="hermes_not_installed_banner_failed">Installation failed. Tap to retry.</string>
     <string name="hermes_check_update_title">Check for Updates</string>
     <string name="hermes_check_update_summary">Check if a newer version of Hermes Agent is available</string>
+    <string name="hermes_run_wizard_title">Run Setup Wizard</string>
+    <string name="hermes_run_wizard_summary">Re-run the initial setup wizard to configure AI and messaging</string>
     <string name="hermes_update_available">Update available: %1$s (current: %2$s)</string>
     <string name="hermes_up_to_date">Hermes Agent is up to date (%1$s)</string>
     <string name="hermes_update_checking">Checking for updates…</string>
