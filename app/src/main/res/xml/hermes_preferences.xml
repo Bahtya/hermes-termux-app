@@ -197,6 +197,11 @@
             android:summary="@string/mcp_settings_summary" />
 
         <Preference
+            android:key="hermes_prompt_chains"
+            android:title="@string/chains_title"
+            android:summary="@string/chains_summary" />
+
+        <Preference
             android:key="hermes_gateway_diagnostic"
             android:title="@string/gateway_diagnostic_title"
             android:summary="@string/gateway_diagnostic_summary" />
