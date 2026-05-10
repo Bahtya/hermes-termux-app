@@ -1,0 +1,41 @@
+name: PR Labeler
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened]
+
+permissions:
+  contents: read
+  pull-requests: write
+
+jobs:
+  label:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Label PR based on changed files
+        uses: actions/labeler@v5
+        with:
+          configuration-path: .github/labeler.yml
+          repo-token: ${{ secrets.GITHUB_TOKEN }}
+
+  size-label:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+
+      - name: Add size label
+        uses: ./
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          PR_NUMBER="${{ github.event.pull_request.number }}"
+          FILES=$(gh pr diff "$PR_NUMBER" --name-only | wc -l)
+          LINES=$(gh pr diff "$PR_NUMBER" | wc -l)
+
+          LABEL="size: S"
+          if [ "$LINES" -gt 500 ]; then LABEL="size: L"
+          elif [ "$LINES" -gt 100 ]; then LABEL="size: M"
+          fi
+
+          gh pr edit "$PR_NUMBER" --add-label "$LABEL" 2>/dev/null || true

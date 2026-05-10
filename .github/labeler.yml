@@ -1,0 +1,25 @@
+area: hermes:
+  - app/src/main/java/com/termux/app/hermes/**
+
+area: ui:
+  - app/src/main/res/layout/**
+  - app/src/main/res/xml/**
+  - app/src/main/res/drawable/**
+
+area: gateway:
+  - app/src/main/java/com/termux/app/hermes/HermesGateway*
+
+area: ci:
+  - .github/workflows/**
+  - .github/labeler.yml
+
+area: i18n:
+  - app/src/main/res/values-zh/**
+
+area: config:
+  - app/src/main/res/xml/hermes_*.xml
+  - app/src/main/java/com/termux/app/hermes/HermesConfigManager.java
+
+area: im:
+  - app/src/main/java/com/termux/app/hermes/FeishuSetup*
+  - app/src/main/java/com/termux/app/hermes/ImSetup*
