@@ -42,6 +42,7 @@
     <string name="llm_model_summary">要使用的模型名称（例如 gpt-4o、claude-sonnet-4-6）</string>
     <string name="llm_base_url_title">API 地址</string>
     <string name="llm_base_url_summary">自定义 API 地址（用于 Ollama 或兼容 API）</string>
+    <string name="llm_base_url_ollama_default">默认：http://localhost:11434</string>
 
     <!-- LLM Test Connection -->
     <string name="llm_test_connection_title">测试连接</string>

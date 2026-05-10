@@ -462,6 +462,13 @@ public class HermesConfigActivity extends AppCompatActivity {
                     if (baseUrlPref != null) {
                         boolean needsUrl = "ollama".equals(provider) || "custom".equals(provider);
                         baseUrlPref.setVisible(needsUrl);
+                        if ("ollama".equals(provider)) {
+                            String currentUrl = mConfigManager.getEnvVar("OPENAI_BASE_URL");
+                            if (currentUrl.isEmpty()) {
+                                mConfigManager.setEnvVar("OPENAI_BASE_URL", "http://localhost:11434");
+                                baseUrlPref.setSummary("http://localhost:11434");
+                            }
+                        }
                     }
                     return true;
                 });
@@ -477,8 +484,15 @@ public class HermesConfigActivity extends AppCompatActivity {
 
             Preference baseUrlPref = findPreference("llm_base_url");
             if (baseUrlPref != null) {
+                String currentUrl = mConfigManager.getEnvVar("OPENAI_BASE_URL");
+                if (!currentUrl.isEmpty()) {
+                    baseUrlPref.setSummary(currentUrl);
+                } else if ("ollama".equals(currentProvider)) {
+                    baseUrlPref.setSummary(getString(R.string.llm_base_url_ollama_default));
+                }
                 baseUrlPref.setOnPreferenceChangeListener((p, newVal) -> {
                     mConfigManager.setEnvVar("OPENAI_BASE_URL", (String) newVal);
+                    p.setSummary((String) newVal);
                     return true;
                 });
                 boolean needsUrl = "ollama".equals(currentProvider) || "custom".equals(currentProvider);

@@ -374,6 +374,7 @@
     <!-- LLM Base URL -->
     <string name="llm_base_url_title">Base URL</string>
     <string name="llm_base_url_summary">Custom endpoint URL (for Ollama or compatible APIs)</string>
+    <string name="llm_base_url_ollama_default">Default: http://localhost:11434</string>
 
     <!-- LLM Test Connection -->
     <string name="llm_test_connection_title">Test Connection</string>
