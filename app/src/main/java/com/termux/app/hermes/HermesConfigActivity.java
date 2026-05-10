@@ -1090,10 +1090,12 @@ public class HermesConfigActivity extends AppCompatActivity {
     }
 
     public static class GatewayControlFragment extends PreferenceFragmentCompat {
+        private HermesConfigManager mConfigManager;
 
         @Override
         public void onCreatePreferences(Bundle savedInstanceState, String rootKey) {
             setPreferencesFromResource(R.xml.hermes_gateway_preferences, rootKey);
+            mConfigManager = HermesConfigManager.getInstance();
 
             // Auto-restart toggle
             Preference autoRestartPref = findPreference("gateway_auto_restart");
