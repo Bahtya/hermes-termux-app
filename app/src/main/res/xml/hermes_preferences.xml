@@ -1,45 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android">
 
-    <Preference
-        android:key="hermes_quickstart"
-        android:title="@string/quickstart_start"
-        android:summary="@string/quickstart_stopped" />
-        android:key="hermes_not_installed_banner"
-        android:title="@string/hermes_not_installed_banner_title"
-        android:summary="@string/hermes_not_installed_banner_summary"
-        android:selectable="true" />
-    <PreferenceCategory android:title="@string/setup_progress_title">
-        <Preference
-            android:key="setup_step_llm"
-            android:title="@string/setup_progress_step_llm"
-            android:selectable="true" />
-        <Preference
-            android:key="setup_step_im"
-            android:title="@string/setup_progress_step_im"
-            android:selectable="true" />
-        <Preference
-            android:key="setup_step_gateway"
-            android:title="@string/setup_progress_step_gateway"
-            android:selectable="true" />
-    </PreferenceCategory>
-
     <PreferenceCategory android:title="@string/dashboard_title">
-
-        <Preference
-            android:key="hermes_setup_progress"
-            android:title="@string/setup_progress_title"
-            android:selectable="false" />
-
-        <Preference
-            android:key="hermes_setup_action"
-            android:title="@string/setup_action_continue"
-            android:summary="@string/setup_action_continue_summary" />
-
-        <Preference
-            android:key="hermes_dashboard_version"
-            android:title="@string/dashboard_version_title"
-            android:selectable="false" />
         <Preference
             android:key="hermes_dashboard_gateway"
             android:title="@string/dashboard_gateway_title"
@@ -49,40 +11,12 @@
             android:title="@string/dashboard_llm_title"
             android:selectable="false" />
         <Preference
-            android:key="hermes_llm_quick_switch"
-            android:title="@string/llm_quick_switch_title"
-            android:summary="@string/llm_quick_switch_summary" />
-        <Preference
             android:key="hermes_dashboard_im"
             android:title="@string/dashboard_im_title"
             android:selectable="false" />
-        <Preference
-            android:key="hermes_dashboard_version"
-            android:title="@string/dashboard_version_title"
-            android:summary="@string/dashboard_version_checking"
-            android:selectable="false" />
-            android:key="hermes_help_gateway"
-            android:title="@string/help_gateway_title"
-            android:summary="@string/dashboard_gateway_title" />
-        <Preference
-            android:key="hermes_help_llm"
-            android:title="@string/help_llm_title"
-            android:summary="@string/dashboard_llm_title" />
-        <Preference
-            android:key="hermes_help_im"
-            android:title="@string/help_im_title"
-            android:summary="@string/dashboard_im_title" />
     </PreferenceCategory>
 
     <PreferenceCategory android:title="@string/hermes_cat_general">
-
-        <ListPreference
-            android:key="hermes_language"
-            android:title="@string/hermes_language_title"
-            android:summary="@string/hermes_language_summary"
-            android:entries="@array/hermes_language_names"
-            android:entryValues="@array/hermes_language_values"
-            android:defaultValue="default" />
 
         <Preference
             android:key="hermes_llm_config"
@@ -90,33 +24,15 @@
             android:summary="@string/hermes_llm_config_summary"
             android:icon="@drawable/ic_settings" />
 
-        <SwitchPreferenceCompat
-            android:key="hermes_feishu_enabled"
-            android:title="@string/hermes_feishu_toggle"
-            android:summary="@string/hermes_feishu_toggle_summary"
-            android:defaultValue="true" />
-
         <Preference
             android:key="hermes_feishu_setup"
             android:title="@string/hermes_feishu_setup_title"
             android:summary="@string/hermes_feishu_setup_summary" />
 
-        <SwitchPreferenceCompat
-            android:key="hermes_telegram_enabled"
-            android:title="@string/hermes_telegram_toggle"
-            android:summary="@string/hermes_telegram_toggle_summary"
-            android:defaultValue="true" />
-
         <Preference
             android:key="hermes_telegram_setup"
             android:title="@string/hermes_telegram_setup_title"
             android:summary="@string/hermes_telegram_setup_summary" />
-
-        <SwitchPreferenceCompat
-            android:key="hermes_discord_enabled"
-            android:title="@string/hermes_discord_toggle"
-            android:summary="@string/hermes_discord_toggle_summary"
-            android:defaultValue="true" />
 
         <Preference
             android:key="hermes_discord_setup"
@@ -138,41 +54,9 @@
             android:title="@string/hermes_gateway_control_title"
             android:summary="@string/hermes_gateway_control_summary" />
 
-        <Preference
-            android:key="hermes_battery_optimization"
-            android:title="@string/battery_optimization_title"
-            android:summary="@string/battery_optimization_summary_off" />
-            android:key="hermes_notification_perm"
-            android:title="@string/notification_perm_title"
-            android:summary="@string/notification_perm_denied" />
-            android:key="hermes_battery_opt"
-            android:title="@string/battery_opt_title"
-            android:summary="@string/battery_opt_summary" />
-
     </PreferenceCategory>
 
     <PreferenceCategory android:title="@string/hermes_cat_advanced">
-
-        <ListPreference
-            android:key="hermes_log_level"
-            android:title="@string/log_level_title"
-            android:summary="@string/log_level_summary"
-            android:entries="@array/log_level_names"
-            android:entryValues="@array/log_level_values"
-            android:defaultValue="normal" />
-
-        <Preference
-            android:key="hermes_config_summary"
-            android:title="@string/config_summary_title"
-            android:summary="@string/config_summary_summary" />
-            android:key="hermes_help"
-            android:title="@string/help_title"
-            android:summary="@string/help_summary" />
-
-        <Preference
-            android:key="hermes_help_faq"
-            android:title="@string/hermes_help_faq_title"
-            android:summary="@string/hermes_help_faq_summary" />
 
         <Preference
             android:key="hermes_check_update"
@@ -180,23 +64,14 @@
             android:summary="@string/hermes_check_update_summary" />
 
         <Preference
-            android:key="hermes_run_wizard"
-            android:title="@string/hermes_run_wizard_title"
-            android:summary="@string/hermes_run_wizard_summary" />
-            android:key="hermes_update_now"
-            android:title="@string/hermes_update_now_title"
-            android:summary="@string/hermes_update_now_summary"
-            android:visible="false" />
-
-        <Preference
             android:key="hermes_gateway_log"
             android:title="@string/gateway_log_title"
             android:summary="@string/hermes_gateway_log_summary" />
 
         <Preference
-            android:key="hermes_share_diagnostics"
-            android:title="@string/hermes_share_diag_title"
-            android:summary="@string/hermes_share_diag_summary" />
+            android:key="hermes_help_faq"
+            android:title="@string/hermes_help_faq_title"
+            android:summary="@string/hermes_help_faq_summary" />
 
         <Preference
             android:key="hermes_reset_config"
