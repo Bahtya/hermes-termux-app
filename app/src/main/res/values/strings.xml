@@ -626,6 +626,11 @@
     <string name="llm_category_test">Test</string>
     <string name="llm_category_share">Share Config</string>
     <string name="llm_category_persona">Persona</string>
+        <string name="llm_preset_desc_balanced">Balanced — temperature 0.7, 2048 tokens. Good for general chat.</string>
+    <string name="llm_preset_desc_creative">Creative — temperature 0.9, 2048 tokens. Imaginative and expressive.</string>
+    <string name="llm_preset_desc_precise">Precise — temperature 0.2, 4096 tokens. Factual and analytical.</string>
+    <string name="llm_preset_desc_code">Code — temperature 0.2, 4096 tokens. Expert coding assistant.</string>
+    <string name="llm_preset_desc_custom">Custom — your current parameters unchanged.</string>
     <string name="llm_preset_title">Configuration Preset</string>
     <string name="llm_preset_summary">Quick setup for common use cases</string>
     <string name="llm_provider_info_title">Provider Info</string>
