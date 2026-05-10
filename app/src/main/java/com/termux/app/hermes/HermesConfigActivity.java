@@ -681,7 +681,7 @@ public class HermesConfigActivity extends AppCompatActivity {
 
             switch (key) {
                 case "gateway_start":
-                    runGatewayCommand("start");
+                    showStartupValidation();
                     return true;
                 case "gateway_stop":
                     runGatewayCommand("stop");
@@ -691,6 +691,40 @@ public class HermesConfigActivity extends AppCompatActivity {
                     return true;
             }
             return super.onPreferenceTreeClick(preference);
+        }
+
+        private void showStartupValidation() {
+            HermesConfigManager config = HermesConfigManager.getInstance();
+            java.util.List<String> warnings = new java.util.ArrayList<>();
+
+            String provider = config.getModelProvider();
+            String apiKey = config.getApiKey(provider);
+            if (apiKey == null || apiKey.isEmpty()) {
+                warnings.add(getString(R.string.validation_no_api_key, provider));
+            }
+            String model = config.getModelName();
+            if (model == null || model.isEmpty()) {
+                warnings.add(getString(R.string.validation_no_model));
+            }
+            if (!config.isAnyImConfigured()) {
+                warnings.add(getString(R.string.validation_no_im));
+            }
+
+            if (warnings.isEmpty()) {
+                runGatewayCommand("start");
+            } else {
+                StringBuilder msg = new StringBuilder();
+                for (String w : warnings) {
+                    msg.append("• ").append(w).append("\n");
+                }
+                msg.append("\n").append(getString(R.string.validation_start_anyway));
+                new AlertDialog.Builder(requireContext())
+                        .setTitle(R.string.validation_title)
+                        .setMessage(msg.toString())
+                        .setPositiveButton(R.string.validation_start, (d, w) -> runGatewayCommand("start"))
+                        .setNegativeButton(android.R.string.cancel, null)
+                        .show();
+            }
         }
 
         private void runGatewayCommand(String action) {
