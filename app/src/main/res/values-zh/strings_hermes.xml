@@ -170,6 +170,29 @@ App ID 以"cli_"开头，约 10-20 个字符。App Secret 较长（30+ 字符）
     <string name="llm_api_key_format_warn">API 密钥格式可能有误 — 请仔细检查</string>
     <string name="llm_base_url_invalid">URL 格式无效</string>
 
+    <!-- LLM System Prompt / Persona -->
+    <string name="llm_category_persona">人设</string>
+    <string name="llm_system_prompt_title">系统提示词</string>
+    <string name="llm_system_prompt_summary">自定义 AI 助手的指令</string>
+    <string name="llm_persona_template_title">人设模板</string>
+    <string name="llm_persona_template_summary">选择预设人设或自行编写</string>
+    <string-array name="llm_persona_names">
+        <item>默认助手</item>
+        <item>友好帮手</item>
+        <item>专业顾问</item>
+        <item>创意写作</item>
+        <item>编程助手</item>
+        <item>自定义</item>
+    </string-array>
+    <string-array name="llm_persona_prompts">
+        <item>你是一个有帮助的 AI 助手。请清晰简洁地回答问题。</item>
+        <item>你是一个温暖友好的 AI 助手。请保持鼓励和积极的语气，偶尔使用表情符号。</item>
+        <item>你是一个专业顾问。请提供详尽、结构清晰的回答，尽可能引用资料。</item>
+        <item>你是一个创意写作助手。帮助用户完成故事、诗歌和创意构思，发挥想象力。</item>
+        <item>你是一个编程专家。通过清晰、注释完善的代码示例回答编程问题，并解释你的思路。</item>
+        <item></item>
+    </string-array>
+
     <!-- LLM Test Connection -->
     <string name="llm_test_connection_title">测试连接</string>
     <string name="llm_test_connection_summary">验证 API 密钥和模型是否正常工作</string>

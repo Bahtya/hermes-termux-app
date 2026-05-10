@@ -50,6 +50,7 @@ public class HermesConfigManager {
     private static final String KEY_MODEL_NAME = "model.name";
     private static final String KEY_MODEL_TEMPERATURE = "model.temperature";
     private static final String KEY_MODEL_MAX_TOKENS = "model.max_tokens";
+    private static final String KEY_MODEL_SYSTEM_PROMPT = "model.system_prompt";
 
     // Feishu config.yaml keys (under feishu: section)
     private static final String KEY_FEISHU_APP_ID = "feishu.app_id";
@@ -537,6 +538,14 @@ public class HermesConfigManager {
 
     public void setModelMaxTokens(int maxTokens) {
         setYamlValue(KEY_MODEL_MAX_TOKENS, String.valueOf(maxTokens));
+    }
+
+    public String getModelSystemPrompt() {
+        return getYamlValue(KEY_MODEL_SYSTEM_PROMPT, "");
+    }
+
+    public void setModelSystemPrompt(String systemPrompt) {
+        setYamlValue(KEY_MODEL_SYSTEM_PROMPT, systemPrompt != null ? systemPrompt : "");
     }
 
     // =========================================================================
