@@ -484,6 +484,13 @@ public class HermesConfigActivity extends AppCompatActivity {
 
         private HermesConfigManager mConfigManager;
 
+        // Provider capabilities
+        private static final String[] PROVIDERS_NEEDING_API_KEY = {
+            "openai", "anthropic", "google", "deepseek", "openrouter",
+            "xai", "alibaba", "mistral", "nvidia", "custom"
+        };
+        private static final String[] PROVIDERS_NEEDING_BASE_URL = {"ollama", "custom"};
+
         @Override
         public void onCreatePreferences(Bundle savedInstanceState, String rootKey) {
             setPreferencesFromResource(R.xml.hermes_llm_preferences, rootKey);
@@ -491,58 +498,224 @@ public class HermesConfigActivity extends AppCompatActivity {
 
             String currentProvider = mConfigManager.getModelProvider();
             updateModelList(currentProvider);
+            applyProviderConfig(currentProvider);
 
+            setupProviderSelector();
+            setupApiKeyField();
+            setupModelSelector();
+            setupCustomModelField();
+            setupBaseUrlField();
+        }
+
+        private void setupProviderSelector() {
+            Preference providerPref = findPreference("llm_provider");
+            if (providerPref == null) return;
+
+            providerPref.setOnPreferenceChangeListener((p, newVal) -> {
+                String provider = (String) newVal;
+                mConfigManager.setModelProvider(provider);
+                updateModelList(provider);
+                applyProviderConfig(provider);
+                return true;
+            });
+        }
+
+        private void setupApiKeyField() {
+            Preference apiKeyPref = findPreference("llm_api_key");
+            if (apiKeyPref == null) return;
+
+            String provider = mConfigManager.getModelProvider();
+            String currentKey = mConfigManager.getApiKey(provider);
+            if (!currentKey.isEmpty()) {
+                apiKeyPref.setSummary(maskApiKey(currentKey));
+            }
+
+            apiKeyPref.setOnPreferenceChangeListener((p, newVal) -> {
+                String key = (String) newVal;
+                String currentProvider = mConfigManager.getModelProvider();
+                mConfigManager.setApiKey(currentProvider, key);
+                p.setSummary(maskApiKey(key));
+
+                if (shouldValidateApiKey(currentProvider) && !key.isEmpty()) {
+                    if (!isValidApiKeyFormat(currentProvider, key)) {
+                        Preference hint = findPreference("llm_api_key_hint");
+                        if (hint != null) {
+                            hint.setSummary(getString(R.string.llm_api_key_format_warn));
+                        }
+                    }
+                }
+                return true;
+            });
+        }
+
+        private void setupModelSelector() {
+            ListPreference modelPref = findPreference("llm_model");
+            if (modelPref == null) return;
+
+            modelPref.setOnPreferenceChangeListener((p, newVal) -> {
+                String model = (String) newVal;
+                mConfigManager.setModelName(model);
+                Preference customModelPref = findPreference("llm_custom_model");
+                if (customModelPref != null) {
+                    customModelPref.setVisible(false);
+                }
+                return true;
+            });
+        }
+
+        private void setupCustomModelField() {
+            Preference customModelPref = findPreference("llm_custom_model");
+            if (customModelPref == null) return;
+
+            customModelPref.setOnPreferenceChangeListener((p, newVal) -> {
+                String model = (String) newVal;
+                if (!model.trim().isEmpty()) {
+                    mConfigManager.setModelName(model.trim());
+                }
+                return true;
+            });
+        }
+
+        private void setupBaseUrlField() {
+            Preference baseUrlPref = findPreference("llm_base_url");
+            if (baseUrlPref == null) return;
+
+            baseUrlPref.setOnPreferenceChangeListener((p, newVal) -> {
+                String url = (String) newVal;
+                mConfigManager.setEnvVar("OPENAI_BASE_URL", url);
+                return true;
+            });
+        }
+
+        /** Apply provider-specific UI configuration: field visibility, hints, defaults. */
+        private void applyProviderConfig(String provider) {
+            boolean needsApiKey = needsApiKey(provider);
+            boolean needsBaseUrl = needsBaseUrl(provider);
+
+            // Auth category visibility
+            Preference authCategory = findPreference("llm_category_auth");
+            if (authCategory != null) authCategory.setVisible(needsApiKey);
+
+            // API key hint
+            Preference apiKeyHint = findPreference("llm_api_key_hint");
+            if (apiKeyHint != null) {
+                apiKeyHint.setSummary(getApiKeyHintResId(provider));
+                if (!needsApiKey) {
+                    apiKeyHint.setSummary(getString(R.string.llm_api_key_not_needed));
+                }
+            }
+
+            // Update API key summary with current provider's key
             Preference apiKeyPref = findPreference("llm_api_key");
             if (apiKeyPref != null) {
-                String currentKey = mConfigManager.getApiKey(currentProvider);
-                if (currentKey != null && !currentKey.isEmpty()) {
-                    apiKeyPref.setSummary(maskApiKey(currentKey));
+                String key = mConfigManager.getApiKey(provider);
+                apiKeyPref.setSummary(key.isEmpty() ? "" : maskApiKey(key));
+            }
+
+            // Endpoint category visibility
+            Preference endpointCategory = findPreference("llm_category_endpoint");
+            if (endpointCategory != null) endpointCategory.setVisible(needsBaseUrl);
+
+            // Base URL hint
+            Preference baseUrlHint = findPreference("llm_base_url_hint");
+            if (baseUrlHint != null) {
+                if ("ollama".equals(provider)) {
+                    String currentUrl = mConfigManager.getEnvVar("OPENAI_BASE_URL");
+                    if (currentUrl.isEmpty()) {
+                        baseUrlHint.setSummary(getString(R.string.llm_base_url_hint_ollama));
+                    } else {
+                        baseUrlHint.setSummary(getString(R.string.llm_base_url_auto_set, currentUrl));
+                    }
+                } else if ("custom".equals(provider)) {
+                    baseUrlHint.setSummary(getString(R.string.llm_base_url_hint_custom));
                 }
-                apiKeyPref.setOnPreferenceChangeListener((p, newVal) -> {
-                    mConfigManager.setApiKey(mConfigManager.getModelProvider(), (String) newVal);
-                    p.setSummary(maskApiKey((String) newVal));
-                    return true;
-                });
             }
 
-            Preference providerPref = findPreference("llm_provider");
-            if (providerPref != null) {
-                providerPref.setOnPreferenceChangeListener((p, newVal) -> {
-                    String provider = (String) newVal;
-                    mConfigManager.setModelProvider(provider);
-                    updateModelList(provider);
-
-                    String key = mConfigManager.getApiKey(provider);
-                    Preference akp = findPreference("llm_api_key");
-                    if (akp != null) {
-                        akp.setSummary(key != null ? maskApiKey(key) : "");
-                    }
-
+            // Auto-fill base URL for Ollama if empty
+            if ("ollama".equals(provider)) {
+                String currentUrl = mConfigManager.getEnvVar("OPENAI_BASE_URL");
+                if (currentUrl.isEmpty()) {
+                    mConfigManager.setEnvVar("OPENAI_BASE_URL", "http://localhost:11434");
                     Preference baseUrlPref = findPreference("llm_base_url");
-                    if (baseUrlPref != null) {
-                        boolean needsUrl = "ollama".equals(provider) || "custom".equals(provider);
-                        baseUrlPref.setVisible(needsUrl);
+                    if (baseUrlPref instanceof androidx.preference.EditTextPreference) {
+                        ((androidx.preference.EditTextPreference) baseUrlPref).setText("http://localhost:11434");
                     }
-                    return true;
-                });
+                }
             }
 
-            Preference modelPref = findPreference("llm_model");
-            if (modelPref != null) {
-                modelPref.setOnPreferenceChangeListener((p, newVal) -> {
-                    mConfigManager.setModelName((String) newVal);
-                    return true;
-                });
+            // Provider info
+            Preference providerInfo = findPreference("llm_provider_info");
+            if (providerInfo != null) {
+                providerInfo.setSummary(getProviderInfoResId(provider));
             }
+        }
 
-            Preference baseUrlPref = findPreference("llm_base_url");
-            if (baseUrlPref != null) {
-                baseUrlPref.setOnPreferenceChangeListener((p, newVal) -> {
-                    mConfigManager.setEnvVar("OPENAI_BASE_URL", (String) newVal);
+        private boolean needsApiKey(String provider) {
+            for (String p : PROVIDERS_NEEDING_API_KEY) {
+                if (p.equals(provider)) return true;
+            }
+            return false;
+        }
+
+        private boolean needsBaseUrl(String provider) {
+            for (String p : PROVIDERS_NEEDING_BASE_URL) {
+                if (p.equals(provider)) return true;
+            }
+            return false;
+        }
+
+        private String getProviderInfoResId(String provider) {
+            switch (provider) {
+                case "openai": return getString(R.string.llm_provider_info_openai);
+                case "anthropic": return getString(R.string.llm_provider_info_anthropic);
+                case "google": return getString(R.string.llm_provider_info_google);
+                case "deepseek": return getString(R.string.llm_provider_info_deepseek);
+                case "openrouter": return getString(R.string.llm_provider_info_openrouter);
+                case "xai": return getString(R.string.llm_provider_info_xai);
+                case "alibaba": return getString(R.string.llm_provider_info_alibaba);
+                case "mistral": return getString(R.string.llm_provider_info_mistral);
+                case "nvidia": return getString(R.string.llm_provider_info_nvidia);
+                case "ollama": return getString(R.string.llm_provider_info_ollama);
+                case "custom": return getString(R.string.llm_provider_info_custom);
+                default: return "";
+            }
+        }
+
+        private String getApiKeyHintResId(String provider) {
+            switch (provider) {
+                case "openai": return getString(R.string.llm_api_key_hint_openai);
+                case "anthropic": return getString(R.string.llm_api_key_hint_anthropic);
+                case "google": return getString(R.string.llm_api_key_hint_google);
+                case "deepseek": return getString(R.string.llm_api_key_hint_deepseek);
+                case "openrouter": return getString(R.string.llm_api_key_hint_openrouter);
+                case "xai": return getString(R.string.llm_api_key_hint_xai);
+                case "alibaba": return getString(R.string.llm_api_key_hint_alibaba);
+                case "mistral": return getString(R.string.llm_api_key_hint_mistral);
+                case "nvidia": return getString(R.string.llm_api_key_hint_nvidia);
+                case "ollama": return getString(R.string.llm_api_key_hint_ollama);
+                case "custom": return getString(R.string.llm_api_key_hint_custom);
+                default: return "";
+            }
+        }
+
+        private boolean shouldValidateApiKey(String provider) {
+            return "openai".equals(provider) || "anthropic".equals(provider)
+                    || "google".equals(provider) || "deepseek".equals(provider);
+        }
+
+        private boolean isValidApiKeyFormat(String provider, String key) {
+            if (key == null || key.isEmpty()) return false;
+            switch (provider) {
+                case "openai":
+                    return key.startsWith("sk-") && key.length() > 20;
+                case "anthropic":
+                    return key.startsWith("sk-ant-") && key.length() > 20;
+                case "google":
+                    return key.length() >= 30;
+                case "deepseek":
+                    return key.startsWith("sk-") && key.length() > 10;
+                default:
                     return true;
-                });
-                boolean needsUrl = "ollama".equals(currentProvider) || "custom".equals(currentProvider);
-                baseUrlPref.setVisible(needsUrl);
             }
         }
 
@@ -555,9 +728,41 @@ public class HermesConfigActivity extends AppCompatActivity {
                 CharSequence[] models = getResources().getTextArray(arrayResId);
                 modelPref.setEntries(models);
                 modelPref.setEntryValues(models);
-                if (models.length > 0) {
+                modelPref.setVisible(true);
+
+                // Set the saved model or default to first
+                String savedModel = mConfigManager.getModelName();
+                boolean modelInList = false;
+                for (CharSequence m : models) {
+                    if (m.toString().equals(savedModel)) {
+                        modelInList = true;
+                        break;
+                    }
+                }
+                if (modelInList) {
+                    modelPref.setValue(savedModel);
+                } else if (models.length > 0) {
                     modelPref.setValue(models[0].toString());
                     mConfigManager.setModelName(models[0].toString());
+                }
+
+                // Show custom model field if saved model is not in the list
+                Preference customModelPref = findPreference("llm_custom_model");
+                if (customModelPref != null) {
+                    if (!modelInList && !savedModel.isEmpty()) {
+                        customModelPref.setVisible(true);
+                        if (customModelPref instanceof androidx.preference.EditTextPreference) {
+                            ((androidx.preference.EditTextPreference) customModelPref).setText(savedModel);
+                        }
+                    } else {
+                        customModelPref.setVisible(false);
+                    }
+                }
+            } else {
+                modelPref.setVisible(false);
+                Preference customModelPref = findPreference("llm_custom_model");
+                if (customModelPref != null) {
+                    customModelPref.setVisible(true);
                 }
             }
         }
@@ -599,7 +804,7 @@ public class HermesConfigActivity extends AppCompatActivity {
 
             if ("ollama".equals(provider)) {
                 apiKey = "ollama";
-            } else if (apiKey.isEmpty()) {
+            } else if (apiKey.isEmpty() && needsApiKey(provider)) {
                 testPref.setSummary(getString(R.string.llm_test_no_key));
                 return;
             }

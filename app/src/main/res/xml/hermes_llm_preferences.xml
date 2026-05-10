@@ -26,14 +26,20 @@
         android:key="llm_paste_api_key"
         android:title="@string/llm_paste_key_title"
         android:summary="@string/llm_paste_key_summary" />
+    <PreferenceCategory android:title="@string/llm_category_provider">
 
-    <ListPreference
-        android:key="llm_model"
-        android:title="@string/llm_model_title"
-        android:summary="@string/llm_model_summary"
-        android:entries="@array/llm_models_openai"
-        android:entryValues="@array/llm_models_openai"
-        android:defaultValue="gpt-4o" />
+        <ListPreference
+            android:key="llm_provider"
+            android:title="@string/llm_provider_title"
+            android:summary="@string/llm_provider_summary"
+            android:entries="@array/llm_provider_names"
+            android:entryValues="@array/llm_provider_values"
+            android:defaultValue="openai" />
+
+        <Preference
+            android:key="llm_provider_info"
+            android:title="@string/llm_provider_info_title"
+            android:selectable="false" />
 
     <Preference
         android:key="llm_cost_estimate"
@@ -73,5 +79,70 @@
         android:title="@string/llm_test_connection_title"
         android:summary="@string/llm_test_connection_summary"
         android:selectable="true" />
+    </PreferenceCategory>
+
+    <PreferenceCategory
+        android:key="llm_category_auth"
+        android:title="@string/llm_category_auth">
+
+        <EditTextPreference
+            android:key="llm_api_key"
+            android:title="@string/llm_api_key_title"
+            android:summary="@string/llm_api_key_summary"
+            android:inputType="textPassword" />
+
+        <Preference
+            android:key="llm_api_key_hint"
+            android:selectable="false"
+            android:summary="@string/llm_api_key_hint_openai" />
+
+    </PreferenceCategory>
+
+    <PreferenceCategory
+        android:key="llm_category_endpoint"
+        android:title="@string/llm_category_endpoint">
+
+        <EditTextPreference
+            android:key="llm_base_url"
+            android:title="@string/llm_base_url_title"
+            android:summary="@string/llm_base_url_summary"
+            android:inputType="textUri" />
+
+        <Preference
+            android:key="llm_base_url_hint"
+            android:selectable="false"
+            android:summary="@string/llm_base_url_hint_default" />
+
+    </PreferenceCategory>
+
+    <PreferenceCategory
+        android:key="llm_category_model"
+        android:title="@string/llm_category_model">
+
+        <ListPreference
+            android:key="llm_model"
+            android:title="@string/llm_model_title"
+            android:summary="@string/llm_model_summary"
+            android:entries="@array/llm_models_openai"
+            android:entryValues="@array/llm_models_openai"
+            android:defaultValue="gpt-4o" />
+
+        <EditTextPreference
+            android:key="llm_custom_model"
+            android:title="@string/llm_custom_model_title"
+            android:summary="@string/llm_custom_model_summary"
+            android:inputType="textVisiblePassword" />
+
+    </PreferenceCategory>
+
+    <PreferenceCategory android:title="@string/llm_category_test">
+
+        <Preference
+            android:key="llm_test_connection"
+            android:title="@string/llm_test_connection_title"
+            android:summary="@string/llm_test_connection_summary"
+            android:selectable="true" />
+
+    </PreferenceCategory>
 
 </PreferenceScreen>
