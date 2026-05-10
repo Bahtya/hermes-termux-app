@@ -512,10 +512,13 @@
     <string name="llm_configured">Configured (%1$s)</string>
     <string name="llm_not_configured">Not configured</string>
     <string name="feishu_configured">Configured</string>
+    <string name="feishu_configured_imported">Configured — detected from existing config</string>
     <string name="feishu_not_configured">Not configured</string>
     <string name="telegram_configured">Configured</string>
+    <string name="telegram_configured_imported">Configured — detected from existing config</string>
     <string name="telegram_not_configured">Not configured</string>
     <string name="discord_configured">Configured</string>
+    <string name="discord_configured_imported">Configured — detected from existing config</string>
     <string name="discord_not_configured">Not configured</string>
 
     <!-- Help Tooltips -->

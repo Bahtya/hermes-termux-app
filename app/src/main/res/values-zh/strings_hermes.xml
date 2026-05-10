@@ -211,10 +211,13 @@
     <string name="llm_configured">已配置（%1$s）</string>
     <string name="llm_not_configured">未配置</string>
     <string name="feishu_configured">已配置</string>
+    <string name="feishu_configured_imported">已配置 — 检测到已有配置</string>
     <string name="feishu_not_configured">未配置</string>
     <string name="telegram_configured">已配置</string>
+    <string name="telegram_configured_imported">已配置 — 检测到已有配置</string>
     <string name="telegram_not_configured">未配置</string>
     <string name="discord_configured">已配置</string>
+    <string name="discord_configured_imported">已配置 — 检测到已有配置</string>
     <string name="discord_not_configured">未配置</string>
 
     <string name="hermes_telegram_setup_title">Telegram 设置</string>
