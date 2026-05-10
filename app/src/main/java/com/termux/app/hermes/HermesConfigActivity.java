@@ -179,6 +179,45 @@ public class HermesConfigActivity extends AppCompatActivity {
                 });
             }
 
+            // Gateway auto-restart toggle
+            SwitchPreferenceCompat autoRestartPref = findPreference("hermes_gateway_auto_restart");
+            if (autoRestartPref != null) {
+                autoRestartPref.setOnPreferenceChangeListener((p, newVal) -> {
+                    mConfigManager.setEnvVar("GATEWAY_AUTO_RESTART", (Boolean) newVal ? "true" : "false");
+                    return true;
+                });
+            }
+
+            // Max restart attempts
+            Preference maxRestartsPref = findPreference("hermes_gateway_max_restarts");
+            if (maxRestartsPref != null) {
+                maxRestartsPref.setOnPreferenceChangeListener((p, newVal) -> {
+                    try {
+                        int val = Integer.parseInt((String) newVal);
+                        mConfigManager.setEnvVar("GATEWAY_MAX_RESTARTS", String.valueOf(val));
+                    } catch (NumberFormatException ignored) {}
+                    return true;
+                });
+            }
+
+            // Notification sound toggle
+            SwitchPreferenceCompat notifSoundPref = findPreference("hermes_gateway_notif_sound");
+            if (notifSoundPref != null) {
+                notifSoundPref.setOnPreferenceChangeListener((p, newVal) -> {
+                    mConfigManager.setEnvVar("GATEWAY_NOTIF_SOUND", (Boolean) newVal ? "true" : "false");
+                    return true;
+                });
+            }
+
+            // Notification vibrate toggle
+            SwitchPreferenceCompat notifVibratePref = findPreference("hermes_gateway_notif_vibrate");
+            if (notifVibratePref != null) {
+                notifVibratePref.setOnPreferenceChangeListener((p, newVal) -> {
+                    mConfigManager.setEnvVar("GATEWAY_NOTIF_VIBRATE", (Boolean) newVal ? "true" : "false");
+                    return true;
+                });
+            }
+
             // Show LLM config status
             Preference llmPref = findPreference("hermes_llm_config");
             if (llmPref != null) {
@@ -224,39 +263,6 @@ public class HermesConfigActivity extends AppCompatActivity {
                 whatsappPref.setSummary(configured
                         ? getString(R.string.whatsapp_configured)
                         : getString(R.string.whatsapp_not_configured));
-            }
-
-            // Notification settings
-            Preference notifImportancePref = findPreference("gateway_notif_importance");
-            if (notifImportancePref != null) {
-                notifImportancePref.setOnPreferenceChangeListener((p, newVal) -> {
-                    mConfigManager.setEnvVar("GATEWAY_NOTIF_IMPORTANCE", (String) newVal);
-                    return true;
-                });
-            }
-
-            Preference notifSoundPref = findPreference("gateway_notif_sound");
-            if (notifSoundPref != null) {
-                notifSoundPref.setOnPreferenceChangeListener((p, newVal) -> {
-                    mConfigManager.setEnvVar("GATEWAY_NOTIF_SOUND", (Boolean) newVal ? "true" : "false");
-                    return true;
-                });
-            }
-
-            Preference notifVibratePref = findPreference("gateway_notif_vibrate");
-            if (notifVibratePref != null) {
-                notifVibratePref.setOnPreferenceChangeListener((p, newVal) -> {
-                    mConfigManager.setEnvVar("GATEWAY_NOTIF_VIBRATE", (Boolean) newVal ? "true" : "false");
-                    return true;
-                });
-            }
-
-            Preference quietHoursPref = findPreference("gateway_quiet_hours");
-            if (quietHoursPref != null) {
-                quietHoursPref.setOnPreferenceChangeListener((p, newVal) -> {
-                    mConfigManager.setEnvVar("GATEWAY_QUIET_HOURS", (Boolean) newVal ? "true" : "false");
-                    return true;
-                });
             }
 
         }
@@ -1963,39 +1969,6 @@ public class HermesConfigActivity extends AppCompatActivity {
             if (restartDelayPref != null) {
                 restartDelayPref.setOnPreferenceChangeListener((p, newVal) -> {
                     mConfigManager.setEnvVar("GATEWAY_RESTART_DELAY", (String) newVal);
-                    return true;
-                });
-            }
-
-            // Notification settings
-            Preference notifImportancePref = findPreference("gateway_notif_importance");
-            if (notifImportancePref != null) {
-                notifImportancePref.setOnPreferenceChangeListener((p, newVal) -> {
-                    mConfigManager.setEnvVar("GATEWAY_NOTIF_IMPORTANCE", (String) newVal);
-                    return true;
-                });
-            }
-
-            Preference notifSoundPref = findPreference("gateway_notif_sound");
-            if (notifSoundPref != null) {
-                notifSoundPref.setOnPreferenceChangeListener((p, newVal) -> {
-                    mConfigManager.setEnvVar("GATEWAY_NOTIF_SOUND", (Boolean) newVal ? "true" : "false");
-                    return true;
-                });
-            }
-
-            Preference notifVibratePref = findPreference("gateway_notif_vibrate");
-            if (notifVibratePref != null) {
-                notifVibratePref.setOnPreferenceChangeListener((p, newVal) -> {
-                    mConfigManager.setEnvVar("GATEWAY_NOTIF_VIBRATE", (Boolean) newVal ? "true" : "false");
-                    return true;
-                });
-            }
-
-            Preference quietHoursPref = findPreference("gateway_quiet_hours");
-            if (quietHoursPref != null) {
-                quietHoursPref.setOnPreferenceChangeListener((p, newVal) -> {
-                    mConfigManager.setEnvVar("GATEWAY_QUIET_HOURS", (Boolean) newVal ? "true" : "false");
                     return true;
                 });
             }
