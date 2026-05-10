@@ -715,6 +715,23 @@
     <string name="hermes_setup_summary_gateway_not_started">Gateway: Not started</string>
     <string name="hermes_setup_step_indicator">Step %1$d of %2$d</string>
 
+    <!-- Pre-launch Checks -->
+    <string name="prelaunch_title">Pre-launch Checklist</string>
+    <string name="prelaunch_check_install">Hermes agent installed</string>
+    <string name="prelaunch_fix_install">Run the Hermes installer first</string>
+    <string name="prelaunch_check_api_key">API key configured</string>
+    <string name="prelaunch_fix_api_key">Set your API key in LLM config</string>
+    <string name="prelaunch_check_model">AI model selected</string>
+    <string name="prelaunch_fix_model">Choose a model in LLM config</string>
+    <string name="prelaunch_check_im">Messaging platform connected</string>
+    <string name="prelaunch_fix_im">Set up Feishu, Telegram, Discord, or WhatsApp</string>
+    <string name="prelaunch_check_prompt">System prompt set</string>
+    <string name="prelaunch_fix_prompt">Add a system prompt or choose a persona</string>
+    <string name="prelaunch_all_pass">All checks passed! Ready to start.</string>
+    <string name="prelaunch_warnings">All critical checks passed (%d warnings)</string>
+    <string name="prelaunch_errors">%d issues must be fixed before starting</string>
+    <string name="prelaunch_fix">Fix Issues</string>
+
     <string name="llm_quick_switch_provider_label">Provider</string>
     <string name="llm_quick_switch_model_label">Model</string>
 

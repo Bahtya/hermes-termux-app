@@ -286,6 +286,23 @@
     <string name="hermes_setup_summary_gateway_not_started">网关: 未启动</string>
     <string name="hermes_setup_step_indicator">第 %1$d 步，共 %2$d 步</string>
 
+    <!-- Pre-launch Checks -->
+    <string name="prelaunch_title">启动前检查</string>
+    <string name="prelaunch_check_install">Hermes 已安装</string>
+    <string name="prelaunch_fix_install">请先运行 Hermes 安装程序</string>
+    <string name="prelaunch_check_api_key">API 密钥已配置</string>
+    <string name="prelaunch_fix_api_key">在 LLM 配置中设置 API 密钥</string>
+    <string name="prelaunch_check_model">AI 模型已选择</string>
+    <string name="prelaunch_fix_model">在 LLM 配置中选择模型</string>
+    <string name="prelaunch_check_im">消息平台已连接</string>
+    <string name="prelaunch_fix_im">设置飞书、Telegram、Discord 或 WhatsApp</string>
+    <string name="prelaunch_check_prompt">系统提示词已设置</string>
+    <string name="prelaunch_fix_prompt">添加系统提示词或选择人设模板</string>
+    <string name="prelaunch_all_pass">所有检查通过！可以启动。</string>
+    <string name="prelaunch_warnings">关键检查全部通过（%d 个警告）</string>
+    <string name="prelaunch_errors">%d 个问题需要修复后才能启动</string>
+    <string name="prelaunch_fix">修复问题</string>
+
     <!-- Help & FAQ -->
     <string name="hermes_help_faq_title">帮助与常见问题</string>
     <string name="hermes_help_faq_summary">常见问题和故障排除</string>
