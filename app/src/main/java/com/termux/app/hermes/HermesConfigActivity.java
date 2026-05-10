@@ -1,4 +1,3 @@
-import com.termux.app.hermes.HermesTutorialOverlay;
 package com.termux.app.hermes;
 
 import android.content.ClipData;
@@ -7,6 +6,8 @@ import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
 import android.view.MenuItem;
+import android.view.View;
+import android.view.ViewGroup;
 import android.widget.ScrollView;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -23,6 +24,7 @@ import androidx.preference.PreferenceFragmentCompat;
 import androidx.preference.SwitchPreferenceCompat;
 
 import com.termux.R;
+import com.termux.app.hermes.HermesTutorialOverlay;
 import com.termux.shared.termux.TermuxConstants;
 
 import java.io.File;
