@@ -9,83 +9,6 @@
         android:entryValues="@array/llm_preset_values"
         android:defaultValue="balanced" />
 
-    <ListPreference
-        android:key="llm_provider"
-        android:title="@string/llm_provider_title"
-        android:summary="@string/llm_provider_summary"
-        android:entries="@array/llm_provider_names"
-        android:entryValues="@array/llm_provider_values"
-        android:defaultValue="openai" />
-
-    <EditTextPreference
-        android:key="llm_api_key"
-        android:title="@string/llm_api_key_title"
-        android:summary="@string/llm_api_key_summary" />
-
-    <Preference
-        android:key="llm_paste_api_key"
-        android:title="@string/llm_paste_key_title"
-        android:summary="@string/llm_paste_key_summary" />
-    <PreferenceCategory android:title="@string/llm_category_provider">
-
-        <ListPreference
-            android:key="llm_provider"
-            android:title="@string/llm_provider_title"
-            android:summary="@string/llm_provider_summary"
-            android:entries="@array/llm_provider_names"
-            android:entryValues="@array/llm_provider_values"
-            android:defaultValue="openai" />
-
-        <Preference
-            android:key="llm_provider_info"
-            android:title="@string/llm_provider_info_title"
-            android:selectable="false" />
-
-    <Preference
-        android:key="llm_cost_estimate"
-        android:title="@string/llm_cost_title"
-        android:selectable="false" />
-
-    <EditTextPreference
-        android:key="llm_custom_model"
-        android:title="@string/llm_custom_model_title"
-        android:summary="@string/llm_custom_model_summary"
-        android:visible="false" />
-
-    <EditTextPreference
-        android:key="llm_base_url"
-        android:title="@string/llm_base_url_title"
-        android:summary="@string/llm_base_url_summary"
-        android:inputType="textUri" />
-
-    <PreferenceCategory android:title="@string/llm_params_category_title">
-        <EditTextPreference
-            android:key="llm_temperature"
-            android:title="@string/llm_temperature_title"
-            android:summary="@string/llm_temperature_summary"
-            android:inputType="numberDecimal"
-            android:defaultValue="0.7" />
-
-        <EditTextPreference
-            android:key="llm_max_tokens"
-            android:title="@string/llm_max_tokens_title"
-            android:summary="@string/llm_max_tokens_summary"
-            android:inputType="number"
-            android:defaultValue="4096" />
-    </PreferenceCategory>
-
-    <Preference
-        android:key="llm_system_prompt_templates"
-        android:title="@string/llm_templates_title"
-        android:summary="@string/llm_templates_summary" />
-
-    <Preference
-        android:key="llm_test_connection"
-        android:title="@string/llm_test_connection_title"
-        android:summary="@string/llm_test_connection_summary"
-        android:selectable="true" />
-    </PreferenceCategory>
-
     <PreferenceCategory
         android:key="llm_category_auth"
         android:title="@string/llm_category_auth">
@@ -100,6 +23,45 @@
             android:key="llm_api_key_hint"
             android:selectable="false"
             android:summary="@string/llm_api_key_hint_openai" />
+
+        <Preference
+            android:key="llm_paste_api_key"
+            android:title="@string/llm_paste_key_title"
+            android:summary="@string/llm_paste_key_summary" />
+
+        <Preference
+            android:key="llm_get_api_key"
+            android:title="@string/llm_get_api_key_title"
+            android:summary="@string/llm_get_api_key_summary" />
+
+        <Preference
+            android:key="llm_docs"
+            android:title="@string/llm_docs_title"
+            android:summary="@string/llm_docs_summary" />
+
+    </PreferenceCategory>
+
+    <PreferenceCategory
+        android:key="llm_category_provider"
+        android:title="@string/llm_category_provider">
+
+        <ListPreference
+            android:key="llm_provider"
+            android:title="@string/llm_provider_title"
+            android:summary="@string/llm_provider_summary"
+            android:entries="@array/llm_provider_names"
+            android:entryValues="@array/llm_provider_values"
+            android:defaultValue="openai" />
+
+        <Preference
+            android:key="llm_provider_info"
+            android:title="@string/llm_provider_info_title"
+            android:selectable="false" />
+
+        <Preference
+            android:key="llm_cost_estimate"
+            android:title="@string/llm_cost_title"
+            android:selectable="false" />
 
     </PreferenceCategory>
 
@@ -140,14 +102,48 @@
 
     </PreferenceCategory>
 
-    <PreferenceCategory android:title="@string/llm_category_test">
+    <PreferenceCategory android:title="@string/llm_params_category_title">
+        <EditTextPreference
+            android:key="llm_temperature"
+            android:title="@string/llm_temperature_title"
+            android:summary="@string/llm_temperature_summary"
+            android:inputType="numberDecimal"
+            android:defaultValue="0.7" />
 
+        <EditTextPreference
+            android:key="llm_max_tokens"
+            android:title="@string/llm_max_tokens_title"
+            android:summary="@string/llm_max_tokens_summary"
+            android:inputType="number"
+            android:defaultValue="4096" />
+    </PreferenceCategory>
+
+    <PreferenceCategory
+        android:key="llm_category_persona"
+        android:title="@string/llm_category_persona">
+        <Preference
+            android:key="llm_persona_template"
+            android:title="@string/llm_persona_template_title"
+            android:summary="@string/llm_persona_template_summary" />
+
+        <EditTextPreference
+            android:key="llm_system_prompt"
+            android:title="@string/llm_system_prompt_title"
+            android:summary="@string/llm_system_prompt_summary"
+            android:inputType="textMultiLine" />
+
+        <Preference
+            android:key="llm_system_prompt_templates"
+            android:title="@string/llm_templates_title"
+            android:summary="@string/llm_templates_summary" />
+    </PreferenceCategory>
+
+    <PreferenceCategory android:title="@string/llm_category_test">
         <Preference
             android:key="llm_test_connection"
             android:title="@string/llm_test_connection_title"
             android:summary="@string/llm_test_connection_summary"
             android:selectable="true" />
-
     </PreferenceCategory>
 
     <PreferenceCategory android:title="@string/llm_category_share">
@@ -159,19 +155,6 @@
             android:key="llm_import_qr"
             android:title="@string/llm_import_qr_title"
             android:summary="@string/llm_import_qr_summary" />
-    </PreferenceCategory>
-
-    <PreferenceCategory android:title="@string/llm_category_persona">
-        <Preference
-            android:key="llm_persona_template"
-            android:title="@string/llm_persona_template_title"
-            android:summary="@string/llm_persona_template_summary" />
-
-        <EditTextPreference
-            android:key="llm_system_prompt"
-            android:title="@string/llm_system_prompt_title"
-            android:summary="@string/llm_system_prompt_summary"
-            android:inputType="textMultiLine" />
     </PreferenceCategory>
 
 </PreferenceScreen>
