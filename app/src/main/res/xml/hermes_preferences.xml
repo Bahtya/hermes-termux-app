@@ -159,6 +159,11 @@
             android:summary="@string/hermes_gateway_log_summary" />
 
         <Preference
+            android:key="hermes_share_diagnostics"
+            android:title="@string/hermes_share_diag_title"
+            android:summary="@string/hermes_share_diag_summary" />
+
+        <Preference
             android:key="hermes_reset_config"
             android:title="@string/hermes_reset_title"
             android:summary="@string/hermes_reset_summary" />
