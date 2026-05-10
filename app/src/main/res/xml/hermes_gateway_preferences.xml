@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <Preference
+        android:key="gateway_start"
+        android:title="@string/gateway_start_title"
+        android:summary="@string/gateway_start_summary" />
+
+    <Preference
+        android:key="gateway_stop"
+        android:title="@string/gateway_stop_title"
+        android:summary="@string/gateway_stop_summary" />
+
+    <Preference
+        android:key="gateway_restart"
+        android:title="@string/gateway_restart_title"
+        android:summary="@string/gateway_restart_summary" />
+
+</PreferenceScreen>

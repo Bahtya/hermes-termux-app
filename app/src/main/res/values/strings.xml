@@ -239,4 +239,84 @@
     <!-- Donate Preference -->
     <string name="donate_preference_title">Donate</string>
 
+
+
+    <!-- Hermes Configuration -->
+    <string name="hermes_config_title">Hermes Settings</string>
+    <string name="hermes_cat_general">General</string>
+    <string name="hermes_cat_gateway">Gateway</string>
+    <string name="hermes_cat_advanced">Advanced</string>
+
+    <string name="hermes_llm_config_title">LLM Configuration</string>
+    <string name="hermes_llm_config_summary">Set AI provider, API key, and model</string>
+    <string name="hermes_feishu_setup_title">Feishu / Lark Setup</string>
+    <string name="hermes_feishu_setup_summary">One-click Feishu bot configuration</string>
+    <string name="hermes_gateway_control_title">Gateway Control</string>
+    <string name="hermes_gateway_control_summary">Start, stop, or restart the Hermes gateway</string>
+    <string name="hermes_reset_title">Reset Configuration</string>
+    <string name="hermes_reset_summary">Reset all Hermes settings to defaults</string>
+    <string name="hermes_reset_confirm_title">Reset Hermes Config?</string>
+    <string name="hermes_reset_confirm_message">This will delete your Hermes configuration files. API keys and settings will be lost.</string>
+    <string name="hermes_reset_done">Configuration reset to defaults</string>
+
+    <!-- LLM Preferences -->
+    <string name="llm_provider_title">AI Provider</string>
+    <string name="llm_provider_summary">Select your LLM provider</string>
+    <string name="llm_api_key_title">API Key</string>
+    <string name="llm_api_key_summary">Enter your provider API key</string>
+    <string name="llm_model_title">Model</string>
+    <string name="llm_model_summary">Model name to use (e.g. gpt-4o, claude-sonnet-4-6)</string>
+
+    <!-- LLM Provider Arrays -->
+    <string-array name="llm_provider_names">
+        <item>OpenAI</item>
+        <item>Anthropic</item>
+        <item>Google</item>
+        <item>DeepSeek</item>
+        <item>Custom (OpenAI-compatible)</item>
+    </string-array>
+    <string-array name="llm_provider_values">
+        <item>openai</item>
+        <item>anthropic</item>
+        <item>google</item>
+        <item>deepseek</item>
+        <item>custom</item>
+    </string-array>
+
+    <!-- Gateway Control -->
+    <string name="gateway_start_title">Start Gateway</string>
+    <string name="gateway_start_summary">Start the Hermes messaging gateway</string>
+    <string name="gateway_stop_title">Stop Gateway</string>
+    <string name="gateway_stop_summary">Stop the running gateway</string>
+    <string name="gateway_restart_title">Restart Gateway</string>
+    <string name="gateway_restart_summary">Restart the gateway process</string>
+    <string name="gateway_started">Gateway starting…</string>
+    <string name="gateway_stopped">Gateway stopped</string>
+    <string name="gateway_restarted">Gateway restarting…</string>
+
+    <!-- Feishu Setup -->
+    <string name="feishu_setup_title">Feishu / Lark Setup</string>
+    <string name="feishu_step_welcome">Welcome</string>
+    <string name="feishu_step_domain">Choose Platform</string>
+    <string name="feishu_step_create_app">Create App</string>
+    <string name="feishu_step_credentials">Enter Credentials</string>
+    <string name="feishu_step_complete">Complete</string>
+    <string name="feishu_welcome_text">Connect Hermes to Feishu/Lark to chat with your AI assistant directly in messages.\n\nThis wizard will guide you through creating a Feishu bot and connecting it to Hermes.</string>
+    <string name="feishu_domain_label">Select your platform:</string>
+    <string name="feishu_credentials_title">Enter your App credentials from the Developer Console:</string>
+    <string name="feishu_domain_feishu">Feishu (飞书)</string>
+    <string name="feishu_domain_lark">Lark (International)</string>
+    <string name="feishu_create_app_text">1. Open the Feishu Developer Console\n2. Click "Create App"\n3. Choose "Bot" as the app type\n4. Fill in app name and description</string>
+    <string name="feishu_open_console">Open Developer Console</string>
+    <string name="feishu_app_id_label">App ID</string>
+    <string name="feishu_app_secret_label">App Secret</string>
+    <string name="feishu_connection_mode">Connection Mode</string>
+    <string name="feishu_mode_websocket">WebSocket (Recommended)</string>
+    <string name="feishu_mode_webhook">Webhook</string>
+    <string name="feishu_save_success">Feishu configuration saved!</string>
+    <string name="feishu_next">Next</string>
+    <string name="feishu_back">Back</string>
+    <string name="feishu_finish">Finish</string>
+    <string name="feishu_cancel">Cancel</string>
+
 </resources>
