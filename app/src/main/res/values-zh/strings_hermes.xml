@@ -437,4 +437,10 @@
     <!-- Setup Wizard -->
     <string name="hermes_run_wizard_title">运行设置向导</string>
     <string name="hermes_run_wizard_summary">重新运行初始设置向导以配置 AI 和消息平台</string>
+    <!-- Update -->
+    <string name="hermes_update_now_title">更新 Hermes Agent</string>
+    <string name="hermes_update_now_summary">点击安装最新版本</string>
+    <string name="hermes_update_running">正在更新 Hermes Agent…</string>
+    <string name="hermes_update_success">已更新到 %1$s</string>
+    <string name="hermes_update_error">更新失败：%1$s</string>
 </resources>
