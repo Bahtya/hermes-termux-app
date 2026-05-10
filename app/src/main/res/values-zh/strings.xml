@@ -257,9 +257,6 @@
     <string name="llm_category_persona">人设</string>
     <string name="llm_params_category_title">参数</string>
 
-    <!-- Feishu -->
-    <string name="feishu_setup_title">飞书 / Lark 设置</string>
-
     <!-- Telegram -->
 
     <!-- Discord -->
