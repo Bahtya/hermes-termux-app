@@ -19,7 +19,7 @@ android {
         implementation "io.noties.markwon:recycler:$markwonVersion"
         implementation "org.lsposed.hiddenapibypass:hiddenapibypass:6.1"
 
-        implementation "androidx.window:window:1.1.0"
+        implementation "androidx.window:window:1.5.1"
 
         // Do not increment version higher than 2.5 or there
         // will be runtime exceptions on android < 8
