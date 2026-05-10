@@ -2638,7 +2638,7 @@ public class HermesConfigActivity extends AppCompatActivity {
 
             switch (key) {
                 case "gateway_start":
-                    runGatewayCommand("start");
+                    showPreLaunchChecks();
                     return true;
                 case "gateway_stop":
                     runGatewayCommand("stop");
@@ -2693,6 +2693,128 @@ public class HermesConfigActivity extends AppCompatActivity {
                     statsPref.setSummary(getString(R.string.gateway_stats_stopped));
                 }
             }
+        }
+
+        private void showPreLaunchChecks() {
+            android.app.AlertDialog.Builder builder = new android.app.AlertDialog.Builder(requireContext());
+            builder.setTitle(R.string.prelaunch_title);
+
+            LinearLayout checklist = new LinearLayout(requireContext());
+            checklist.setOrientation(LinearLayout.VERTICAL);
+            checklist.setPadding(dp(24), dp(16), dp(24), dp(8));
+
+            java.util.List<String> errors = new java.util.ArrayList<>();
+            java.util.List<String> warnings = new java.util.ArrayList<>();
+
+            // Check 1: Hermes installation
+            boolean installed = new java.io.File(
+                    com.termux.shared.termux.TermuxConstants.TERMUX_HOME_DIR_PATH + "/hermes-installed").exists();
+            addCheckItem(checklist, getString(R.string.prelaunch_check_install),
+                    installed, getString(R.string.prelaunch_fix_install));
+            if (!installed) errors.add(getString(R.string.prelaunch_check_install));
+
+            // Check 2: LLM API key
+            String provider = mConfigManager.getModelProvider();
+            String apiKey = mConfigManager.getApiKey(provider);
+            boolean hasApiKey = !apiKey.isEmpty() || "ollama".equals(provider);
+            addCheckItem(checklist, getString(R.string.prelaunch_check_api_key),
+                    hasApiKey, getString(R.string.prelaunch_fix_api_key));
+            if (!hasApiKey) errors.add(getString(R.string.prelaunch_check_api_key));
+
+            // Check 3: LLM model selected
+            String model = mConfigManager.getModelName();
+            boolean hasModel = !model.isEmpty();
+            addCheckItem(checklist, getString(R.string.prelaunch_check_model),
+                    hasModel, getString(R.string.prelaunch_fix_model));
+            if (!hasModel) errors.add(getString(R.string.prelaunch_check_model));
+
+            // Check 4: At least one IM platform
+            boolean hasIm = mConfigManager.isFeishuConfigured()
+                    || !mConfigManager.getEnvVar("TELEGRAM_BOT_TOKEN").isEmpty()
+                    || !mConfigManager.getEnvVar("DISCORD_BOT_TOKEN").isEmpty()
+                    || !mConfigManager.getEnvVar("WHATSAPP_PHONE_NUMBER_ID").isEmpty();
+            addCheckItem(checklist, getString(R.string.prelaunch_check_im),
+                    hasIm, getString(R.string.prelaunch_fix_im));
+            if (!hasIm) warnings.add(getString(R.string.prelaunch_check_im));
+
+            // Check 5: System prompt
+            String prompt = mConfigManager.getSystemPrompt();
+            boolean hasPrompt = prompt != null && !prompt.isEmpty();
+            addCheckItem(checklist, getString(R.string.prelaunch_check_prompt),
+                    hasPrompt, getString(R.string.prelaunch_fix_prompt));
+            if (!hasPrompt) warnings.add(getString(R.string.prelaunch_check_prompt));
+
+            // Summary
+            TextView summary = new TextView(requireContext());
+            summary.setPadding(0, dp(12), 0, 0);
+            if (errors.isEmpty() && warnings.isEmpty()) {
+                summary.setText(R.string.prelaunch_all_pass);
+                summary.setTextColor(0xFF388E3C);
+            } else if (errors.isEmpty()) {
+                summary.setText(getString(R.string.prelaunch_warnings, warnings.size()));
+                summary.setTextColor(0xFFF57C00);
+            } else {
+                summary.setText(getString(R.string.prelaunch_errors, errors.size()));
+                summary.setTextColor(0xFFD32F2F);
+            }
+            summary.setTextSize(14);
+            checklist.addView(summary);
+
+            builder.setView(checklist);
+
+            if (errors.isEmpty()) {
+                builder.setPositiveButton(R.string.gateway_start_title, (d, w) -> runGatewayCommand("start"));
+            }
+            builder.setNegativeButton(android.R.string.cancel, null);
+
+            if (!errors.isEmpty()) {
+                builder.setPositiveButton(R.string.prelaunch_fix, (d, w) -> {
+                    // Navigate to the first error's fix location
+                    Intent intent = new Intent(requireContext(), HermesConfigActivity.class);
+                    intent.putExtra("tab", "llm");
+                    startActivity(intent);
+                });
+            }
+
+            builder.show();
+        }
+
+        private void addCheckItem(LinearLayout parent, String label, boolean pass, String fixHint) {
+            LinearLayout row = new LinearLayout(requireContext());
+            row.setOrientation(LinearLayout.HORIZONTAL);
+            row.setGravity(android.view.Gravity.CENTER_VERTICAL);
+            row.setPadding(0, dp(4), 0, dp(4));
+
+            TextView icon = new TextView(requireContext());
+            icon.setText(pass ? "✔" : "✘");
+            icon.setTextColor(pass ? 0xFF388E3C : 0xFFD32F2F);
+            icon.setTextSize(18);
+            icon.setPadding(0, 0, dp(12), 0);
+            row.addView(icon);
+
+            LinearLayout textCol = new LinearLayout(requireContext());
+            textCol.setOrientation(LinearLayout.VERTICAL);
+            textCol.setLayoutParams(new LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 1f));
+
+            TextView labelView = new TextView(requireContext());
+            labelView.setText(label);
+            labelView.setTextSize(14);
+            textCol.addView(labelView);
+
+            if (!pass) {
+                TextView hint = new TextView(requireContext());
+                hint.setText(fixHint);
+                hint.setTextSize(12);
+                hint.setTextColor(0xFF888888);
+                textCol.addView(hint);
+            }
+
+            row.addView(textCol);
+            parent.addView(row);
+        }
+
+        private int dp(int value) {
+            return (int) (value * getResources().getDisplayMetrics().density);
         }
     }
 
