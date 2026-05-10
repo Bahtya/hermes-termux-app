@@ -56,6 +56,49 @@ public class HermesConfigActivity extends AppCompatActivity {
         public void onCreatePreferences(Bundle savedInstanceState, String rootKey) {
             setPreferencesFromResource(R.xml.hermes_preferences, rootKey);
             mConfigManager = HermesConfigManager.getInstance();
+
+            // Show gateway status
+            Preference gatewayPref = findPreference("hermes_gateway_control");
+            if (gatewayPref != null) {
+                HermesGatewayStatus.checkAsync((status, detail) -> {
+                    if (getActivity() == null) return;
+                    getActivity().runOnUiThread(() -> {
+                        String summary;
+                        switch (status) {
+                            case RUNNING:
+                                summary = getString(R.string.gateway_status_running);
+                                break;
+                            case NOT_INSTALLED:
+                                summary = getString(R.string.gateway_status_not_installed);
+                                break;
+                            default:
+                                summary = getString(R.string.gateway_status_stopped);
+                                break;
+                        }
+                        gatewayPref.setSummary(summary);
+                    });
+                });
+            }
+
+            // Show LLM config status
+            Preference llmPref = findPreference("hermes_llm_config");
+            if (llmPref != null) {
+                String provider = mConfigManager.getModelProvider();
+                String apiKey = mConfigManager.getApiKey(provider);
+                boolean hasKey = apiKey != null && !apiKey.isEmpty();
+                llmPref.setSummary(hasKey
+                        ? getString(R.string.llm_configured, provider)
+                        : getString(R.string.llm_not_configured));
+            }
+
+            // Show Feishu status
+            Preference feishuPref = findPreference("hermes_feishu_setup");
+            if (feishuPref != null) {
+                boolean configured = mConfigManager.isFeishuConfigured();
+                feishuPref.setSummary(configured
+                        ? getString(R.string.feishu_configured)
+                        : getString(R.string.feishu_not_configured));
+            }
         }
 
         @Override
