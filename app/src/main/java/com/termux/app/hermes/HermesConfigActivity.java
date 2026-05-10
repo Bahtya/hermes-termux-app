@@ -2,29 +2,35 @@ package com.termux.app.hermes;
 
 import android.content.Context;
 import android.content.Intent;
-import android.Manifest;
-import android.content.pm.PackageManager;
-import android.os.Build;
+import android.graphics.Bitmap;
 import android.os.Bundle;
+import android.view.Gravity;
 import android.view.MenuItem;
+import android.view.View;
+import android.widget.ImageView;
+import android.LinearLayout;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.ActionBar;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
-import androidx.activity.result.ActivityResultLauncher;
-import androidx.activity.result.contract.ActivityResultContracts;
-import androidx.core.content.ContextCompat;
 import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentTransaction;
 import androidx.preference.ListPreference;
 import androidx.preference.Preference;
 import androidx.preference.PreferenceFragmentCompat;
+
+import androidx.activity.result.ActivityResultLauncher;
+import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.preference.SwitchPreferenceCompat;
 
 import com.termux.R;
 import com.termux.shared.termux.TermuxConstants;
+
+import com.google.zxing.BarcodeFormat;
+import com.google.zxing.qrcode.QRCodeWriter;
+import com.google.zxing.common.BitMatrix;
 
 import java.io.File;
 
@@ -62,16 +68,6 @@ public class HermesConfigActivity extends AppCompatActivity {
     public static class HermesConfigFragment extends PreferenceFragmentCompat {
 
         private HermesConfigManager mConfigManager;
-        private ActivityResultLauncher<String> mNotificationPermLauncher;
-
-        @Override
-        public void onCreate(Bundle savedInstanceState) {
-            super.onCreate(savedInstanceState);
-            mNotificationPermLauncher = registerForActivityResult(
-                    new ActivityResultContracts.RequestPermission(), isGranted -> {
-                        updateNotificationPermStatus();
-                    });
-        }
 
         @Override
         public void onCreatePreferences(Bundle savedInstanceState, String rootKey) {
@@ -165,9 +161,6 @@ public class HermesConfigActivity extends AppCompatActivity {
                 });
             }
 
-            // Notification permission status
-            updateNotificationPermStatus();
-
             // Show LLM config status
             Preference llmPref = findPreference("hermes_llm_config");
             if (llmPref != null) {
@@ -216,9 +209,6 @@ public class HermesConfigActivity extends AppCompatActivity {
                 case "hermes_llm_config":
                     showFragment(new LlmConfigFragment());
                     return true;
-                case "hermes_notification_perm":
-                    requestNotificationPermission();
-                    return true;
                 case "hermes_feishu_setup":
                     startActivity(new Intent(requireContext(), FeishuSetupActivity.class));
                     return true;
@@ -252,44 +242,6 @@ public class HermesConfigActivity extends AppCompatActivity {
                     return true;
             }
             return super.onPreferenceTreeClick(preference);
-        }
-
-        private void updateNotificationPermStatus() {
-            Preference permPref = findPreference("hermes_notification_perm");
-            if (permPref == null) return;
-
-            if (Build.VERSION.SDK_INT < 33) {
-                permPref.setVisible(false);
-                return;
-            }
-
-            boolean granted = ContextCompat.checkSelfPermission(requireContext(),
-                    Manifest.permission.POST_NOTIFICATIONS) == PackageManager.PERMISSION_GRANTED;
-            permPref.setSummary(granted
-                    ? getString(R.string.notification_perm_granted)
-                    : getString(R.string.notification_perm_denied));
-        }
-
-        private void requestNotificationPermission() {
-            if (Build.VERSION.SDK_INT < 33) return;
-
-            if (ContextCompat.checkSelfPermission(requireContext(),
-                    Manifest.permission.POST_NOTIFICATIONS) == PackageManager.PERMISSION_GRANTED) {
-                Toast.makeText(requireContext(), R.string.notification_perm_granted, Toast.LENGTH_SHORT).show();
-                return;
-            }
-
-            if (shouldShowRequestPermissionRationale(Manifest.permission.POST_NOTIFICATIONS)) {
-                new AlertDialog.Builder(requireContext())
-                        .setTitle(R.string.notification_perm_rationale_title)
-                        .setMessage(R.string.notification_perm_rationale_message)
-                        .setPositiveButton(android.R.string.ok, (d, w) ->
-                                mNotificationPermLauncher.launch(Manifest.permission.POST_NOTIFICATIONS))
-                        .setNegativeButton(android.R.string.cancel, null)
-                        .show();
-            } else {
-                mNotificationPermLauncher.launch(Manifest.permission.POST_NOTIFICATIONS);
-            }
         }
 
         private void showFragment(Fragment fragment) {
@@ -483,13 +435,21 @@ public class HermesConfigActivity extends AppCompatActivity {
     public static class LlmConfigFragment extends PreferenceFragmentCompat {
 
         private HermesConfigManager mConfigManager;
+        private ActivityResultLauncher<Intent> mQrScanLauncher;
 
-        // Provider capabilities
-        private static final String[] PROVIDERS_NEEDING_API_KEY = {
-            "openai", "anthropic", "google", "deepseek", "openrouter",
-            "xai", "alibaba", "mistral", "nvidia", "custom"
-        };
-        private static final String[] PROVIDERS_NEEDING_BASE_URL = {"ollama", "custom"};
+        @Override
+        public void onCreate(Bundle savedInstanceState) {
+            super.onCreate(savedInstanceState);
+            mQrScanLauncher = registerForActivityResult(
+                    new ActivityResultContracts.StartActivityForResult(),
+                    result -> {
+                        if (result.getResultCode() == getActivity().RESULT_OK && result.getData() != null) {
+                            String scanned = result.getData().getStringExtra("SCAN_RESULT");
+                            if (scanned != null) handleQrImport(scanned);
+                        }
+                    }
+            );
+        }
 
         @Override
         public void onCreatePreferences(Bundle savedInstanceState, String rootKey) {
@@ -498,224 +458,58 @@ public class HermesConfigActivity extends AppCompatActivity {
 
             String currentProvider = mConfigManager.getModelProvider();
             updateModelList(currentProvider);
-            applyProviderConfig(currentProvider);
 
-            setupProviderSelector();
-            setupApiKeyField();
-            setupModelSelector();
-            setupCustomModelField();
-            setupBaseUrlField();
-        }
-
-        private void setupProviderSelector() {
-            Preference providerPref = findPreference("llm_provider");
-            if (providerPref == null) return;
-
-            providerPref.setOnPreferenceChangeListener((p, newVal) -> {
-                String provider = (String) newVal;
-                mConfigManager.setModelProvider(provider);
-                updateModelList(provider);
-                applyProviderConfig(provider);
-                return true;
-            });
-        }
-
-        private void setupApiKeyField() {
-            Preference apiKeyPref = findPreference("llm_api_key");
-            if (apiKeyPref == null) return;
-
-            String provider = mConfigManager.getModelProvider();
-            String currentKey = mConfigManager.getApiKey(provider);
-            if (!currentKey.isEmpty()) {
-                apiKeyPref.setSummary(maskApiKey(currentKey));
-            }
-
-            apiKeyPref.setOnPreferenceChangeListener((p, newVal) -> {
-                String key = (String) newVal;
-                String currentProvider = mConfigManager.getModelProvider();
-                mConfigManager.setApiKey(currentProvider, key);
-                p.setSummary(maskApiKey(key));
-
-                if (shouldValidateApiKey(currentProvider) && !key.isEmpty()) {
-                    if (!isValidApiKeyFormat(currentProvider, key)) {
-                        Preference hint = findPreference("llm_api_key_hint");
-                        if (hint != null) {
-                            hint.setSummary(getString(R.string.llm_api_key_format_warn));
-                        }
-                    }
-                }
-                return true;
-            });
-        }
-
-        private void setupModelSelector() {
-            ListPreference modelPref = findPreference("llm_model");
-            if (modelPref == null) return;
-
-            modelPref.setOnPreferenceChangeListener((p, newVal) -> {
-                String model = (String) newVal;
-                mConfigManager.setModelName(model);
-                Preference customModelPref = findPreference("llm_custom_model");
-                if (customModelPref != null) {
-                    customModelPref.setVisible(false);
-                }
-                return true;
-            });
-        }
-
-        private void setupCustomModelField() {
-            Preference customModelPref = findPreference("llm_custom_model");
-            if (customModelPref == null) return;
-
-            customModelPref.setOnPreferenceChangeListener((p, newVal) -> {
-                String model = (String) newVal;
-                if (!model.trim().isEmpty()) {
-                    mConfigManager.setModelName(model.trim());
-                }
-                return true;
-            });
-        }
-
-        private void setupBaseUrlField() {
-            Preference baseUrlPref = findPreference("llm_base_url");
-            if (baseUrlPref == null) return;
-
-            baseUrlPref.setOnPreferenceChangeListener((p, newVal) -> {
-                String url = (String) newVal;
-                mConfigManager.setEnvVar("OPENAI_BASE_URL", url);
-                return true;
-            });
-        }
-
-        /** Apply provider-specific UI configuration: field visibility, hints, defaults. */
-        private void applyProviderConfig(String provider) {
-            boolean needsApiKey = needsApiKey(provider);
-            boolean needsBaseUrl = needsBaseUrl(provider);
-
-            // Auth category visibility
-            Preference authCategory = findPreference("llm_category_auth");
-            if (authCategory != null) authCategory.setVisible(needsApiKey);
-
-            // API key hint
-            Preference apiKeyHint = findPreference("llm_api_key_hint");
-            if (apiKeyHint != null) {
-                apiKeyHint.setSummary(getApiKeyHintResId(provider));
-                if (!needsApiKey) {
-                    apiKeyHint.setSummary(getString(R.string.llm_api_key_not_needed));
-                }
-            }
-
-            // Update API key summary with current provider's key
             Preference apiKeyPref = findPreference("llm_api_key");
             if (apiKeyPref != null) {
-                String key = mConfigManager.getApiKey(provider);
-                apiKeyPref.setSummary(key.isEmpty() ? "" : maskApiKey(key));
-            }
-
-            // Endpoint category visibility
-            Preference endpointCategory = findPreference("llm_category_endpoint");
-            if (endpointCategory != null) endpointCategory.setVisible(needsBaseUrl);
-
-            // Base URL hint
-            Preference baseUrlHint = findPreference("llm_base_url_hint");
-            if (baseUrlHint != null) {
-                if ("ollama".equals(provider)) {
-                    String currentUrl = mConfigManager.getEnvVar("OPENAI_BASE_URL");
-                    if (currentUrl.isEmpty()) {
-                        baseUrlHint.setSummary(getString(R.string.llm_base_url_hint_ollama));
-                    } else {
-                        baseUrlHint.setSummary(getString(R.string.llm_base_url_auto_set, currentUrl));
-                    }
-                } else if ("custom".equals(provider)) {
-                    baseUrlHint.setSummary(getString(R.string.llm_base_url_hint_custom));
+                String currentKey = mConfigManager.getApiKey(currentProvider);
+                if (currentKey != null && !currentKey.isEmpty()) {
+                    apiKeyPref.setSummary(maskApiKey(currentKey));
                 }
-            }
-
-            // Auto-fill base URL for Ollama if empty
-            if ("ollama".equals(provider)) {
-                String currentUrl = mConfigManager.getEnvVar("OPENAI_BASE_URL");
-                if (currentUrl.isEmpty()) {
-                    mConfigManager.setEnvVar("OPENAI_BASE_URL", "http://localhost:11434");
-                    Preference baseUrlPref = findPreference("llm_base_url");
-                    if (baseUrlPref instanceof androidx.preference.EditTextPreference) {
-                        ((androidx.preference.EditTextPreference) baseUrlPref).setText("http://localhost:11434");
-                    }
-                }
-            }
-
-            // Provider info
-            Preference providerInfo = findPreference("llm_provider_info");
-            if (providerInfo != null) {
-                providerInfo.setSummary(getProviderInfoResId(provider));
-            }
-        }
-
-        private boolean needsApiKey(String provider) {
-            for (String p : PROVIDERS_NEEDING_API_KEY) {
-                if (p.equals(provider)) return true;
-            }
-            return false;
-        }
-
-        private boolean needsBaseUrl(String provider) {
-            for (String p : PROVIDERS_NEEDING_BASE_URL) {
-                if (p.equals(provider)) return true;
-            }
-            return false;
-        }
-
-        private String getProviderInfoResId(String provider) {
-            switch (provider) {
-                case "openai": return getString(R.string.llm_provider_info_openai);
-                case "anthropic": return getString(R.string.llm_provider_info_anthropic);
-                case "google": return getString(R.string.llm_provider_info_google);
-                case "deepseek": return getString(R.string.llm_provider_info_deepseek);
-                case "openrouter": return getString(R.string.llm_provider_info_openrouter);
-                case "xai": return getString(R.string.llm_provider_info_xai);
-                case "alibaba": return getString(R.string.llm_provider_info_alibaba);
-                case "mistral": return getString(R.string.llm_provider_info_mistral);
-                case "nvidia": return getString(R.string.llm_provider_info_nvidia);
-                case "ollama": return getString(R.string.llm_provider_info_ollama);
-                case "custom": return getString(R.string.llm_provider_info_custom);
-                default: return "";
-            }
-        }
-
-        private String getApiKeyHintResId(String provider) {
-            switch (provider) {
-                case "openai": return getString(R.string.llm_api_key_hint_openai);
-                case "anthropic": return getString(R.string.llm_api_key_hint_anthropic);
-                case "google": return getString(R.string.llm_api_key_hint_google);
-                case "deepseek": return getString(R.string.llm_api_key_hint_deepseek);
-                case "openrouter": return getString(R.string.llm_api_key_hint_openrouter);
-                case "xai": return getString(R.string.llm_api_key_hint_xai);
-                case "alibaba": return getString(R.string.llm_api_key_hint_alibaba);
-                case "mistral": return getString(R.string.llm_api_key_hint_mistral);
-                case "nvidia": return getString(R.string.llm_api_key_hint_nvidia);
-                case "ollama": return getString(R.string.llm_api_key_hint_ollama);
-                case "custom": return getString(R.string.llm_api_key_hint_custom);
-                default: return "";
-            }
-        }
-
-        private boolean shouldValidateApiKey(String provider) {
-            return "openai".equals(provider) || "anthropic".equals(provider)
-                    || "google".equals(provider) || "deepseek".equals(provider);
-        }
-
-        private boolean isValidApiKeyFormat(String provider, String key) {
-            if (key == null || key.isEmpty()) return false;
-            switch (provider) {
-                case "openai":
-                    return key.startsWith("sk-") && key.length() > 20;
-                case "anthropic":
-                    return key.startsWith("sk-ant-") && key.length() > 20;
-                case "google":
-                    return key.length() >= 30;
-                case "deepseek":
-                    return key.startsWith("sk-") && key.length() > 10;
-                default:
+                apiKeyPref.setOnPreferenceChangeListener((p, newVal) -> {
+                    mConfigManager.setApiKey(mConfigManager.getModelProvider(), (String) newVal);
+                    p.setSummary(maskApiKey((String) newVal));
                     return true;
+                });
+            }
+
+            Preference providerPref = findPreference("llm_provider");
+            if (providerPref != null) {
+                providerPref.setOnPreferenceChangeListener((p, newVal) -> {
+                    String provider = (String) newVal;
+                    mConfigManager.setModelProvider(provider);
+                    updateModelList(provider);
+
+                    String key = mConfigManager.getApiKey(provider);
+                    Preference akp = findPreference("llm_api_key");
+                    if (akp != null) {
+                        akp.setSummary(key != null ? maskApiKey(key) : "");
+                    }
+
+                    Preference baseUrlPref = findPreference("llm_base_url");
+                    if (baseUrlPref != null) {
+                        boolean needsUrl = "ollama".equals(provider) || "custom".equals(provider);
+                        baseUrlPref.setVisible(needsUrl);
+                    }
+                    return true;
+                });
+            }
+
+            Preference modelPref = findPreference("llm_model");
+            if (modelPref != null) {
+                modelPref.setOnPreferenceChangeListener((p, newVal) -> {
+                    mConfigManager.setModelName((String) newVal);
+                    return true;
+                });
+            }
+
+            Preference baseUrlPref = findPreference("llm_base_url");
+            if (baseUrlPref != null) {
+                baseUrlPref.setOnPreferenceChangeListener((p, newVal) -> {
+                    mConfigManager.setEnvVar("OPENAI_BASE_URL", (String) newVal);
+                    return true;
+                });
+                boolean needsUrl = "ollama".equals(currentProvider) || "custom".equals(currentProvider);
+                baseUrlPref.setVisible(needsUrl);
             }
         }
 
@@ -728,41 +522,9 @@ public class HermesConfigActivity extends AppCompatActivity {
                 CharSequence[] models = getResources().getTextArray(arrayResId);
                 modelPref.setEntries(models);
                 modelPref.setEntryValues(models);
-                modelPref.setVisible(true);
-
-                // Set the saved model or default to first
-                String savedModel = mConfigManager.getModelName();
-                boolean modelInList = false;
-                for (CharSequence m : models) {
-                    if (m.toString().equals(savedModel)) {
-                        modelInList = true;
-                        break;
-                    }
-                }
-                if (modelInList) {
-                    modelPref.setValue(savedModel);
-                } else if (models.length > 0) {
+                if (models.length > 0) {
                     modelPref.setValue(models[0].toString());
                     mConfigManager.setModelName(models[0].toString());
-                }
-
-                // Show custom model field if saved model is not in the list
-                Preference customModelPref = findPreference("llm_custom_model");
-                if (customModelPref != null) {
-                    if (!modelInList && !savedModel.isEmpty()) {
-                        customModelPref.setVisible(true);
-                        if (customModelPref instanceof androidx.preference.EditTextPreference) {
-                            ((androidx.preference.EditTextPreference) customModelPref).setText(savedModel);
-                        }
-                    } else {
-                        customModelPref.setVisible(false);
-                    }
-                }
-            } else {
-                modelPref.setVisible(false);
-                Preference customModelPref = findPreference("llm_custom_model");
-                if (customModelPref != null) {
-                    customModelPref.setVisible(true);
                 }
             }
         }
@@ -790,11 +552,154 @@ public class HermesConfigActivity extends AppCompatActivity {
 
         @Override
         public boolean onPreferenceTreeClick(@NonNull Preference preference) {
-            if ("llm_test_connection".equals(preference.getKey())) {
+            String key = preference.getKey();
+            if ("llm_test_connection".equals(key)) {
                 testConnection(preference);
                 return true;
             }
+            if ("llm_export_qr".equals(key)) {
+                showQrExport();
+                return true;
+            }
+            if ("llm_import_qr".equals(key)) {
+                launchQrScanner();
+                return true;
+            }
             return super.onPreferenceTreeClick(preference);
+        }
+
+        private void showQrExport() {
+            String provider = mConfigManager.getModelProvider();
+            String model = mConfigManager.getModelName();
+            String baseUrl = mConfigManager.getEnvVar("OPENAI_BASE_URL");
+
+            // Build JSON config (NO API key for security)
+            String json = "{\"hermes_llm\":{\"provider\":\"" + provider
+                    + "\",\"model\":\"" + model
+                    + "\",\"base_url\":\"" + baseUrl + "\"}}";
+
+            Bitmap qrBitmap = generateQRCode(json, 256);
+            if (qrBitmap == null) {
+                Toast.makeText(requireContext(), "Failed to generate QR code", Toast.LENGTH_SHORT).show();
+                return;
+            }
+
+            // Build dialog with QR image
+            LinearLayout ll = new LinearLayout(requireContext());
+            ll.setOrientation(LinearLayout.VERTICAL);
+            ll.setGravity(Gravity.CENTER_HORIZONTAL);
+            ll.setPadding(48, 32, 48, 16);
+
+            ImageView iv = new ImageView(requireContext());
+            iv.setImageBitmap(qrBitmap);
+            LinearLayout.LayoutParams imgParams = new LinearLayout.LayoutParams(256, 256);
+            iv.setLayoutParams(imgParams);
+            ll.addView(iv);
+
+            android.widget.TextView warning = new android.widget.TextView(requireContext());
+            warning.setText(getString(R.string.llm_qr_export_warning));
+            warning.setTextSize(12);
+            warning.setGravity(Gravity.CENTER);
+            warning.setPadding(0, 16, 0, 0);
+            ll.addView(warning);
+
+            new AlertDialog.Builder(requireContext())
+                    .setTitle(R.string.llm_qr_export_title)
+                    .setView(ll)
+                    .setPositiveButton(android.R.string.ok, null)
+                    .show();
+        }
+
+        private Bitmap generateQRCode(String content, int sizePx) {
+            try {
+                QRCodeWriter writer = new QRCodeWriter();
+                BitMatrix matrix = writer.encode(content, BarcodeFormat.QR_CODE, sizePx, sizePx);
+                Bitmap bitmap = Bitmap.createBitmap(sizePx, sizePx, Bitmap.Config.RGB_565);
+                for (int x = 0; x < sizePx; x++) {
+                    for (int y = 0; y < sizePx; y++) {
+                        bitmap.setPixel(x, y, matrix.get(x, y) ? 0xFF000000 : 0xFFFFFFFF);
+                    }
+                }
+                return bitmap;
+            } catch (Exception e) {
+                return null;
+            }
+        }
+
+        private void launchQrScanner() {
+            try {
+                Intent intent = new Intent("com.google.zxing.client.android.SCAN");
+                intent.putExtra("SCAN_MODE", "QR_CODE_MODE");
+                mQrScanLauncher.launch(intent);
+            } catch (Exception e) {
+                Toast.makeText(requireContext(), getString(R.string.llm_qr_no_scanner),
+                        Toast.LENGTH_LONG).show();
+            }
+        }
+
+        private void handleQrImport(String scannedData) {
+            if (scannedData == null || !scannedData.contains("hermes_llm")) {
+                Toast.makeText(requireContext(), getString(R.string.llm_qr_invalid_data),
+                        Toast.LENGTH_SHORT).show();
+                return;
+            }
+
+            try {
+                String provider = extractJsonField(scannedData, "provider");
+                String model = extractJsonField(scannedData, "model");
+                String baseUrl = extractJsonField(scannedData, "base_url");
+
+                if (provider == null || provider.isEmpty()) {
+                    Toast.makeText(requireContext(), getString(R.string.llm_qr_invalid_data),
+                            Toast.LENGTH_SHORT).show();
+                    return;
+                }
+
+                String displayUrl = baseUrl != null ? baseUrl : "";
+                new AlertDialog.Builder(requireContext())
+                        .setTitle(R.string.llm_qr_import_confirm_title)
+                        .setMessage(getString(R.string.llm_qr_import_confirm_message,
+                                provider, model != null ? model : "", displayUrl))
+                        .setPositiveButton(android.R.string.ok, (d, w) -> {
+                            mConfigManager.setModelProvider(provider);
+                            if (model != null && !model.isEmpty()) {
+                                mConfigManager.setModelName(model);
+                            }
+                            if (baseUrl != null && !baseUrl.isEmpty()) {
+                                mConfigManager.setEnvVar("OPENAI_BASE_URL", baseUrl);
+                            }
+
+                            // Refresh UI
+                            updateModelList(provider);
+                            Preference providerPref = findPreference("llm_provider");
+                            if (providerPref instanceof ListPreference) {
+                                ((ListPreference) providerPref).setValue(provider);
+                            }
+                            Preference modelPref = findPreference("llm_model");
+                            if (modelPref instanceof ListPreference && model != null) {
+                                ((ListPreference) modelPref).setValue(model);
+                            }
+
+                            Toast.makeText(requireContext(), getString(R.string.llm_qr_import_applied),
+                                    Toast.LENGTH_SHORT).show();
+                        })
+                        .setNegativeButton(android.R.string.cancel, null)
+                        .show();
+            } catch (Exception e) {
+                Toast.makeText(requireContext(),
+                        getString(R.string.llm_qr_import_failed, e.getMessage()),
+                        Toast.LENGTH_SHORT).show();
+            }
+        }
+
+        private String extractJsonField(String json, String field) {
+            String key = "\"" + field + "\":\"";
+            int start = json.indexOf(key);
+            if (start < 0) return null;
+            start += key.length();
+            int end = json.indexOf("\"", start);
+            if (end < 0) return null;
+            return json.substring(start, end);
         }
 
         private void testConnection(Preference testPref) {
@@ -804,7 +709,7 @@ public class HermesConfigActivity extends AppCompatActivity {
 
             if ("ollama".equals(provider)) {
                 apiKey = "ollama";
-            } else if (apiKey.isEmpty() && needsApiKey(provider)) {
+            } else if (apiKey.isEmpty()) {
                 testPref.setSummary(getString(R.string.llm_test_no_key));
                 return;
             }
