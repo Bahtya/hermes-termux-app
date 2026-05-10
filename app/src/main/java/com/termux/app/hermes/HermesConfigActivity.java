@@ -523,6 +523,7 @@ public class HermesConfigActivity extends AppCompatActivity {
     public static class LlmConfigFragment extends PreferenceFragmentCompat {
 
         private HermesConfigManager mConfigManager;
+        private boolean mHasUnsavedChanges = false;
 
         @Override
         public void onCreatePreferences(Bundle savedInstanceState, String rootKey) {
@@ -541,6 +542,7 @@ public class HermesConfigActivity extends AppCompatActivity {
                 apiKeyPref.setOnPreferenceChangeListener((p, newVal) -> {
                     mConfigManager.setApiKey(mConfigManager.getModelProvider(), (String) newVal);
                     p.setSummary(maskApiKey((String) newVal));
+                    mHasUnsavedChanges = true;
                     return true;
                 });
             }
@@ -563,6 +565,7 @@ public class HermesConfigActivity extends AppCompatActivity {
                         boolean needsUrl = "ollama".equals(provider) || "custom".equals(provider);
                         baseUrlPref.setVisible(needsUrl);
                     }
+                    mHasUnsavedChanges = true;
                     return true;
                 });
             }
@@ -571,6 +574,7 @@ public class HermesConfigActivity extends AppCompatActivity {
             if (modelPref != null) {
                 modelPref.setOnPreferenceChangeListener((p, newVal) -> {
                     mConfigManager.setModelName((String) newVal);
+                    mHasUnsavedChanges = true;
                     return true;
                 });
             }
@@ -579,11 +583,53 @@ public class HermesConfigActivity extends AppCompatActivity {
             if (baseUrlPref != null) {
                 baseUrlPref.setOnPreferenceChangeListener((p, newVal) -> {
                     mConfigManager.setEnvVar("OPENAI_BASE_URL", (String) newVal);
+                    mHasUnsavedChanges = true;
                     return true;
                 });
                 boolean needsUrl = "ollama".equals(currentProvider) || "custom".equals(currentProvider);
                 baseUrlPref.setVisible(needsUrl);
             }
+        }
+
+        @Override
+        public void onResume() {
+            super.onResume();
+            requireActivity().getOnBackPressedDispatcher().addCallback(
+                    getViewLifecycleOwner(),
+                    new androidx.activity.OnBackPressedCallback(true) {
+                        @Override
+                        public void handleOnBackPressed() {
+                            if (mHasUnsavedChanges) {
+                                showUnsavedChangesDialog();
+                            } else {
+                                setEnabled(false);
+                                requireActivity().onBackPressed();
+                            }
+                        }
+                    });
+        }
+
+        private void showUnsavedChangesDialog() {
+            new AlertDialog.Builder(requireContext())
+                    .setTitle(R.string.config_unsaved_title)
+                    .setMessage(R.string.config_unsaved_message)
+                    .setPositiveButton(R.string.config_unsaved_save, (d, w) -> {
+                        mHasUnsavedChanges = false;
+                        Toast.makeText(requireContext(), R.string.config_changes_saved,
+                                Toast.LENGTH_SHORT).show();
+                        requireActivity().getSupportFragmentManager().popBackStack();
+                    })
+                    .setNegativeButton(R.string.config_unsaved_discard, (d, w) -> {
+                        mHasUnsavedChanges = false;
+                        reloadConfig();
+                        requireActivity().getSupportFragmentManager().popBackStack();
+                    })
+                    .setNeutralButton(R.string.config_unsaved_cancel, null)
+                    .show();
+        }
+
+        private void reloadConfig() {
+            HermesConfigManager.reinitialize();
         }
 
         private void updateModelList(String provider) {

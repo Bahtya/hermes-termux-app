@@ -38,6 +38,14 @@
     <string name="hermes_import_success">配置导入成功</string>
     <string name="hermes_import_failed">导入失败：%1$s</string>
 
+    <!-- Config Unsaved Changes -->
+    <string name="config_unsaved_title">未保存的更改</string>
+    <string name="config_unsaved_message">您有未保存的更改。是否保存？</string>
+    <string name="config_unsaved_save">保存</string>
+    <string name="config_unsaved_discard">放弃</string>
+    <string name="config_unsaved_cancel">取消</string>
+    <string name="config_changes_saved">更改已保存</string>
+
     <!-- LLM Preferences -->
     <string name="llm_provider_title">AI 提供商</string>
     <string name="llm_provider_summary">选择您的 LLM 提供商</string>
