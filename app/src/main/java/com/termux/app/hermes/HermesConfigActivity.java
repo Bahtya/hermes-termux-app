@@ -126,6 +126,7 @@ public class HermesConfigActivity extends AppCompatActivity {
                 if (mConfigManager.isFeishuConfigured()) platforms.add("Feishu");
                 if (!mConfigManager.getEnvVar("TELEGRAM_BOT_TOKEN").isEmpty()) platforms.add("Telegram");
                 if (!mConfigManager.getEnvVar("DISCORD_BOT_TOKEN").isEmpty()) platforms.add("Discord");
+                if (!mConfigManager.getEnvVar("WHATSAPP_PHONE_NUMBER_ID").isEmpty()) platforms.add("WhatsApp");
                 if (platforms.isEmpty()) {
                     dashIm.setSummary(getString(R.string.dashboard_im_none));
                 } else {
@@ -216,6 +217,15 @@ public class HermesConfigActivity extends AppCompatActivity {
                         : getString(R.string.discord_not_configured));
             }
 
+            // Show WhatsApp status
+            Preference whatsappPref = findPreference("hermes_whatsapp_setup");
+            if (whatsappPref != null) {
+                boolean configured = !mConfigManager.getEnvVar("WHATSAPP_PHONE_NUMBER_ID").isEmpty();
+                whatsappPref.setSummary(configured
+                        ? getString(R.string.whatsapp_configured)
+                        : getString(R.string.whatsapp_not_configured));
+            }
+
             // Notification settings
             Preference notifImportancePref = findPreference("gateway_notif_importance");
             if (notifImportancePref != null) {
@@ -272,6 +282,9 @@ public class HermesConfigActivity extends AppCompatActivity {
                     Intent dcIntent = new Intent(requireContext(), ImSetupActivity.class);
                     dcIntent.putExtra(ImSetupActivity.EXTRA_PLATFORM, ImSetupActivity.PLATFORM_DISCORD);
                     startActivity(dcIntent);
+                    return true;
+                case "hermes_whatsapp_setup":
+                    showWhatsappSetupDialog();
                     return true;
                 case "hermes_gateway_control":
                     showFragment(new GatewayControlFragment());
@@ -410,6 +423,104 @@ public class HermesConfigActivity extends AppCompatActivity {
             } catch (Exception e) {
                 return null;
             }
+        }
+
+        private void showWhatsappSetupDialog() {
+            ScrollView scrollView = new ScrollView(requireContext());
+            LinearLayout layout = new LinearLayout(requireContext());
+            layout.setOrientation(LinearLayout.VERTICAL);
+            int pad = dp(16);
+            layout.setPadding(pad, pad, pad, pad);
+
+            // Title
+            TextView title = new TextView(requireContext());
+            title.setText(R.string.whatsapp_welcome_title);
+            title.setTextSize(18);
+            title.setTypeface(null, android.graphics.Typeface.BOLD);
+            title.setPadding(0, 0, 0, dp(8));
+            layout.addView(title);
+
+            // Instructions
+            TextView steps = new TextView(requireContext());
+            steps.setText(R.string.whatsapp_get_token_steps);
+            steps.setTextSize(13);
+            steps.setPadding(0, 0, 0, dp(16));
+            layout.addView(steps);
+
+            // Phone Number ID
+            TextView phoneLabel = new TextView(requireContext());
+            phoneLabel.setText(R.string.whatsapp_phone_id_title);
+            phoneLabel.setTextSize(14);
+            phoneLabel.setTypeface(null, android.graphics.Typeface.BOLD);
+            layout.addView(phoneLabel);
+            EditText phoneInput = new EditText(requireContext());
+            phoneInput.setHint(R.string.whatsapp_phone_id_hint);
+            phoneInput.setSingleLine(true);
+            String existingPhone = mConfigManager.getEnvVar("WHATSAPP_PHONE_NUMBER_ID");
+            if (!existingPhone.isEmpty()) phoneInput.setText(existingPhone);
+            layout.addView(phoneInput);
+
+            // Access Token
+            TextView tokenLabel = new TextView(requireContext());
+            tokenLabel.setText(R.string.whatsapp_token_title);
+            tokenLabel.setTextSize(14);
+            tokenLabel.setTypeface(null, android.graphics.Typeface.BOLD);
+            tokenLabel.setPadding(0, dp(8), 0, 0);
+            layout.addView(tokenLabel);
+            EditText tokenInput = new EditText(requireContext());
+            tokenInput.setHint(R.string.whatsapp_token_hint);
+            tokenInput.setSingleLine(false);
+            String existingToken = mConfigManager.getEnvVar("WHATSAPP_ACCESS_TOKEN");
+            if (!existingToken.isEmpty()) tokenInput.setText(existingToken);
+            layout.addView(tokenInput);
+
+            // Business Account ID
+            TextView acctLabel = new TextView(requireContext());
+            acctLabel.setText(R.string.whatsapp_account_id_title);
+            acctLabel.setTextSize(14);
+            acctLabel.setTypeface(null, android.graphics.Typeface.BOLD);
+            acctLabel.setPadding(0, dp(8), 0, 0);
+            layout.addView(acctLabel);
+            EditText acctInput = new EditText(requireContext());
+            acctInput.setHint(R.string.whatsapp_account_id_hint);
+            acctInput.setSingleLine(true);
+            String existingAcct = mConfigManager.getEnvVar("WHATSAPP_BUSINESS_ACCOUNT_ID");
+            if (!existingAcct.isEmpty()) acctInput.setText(existingAcct);
+            layout.addView(acctInput);
+
+            // Webhook Verify Token
+            TextView verifyLabel = new TextView(requireContext());
+            verifyLabel.setText(R.string.whatsapp_verify_token_title);
+            verifyLabel.setTextSize(14);
+            verifyLabel.setTypeface(null, android.graphics.Typeface.BOLD);
+            verifyLabel.setPadding(0, dp(8), 0, 0);
+            layout.addView(verifyLabel);
+            EditText verifyInput = new EditText(requireContext());
+            verifyInput.setHint(R.string.whatsapp_verify_token_hint);
+            verifyInput.setSingleLine(true);
+            String existingVerify = mConfigManager.getEnvVar("WHATSAPP_VERIFY_TOKEN");
+            if (!existingVerify.isEmpty()) verifyInput.setText(existingVerify);
+            layout.addView(verifyInput);
+
+            scrollView.addView(layout);
+
+            new AlertDialog.Builder(requireContext())
+                    .setTitle(R.string.whatsapp_setup_title)
+                    .setView(scrollView)
+                    .setPositiveButton(R.string.feishu_finish, (d, w) -> {
+                        String phone = phoneInput.getText().toString().trim();
+                        String token = tokenInput.getText().toString().trim();
+                        String acct = acctInput.getText().toString().trim();
+                        String verify = verifyInput.getText().toString().trim();
+                        mConfigManager.setEnvVar("WHATSAPP_PHONE_NUMBER_ID", phone);
+                        mConfigManager.setEnvVar("WHATSAPP_ACCESS_TOKEN", token);
+                        mConfigManager.setEnvVar("WHATSAPP_BUSINESS_ACCOUNT_ID", acct);
+                        mConfigManager.setEnvVar("WHATSAPP_VERIFY_TOKEN", verify);
+                        HermesConfigManager.restartGatewayIfRunning(requireContext());
+                        Toast.makeText(requireContext(), R.string.whatsapp_configured, Toast.LENGTH_SHORT).show();
+                    })
+                    .setNegativeButton(android.R.string.cancel, null)
+                    .show();
         }
 
         private void showMcpServersDialog() {

@@ -107,6 +107,11 @@
             android:title="@string/hermes_discord_setup_title"
             android:summary="@string/hermes_discord_setup_summary" />
 
+        <Preference
+            android:key="hermes_whatsapp_setup"
+            android:title="@string/whatsapp_setup_title"
+            android:summary="@string/whatsapp_setup_summary" />
+
     </PreferenceCategory>
 
     <PreferenceCategory android:title="@string/hermes_cat_gateway">
