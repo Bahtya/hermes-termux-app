@@ -678,6 +678,100 @@ public class HermesConfigActivity extends AppCompatActivity {
                     promptVal.setSummary(getString(R.string.validation_system_prompt_missing));
                 }
             }
+
+            // Error recovery
+            updateErrorRecovery();
+        }
+
+        private void updateErrorRecovery() {
+            Preference errorPref = findPreference("error_recovery_fix");
+            if (errorPref == null) return;
+
+            // Collect all issues
+            List<String> issues = new java.util.ArrayList<>();
+
+            String provider = mConfigManager.getModelProvider();
+            String apiKey = mConfigManager.getApiKey(provider);
+            if (apiKey == null || apiKey.isEmpty()) {
+                issues.add("no_api_key");
+            }
+
+            int imCount = 0;
+            if (mConfigManager.isFeishuConfigured()) imCount++;
+            if (!mConfigManager.getEnvVar("TELEGRAM_BOT_TOKEN").isEmpty()) imCount++;
+            if (!mConfigManager.getEnvVar("DISCORD_BOT_TOKEN").isEmpty()) imCount++;
+            if (imCount == 0) {
+                issues.add("no_im");
+            }
+
+            String prompt = mConfigManager.getSystemPrompt();
+            if (prompt == null || prompt.isEmpty()) {
+                issues.add("no_prompt");
+            }
+
+            // Check gateway status (async)
+            HermesGatewayStatus.checkAsync((status, detail) -> {
+                if (getActivity() == null) return;
+                getActivity().runOnUiThread(() -> {
+                    List<String> allIssues = new java.util.ArrayList<>(issues);
+                    if (status == HermesGatewayStatus.Status.NOT_INSTALLED) {
+                        allIssues.add(0, "not_installed");
+                    } else if (status != HermesGatewayStatus.Status.RUNNING) {
+                        allIssues.add("gateway_down");
+                    }
+
+                    if (allIssues.isEmpty()) {
+                        errorPref.setSummary(getString(R.string.error_recovery_all_ok));
+                        errorPref.setOnPreferenceClickListener(null);
+                    } else if (allIssues.size() == 1) {
+                        String issue = allIssues.get(0);
+                        errorPref.setSummary(getErrorSummary(issue));
+                        errorPref.setOnPreferenceClickListener(p -> {
+                            fixError(issue);
+                            return true;
+                        });
+                    } else {
+                        errorPref.setSummary(getString(R.string.error_recovery_multiple_issues));
+                        errorPref.setOnPreferenceClickListener(p -> {
+                            fixError(allIssues.get(0));
+                            return true;
+                        });
+                    }
+                });
+            });
+        }
+
+        private String getErrorSummary(String issue) {
+            switch (issue) {
+                case "no_api_key": return getString(R.string.error_recovery_no_api_key);
+                case "no_im": return getString(R.string.error_recovery_no_im);
+                case "not_installed": return getString(R.string.error_recovery_not_installed);
+                case "gateway_down": return getString(R.string.error_recovery_gateway_down);
+                case "no_prompt": return getString(R.string.error_recovery_no_prompt);
+                default: return getString(R.string.error_recovery_all_ok);
+            }
+        }
+
+        private void fixError(String issue) {
+            switch (issue) {
+                case "no_api_key":
+                    showFragment(new LlmConfigFragment());
+                    break;
+                case "no_im":
+                    startActivity(new Intent(requireContext(), FeishuSetupActivity.class));
+                    break;
+                case "not_installed":
+                    startActivity(new Intent(requireContext(), HermesInstallActivity.class));
+                    break;
+                case "gateway_down":
+                    requireContext().startService(new Intent(requireContext(), HermesGatewayService.class)
+                            .setAction(HermesGatewayService.ACTION_START));
+                    Toast.makeText(requireContext(), R.string.gateway_started, Toast.LENGTH_SHORT).show();
+                    break;
+                case "no_prompt":
+                    showFragment(new LlmConfigFragment());
+                    break;
+            }
         }
 
         @Override

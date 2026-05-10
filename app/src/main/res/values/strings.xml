@@ -463,6 +463,16 @@
     <string name="profile_active_default">Default (current settings)</string>
     <string name="profile_active_format">%s (%s / %s)</string>
         <!-- Config validation -->
+        <!-- Smart error recovery -->
+    <string name="error_recovery_title">System Health</string>
+    <string name="error_recovery_checking">Checking for issues…</string>
+    <string name="error_recovery_all_ok">All systems operational</string>
+    <string name="error_recovery_no_api_key">API key missing — tap to configure your LLM provider</string>
+    <string name="error_recovery_no_im">No IM platform configured — tap to set up messaging</string>
+    <string name="error_recovery_not_installed">Hermes not installed — tap to start installation</string>
+    <string name="error_recovery_gateway_down">Gateway stopped — tap to start it</string>
+    <string name="error_recovery_no_prompt">No system prompt set — tap to add one</string>
+    <string name="error_recovery_multiple_issues">Multiple issues found — tap to view</string>
     <string name="validation_category_title">Configuration Health</string>
     <string name="validation_api_key_title">API Key</string>
     <string name="validation_api_key_ok">API key configured for %s</string>
