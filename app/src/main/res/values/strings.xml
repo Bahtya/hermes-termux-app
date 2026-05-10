@@ -563,6 +563,7 @@
     <string name="hermes_setup_step_welcome">Welcome</string>
     <string name="hermes_setup_step_llm">AI Configuration</string>
     <string name="hermes_setup_step_feishu">Messaging</string>
+    <string name="hermes_setup_step_start">Start Gateway</string>
     <string name="hermes_setup_step_done">All Done!</string>
     <string name="hermes_setup_welcome_title">Welcome to Hermes!</string>
     <string name="hermes_setup_welcome_text">Hermes connects AI assistants to your messaging apps. This wizard will help you get started in just a few steps.\n\nYou\'ll need:\n• An API key from an AI provider (OpenAI, Anthropic, etc.)\n• Optionally, a messaging account (Feishu, Telegram, Discord)</string>
@@ -573,6 +574,12 @@
     <string name="hermes_setup_feishu_text">You can connect Hermes to Feishu/Lark to chat with your AI assistant directly in messages. This step is optional — you can set it up later from Hermes Settings.</string>
     <string name="hermes_setup_open_feishu_wizard">Setup Feishu/Lark</string>
     <string name="hermes_setup_feishu_skip">You can skip this step and configure Feishu later from Hermes Settings.</string>
+    <string name="hermes_setup_start_title">Start the Gateway</string>
+    <string name="hermes_setup_start_text">Almost there! Start the Hermes gateway to begin receiving messages from your connected platforms.</string>
+    <string name="hermes_setup_start_already_running">Gateway is already running!</string>
+    <string name="hermes_setup_start_success">Gateway started successfully!</string>
+    <string name="hermes_setup_start_failed">Gateway failed to start. You can try again from Settings.</string>
+    <string name="hermes_setup_start_skip">You can skip this step and start the gateway later from Hermes Settings.</string>
     <string name="hermes_setup_done_title">You\'re all set!</string>
     <string name="hermes_setup_done_text">Hermes is ready to go. You can start the gateway from the Hermes Settings or use the Web UI tab.\n\nTo change your settings at any time, tap the Hermes icon in the sidebar.</string>
 
