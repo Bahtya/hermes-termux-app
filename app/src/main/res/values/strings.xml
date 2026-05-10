@@ -1021,4 +1021,17 @@
         <item>both</item>
     </string-array>
 
+
+    <!-- Discord enhanced setup -->
+    <string name="discord_intents_title">Required Bot Intents</string>
+    <string name="discord_intents_desc">For Hermes to read messages, you MUST enable these Privileged Gateway Intents in the Discord Developer Portal:</string>
+    <string name="discord_intent_message_content">Message Content Intent (required)</string>
+    <string name="discord_intent_server_members">Server Members Intent (recommended)</string>
+    <string name="discord_intent_presence">Presence Intent (optional)</string>
+    <string name="discord_open_developer_portal">Open Developer Portal</string>
+    <string name="discord_invite_title">Invite Bot to Server</string>
+    <string name="discord_invite_desc">Use this link to invite your bot to a Discord server. Replace YOUR_CLIENT_ID with your Application ID from the Developer Portal.</string>
+    <string name="discord_invite_link">https://discord.com/api/oauth2/authorize?client_id=YOUR_CLIENT_ID&amp;permissions=274877975552&amp;scope=bot</string>
+    <string name="discord_invite_copy">Copy Invite Link</string>
+
 </resources>
