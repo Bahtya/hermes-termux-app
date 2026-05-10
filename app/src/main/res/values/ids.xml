@@ -1,14 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <item type="id" name="feishu_app_id_input" />
-    <item type="id" name="feishu_app_secret_input" />
-    <item type="id" name="feishu_validation_text" />
-    <item type="id" name="feishu_test_summary" />
-    <item type="id" name="feishu_test_result_area" />
-    <item type="id" name="feishu_test_progress" />
-    <item type="id" name="feishu_test_status" />
-    <item type="id" name="btn_feishu_test" />
-    <item type="id" name="im_token_input" />
-    <item type="id" name="im_users_input" />
-    <item type="id" name="im_test_status" />
+    <item type="id" name="im_test_detail" />
+    <item type="id" name="im_test_retry" />
 </resources>

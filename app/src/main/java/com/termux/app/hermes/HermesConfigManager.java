@@ -908,4 +908,15 @@ public class HermesConfigManager {
     public void clearSessionHistory(Context context) {
         context.getSharedPreferences(SESSION_PREFS_NAME, Context.MODE_PRIVATE).edit().clear().apply();
     }
+
+    public static void restartGatewayIfRunning(Context context) {
+        HermesGatewayStatus.checkAsync((status, detail) -> {
+            if (status == HermesGatewayStatus.Status.RUNNING) {
+                Intent intent = new Intent(context, HermesGatewayService.class);
+                intent.setAction(HermesGatewayService.ACTION_RESTART);
+                context.startService(intent);
+            }
+        });
+    }
+
 }
