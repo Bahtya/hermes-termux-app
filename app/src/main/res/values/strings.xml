@@ -1126,4 +1126,6 @@
     <string name="gateway_update_install_failed">Update failed. Try manually.</string>
     <string name="gateway_update_install">Install Update</string>
 
+    <string name="config_export_masked">Export with masked secrets (safer to share)</string>
+
 </resources>
