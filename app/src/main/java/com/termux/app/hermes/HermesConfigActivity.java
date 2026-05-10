@@ -319,6 +319,12 @@ public class HermesConfigActivity extends AppCompatActivity {
                 case "hermes_check_update":
                     checkForUpdate(preference);
                     return true;
+                case "hermes_config_export":
+                    showExportDialog();
+                    return true;
+                case "hermes_config_import":
+                    showImportDialog();
+                    return true;
                 case "hermes_gateway_log":
                     startActivity(new Intent(requireContext(), GatewayLogActivity.class));
                     return true;
@@ -625,6 +631,95 @@ public class HermesConfigActivity extends AppCompatActivity {
                         mConfigManager.setEnvVar("WHATSAPP_VERIFY_TOKEN", verify);
                         HermesConfigManager.restartGatewayIfRunning(requireContext());
                         Toast.makeText(requireContext(), R.string.whatsapp_configured, Toast.LENGTH_SHORT).show();
+                    })
+                    .setNegativeButton(android.R.string.cancel, null)
+                    .show();
+        }
+
+        private void showExportDialog() {
+            String[] options = {
+                    getString(R.string.config_export_with_secrets),
+                    getString(R.string.config_export_masked)
+            };
+            new AlertDialog.Builder(requireContext())
+                    .setTitle(R.string.config_export_title)
+                    .setItems(options, (dialog, which) -> {
+                        String json = which == 0
+                                ? mConfigManager.exportConfig()
+                                : mConfigManager.exportConfigMasked();
+                        String path = exportToFile(json);
+                        if (path != null) {
+                            Toast.makeText(requireContext(),
+                                    getString(R.string.config_export_success, path),
+                                    Toast.LENGTH_SHORT).show();
+                        } else {
+                            Toast.makeText(requireContext(),
+                                    getString(R.string.config_export_fail, "write error"),
+                                    Toast.LENGTH_SHORT).show();
+                        }
+                    })
+                    .setNegativeButton(android.R.string.cancel, null)
+                    .show();
+        }
+
+        private String exportToFile(String content) {
+            try {
+                File downloadsDir = android.os.Environment.getExternalStoragePublicDirectory(
+                        android.os.Environment.DIRECTORY_DOWNLOADS);
+                if (!downloadsDir.exists()) downloadsDir.mkdirs();
+                String filename = "hermes-config-" +
+                        new java.text.SimpleDateFormat("yyyyMMdd-HHmmss", java.util.Locale.US)
+                                .format(new java.util.Date()) + ".json";
+                File file = new File(downloadsDir, filename);
+                java.io.FileWriter writer = new java.io.FileWriter(file);
+                writer.write(content);
+                writer.close();
+                return file.getAbsolutePath();
+            } catch (Exception e) {
+                return null;
+            }
+        }
+
+        private void showImportDialog() {
+            new AlertDialog.Builder(requireContext())
+                    .setTitle(R.string.config_import_confirm_title)
+                    .setMessage(R.string.config_import_confirm_message)
+                    .setPositiveButton(android.R.string.ok, (dialog, which) -> {
+                        try {
+                            File downloadsDir = android.os.Environment.getExternalStoragePublicDirectory(
+                                    android.os.Environment.DIRECTORY_DOWNLOADS);
+                            File[] files = downloadsDir.listFiles((dir, name) ->
+                                    name.startsWith("hermes-config-") && name.endsWith(".json"));
+                            if (files == null || files.length == 0) {
+                                Toast.makeText(requireContext(),
+                                        getString(R.string.config_import_fail, "no backup file found"),
+                                        Toast.LENGTH_SHORT).show();
+                                return;
+                            }
+                            java.util.Arrays.sort(files, (a, b) -> Long.compare(b.lastModified(), a.lastModified()));
+                            File latest = files[0];
+                            java.io.BufferedReader reader = new java.io.BufferedReader(
+                                    new java.io.FileReader(latest));
+                            StringBuilder sb = new StringBuilder();
+                            String line;
+                            while ((line = reader.readLine()) != null) sb.append(line);
+                            reader.close();
+
+                            if (mConfigManager.importConfig(sb.toString())) {
+                                Toast.makeText(requireContext(),
+                                        R.string.config_import_success, Toast.LENGTH_SHORT).show();
+                                HermesConfigManager.restartGatewayIfRunning(requireContext());
+                                requireActivity().recreate();
+                            } else {
+                                Toast.makeText(requireContext(),
+                                        getString(R.string.config_import_fail, "parse error"),
+                                        Toast.LENGTH_SHORT).show();
+                            }
+                        } catch (Exception e) {
+                            Toast.makeText(requireContext(),
+                                    getString(R.string.config_import_fail, e.getMessage()),
+                                    Toast.LENGTH_SHORT).show();
+                        }
                     })
                     .setNegativeButton(android.R.string.cancel, null)
                     .show();
