@@ -117,6 +117,7 @@
     <string name="gateway_log_refresh">刷新</string>
     <string name="gateway_log_clear">清除日志</string>
     <string name="gateway_log_empty">暂无日志记录。</string>
+    <string name="gateway_log_search_hint">搜索日志…</string>
     <string name="gateway_log_clear_confirm_title">清除日志？</string>
     <string name="gateway_log_clear_confirm_message">这将删除所有网关日志记录。</string>
     <string name="gateway_log_cleared">日志已清除</string>
