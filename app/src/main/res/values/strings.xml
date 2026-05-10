@@ -16,10 +16,14 @@
     <string name="application_name">&TERMUX_APP_NAME;</string>
     <string name="shared_user_label">&TERMUX_APP_NAME; user</string>
 
+
+
     <!-- Termux RUN_COMMAND permission -->
     <string name="permission_run_command_label">Run commands in &TERMUX_APP_NAME; environment</string>
     <string name="permission_run_command_description">execute arbitrary commands within &TERMUX_APP_NAME;
         environment and access files</string>
+
+
 
     <!-- Termux Bootstrap Packages Installation -->
     <string name="bootstrap_installer_body">Installing bootstrap packages…</string>
@@ -34,6 +38,8 @@
         portable/external/removable sd card on your device.
         \nBootstrap binaries compiled for &TERMUX_APP_NAME; have hardcoded $PREFIX path and cannot be installed
         under any path other than:\n%1$s.</string>
+
+
 
     <!-- Terminal Sidebar and Shortcuts -->
     <string name="action_new_session">New session</string>
@@ -55,6 +61,8 @@
 
     <string name="msg_enabling_terminal_toolbar">Enabling Terminal Toolbar</string>
     <string name="msg_disabling_terminal_toolbar">Disabling Terminal Toolbar</string>
+
+
 
     <!-- Terminal Popup -->
     <string name="action_select_url">Select URL</string>
@@ -91,10 +99,14 @@
     <string name="error_styling_not_installed">The &TERMUX_STYLING_APP_NAME; Plugin App is not installed.</string>
     <string name="action_styling_install">Install</string>
 
+
+
     <!-- Termux Notifications -->
     <string name="notification_action_exit">Exit</string>
     <string name="notification_action_wake_lock">Acquire wakelock</string>
     <string name="notification_action_wake_unlock">Release wakelock</string>
+
+
 
     <!-- TermuxService -->
     <string name="error_display_over_other_apps_permission_not_granted_to_start_terminal">&TERMUX_APP_NAME; requires
@@ -105,20 +117,28 @@
     <string name="error_termux_service_unsupported_execution_command_shell_create_mode">Unsupported execution command shell create mode to TermuxService: `%1$s`</string>
     <string name="error_termux_service_execution_command_shell_name_unset">Shell name not set but `%1$s` shell create mode passed</string>
 
+
+
     <!-- Termux RunCommandService -->
     <string name="error_run_command_service_invalid_intent_action">Invalid intent action to RunCommandService: `%1$s`</string>
     <string name="error_run_command_service_invalid_execution_command_runner">Invalid execution command runner to RunCommandService: `%1$s`</string>
     <string name="error_run_command_service_mandatory_extra_missing">Mandatory extra missing to RunCommandService: \"%1$s\"</string>
     <string name="error_run_command_service_api_help">Visit %1$s for more info on RUN_COMMAND Intent usage.</string>
 
+
+
     <!-- Termux File Receiver -->
     <string name="title_file_received">Save file in ~/downloads/</string>
     <string name="action_file_received_edit">Edit</string>
     <string name="action_file_received_open_directory">Open directory</string>
 
+
+
     <!-- Miscellaneous -->
     <string name="error_termux_service_start_failed_general">Failed to start TermuxService. Check logcat for exception message.</string>
     <string name="error_termux_service_start_failed_bg">Failed to start TermuxService while app is in background due to android bg restrictions.</string>
+
+
 
     <!-- Termux Settings -->
     <string name="title_activity_termux_settings">&TERMUX_APP_NAME; Settings</string>
@@ -153,6 +173,7 @@
                 <string name="termux_crash_report_notifications_enabled_off">Disable notifications for crash reports.</string>
                 <string name="termux_crash_report_notifications_enabled_on">Show notifications for crash reports. (Default)</string>
 
+
         <!-- Terminal IO Preferences -->
         <string name="termux_terminal_io_preferences_title">Terminal I/O</string>
         <string name="termux_terminal_io_preferences_summary">Preferences for terminal I/O</string>
@@ -172,6 +193,7 @@
                 <string name="termux_soft_keyboard_enabled_only_if_no_hardware_on">Soft keyboard will be enabled only if
                     no hardware keyboard is connected.</string>
 
+
         <!-- Terminal View Preferences -->
         <string name="termux_terminal_view_preferences_title">Terminal View</string>
         <string name="termux_terminal_view_preferences_summary">Preferences for terminal view</string>
@@ -186,27 +208,39 @@
                     It should be enabled to try to fix the issue where soft keyboard covers part of extra keys/terminal view.
                     If it causes screen flickering on your devices, then disable it. (Default)</string>
 
+
+
     <!-- Termux:API App Preferences -->
     <string name="termux_api_preferences_title">&TERMUX_API_APP_NAME;</string>
     <string name="termux_api_preferences_summary">Preferences for &TERMUX_API_APP_NAME; app</string>
+
+
 
     <!-- Termux:Float App Preferences -->
     <string name="termux_float_preferences_title">&TERMUX_FLOAT_APP_NAME;</string>
     <string name="termux_float_preferences_summary">Preferences for &TERMUX_FLOAT_APP_NAME; app</string>
 
+
+
     <!-- Termux:Tasker App Preferences -->
     <string name="termux_tasker_preferences_title">&TERMUX_TASKER_APP_NAME;</string>
     <string name="termux_tasker_preferences_summary">Preferences for &TERMUX_TASKER_APP_NAME; app</string>
 
+
+
     <!-- Termux:Widget App Preferences -->
     <string name="termux_widget_preferences_title">&TERMUX_WIDGET_APP_NAME;</string>
     <string name="termux_widget_preferences_summary">Preferences for &TERMUX_WIDGET_APP_NAME; app</string>
+
+
 
     <!-- About Preference -->
     <string name="about_preference_title">About</string>
 
     <!-- Donate Preference -->
     <string name="donate_preference_title">Donate</string>
+
+
 
     <!-- Hermes Configuration -->
     <string name="hermes_config_title">Hermes Settings</string>
@@ -216,30 +250,12 @@
 
     <string name="hermes_llm_config_title">LLM Configuration</string>
     <string name="hermes_llm_config_summary">Set AI provider, API key, and model</string>
-    <string name="hermes_feishu_toggle">Enable Feishu</string>
-    <string name="hermes_feishu_toggle_summary">Connect to Feishu when gateway is running</string>
     <string name="hermes_feishu_setup_title">Feishu / Lark Setup</string>
     <string name="hermes_feishu_setup_summary">One-click Feishu bot configuration</string>
-    <string name="hermes_telegram_toggle">Enable Telegram</string>
-    <string name="hermes_telegram_toggle_summary">Connect to Telegram when gateway is running</string>
     <string name="hermes_telegram_setup_title">Telegram Setup</string>
     <string name="hermes_telegram_setup_summary">Connect your Telegram bot</string>
-    <string name="hermes_discord_toggle">Enable Discord</string>
-    <string name="hermes_discord_toggle_summary">Connect to Discord when gateway is running</string>
     <string name="hermes_discord_setup_title">Discord Setup</string>
     <string name="hermes_discord_setup_summary">Connect your Discord bot</string>
-    <string name="hermes_language_title">Language</string>
-    <string name="hermes_language_summary">Change app language (restarts activity)</string>
-    <string-array name="hermes_language_names">
-        <item>System Default</item>
-        <item>English</item>
-        <item>简体中文</item>
-    </string-array>
-    <string-array name="hermes_language_values">
-        <item>default</item>
-        <item>en</item>
-        <item>zh</item>
-    </string-array>
     <string name="hermes_gateway_control_title">Gateway Control</string>
     <string name="hermes_gateway_control_summary">Start, stop, or restart the Hermes gateway</string>
     <string name="hermes_reset_title">Reset Configuration</string>
@@ -257,127 +273,21 @@
     <string name="hermes_import_confirm_message">This will overwrite your current settings. Continue?</string>
     <string name="hermes_import_success">Configuration imported successfully</string>
     <string name="hermes_import_failed">Import failed: %1$s</string>
-    <string name="hermes_not_installed_banner_title">Hermes Agent is not installed</string>
-    <string name="hermes_not_installed_banner_summary">Tap here to install Hermes Agent so you can start using the gateway and AI features.</string>
-    <string name="hermes_not_installed_banner_installing">Installing Hermes Agent…</string>
-    <string name="hermes_not_installed_banner_installed">Hermes Agent installed successfully!</string>
-    <string name="hermes_not_installed_banner_failed">Installation failed. Tap to retry.</string>
-
-    <!-- Help & FAQ -->
-    <string name="hermes_help_faq_title">Help &amp; FAQ</string>
-    <string name="hermes_help_faq_summary">Common questions and troubleshooting tips</string>
-    <string name="hermes_help_faq_dialog_title">Help &amp; FAQ</string>
-    <string name="hermes_help_copy_debug">Copy Debug Info</string>
-    <string name="hermes_help_debug_copied">Debug info copied to clipboard</string>
-    <string name="hermes_help_faq_content" formatted="false"><![CDATA[
-<h3>Getting Started</h3>
-<p><b>What do I need to use Hermes?</b><br/>
-You need: ① An AI provider API key (e.g. OpenAI, Anthropic) and ② At least one messaging platform (Feishu, Telegram, or Discord). Use the setup progress tracker on the dashboard to guide you.</p>
-
-<h3>API Key Issues</h3>
-<p><b>Where do I get an API key?</b><br/>
-• OpenAI: platform.openai.com → API Keys<br/>
-• Anthropic: console.anthropic.com → Keys<br/>
-• DeepSeek: platform.deepseek.com → API Keys<br/>
-• Google AI: aistudio.google.com → Get API Key</p>
-
-<p><b>My API key doesn\'t work</b><br/>
-1. Check for extra spaces at the beginning/end<br/>
-2. Make sure you selected the correct provider<br/>
-3. Verify your key hasn\'t expired or been revoked<br/>
-4. Use the "Test Connection" button in LLM config to verify</p>
-
-<h3>Gateway Won\'t Start</h3>
-<p><b>Gateway shows "not installed"</b><br/>
-Wait for the Hermes installation to complete (first launch can take 2–5 minutes). Check the notification bar for progress.</p>
-
-<p><b>Gateway keeps crashing</b><br/>
-1. Open Gateway Log to see error messages<br/>
-2. Verify your API key is correct<br/>
-3. Check that at least one messaging platform is configured<br/>
-4. Try restarting the gateway from Gateway Control</p>
-
-<h3>Connection Issues</h3>
-<p><b>Ollama: Can\'t connect to localhost</b><br/>
-Make sure Ollama is running on the same device. The default URL is http://localhost:11434. If Ollama is on another machine, set the correct IP in "API Base URL".</p>
-
-<p><b>Network errors</b><br/>
-1. Check your internet connection<br/>
-2. If behind a firewall/VPN, try disabling it<br/>
-3. Use "Connection Diagnostic" in Gateway Control</p>
-
-<h3>Feishu Setup</h3>
-<p><b>How to create a Feishu bot</b><br/>
-1. Open open.feishu.cn → Create App → Bot<br/>
-2. Enable "Bot" capability in the app<br/>
-3. Copy App ID (starts with cli_) and App Secret<br/>
-4. Use the setup wizard in Hermes Settings</p>
-
-<p><b>App ID format</b><br/>
-App ID starts with "cli_" and is about 10–20 characters. App Secret is longer (30+ characters).</p>
-]]></string>
-
     <string name="hermes_check_update_title">Check for Updates</string>
     <string name="hermes_check_update_summary">Check if a newer version of Hermes Agent is available</string>
-    <string name="hermes_run_wizard_title">Run Setup Wizard</string>
-    <string name="hermes_run_wizard_summary">Re-run the initial setup wizard to configure AI and messaging</string>
     <string name="hermes_update_available">Update available: %1$s (current: %2$s)</string>
     <string name="hermes_up_to_date">Hermes Agent is up to date (%1$s)</string>
     <string name="hermes_update_checking">Checking for updates…</string>
     <string name="hermes_update_failed">Failed to check for updates</string>
-    <string name="hermes_update_now_title">Update Hermes Agent</string>
-    <string name="hermes_update_now_summary">Tap to install the latest version</string>
-    <string name="hermes_update_running">Updating Hermes Agent…</string>
-    <string name="hermes_update_success">Updated to %1$s</string>
-    <string name="hermes_update_error">Update failed: %1$s</string>
     <string name="hermes_version_label">Hermes Agent version</string>
-    <string name="hermes_share_diag_title">Share Diagnostic Info</string>
-    <string name="hermes_share_diag_summary">Share config summary (API keys masked) for troubleshooting</string>
-    <string name="hermes_diag_copied">Diagnostic info copied to clipboard</string>
-
-    <!-- Help & FAQ -->
-    <string name="hermes_help_faq_title">Help &amp; FAQ</string>
-    <string name="hermes_help_faq_summary">Common questions and troubleshooting</string>
-    <string name="hermes_faq_copy_debug">Copy Debug Info</string>
-    <string name="hermes_faq_debug_copied">Debug info copied to clipboard</string>
-    <string name="hermes_faq_content"><b>Getting Started</b>\nHermes connects AI assistants to messaging platforms. Setup steps:\n1. Configure your LLM provider and API key\n2. Connect a messaging platform (Feishu, Telegram, or Discord)\n3. Start the gateway\n\n<b>API Key Issues</b>\n• \"Authentication failed\" — Check your API key is correct and has not expired\n• OpenAI keys start with \"sk-\"\n• Anthropic keys start with \"sk-ant-\"\n• Use \"Test Connection\" to verify before starting gateway\n\n<b>Gateway Troubleshooting</b>\n• Gateway won\'t start — Check if another instance is running. Try \"Restart\"\n• Gateway keeps stopping — Disable battery optimization for this app\n• Check gateway logs for error details\n\n<b>Connection Issues</b>\n• \"Network error\" — Ensure internet is available\n• Timeouts — Try a different model or reduce complexity\n• Firewall — Ensure outbound HTTPS (port 443) is allowed\n\n<b>Feishu/Lark Setup</b>\n• Scan QR code with Feishu app to open developer console\n• Create a bot application and enable bot capability\n• Copy App ID and App Secret into the setup wizard\n• Enable message event subscription in developer console</string>
 
     <!-- LLM Preferences -->
-    <string name="llm_preset_title">Quick Preset</string>
-    <string name="llm_preset_summary">Choose a preset for optimal settings</string>
     <string name="llm_provider_title">AI Provider</string>
     <string name="llm_provider_summary">Select your LLM provider</string>
     <string name="llm_api_key_title">API Key</string>
     <string name="llm_api_key_summary">Enter your provider API key</string>
-    <string name="llm_api_key_hint_openai">OpenAI keys start with sk-</string>
-    <string name="llm_api_key_hint_anthropic">Anthropic keys start with sk-ant-</string>
-    <string name="llm_api_key_hint_google">Google AI keys are ~39 characters</string>
-    <string name="llm_api_key_hint_deepseek">DeepSeek keys start with sk-</string>
-    <string name="llm_api_key_hint_generic">Enter your API key for this provider</string>
-    <string name="llm_api_key_too_short">Key seems too short — please double-check</string>
-    <string name="llm_api_key_has_spaces">Key contains spaces — they will be removed automatically</string>
-    <string name="llm_api_key_no_key_needed">No API key needed for local models</string>
-    <string name="llm_key_warning_spaces">API key contains spaces — remove whitespace</string>
-    <string name="llm_key_warning_short">API key seems too short</string>
-    <string name="llm_key_warning_prefix">Key should start with %1$s</string>
     <string name="llm_model_title">Model</string>
     <string name="llm_model_summary">Model name to use (e.g. gpt-4o, claude-sonnet-4-6)</string>
-
-    <!-- LLM Preset Arrays -->
-    <string-array name="llm_preset_names">
-        <item>Creative Writing</item>
-        <item>Balanced (Default)</item>
-        <item>Precise / Factual</item>
-        <item>Code Assistant</item>
-        <item>Custom</item>
-    </string-array>
-    <string-array name="llm_preset_values">
-        <item>creative</item>
-        <item>balanced</item>
-        <item>precise</item>
-        <item>code</item>
-        <item>custom</item>
-    </string-array>
 
     <!-- LLM Provider Arrays -->
     <string-array name="llm_provider_names">
@@ -408,8 +318,6 @@ App ID starts with "cli_" and is about 10–20 characters. App Secret is longer 
     </string-array>
 
     <!-- Model presets per provider -->
-    <string name="llm_model_custom">Custom (enter manually)</string>
-
     <string-array name="llm_models_openai">
         <item>gpt-4o</item>
         <item>gpt-4o-mini</item>
@@ -417,147 +325,55 @@ App ID starts with "cli_" and is about 10–20 characters. App Secret is longer 
         <item>o1-mini</item>
         <item>o3-mini</item>
         <item>gpt-4-turbo</item>
-        <item>@string/llm_model_custom</item>
     </string-array>
     <string-array name="llm_models_anthropic">
         <item>claude-sonnet-4-6</item>
         <item>claude-opus-4-7</item>
         <item>claude-haiku-4-5</item>
-        <item>@string/llm_model_custom</item>
     </string-array>
     <string-array name="llm_models_google">
         <item>gemini-2.5-pro</item>
         <item>gemini-2.5-flash</item>
         <item>gemini-2.0-flash</item>
-        <item>@string/llm_model_custom</item>
     </string-array>
     <string-array name="llm_models_deepseek">
         <item>deepseek-chat</item>
         <item>deepseek-reasoner</item>
-        <item>@string/llm_model_custom</item>
     </string-array>
     <string-array name="llm_models_openrouter">
         <item>anthropic/claude-sonnet-4-6</item>
         <item>openai/gpt-4o</item>
         <item>google/gemini-2.5-pro</item>
         <item>meta-llama/llama-3.3-70b-instruct</item>
-        <item>@string/llm_model_custom</item>
     </string-array>
     <string-array name="llm_models_xai">
         <item>grok-3</item>
         <item>grok-3-mini</item>
-        <item>@string/llm_model_custom</item>
     </string-array>
     <string-array name="llm_models_alibaba">
         <item>qwen-max</item>
         <item>qwen-plus</item>
         <item>qwen-turbo</item>
-        <item>@string/llm_model_custom</item>
     </string-array>
     <string-array name="llm_models_mistral">
         <item>mistral-large-latest</item>
         <item>mistral-medium-latest</item>
         <item>codestral-latest</item>
-        <item>@string/llm_model_custom</item>
     </string-array>
     <string-array name="llm_models_nvidia">
         <item>meta/llama-3.3-70b-instruct</item>
         <item>google/gemma-2-27b-it</item>
-        <item>@string/llm_model_custom</item>
     </string-array>
     <string-array name="llm_models_ollama">
         <item>llama3</item>
         <item>qwen2.5</item>
         <item>deepseek-r1</item>
         <item>gemma2</item>
-        <item>@string/llm_model_custom</item>
     </string-array>
-
-    <!-- LLM Config Categories -->
-    <string name="llm_category_provider">Provider</string>
-    <string name="llm_category_auth">Authentication</string>
-    <string name="llm_category_endpoint">Endpoint</string>
-    <string name="llm_category_model">Model</string>
-    <string name="llm_category_test">Connection Test</string>
-
-    <!-- LLM Provider Info -->
-    <string name="llm_provider_info_title">Provider Info</string>
-    <string name="llm_provider_info_openai">OpenAI — industry-leading models like GPT-4o and o1</string>
-    <string name="llm_provider_info_anthropic">Anthropic — Claude models known for safety and reasoning</string>
-    <string name="llm_provider_info_google">Google Gemini — multimodal models by Google DeepMind</string>
-    <string name="llm_provider_info_deepseek">DeepSeek — high-quality open-source models from China</string>
-    <string name="llm_provider_info_openrouter">OpenRouter — unified API for 100+ models from all providers</string>
-    <string name="llm_provider_info_xai">xAI — Grok models by xAI</string>
-    <string name="llm_provider_info_alibaba">Alibaba Qwen — models by Alibaba Cloud (DashScope)</string>
-    <string name="llm_provider_info_mistral">Mistral — European AI lab, open and commercial models</string>
-    <string name="llm_provider_info_nvidia">NVIDIA NIM — optimized models via NVIDIA API</string>
-    <string name="llm_provider_info_ollama">Ollama — run open-source models locally on this device</string>
-    <string name="llm_provider_info_custom">Custom — any OpenAI-compatible API endpoint</string>
-
-    <!-- LLM API Key Hints -->
-    <string name="llm_api_key_hint_openai">Get your key at platform.openai.com/api-keys</string>
-    <string name="llm_api_key_hint_anthropic">Get your key at console.anthropic.com</string>
-    <string name="llm_api_key_hint_google">Get your key at aistudio.google.com/apikey</string>
-    <string name="llm_api_key_hint_deepseek">Get your key at platform.deepseek.com</string>
-    <string name="llm_api_key_hint_openrouter">Get your key at openrouter.ai/keys</string>
-    <string name="llm_api_key_hint_xai">Get your key at console.x.ai</string>
-    <string name="llm_api_key_hint_alibaba">Get your key at dashscope.console.aliyun.com</string>
-    <string name="llm_api_key_hint_mistral">Get your key at console.mistral.ai</string>
-    <string name="llm_api_key_hint_nvidia">Get your key at build.nvidia.com</string>
-    <string name="llm_api_key_hint_ollama">Ollama runs locally — no API key needed</string>
-    <string name="llm_api_key_hint_custom">Enter the API key for your custom endpoint</string>
-    <string name="llm_api_key_not_needed">No API key required for this provider</string>
 
     <!-- LLM Base URL -->
     <string name="llm_base_url_title">Base URL</string>
     <string name="llm_base_url_summary">Custom endpoint URL (for Ollama or compatible APIs)</string>
-    <string name="llm_base_url_hint_default">Automatically set based on provider</string>
-    <string name="llm_base_url_hint_ollama">Ollama default: http://localhost:11434</string>
-    <string name="llm_base_url_hint_custom">Enter the full URL of your OpenAI-compatible API</string>
-    <string name="llm_base_url_auto_set">Auto-configured: %1$s</string>
-
-    <!-- Custom Model -->
-    <string name="llm_custom_model_title">Custom Model Name</string>
-    <string name="llm_custom_model_summary">Enter a model name not in the list above</string>
-
-    <!-- LLM Validation -->
-    <string name="llm_api_key_format_warn">API key format looks incorrect — please double-check</string>
-    <string name="llm_base_url_invalid">URL format is invalid</string>
-
-    <!-- Custom Model -->
-    <string name="llm_custom_model_title">Custom Model Name</string>
-    <string name="llm_custom_model_summary">Enter the model name to use</string>
-    <!-- LLM Model Parameters -->
-    <string name="llm_params_category_title">Model Parameters</string>
-    <string name="llm_temperature_title">Temperature</string>
-    <string name="llm_temperature_summary">Controls randomness (0.0 = focused, 2.0 = creative). Default: 0.7</string>
-    <string name="llm_max_tokens_title">Max Tokens</string>
-    <string name="llm_max_tokens_summary">Maximum response length. Default: 4096</string>
-    <string name="llm_temperature_invalid">Temperature must be between 0.0 and 2.0</string>
-    <string name="llm_max_tokens_invalid">Max tokens must be between 256 and 32768</string>
-
-    <!-- LLM System Prompt / Persona -->
-    <string name="llm_category_persona">Persona</string>
-    <string name="llm_system_prompt_title">System Prompt</string>
-    <string name="llm_system_prompt_summary">Custom instructions for the AI assistant</string>
-    <string name="llm_persona_template_title">Persona Templates</string>
-    <string name="llm_persona_template_summary">Choose a preset persona or write your own</string>
-    <string-array name="llm_persona_names">
-        <item>Default Assistant</item>
-        <item>Friendly Helper</item>
-        <item>Professional Expert</item>
-        <item>Creative Writer</item>
-        <item>Code Assistant</item>
-        <item>Custom</item>
-    </string-array>
-    <string-array name="llm_persona_prompts">
-        <item>You are a helpful AI assistant. Answer questions clearly and concisely.</item>
-        <item>You are a warm and friendly AI assistant. Be encouraging and use a positive tone. Add relevant emojis occasionally.</item>
-        <item>You are a professional expert consultant. Provide thorough, well-structured answers with citations when possible.</item>
-        <item>You are a creative writing assistant. Help with stories, poetry, and creative ideas. Be imaginative and expressive.</item>
-        <item>You are a coding expert. Help with programming questions by providing clear, well-commented code examples. Explain your reasoning.</item>
-        <item></item>
-    </string-array>
 
     <!-- LLM Test Connection -->
     <string name="llm_test_connection_title">Test Connection</string>
@@ -569,209 +385,49 @@ App ID starts with "cli_" and is about 10–20 characters. App Secret is longer 
     <string name="llm_test_fail_network">Network error — check your internet connection.</string>
     <string name="llm_test_fail_generic">Test failed: %1$s</string>
     <string name="llm_test_no_key">Please enter an API key first.</string>
-    <string name="llm_test_never_run">Not tested yet</string>
-    <string name="llm_test_last_pass">Last test: Passed (%1$s)</string>
-    <string name="llm_test_last_fail">Last test: Failed (%1$s) — Tap to retry</string>
-
-    <!-- Gateway Recovery Notifications -->
-    <string name="gateway_crash_title">Gateway Restarted</string>
-    <string name="gateway_crash_message">Crash recovery attempt %1$d/%2$d</string>
-    <string name="gateway_crash_detail">The gateway process crashed and was automatically restarted. This is attempt %1$d of %2$d. If crashes continue, check the gateway logs for errors.</string>
-    <string name="gateway_crash_disable">Disable Auto-Recovery</string>
-    <string name="gateway_stopped_crash_title">Gateway Stopped</string>
-    <string name="gateway_stopped_crash_message">Crashed %1$d times — could not recover</string>
-
-        <!-- Gateway Control -->
-    <!-- LLM Config QR Share -->
-    <string name="llm_category_share">Share Config</string>
-    <string name="llm_export_qr_title">Export as QR Code</string>
-    <string name="llm_export_qr_summary">Generate QR code with your LLM settings (excludes API key)</string>
-    <string name="llm_import_qr_title">Import via QR Code</string>
-    <string name="llm_import_qr_summary">Scan a QR code to load LLM settings</string>
-    <string name="llm_qr_export_title">LLM Configuration QR Code</string>
-    <string name="llm_qr_export_warning">API keys are NOT included in the QR code for security</string>
-    <string name="llm_qr_import_confirm_title">Apply Imported Configuration?</string>
-    <string name="llm_qr_import_confirm_message">Provider: %1$s\nModel: %2$s\nBase URL: %3$s\n\nApply these settings?</string>
-    <string name="llm_qr_import_applied">Configuration imported successfully</string>
-    <string name="llm_qr_import_failed">Failed to read QR code: %1$s</string>
-    <string name="llm_qr_no_scanner">No QR scanner app found. Please install a barcode scanner.</string>
-    <string name="llm_qr_invalid_data">Invalid configuration data in QR code</string>
-    <string name="llm_test_last_pass">Last test: Passed (%1$s)</string>
-    <string name="llm_test_last_fail">Last test: Failed (%1$s) — Tap to retry</string>
-    <string name="llm_test_never_run">Not tested yet</string>
-    <string name="llm_test_never_run">Not tested yet — tap to verify</string>
-    <string name="llm_test_last_pass">Passed %1$s</string>
-    <string name="llm_test_last_fail">Failed %1$s — tap to retry</string>
 
     <!-- Gateway Control -->
     <string name="gateway_start_title">Start Gateway</string>
     <string name="gateway_start_summary">Start the Hermes messaging gateway</string>
     <string name="gateway_auto_start_title">Auto-start Gateway</string>
     <string name="gateway_auto_start_summary">Start Hermes gateway automatically when app opens</string>
-
-    <!-- Battery Optimization -->
-    <string name="battery_optimization_title">Battery Optimization</string>
-    <string name="battery_optimization_summary_off">Tap to whitelist app — prevents gateway from being killed</string>
-    <string name="battery_optimization_summary_on">App is whitelisted — gateway will run reliably</string>
-    <string name="battery_optimization_prompt_title">Keep Gateway Running</string>
-    <string name="battery_optimization_prompt_message">Your device may kill the Hermes gateway to save battery. Whitelist this app from battery optimization to ensure the gateway stays running reliably.\n\nThis only affects Hermes — it won\'t significantly impact your battery life.</string>
-    <string name="battery_optimization_open_settings">Open Settings</string>
-    <string name="battery_optimization_skip">Skip</string>
-    <!-- Notification Permission -->
-    <string name="notification_perm_title">Notification Permission</string>
-    <string name="notification_perm_granted">Notifications enabled</string>
-    <string name="notification_perm_denied">Notifications blocked — gateway status won\'t be visible</string>
-    <string name="notification_perm_rationale_title">Allow Notifications?</string>
-    <string name="notification_perm_rationale_message">Hermes needs notification permission to show the gateway running status. Without it, you won\'t see when the gateway is active.</string>
-
-    <string name="battery_opt_title">Battery Optimization</string>
-    <string name="battery_opt_summary">Whitelist this app to keep the gateway running in the background</string>
-    <string name="battery_opt_prompt_title">Disable battery optimization?</string>
-    <string name="battery_opt_prompt_message">To keep the Hermes gateway running reliably, disable battery optimization for this app. This prevents Android from killing the gateway process.</string>
-    <string name="battery_opt_prompt_positive">Disable</string>
-    <string name="battery_opt_prompt_negative">Skip</string>
-    <string name="battery_opt_already_whitelisted">Already whitelisted</string>
     <string name="gateway_stop_title">Stop Gateway</string>
     <string name="gateway_stop_summary">Stop the running gateway</string>
     <string name="gateway_restart_title">Restart Gateway</string>
     <string name="gateway_restart_summary">Restart the gateway process</string>
-
-    <!-- Gateway Pre-check -->
-    <string name="gateway_precheck_no_llm_title">AI provider not configured</string>
-    <string name="gateway_precheck_no_llm_message">You need to configure an AI provider and API key before starting the gateway.\n\nPlease set up your LLM provider first.</string>
-    <string name="gateway_precheck_no_llm_action">Configure AI</string>
-    <string name="gateway_precheck_no_im_title">No messaging platform configured</string>
-    <string name="gateway_precheck_no_im_message">No messaging platform is set up yet. The gateway will start but won\'t receive messages from any platform.\n\nYou can configure messaging later from Settings.</string>
-    <string name="gateway_precheck_no_im_action_start">Start anyway</string>
-    <string name="gateway_precheck_no_im_action_setup">Set up messaging</string>
     <string name="gateway_started">Gateway starting…</string>
-    <string name="gateway_notif_perm_title">Notification Permission</string>
-    <string name="gateway_notif_perm_summary">Allow notifications to see gateway status</string>
-    <string name="gateway_notif_perm_rationale_title">Enable notifications?</string>
-    <string name="gateway_notif_perm_rationale_message">Hermes needs notification permission to show the gateway running status and alerts. Without it, you won\'t see when the gateway is active or if it crashes.</string>
-    <string name="gateway_notif_perm_granted">Permission granted</string>
-    <string name="gateway_notif_perm_denied">Permission denied — gateway may run without visible notification</string>
-    <string name="gateway_notif_perm_enable">Enable</string>
-    <string name="gateway_notif_perm_skip">Skip</string>
-    <string name="validation_title">Configuration Check</string>
-    <string name="validation_no_api_key">No API key set for %1$s</string>
-    <string name="validation_no_model">No model selected</string>
-    <string name="validation_no_im">No messaging platform configured</string>
-    <string name="validation_start_anyway">Start gateway anyway?</string>
-    <string name="validation_start">Start</string>
     <string name="gateway_stopped">Gateway stopped</string>
     <string name="gateway_restarted">Gateway restarting…</string>
-    <string name="gateway_auto_restart_toast">Applying config changes…</string>
-    <string name="gateway_restart_for_config">Restarting gateway to apply changes…</string>
     <string name="gateway_status_running">Running</string>
     <string name="gateway_status_stopped">Stopped</string>
     <string name="gateway_status_not_installed">Not installed</string>
-    <string name="gateway_notif_stop">Stop</string>
-    <string name="gateway_notif_restart">Restart</string>
-    <string name="gateway_notif_running">Hermes Gateway running</string>
-    <string name="gateway_notif_channel_name">Hermes Gateway</string>
-    <string name="gateway_notif_channel_desc">Hermes gateway status</string>
-    <string name="gateway_notif_error_channel_name">Hermes Gateway Alerts</string>
-    <string name="gateway_notif_error_channel_desc">Gateway crash and restart alerts</string>
-
-    <!-- Gateway Diagnostic -->
-    <string name="gateway_diagnostic_title">Connection Diagnostic</string>
-    <string name="gateway_diagnostic_summary">Test connectivity to LLM and IM platforms</string>
-    <string name="gateway_diagnostic_running">Running diagnostics…</string>
-    <string name="gateway_diagnostic_title_dialog">Connection Diagnostic</string>
-    <string name="gateway_diag_hermes_binary">Hermes binary</string>
-    <string name="gateway_diag_hermes_version">Hermes version: %1$s</string>
-    <string name="gateway_diag_hermes_not_found">Hermes binary not found</string>
-    <string name="gateway_diag_llm_api">LLM API (%1$s)</string>
-    <string name="gateway_diag_llm_ok">Connected — model %1$s accessible</string>
-    <string name="gateway_diag_llm_auth">Auth failed — check your API key</string>
-    <string name="gateway_diag_llm_network">Network error — check your connection</string>
-    <string name="gateway_diag_llm_no_key">No API key configured</string>
-    <string name="gateway_diag_im_feishu">Feishu</string>
-    <string name="gateway_diag_im_feishu_ok">Credentials configured</string>
-    <string name="gateway_diag_im_feishu_no">Not configured</string>
-    <string name="gateway_diag_im_telegram">Telegram</string>
-    <string name="gateway_diag_im_telegram_ok">Bot token valid</string>
-    <string name="gateway_diag_im_telegram_fail">Bot token invalid</string>
-    <string name="gateway_diag_im_telegram_no">Not configured</string>
-    <string name="gateway_diag_im_discord">Discord</string>
-    <string name="gateway_diag_im_discord_ok">Bot token valid</string>
-    <string name="gateway_diag_im_discord_fail">Bot token invalid</string>
-    <string name="gateway_diag_im_discord_no">Not configured</string>
-    <string name="gateway_diag_gateway_process">Gateway process</string>
-    <string name="gateway_diag_gateway_running">Running</string>
-    <string name="gateway_diag_gateway_stopped">Not running</string>
-    <!-- Gateway Start Validation -->
-    <string name="validation_start_title">Start Gateway?</string>
-    <string name="validation_ready_header">Ready:</string>
-    <string name="validation_warnings_header">Warnings:</string>
-    <string name="validation_no_provider">No LLM provider selected</string>
-    <string name="validation_no_api_key">API key not set for %1$s</string>
-    <string name="validation_llm_ok">%1$s / %2$s</string>
-    <string name="validation_llm_ok_ollama">Ollama (local)</string>
-    <string name="validation_no_im">No messaging platform configured</string>
-    <string name="validation_feishu_ok">Feishu connected</string>
-    <string name="validation_telegram_ok">Telegram connected</string>
-    <string name="validation_discord_ok">Discord connected</string>
 
     <!-- Gateway Log -->
     <string name="gateway_log_title">Gateway Log</string>
     <string name="gateway_log_refresh">Refresh</string>
     <string name="gateway_log_clear">Clear Log</string>
     <string name="gateway_log_empty">No log entries yet.</string>
-    <string name="gateway_log_search_hint">Search logs…</string>
     <string name="gateway_log_clear_confirm_title">Clear Log?</string>
     <string name="gateway_log_clear_confirm_message">This will delete all gateway log entries.</string>
     <string name="gateway_log_cleared">Log cleared</string>
-    <string name="gateway_log_share">Share</string>
-    <string name="gateway_log_share_title">Share Gateway Log</string>
-    <string name="gateway_log_share_empty">No log content to share.</string>
-    <string name="gateway_log_export">Export</string>
-    <string name="gateway_log_export_success">Log exported to %1$s</string>
-    <string name="gateway_log_export_failed">Export failed: %1$s</string>
     <string name="hermes_gateway_log_summary">View gateway log for troubleshooting</string>
 
-    <!-- Setup Progress -->
-    <string name="setup_progress_title">Setup Progress</string>
-    <string name="setup_progress_all_done">All set! Hermes is ready.</string>
-    <string name="setup_progress_steps">%1$d of %2$d completed</string>
-    <string name="setup_progress_step_llm_provider">LLM provider selected</string>
-    <string name="setup_progress_step_api_key">API key configured</string>
-    <string name="setup_progress_step_im">Messaging platform connected</string>
-    <string name="setup_progress_step_gateway">Gateway running</string>
-    <string name="setup_action_continue">Continue Setup</string>
-    <string name="setup_action_continue_summary">Tap to complete the next step</string>
-    <string name="setup_action_start_gateway">Start Gateway</string>
-    <string name="setup_action_start_gateway_summary">Everything is configured — start the gateway now</string>
-    <string name="setup_action_configure_llm">Configure AI Provider</string>
-    <string name="setup_action_configure_llm_summary">Set up your LLM provider and API key first</string>
-    <string name="setup_action_connect_im">Connect Messaging Platform</string>
-    <string name="setup_action_connect_im_summary">Connect at least one messaging platform</string>
-    <string name="setup_action_enter_api_key">Enter API Key</string>
-    <string name="setup_action_enter_api_key_summary">Add your %1$s API key</string>
+    <!-- Gateway Session History -->
+    <string name="gateway_session_history_title">Session History</string>
+    <string name="gateway_session_current">Current Session</string>
+    <string name="gateway_session_running">Running</string>
+    <string name="gateway_session_start">Started: %1$s</string>
+    <string name="gateway_session_duration">Duration: %1$s</string>
+    <string name="gateway_session_clear_title">Clear History</string>
+    <string name="gateway_session_clear_confirm_title">Clear session history?</string>
+    <string name="gateway_session_clear_confirm_message">This will delete all gateway session records.</string>
+    <string name="gateway_session_cleared">Session history cleared</string>
+    <string name="gateway_session_empty">No session history yet.</string>
 
     <!-- Dashboard -->
     <string name="dashboard_title">Status Overview</string>
-    <string name="dashboard_version_title">Hermes Version</string>
-    <string name="dashboard_version_format">v%1$s</string>
-    <string name="dashboard_version_not_installed">Not installed</string>
-    <string name="quickstart_start">Start Gateway</string>
-    <string name="quickstart_stop">Stop Gateway</string>
-    <string name="quickstart_running">Running — %1$s</string>
-    <string name="quickstart_stopped">Tap to start the gateway</string>
-    <string name="quickstart_not_installed">Hermes not installed — waiting for auto-install</string>
-    <string name="setup_progress_title">Setup Progress</string>
-    <string name="setup_progress_step_llm">1. Configure AI Provider</string>
-    <string name="setup_progress_step_im">2. Connect Messaging</string>
-    <string name="setup_progress_step_gateway">3. Start Gateway</string>
-    <string name="setup_progress_complete">All set! Hermes is ready.</string>
-    <string name="setup_progress_summary">%1$d of %2$d steps complete</string>
     <string name="dashboard_gateway_title">Gateway</string>
     <string name="dashboard_gateway_running">Running</string>
-    <string name="dashboard_gateway_running_resource">Running — %1$d MB memory</string>
-    <string name="dashboard_gateway_healthy">Healthy (%1$dms)</string>
-    <string name="dashboard_gateway_degraded">Slow (%1$.1fs)</string>
-    <string name="dashboard_gateway_unhealthy">Unhealthy — check logs</string>
     <string name="dashboard_gateway_stopped">Stopped</string>
     <string name="dashboard_gateway_not_installed">Not installed</string>
     <string name="dashboard_llm_title">AI Provider</string>
@@ -780,46 +436,14 @@ App ID starts with "cli_" and is about 10–20 characters. App Secret is longer 
     <string name="dashboard_im_title">Messaging</string>
     <string name="dashboard_im_none">No messaging configured</string>
     <string name="dashboard_im_list">Active: %1$s</string>
-    <string name="dashboard_version_title">Hermes Agent</string>
-    <string name="dashboard_version_checking">Checking…</string>
-    <string name="dashboard_version_format">v%1$s</string>
-    <string name="dashboard_version_not_installed">Not installed</string>
-
-    <!-- LLM Quick Switch -->
-    <string name="llm_quick_switch_title">Quick Switch Model</string>
-    <string name="llm_quick_switch_summary">Change provider and model without leaving dashboard</string>
-    <string name="llm_quick_switch_dialog_title">Switch AI Model</string>
-    <string name="llm_quick_switch_provider_label">Provider</string>
-    <string name="llm_quick_switch_model_label">Model</string>
-    <string name="llm_quick_switch_saved">Switched to %1$s / %2$s</string>
-
     <string name="llm_configured">Configured (%1$s)</string>
     <string name="llm_not_configured">Not configured</string>
-    <string name="llm_provider_active">Active: %1$s</string>
     <string name="feishu_configured">Configured</string>
-    <string name="feishu_configured_imported">Configured — detected from existing config</string>
     <string name="feishu_not_configured">Not configured</string>
     <string name="telegram_configured">Configured</string>
-    <string name="telegram_configured_imported">Configured — detected from existing config</string>
     <string name="telegram_not_configured">Not configured</string>
     <string name="discord_configured">Configured</string>
-    <string name="discord_configured_imported">Configured — detected from existing config</string>
     <string name="discord_not_configured">Not configured</string>
-
-    <!-- Help Tooltips -->
-    <string name="help_gateway_title">What is the Gateway?</string>
-    <string name="help_gateway_message">The Hermes Gateway is a background service that connects your AI provider to your messaging platforms. It needs to be running for Hermes to receive and respond to messages.\n\nStart it from the Gateway Control screen or use the quick-start button.</string>
-    <string name="help_llm_title">What is an AI Provider?</string>
-    <string name="help_llm_message">The AI Provider (LLM) is the brain of your Hermes assistant. You need an API key from providers like OpenAI, Anthropic, or use a free local model with Ollama.\n\nConfigure it from the LLM Configuration screen.</string>
-    <string name="help_im_title">What are Messaging Platforms?</string>
-    <string name="help_im_message">Messaging platforms like Feishu, Telegram, and Discord are where you chat with your Hermes AI assistant. Configure at least one platform to start chatting.\n\nEach platform needs its own bot token from the respective service.</string>
-    <string name="help_ok">Got it</string>
-    <!-- Quick-start tile -->
-    <string name="quickstart_start_gateway">Start Gateway</string>
-    <string name="quickstart_stop_gateway">Stop Gateway</string>
-    <string name="quickstart_gateway_not_installed">Hermes Agent is not installed. Please wait for auto-installation.</string>
-    <string name="quickstart_gateway_running">Gateway is running (%1$s)</string>
-    <string name="quickstart_gateway_stopped">Gateway is stopped. Tap to start.</string>
 
     <!-- Telegram Setup -->
     <string name="telegram_setup_title">Telegram Bot Setup</string>
@@ -851,12 +475,7 @@ App ID starts with "cli_" and is about 10–20 characters. App Secret is longer 
     <string name="discord_test_success">Bot token is valid! Your Discord bot is ready.</string>
     <string name="discord_test_fail">Invalid bot token — please check and try again.</string>
     <string name="discord_complete_title">Discord Setup Complete!</string>
-        <string name="im_test_no_token">Please enter a bot token first.</string>
-    <string name="im_test_running">Testing connection…</string>
-    <string name="im_test_retry">Retry</string>
-    <string name="im_test_detail_success">Bot: %1$s</string>
-    <string name="im_test_detail_fail">HTTP %1$s: %2$s</string>
-<string name="discord_complete_next_steps">Next steps:\n\n• Invite your bot to your Discord server\n• Start the Hermes Gateway from Settings\n• Send a message to your bot on Discord\n• You can change settings anytime from Hermes Settings</string>
+    <string name="discord_complete_next_steps">Next steps:\n\n• Invite your bot to your Discord server\n• Start the Hermes Gateway from Settings\n• Send a message to your bot on Discord\n• You can change settings anytime from Hermes Settings</string>
 
     <!-- Feishu Setup -->
     <string name="feishu_setup_title">Feishu / Lark Setup</string>
@@ -899,15 +518,7 @@ App ID starts with "cli_" and is about 10–20 characters. App Secret is longer 
     <string name="feishu_step4_title">Enter Credentials</string>
     <string name="feishu_step4_desc">Scan the QR code below with Feishu to open the credentials page, or enter them manually.</string>
     <string name="feishu_qr_scan_hint">Scan this QR code with Feishu to open the Developer Console:</string>
-    <string name="feishu_scan_qr_code">Scan QR Code</string>
-    <string name="feishu_scan_prompt">Point the camera at a Feishu credential QR code</string>
-    <string name="feishu_no_qr_scanner">No QR scanner app found. Please install a barcode scanner or paste credentials manually.</string>
-    <string name="feishu_scan_app_id_filled">App ID filled from QR code</string>
-    <string name="feishu_scan_filled">QR content filled — please verify</string>
     <string name="feishu_manual_entry_label">Or enter credentials manually:</string>
-    <string name="im_scan_qr_code">Scan QR Code</string>
-    <string name="im_scan_qr_prompt">Point the camera at a bot token QR code</string>
-    <string name="im_scan_token_filled">Token filled from QR code</string>
     <string name="feishu_paste">Paste</string>
     <string name="feishu_toggle_visibility">Show</string>
     <string name="feishu_paste_detected">App ID detected! Tap to fill: %1$s</string>
@@ -961,77 +572,5 @@ App ID starts with "cli_" and is about 10–20 characters. App Secret is longer 
     <string name="hermes_setup_feishu_skip">You can skip this step and configure Feishu later from Hermes Settings.</string>
     <string name="hermes_setup_done_title">You\'re all set!</string>
     <string name="hermes_setup_done_text">Hermes is ready to go. You can start the gateway from the Hermes Settings or use the Web UI tab.\n\nTo change your settings at any time, tap the Hermes icon in the sidebar.</string>
-
-    <!-- Config Summary -->
-    <string name="config_summary_title">Config Summary</string>
-    <string name="config_summary_summary">View and share your current configuration</string>
-    <string name="config_summary_share">Share</string>
-    <string name="config_summary_section_llm">AI Provider</string>
-    <string name="config_summary_section_im">Messaging</string>
-    <string name="config_summary_section_persona">Persona</string>
-    <string name="config_summary_key_set">Set</string>
-    <string name="config_summary_key_not_set">Not set</string>
-    <!-- Installation Progress -->
-    <string name="install_title">Setting Up Hermes</string>
-    <string name="install_subtitle">Hermes Agent is being installed on your device.\nThis may take a minute.</string>
-    <string name="install_checking">Checking prerequisites…</string>
-    <string name="install_downloading">Downloading Hermes Agent…</string>
-    <string name="install_retrying">Retrying… (attempt %1$d/%2$d)</string>
-    <string name="install_configuring">Configuring Hermes…</string>
-    <string name="install_complete">Hermes Agent installed successfully!</string>
-    <string name="install_failed">Installation failed: %1$s</string>
-    <string name="install_failed_help">Make sure you have an internet connection and try again. You can also skip this step and install manually later.</string>
-    <string name="install_retry">Retry</string>
-    <string name="install_skip">Skip for now</string>
-    <string name="install_step_check">Checking environment</string>
-    <string name="install_step_download">Downloading Hermes Agent</string>
-    <string name="install_step_configure">Configuring environment</string>
-    <string name="install_step_done">Ready</string>
-    <!-- Help & Guide -->
-    <string name="help_title">Help &amp; Guide</string>
-    <string name="help_summary">Quick-start guide, FAQ, and useful links</string>
-    <string name="help_what_is_hermes_title">What is Hermes Agent?</string>
-    <string name="help_what_is_hermes">Hermes Agent is an open-source AI assistant by Nous Research. It runs locally on your device and connects to messaging platforms like Feishu, Telegram, and Discord.\n\nIt supports 200+ AI models from providers like OpenAI, Anthropic, Google, and more. You can also use local models via Ollama.</string>
-    <string name="help_quick_start_title">Quick Start</string>
-    <string name="help_quick_start">1. Configure your AI provider and API key in LLM Settings\n2. Connect at least one messaging platform (Feishu, Telegram, or Discord)\n3. Start the Hermes Gateway from Settings or the dashboard\n4. Send a message to your bot on the messaging platform\n5. The AI will respond based on your configured model and persona</string>
-    <string name="help_connecting_im_title">Connecting Messaging Platforms</string>
-    <string name="help_connecting_im">• Feishu/Lark: Use the guided setup wizard with QR code scanning. You\'ll need an App ID and App Secret from the Feishu Developer Console.\n\n• Telegram: Create a bot via @BotFather and paste the bot token. You can optionally restrict access to specific user IDs.\n\n• Discord: Create a bot in the Discord Developer Portal and paste the token. Enable the Message Content Intent for full functionality.</string>
-    <string name="help_faq_title">FAQ</string>
-    <string name="help_faq">Q: Does Hermes work offline?\nA: Only with Ollama (local models). Cloud providers require internet.\n\nQ: Which AI provider should I use?\nA: OpenRouter offers the best value with access to many models. OpenAI and Anthropic offer the highest quality.\n\nQ: Is my data safe?\nA: API keys are stored locally in the .env file. Messages are sent directly between your device and the AI provider.</string>
-    <string name="help_troubleshooting_title">Troubleshooting</string>
-    <string name="help_troubleshooting">• Gateway won\'t start: Check the gateway log in Advanced settings for errors.\n\n• Bot doesn\'t respond: Make sure the gateway is running and your API key is valid (use Test Connection).\n\n• Installation failed: Make sure you have internet. Try restarting the app. You can skip and install manually later.\n\n• API key not working: Use the Test Connection button in LLM settings to verify.</string>
-    <string name="help_links_title">Useful Links</string>
-    <string name="help_link_github">GitHub Repository</string>
-    <string name="help_link_docs">Official Documentation</string>
-    <string name="help_link_issues">Report an Issue</string>
-    <!-- Log Level -->
-    <string name="log_level_title">Log Level</string>
-    <string name="log_level_summary">Control gateway log verbosity</string>
-    <string name="log_level_quiet">Quiet (errors only)</string>
-    <string name="log_level_normal">Normal</string>
-    <string name="log_level_debug">Debug (verbose)</string>
-
-    <string-array name="log_level_names">
-        <item>@string/log_level_quiet</item>
-        <item>@string/log_level_normal</item>
-        <item>@string/log_level_debug</item>
-    </string-array>
-    <string-array name="log_level_values">
-        <item>quiet</item>
-        <item>normal</item>
-        <item>debug</item>
-    </string-array>
-    <!-- API Key UX -->
-    <string name="llm_paste_key_title">Paste from Clipboard</string>
-    <string name="llm_paste_key_summary">Paste API key from clipboard</string>
-    <string name="llm_paste_key_success">API key pasted from clipboard</string>
-    <string name="llm_paste_key_empty">Clipboard is empty or does not contain a key</string>
-    <!-- Uptime -->
-    <string name="uptime_hours_minutes">%1$dh %2$dm</string>
-    <string name="uptime_minutes">%1$dm</string>
-    <string name="uptime_just_started">Just started</string>
-    <!-- Notification Permission -->
-    <string name="notification_permission_granted">Notifications enabled for gateway status</string>
-    <string name="notification_permission_denied">Notifications permission denied. Gateway status may not be visible in the notification bar.</string>
 
 </resources>
