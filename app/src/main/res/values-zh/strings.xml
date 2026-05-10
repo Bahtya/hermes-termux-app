@@ -1,0 +1,86 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Agent Settings -->
+    <string name="agent_category_behavior">Agent 行为</string>
+    <string name="agent_category_context">上下文管理</string>
+    <string name="agent_category_memory">记忆系统</string>
+    <string name="agent_category_session">会话管理</string>
+    <string name="agent_compression_summary">自动压缩对话上下文以节省 token</string>
+    <string name="agent_compression_title">上下文压缩</string>
+    <string name="agent_memory_summary">允许 Agent 在会话之间存储个人笔记</string>
+    <string name="agent_memory_title">Agent 记忆</string>
+    <string name="agent_session_reset_summary">自动重置会话的时机</string>
+    <string name="agent_session_reset_title">会话重置模式</string>
+    <string name="agent_settings_summary">配置 Agent 行为、记忆和会话管理</string>
+    <string name="agent_settings_title">Agent 设置</string>
+
+    <!-- Error Recovery -->
+    <string name="error_recovery_all_ok">所有系统正常运行</string>
+    <string name="error_recovery_checking">正在检查系统状态…</string>
+    <string name="error_recovery_multiple_issues">发现多个问题 - 点击查看第一个</string>
+    <string name="error_recovery_title">系统健康</string>
+
+    <!-- Gateway Auto Start -->
+    <string name="gateway_auto_start_summary">设备启动时自动运行 Hermes 网关</string>
+    <string name="gateway_auto_start_title">开机自启动网关</string>
+
+    <!-- Gateway Diagnostic -->
+    <string name="gateway_diagnostic_summary">测试网络和 API 连接</string>
+    <string name="gateway_diagnostic_title">连接诊断</string>
+
+    <!-- Gateway Update -->
+    <string name="gateway_update_available">有新版本: %s (当前: %s)</string>
+    <string name="gateway_update_checking">正在检查更新…</string>
+    <string name="gateway_update_downloading">正在下载更新…</string>
+    <string name="gateway_update_install_failed">更新失败，请手动更新。</string>
+    <string name="gateway_update_installed">已更新到 v%s，请重启网关。</string>
+    <string name="gateway_update_up_to_date">已是最新版本 (v%s)</string>
+
+    <!-- Check Update -->
+    <string name="hermes_check_update_summary">检查 Hermes Agent 新版本</string>
+    <string name="hermes_check_update_title">检查更新</string>
+
+    <!-- MCP Server -->
+    <string name="mcp_add_server">添加 MCP 服务器</string>
+    <string name="mcp_no_servers">未配置 MCP 服务器</string>
+    <string name="mcp_settings_summary">配置 Model Context Protocol 服务器扩展工具</string>
+    <string name="mcp_settings_title">MCP 服务器</string>
+
+    <!-- Profiles -->
+    <string name="profile_category_title">配置方案</string>
+    <string name="profile_current_title">当前方案</string>
+    <string name="profile_delete_summary">删除已保存的配置方案</string>
+    <string name="profile_delete_title">删除方案</string>
+    <string name="profile_save_summary">将当前 LLM 设置保存为命名方案</string>
+    <string name="profile_save_title">保存当前方案</string>
+    <string name="profile_switch_summary">在已保存的方案之间切换</string>
+    <string name="profile_switch_title">切换方案</string>
+
+    <!-- Templates -->
+    <string name="template_menu_summary">选择预设场景快速配置</string>
+    <string name="template_menu_title">使用模板</string>
+
+    <!-- Tutorial -->
+    <string name="tutorial_reset_summary">重新显示应用引导教程</string>
+    <string name="tutorial_reset_title">重置新手引导</string>
+
+    <!-- Usage -->
+    <string name="usage_category_title">使用统计</string>
+    <string name="usage_estimated_cost_title">预估 API 费用</string>
+    <string name="usage_no_data">暂无使用数据</string>
+    <string name="usage_sessions_title">会话数</string>
+    <string name="usage_total_uptime_title">总运行时间</string>
+
+    <!-- Validation -->
+    <string name="validation_api_key_title">API 密钥</string>
+    <string name="validation_category_title">配置健康检查</string>
+    <string name="validation_gateway_title">网关状态</string>
+    <string name="validation_im_title">IM 平台</string>
+    <string name="validation_system_prompt_title">系统提示词</string>
+
+    <!-- WhatsApp -->
+    <string name="whatsapp_configured">WhatsApp Business 已配置</string>
+    <string name="whatsapp_not_configured">未配置</string>
+    <string name="whatsapp_setup_summary">配置 WhatsApp Business API</string>
+    <string name="whatsapp_setup_title">WhatsApp Business 设置</string>
+</resources>
