@@ -698,12 +698,6 @@
     <string name="install_step_download">Downloading</string>
     <string name="install_step_configure">Configuring</string>
     <string name="install_step_done">Done</string>
-    <string name="gateway_step_loading_config">Loading configuration...</string>
-    <string name="gateway_step_connecting_llm">Connecting to AI provider...</string>
-    <string name="gateway_step_init_im">Initializing messaging platforms...</string>
-    <string name="gateway_step_starting">Starting gateway...</string>
-    <string name="gateway_step_running">Gateway running</string>
-    <string name="gateway_step_failed">Gateway failed to start</string>
     <string name="hermes_faq_copy_debug">Copy Debug Info</string>
     <string name="hermes_faq_debug_copied">Debug info copied to clipboard</string>
     <string name="hermes_faq_content"><b>Getting Started</b>\nHermes connects AI assistants to messaging platforms.\n\n<b>API Key Issues</b>\nCheck your API key is correct.\n\n<b>Gateway Troubleshooting</b>\nCheck gateway log for errors.</string>
