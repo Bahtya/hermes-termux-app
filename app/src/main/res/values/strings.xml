@@ -263,6 +263,16 @@
     <string name="hermes_reset_confirm_title">Reset Hermes Config?</string>
     <string name="hermes_reset_confirm_message">This will delete your Hermes configuration files. API keys and settings will be lost.</string>
     <string name="hermes_reset_done">Configuration reset to defaults</string>
+    <string name="hermes_export_title">Export Configuration</string>
+    <string name="hermes_export_summary">Save settings to a file for backup</string>
+    <string name="hermes_export_success">Configuration exported successfully</string>
+    <string name="hermes_export_failed">Export failed: %1$s</string>
+    <string name="hermes_import_title">Import Configuration</string>
+    <string name="hermes_import_summary">Restore settings from a backup file</string>
+    <string name="hermes_import_confirm_title">Import Configuration?</string>
+    <string name="hermes_import_confirm_message">This will overwrite your current settings. Continue?</string>
+    <string name="hermes_import_success">Configuration imported successfully</string>
+    <string name="hermes_import_failed">Import failed: %1$s</string>
     <string name="hermes_check_update_title">Check for Updates</string>
     <string name="hermes_check_update_summary">Check if a newer version of Hermes Agent is available</string>
     <string name="hermes_update_available">Update available: %1$s (current: %2$s)</string>
