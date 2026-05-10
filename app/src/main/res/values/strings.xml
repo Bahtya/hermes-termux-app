@@ -395,6 +395,14 @@
     <string name="gateway_start_summary">Start the Hermes messaging gateway</string>
     <string name="gateway_auto_start_title">Auto-start Gateway</string>
     <string name="gateway_auto_start_summary">Start Hermes gateway automatically when app opens</string>
+    <string name="gateway_auto_restart_title">Auto-restart on crash</string>
+    <string name="gateway_auto_restart_summary">Automatically restart gateway if it crashes</string>
+    <string name="gateway_max_restarts_title">Max restart attempts</string>
+    <string name="gateway_max_restarts_summary">Maximum crash restart attempts before giving up (default 3)</string>
+    <string name="gateway_notif_sound_title">Notification sound</string>
+    <string name="gateway_notif_sound_summary">Play sound on gateway status changes</string>
+    <string name="gateway_notif_vibrate_title">Notification vibration</string>
+    <string name="gateway_notif_vibrate_summary">Vibrate on gateway crash alerts</string>
     <string name="gateway_stop_title">Stop Gateway</string>
     <string name="gateway_stop_summary">Stop the running gateway</string>
     <string name="gateway_restart_title">Restart Gateway</string>
