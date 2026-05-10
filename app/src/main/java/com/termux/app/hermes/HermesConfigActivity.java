@@ -339,6 +339,9 @@ public class HermesConfigActivity extends AppCompatActivity {
                 case "hermes_mcp_settings":
                     showMcpServersDialog();
                     return true;
+                case "hermes_prompt_chains":
+                    showPromptChainsDialog();
+                    return true;
                 case "hermes_conversation_history":
                     startActivity(new Intent(requireContext(), HermesConversationActivity.class));
                     return true;
@@ -1452,6 +1455,224 @@ public class HermesConfigActivity extends AppCompatActivity {
                         }
                     })
                     .show();
+        }
+
+        private void showPromptChainsDialog() {
+            ScrollView scrollView = new ScrollView(requireContext());
+            LinearLayout layout = new LinearLayout(requireContext());
+            layout.setOrientation(LinearLayout.VERTICAL);
+            int pad = dp(16);
+            layout.setPadding(pad, pad, pad, pad);
+
+            java.util.List<String> chainNames = mConfigManager.getChainNames(requireContext());
+            if (chainNames.isEmpty()) {
+                TextView empty = new TextView(requireContext());
+                empty.setText(R.string.chains_empty);
+                empty.setPadding(0, dp(8), 0, dp(8));
+                layout.addView(empty);
+            } else {
+                for (String name : chainNames) {
+                    LinearLayout row = new LinearLayout(requireContext());
+                    row.setOrientation(LinearLayout.HORIZONTAL);
+                    row.setPadding(0, dp(4), 0, dp(4));
+
+                    HermesConfigManager.PromptChain chain = mConfigManager.loadChain(requireContext(), name);
+                    TextView label = new TextView(requireContext());
+                    label.setText(name + (chain != null ? "\n" + chain.mode + " · " + chain.steps.size() + " steps" : ""));
+                    label.setTextSize(13);
+                    LinearLayout.LayoutParams labelParams = new LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 1f);
+                    label.setLayoutParams(labelParams);
+                    row.addView(label);
+
+                    TextView editBtn = new TextView(requireContext());
+                    editBtn.setText(R.string.chains_edit);
+                    editBtn.setTextColor(0xFF1976D2);
+                    editBtn.setTextSize(13);
+                    editBtn.setPadding(dp(12), 0, 0, 0);
+                    editBtn.setOnClickListener(v -> showEditChainDialog(name));
+                    row.addView(editBtn);
+
+                    TextView removeBtn = new TextView(requireContext());
+                    removeBtn.setText(R.string.chains_remove);
+                    removeBtn.setTextColor(0xFFD32F2F);
+                    removeBtn.setTextSize(13);
+                    removeBtn.setPadding(dp(12), 0, 0, 0);
+                    String chainName = name;
+                    removeBtn.setOnClickListener(v -> {
+                        mConfigManager.deleteChain(requireContext(), chainName);
+                        Toast.makeText(requireContext(), getString(R.string.chains_deleted, chainName), Toast.LENGTH_SHORT).show();
+                    });
+                    row.addView(removeBtn);
+
+                    layout.addView(row);
+                }
+            }
+
+            com.google.android.material.button.MaterialButton addBtn =
+                    new com.google.android.material.button.MaterialButton(requireContext());
+            addBtn.setText(R.string.chains_add);
+            addBtn.setAllCaps(false);
+            addBtn.setCornerRadius(dp(20));
+            LinearLayout.LayoutParams addParams = new LinearLayout.LayoutParams(
+                    LinearLayout.LayoutParams.WRAP_CONTENT, LinearLayout.LayoutParams.WRAP_CONTENT);
+            addParams.topMargin = dp(16);
+            addParams.gravity = android.view.Gravity.CENTER_HORIZONTAL;
+            addBtn.setLayoutParams(addParams);
+            addBtn.setOnClickListener(v -> showEditChainDialog(null));
+            layout.addView(addBtn);
+
+            scrollView.addView(layout);
+
+            new AlertDialog.Builder(requireContext())
+                    .setTitle(R.string.chains_title)
+                    .setView(scrollView)
+                    .setPositiveButton(android.R.string.ok, null)
+                    .show();
+        }
+
+        private void showEditChainDialog(String existingName) {
+            HermesConfigManager.PromptChain chain = null;
+            if (existingName != null) {
+                chain = mConfigManager.loadChain(requireContext(), existingName);
+            }
+            if (chain == null) {
+                chain = new HermesConfigManager.PromptChain("", "", "sequential");
+            }
+
+            ScrollView scrollView = new ScrollView(requireContext());
+            LinearLayout layout = new LinearLayout(requireContext());
+            layout.setOrientation(LinearLayout.VERTICAL);
+            int pad = dp(16);
+            layout.setPadding(pad, pad, pad, pad);
+
+            // Chain name
+            EditText nameInput = new EditText(requireContext());
+            nameInput.setHint(R.string.chains_name_hint);
+            nameInput.setSingleLine(true);
+            nameInput.setText(chain.name);
+            layout.addView(nameInput);
+
+            // Description
+            EditText descInput = new EditText(requireContext());
+            descInput.setHint(R.string.chains_desc_hint);
+            descInput.setSingleLine(true);
+            descInput.setText(chain.description);
+            layout.addView(descInput);
+
+            // Mode spinner
+            Spinner modeSpinner = new Spinner(requireContext());
+            ArrayAdapter<String> modeAdapter = new ArrayAdapter<>(requireContext(),
+                    android.R.layout.simple_spinner_dropdown_item,
+                    getResources().getStringArray(R.array.chains_mode_names));
+            modeSpinner.setAdapter(modeAdapter);
+            LinearLayout.LayoutParams spinnerParams = new LinearLayout.LayoutParams(
+                    LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT);
+            spinnerParams.topMargin = dp(8);
+            modeSpinner.setLayoutParams(spinnerParams);
+            if ("parallel".equals(chain.mode)) modeSpinner.setSelection(1);
+            layout.addView(modeSpinner);
+
+            // Steps container
+            LinearLayout stepsContainer = new LinearLayout(requireContext());
+            stepsContainer.setOrientation(LinearLayout.VERTICAL);
+            stepsContainer.setPadding(0, dp(8), 0, 0);
+            layout.addView(stepsContainer);
+
+            // Populate existing steps
+            for (HermesConfigManager.ChainStep step : chain.steps) {
+                addStepRow(stepsContainer, step);
+            }
+
+            // Add step button
+            com.google.android.material.button.MaterialButton addStepBtn =
+                    new com.google.android.material.button.MaterialButton(requireContext());
+            addStepBtn.setText(R.string.chains_add_step);
+            addStepBtn.setAllCaps(false);
+            addStepBtn.setCornerRadius(dp(16));
+            LinearLayout.LayoutParams stepBtnParams = new LinearLayout.LayoutParams(
+                    LinearLayout.LayoutParams.WRAP_CONTENT, LinearLayout.LayoutParams.WRAP_CONTENT);
+            stepBtnParams.topMargin = dp(8);
+            addStepBtn.setLayoutParams(stepBtnParams);
+            addStepBtn.setOnClickListener(v -> addStepRow(stepsContainer, null));
+            layout.addView(addStepBtn);
+
+            scrollView.addView(layout);
+
+            new AlertDialog.Builder(requireContext())
+                    .setTitle(existingName != null ? existingName : getString(R.string.chains_add))
+                    .setView(scrollView)
+                    .setPositiveButton(android.R.string.ok, (d, w) -> {
+                        String name = nameInput.getText().toString().trim();
+                        if (name.isEmpty()) {
+                            Toast.makeText(requireContext(), R.string.chains_name_required, Toast.LENGTH_SHORT).show();
+                            return;
+                        }
+                        String desc = descInput.getText().toString().trim();
+                        String[] modeValues = getResources().getStringArray(R.array.chains_mode_values);
+                        String mode = modeValues[modeSpinner.getSelectedItemPosition()];
+
+                        HermesConfigManager.PromptChain newChain = new HermesConfigManager.PromptChain(name, desc, mode);
+                        // Collect steps from container
+                        for (int i = 0; i < stepsContainer.getChildCount(); i++) {
+                            View stepView = stepsContainer.getChildAt(i);
+                            if (stepView instanceof LinearLayout) {
+                                LinearLayout stepRow = (LinearLayout) stepView;
+                                EditText promptEt = (EditText) stepView.findViewWithTag("prompt");
+                                EditText modelEt = (EditText) stepView.findViewWithTag("model");
+                                EditText toolsEt = (EditText) stepView.findViewWithTag("tools");
+                                if (promptEt != null) {
+                                    String prompt = promptEt.getText().toString().trim();
+                                    String model = modelEt != null ? modelEt.getText().toString().trim() : "";
+                                    String tools = toolsEt != null ? toolsEt.getText().toString().trim() : "";
+                                    newChain.steps.add(new HermesConfigManager.ChainStep(prompt, model, tools));
+                                }
+                            }
+                        }
+
+                        mConfigManager.saveChain(requireContext(), newChain);
+                        Toast.makeText(requireContext(),
+                                getString(R.string.chains_saved, name), Toast.LENGTH_SHORT).show();
+                    })
+                    .setNegativeButton(android.R.string.cancel, null)
+                    .show();
+        }
+
+        private void addStepRow(LinearLayout container, HermesConfigManager.ChainStep step) {
+            float density = getResources().getDisplayMetrics().density;
+            int stepNum = container.getChildCount() + 1;
+            LinearLayout stepLayout = new LinearLayout(requireContext());
+            stepLayout.setOrientation(LinearLayout.VERTICAL);
+            stepLayout.setPadding(0, (int) (8 * density), 0, (int) (4 * density));
+
+            TextView stepLabel = new TextView(requireContext());
+            stepLabel.setText(getString(R.string.chains_step_prompt_title, stepNum));
+            stepLabel.setTextSize(13);
+            stepLabel.setTypeface(null, android.graphics.Typeface.BOLD);
+            stepLayout.addView(stepLabel);
+
+            EditText promptInput = new EditText(requireContext());
+            promptInput.setHint("System prompt for this step");
+            promptInput.setSingleLine(false);
+            promptInput.setMinLines(2);
+            promptInput.setTag("prompt");
+            if (step != null) promptInput.setText(step.systemPrompt);
+            stepLayout.addView(promptInput);
+
+            EditText modelInput = new EditText(requireContext());
+            modelInput.setHint(R.string.chains_step_model_title);
+            modelInput.setSingleLine(true);
+            modelInput.setTag("model");
+            if (step != null) modelInput.setText(step.modelOverride);
+            stepLayout.addView(modelInput);
+
+            EditText toolsInput = new EditText(requireContext());
+            toolsInput.setHint(R.string.chains_step_tools_title);
+            toolsInput.setSingleLine(true);
+            toolsInput.setTag("tools");
+            if (step != null) toolsInput.setText(step.toolsAllowed);
+            stepLayout.addView(toolsInput);
+
+            container.addView(stepLayout);
         }
 
         private void showDeleteProfileDialog() {
