@@ -755,4 +755,17 @@
     <string name="gateway_log_copied">Log copied to clipboard</string>
     <string name="gateway_log_share_title">Share Gateway Log</string>
     <string name="gateway_log_no_matches">No log entries match the filter.</string>
+
+    <!-- Config import/export -->
+    <string name="config_export_title">Export Configuration</string>
+    <string name="config_export_summary">Export all settings to a JSON file</string>
+    <string name="config_export_with_secrets">Include API Keys</string>
+    <string name="config_export_success">Config exported to: %1$s</string>
+    <string name="config_export_fail">Export failed: %1$s</string>
+    <string name="config_import_title">Import Configuration</string>
+    <string name="config_import_summary">Import settings from a JSON file</string>
+    <string name="config_import_confirm_title">Import Configuration?</string>
+    <string name="config_import_confirm_message">This will overwrite your current settings. Continue?</string>
+    <string name="config_import_success">Configuration imported successfully</string>
+    <string name="config_import_fail">Import failed: %1$s</string>
 </resources>
