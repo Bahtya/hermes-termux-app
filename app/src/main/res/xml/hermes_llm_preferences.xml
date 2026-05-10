@@ -2,6 +2,14 @@
 <PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android">
 
     <ListPreference
+        android:key="llm_preset"
+        android:title="@string/llm_preset_title"
+        android:summary="@string/llm_preset_summary"
+        android:entries="@array/llm_preset_names"
+        android:entryValues="@array/llm_preset_values"
+        android:defaultValue="balanced" />
+
+    <ListPreference
         android:key="llm_provider"
         android:title="@string/llm_provider_title"
         android:summary="@string/llm_provider_summary"
