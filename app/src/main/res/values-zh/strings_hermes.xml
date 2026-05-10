@@ -210,4 +210,14 @@
     <string name="hermes_web_start_gateway">启动网关</string>
     <string name="hermes_not_installed_title">Hermes 未安装</string>
     <string name="hermes_not_installed_message">Hermes Agent 尚未安装在：\n%1$s\n\n请等待自动安装完成。</string>
+
+    <!-- Config Summary -->
+    <string name="config_summary_title">配置摘要</string>
+    <string name="config_summary_summary">查看和分享当前配置</string>
+    <string name="config_summary_share">分享</string>
+    <string name="config_summary_section_llm">AI 提供商</string>
+    <string name="config_summary_section_im">消息平台</string>
+    <string name="config_summary_section_persona">人设</string>
+    <string name="config_summary_key_set">已设置</string>
+    <string name="config_summary_key_not_set">未设置</string>
 </resources>
