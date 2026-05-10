@@ -2767,6 +2767,43 @@ public class HermesConfigActivity extends AppCompatActivity {
                     return true;
                 });
             }
+
+            // Logging configuration
+            ListPreference logLevelPref = findPreference("logging_level");
+            if (logLevelPref != null) {
+                logLevelPref.setValue(mConfigManager.getLoggingLevel());
+                logLevelPref.setOnPreferenceChangeListener((p, newVal) -> {
+                    mConfigManager.setLoggingLevel((String) newVal);
+                    return true;
+                });
+            }
+
+            SwitchPreferenceCompat logFilePref = findPreference("logging_to_file");
+            if (logFilePref != null) {
+                logFilePref.setChecked(mConfigManager.isLoggingToFile());
+                logFilePref.setOnPreferenceChangeListener((p, newVal) -> {
+                    mConfigManager.setLoggingToFile((Boolean) newVal);
+                    return true;
+                });
+            }
+
+            EditTextPreference logSizePref = findPreference("logging_max_file_size");
+            if (logSizePref != null) {
+                logSizePref.setText(String.valueOf(mConfigManager.getLoggingMaxFileSize()));
+                logSizePref.setOnPreferenceChangeListener((p, newVal) -> {
+                    try { mConfigManager.setLoggingMaxFileSize(Integer.parseInt((String) newVal)); } catch (NumberFormatException ignored) {}
+                    return true;
+                });
+            }
+
+            EditTextPreference logFilesPref = findPreference("logging_max_files");
+            if (logFilesPref != null) {
+                logFilesPref.setText(String.valueOf(mConfigManager.getLoggingMaxFiles()));
+                logFilesPref.setOnPreferenceChangeListener((p, newVal) -> {
+                    try { mConfigManager.setLoggingMaxFiles(Integer.parseInt((String) newVal)); } catch (NumberFormatException ignored) {}
+                    return true;
+                });
+            }
         }
     }
 }

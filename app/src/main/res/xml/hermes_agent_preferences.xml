@@ -219,4 +219,34 @@
             android:defaultValue="queue" />
     </PreferenceCategory>
 
+    <PreferenceCategory android:title="@string/logging_category_title">
+        <ListPreference
+            android:key="logging_level"
+            android:title="@string/logging_level_title"
+            android:summary="@string/logging_level_summary"
+            android:entries="@array/logging_level_names"
+            android:entryValues="@array/logging_level_values"
+            android:defaultValue="INFO" />
+
+        <SwitchPreferenceCompat
+            android:key="logging_to_file"
+            android:title="@string/logging_to_file_title"
+            android:summary="@string/logging_to_file_summary"
+            android:defaultValue="true" />
+
+        <EditTextPreference
+            android:key="logging_max_file_size"
+            android:title="@string/logging_max_file_size_title"
+            android:summary="@string/logging_max_file_size_summary"
+            android:inputType="number"
+            android:defaultValue="10" />
+
+        <EditTextPreference
+            android:key="logging_max_files"
+            android:title="@string/logging_max_files_title"
+            android:summary="@string/logging_max_files_summary"
+            android:inputType="number"
+            android:defaultValue="5" />
+    </PreferenceCategory>
+
 </PreferenceScreen>
