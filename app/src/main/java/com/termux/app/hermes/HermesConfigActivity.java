@@ -28,6 +28,7 @@ import com.termux.app.hermes.HermesTutorialOverlay;
 import com.termux.shared.termux.TermuxConstants;
 
 import java.io.File;
+import java.util.List;
 
 public class HermesConfigActivity extends AppCompatActivity {
 
