@@ -190,6 +190,40 @@ public class HermesConfigActivity extends AppCompatActivity {
                         ? getString(R.string.discord_configured_detail, maskCredential(mConfigManager.getEnvVar("DISCORD_BOT_TOKEN"), 8))
                         : getString(R.string.discord_not_configured));
             }
+
+            // Notification settings
+            Preference notifImportancePref = findPreference("gateway_notif_importance");
+            if (notifImportancePref != null) {
+                notifImportancePref.setOnPreferenceChangeListener((p, newVal) -> {
+                    mConfigManager.setEnvVar("GATEWAY_NOTIF_IMPORTANCE", (String) newVal);
+                    return true;
+                });
+            }
+
+            Preference notifSoundPref = findPreference("gateway_notif_sound");
+            if (notifSoundPref != null) {
+                notifSoundPref.setOnPreferenceChangeListener((p, newVal) -> {
+                    mConfigManager.setEnvVar("GATEWAY_NOTIF_SOUND", (Boolean) newVal ? "true" : "false");
+                    return true;
+                });
+            }
+
+            Preference notifVibratePref = findPreference("gateway_notif_vibrate");
+            if (notifVibratePref != null) {
+                notifVibratePref.setOnPreferenceChangeListener((p, newVal) -> {
+                    mConfigManager.setEnvVar("GATEWAY_NOTIF_VIBRATE", (Boolean) newVal ? "true" : "false");
+                    return true;
+                });
+            }
+
+            Preference quietHoursPref = findPreference("gateway_quiet_hours");
+            if (quietHoursPref != null) {
+                quietHoursPref.setOnPreferenceChangeListener((p, newVal) -> {
+                    mConfigManager.setEnvVar("GATEWAY_QUIET_HOURS", (Boolean) newVal ? "true" : "false");
+                    return true;
+                });
+            }
+
         }
 
         @Override
@@ -1123,6 +1157,40 @@ public class HermesConfigActivity extends AppCompatActivity {
                     return true;
                 });
             }
+
+            // Notification settings
+            Preference notifImportancePref = findPreference("gateway_notif_importance");
+            if (notifImportancePref != null) {
+                notifImportancePref.setOnPreferenceChangeListener((p, newVal) -> {
+                    mConfigManager.setEnvVar("GATEWAY_NOTIF_IMPORTANCE", (String) newVal);
+                    return true;
+                });
+            }
+
+            Preference notifSoundPref = findPreference("gateway_notif_sound");
+            if (notifSoundPref != null) {
+                notifSoundPref.setOnPreferenceChangeListener((p, newVal) -> {
+                    mConfigManager.setEnvVar("GATEWAY_NOTIF_SOUND", (Boolean) newVal ? "true" : "false");
+                    return true;
+                });
+            }
+
+            Preference notifVibratePref = findPreference("gateway_notif_vibrate");
+            if (notifVibratePref != null) {
+                notifVibratePref.setOnPreferenceChangeListener((p, newVal) -> {
+                    mConfigManager.setEnvVar("GATEWAY_NOTIF_VIBRATE", (Boolean) newVal ? "true" : "false");
+                    return true;
+                });
+            }
+
+            Preference quietHoursPref = findPreference("gateway_quiet_hours");
+            if (quietHoursPref != null) {
+                quietHoursPref.setOnPreferenceChangeListener((p, newVal) -> {
+                    mConfigManager.setEnvVar("GATEWAY_QUIET_HOURS", (Boolean) newVal ? "true" : "false");
+                    return true;
+                });
+            }
+
         }
 
         @Override
