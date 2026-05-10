@@ -150,4 +150,35 @@
             android:defaultValue="5" />
     </PreferenceCategory>
 
+    <PreferenceCategory android:title="@string/voice_category_title">
+        <ListPreference
+            android:key="voice_provider"
+            android:title="@string/voice_provider_title"
+            android:summary="@string/voice_provider_summary"
+            android:entries="@array/voice_provider_names"
+            android:entryValues="@array/voice_provider_values"
+            android:defaultValue="openai" />
+
+        <EditTextPreference
+            android:key="voice_language"
+            android:title="@string/voice_language_title"
+            android:summary="@string/voice_language_summary"
+            android:inputType="text"
+            android:defaultValue="en" />
+
+        <ListPreference
+            android:key="voice_local_model"
+            android:title="@string/voice_local_model_title"
+            android:summary="@string/voice_local_model_summary"
+            android:entries="@array/voice_whisper_model_names"
+            android:entryValues="@array/voice_whisper_model_values"
+            android:defaultValue="base" />
+
+        <EditTextPreference
+            android:key="voice_custom_endpoint"
+            android:title="@string/voice_custom_endpoint_title"
+            android:summary="@string/voice_custom_endpoint_summary"
+            android:inputType="textUri" />
+    </PreferenceCategory>
+
 </PreferenceScreen>
