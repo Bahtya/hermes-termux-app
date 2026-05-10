@@ -227,6 +227,13 @@
     <string name="discord_configured_imported">已配置 — 检测到已有配置</string>
     <string name="discord_not_configured">未配置</string>
 
+    <!-- Quick-start tile -->
+    <string name="quickstart_start_gateway">启动网关</string>
+    <string name="quickstart_stop_gateway">停止网关</string>
+    <string name="quickstart_gateway_not_installed">Hermes Agent 未安装，请等待自动安装。</string>
+    <string name="quickstart_gateway_running">网关运行中（%1$s）</string>
+    <string name="quickstart_gateway_stopped">网关已停止，点击启动。</string>
+
     <string name="hermes_telegram_setup_title">Telegram 设置</string>
     <string name="hermes_telegram_setup_summary">连接您的 Telegram 机器人</string>
     <string name="hermes_discord_setup_title">Discord 设置</string>
@@ -262,7 +269,12 @@
     <string name="discord_test_success">机器人令牌有效！Discord 机器人已就绪。</string>
     <string name="discord_test_fail">机器人令牌无效 — 请检查后重试。</string>
     <string name="discord_complete_title">Discord 设置完成！</string>
-    <string name="discord_complete_next_steps">后续步骤：\n\n• 邀请您的机器人到 Discord 服务器\n• 从设置中启动 Hermes 网关\n• 在 Discord 中向您的机器人发送消息\n• 您可以随时从 Hermes 设置中修改这些设置</string>
+        <string name="im_test_no_token">请先输入机器人令牌。</string>
+    <string name="im_test_running">正在测试连接…</string>
+    <string name="im_test_retry">重试</string>
+    <string name="im_test_detail_success">机器人：%1$s</string>
+    <string name="im_test_detail_fail">HTTP %1$s：%2$s</string>
+<string name="discord_complete_next_steps">后续步骤：\n\n• 邀请您的机器人到 Discord 服务器\n• 从设置中启动 Hermes 网关\n• 在 Discord 中向您的机器人发送消息\n• 您可以随时从 Hermes 设置中修改这些设置</string>
 
     <!-- Feishu Setup - strings also in strings_feishu.xml are translated there -->
 
