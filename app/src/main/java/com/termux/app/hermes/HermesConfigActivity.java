@@ -3,6 +3,8 @@ package com.termux.app.hermes;
 import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
+import android.text.Html;
+import android.text.SpannableString;
 import android.view.MenuItem;
 import android.widget.Toast;
 
@@ -149,15 +151,21 @@ public class HermesConfigActivity extends AppCompatActivity {
                 });
             }
 
-            // Show LLM config status
+            // Show LLM config status with color-coded provider
             Preference llmPref = findPreference("hermes_llm_config");
             if (llmPref != null) {
                 String provider = mConfigManager.getModelProvider();
                 String apiKey = mConfigManager.getApiKey(provider);
                 boolean hasKey = apiKey != null && !apiKey.isEmpty();
-                llmPref.setSummary(hasKey
-                        ? getString(R.string.llm_configured, provider)
-                        : getString(R.string.llm_not_configured));
+                if (hasKey) {
+                    String colorHex = LlmConfigFragment.getProviderColorHex(provider);
+                    SpannableString colored = new SpannableString(Html.fromHtml(
+                            getString(R.string.llm_provider_active,
+                                    "<font color='" + colorHex + "'>" + provider + "</font>")));
+                    llmPref.setSummary(colored);
+                } else {
+                    llmPref.setSummary(getString(R.string.llm_not_configured));
+                }
             }
 
             // Show Feishu status
@@ -447,10 +455,14 @@ public class HermesConfigActivity extends AppCompatActivity {
 
             Preference providerPref = findPreference("llm_provider");
             if (providerPref != null) {
+                // Set initial color-coded summary
+                updateProviderSummary(providerPref, currentProvider);
+
                 providerPref.setOnPreferenceChangeListener((p, newVal) -> {
                     String provider = (String) newVal;
                     mConfigManager.setModelProvider(provider);
                     updateModelList(provider);
+                    updateProviderSummary(p, provider);
 
                     String key = mConfigManager.getApiKey(provider);
                     Preference akp = findPreference("llm_api_key");
@@ -521,6 +533,30 @@ public class HermesConfigActivity extends AppCompatActivity {
         private String maskApiKey(String key) {
             if (key == null || key.length() < 8) return "****";
             return key.substring(0, 4) + "..." + key.substring(key.length() - 4);
+        }
+
+        private void updateProviderSummary(Preference pref, String provider) {
+            String colorHex = getProviderColorHex(provider);
+            SpannableString colored = new SpannableString(Html.fromHtml(
+                    "<font color='" + colorHex + "'>" + provider + "</font>"));
+            pref.setSummary(colored);
+        }
+
+        static String getProviderColorHex(String provider) {
+            if (provider == null) return "#6b7280";
+            switch (provider) {
+                case "openai":     return "#10a37f";
+                case "anthropic":  return "#d97757";
+                case "google":     return "#4285f4";
+                case "deepseek":   return "#4d6bfe";
+                case "openrouter": return "#6d28d9";
+                case "xai":        return "#6b7280";
+                case "alibaba":    return "#ff6a00";
+                case "mistral":    return "#f97316";
+                case "nvidia":     return "#76b900";
+                case "ollama":     return "#6366f1";
+                default:           return "#6b7280";
+            }
         }
 
         @Override

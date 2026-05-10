@@ -109,6 +109,7 @@
     <!-- Status labels -->
     <string name="llm_configured">已配置（%1$s）</string>
     <string name="llm_not_configured">未配置</string>
+    <string name="llm_provider_active">当前：%1$s</string>
     <string name="feishu_configured">已配置</string>
     <string name="feishu_not_configured">未配置</string>
     <string name="telegram_configured">已配置</string>

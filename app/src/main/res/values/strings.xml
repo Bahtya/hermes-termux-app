@@ -426,6 +426,7 @@
     <string name="dashboard_im_list">Active: %1$s</string>
     <string name="llm_configured">Configured (%1$s)</string>
     <string name="llm_not_configured">Not configured</string>
+    <string name="llm_provider_active">Active: %1$s</string>
     <string name="feishu_configured">Configured</string>
     <string name="feishu_not_configured">Not configured</string>
     <string name="telegram_configured">Configured</string>
