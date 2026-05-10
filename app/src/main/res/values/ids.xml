@@ -1,5 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
+    <item type="id" name="im_token_input" />
+    <item type="id" name="im_users_input" />
+    <item type="id" name="im_test_status" />
     <item type="id" name="im_test_detail" />
     <item type="id" name="im_test_retry" />
     <item type="id" name="feishu_app_id_input" />
