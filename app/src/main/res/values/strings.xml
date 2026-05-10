@@ -526,6 +526,25 @@
     <string name="gateway_log_share_empty">No log content to share.</string>
     <string name="hermes_gateway_log_summary">View gateway log for troubleshooting</string>
 
+    <!-- Setup Progress -->
+    <string name="setup_progress_title">Setup Progress</string>
+    <string name="setup_progress_all_done">All set! Hermes is ready.</string>
+    <string name="setup_progress_steps">%1$d of %2$d completed</string>
+    <string name="setup_progress_step_llm_provider">LLM provider selected</string>
+    <string name="setup_progress_step_api_key">API key configured</string>
+    <string name="setup_progress_step_im">Messaging platform connected</string>
+    <string name="setup_progress_step_gateway">Gateway running</string>
+    <string name="setup_action_continue">Continue Setup</string>
+    <string name="setup_action_continue_summary">Tap to complete the next step</string>
+    <string name="setup_action_start_gateway">Start Gateway</string>
+    <string name="setup_action_start_gateway_summary">Everything is configured — start the gateway now</string>
+    <string name="setup_action_configure_llm">Configure AI Provider</string>
+    <string name="setup_action_configure_llm_summary">Set up your LLM provider and API key first</string>
+    <string name="setup_action_connect_im">Connect Messaging Platform</string>
+    <string name="setup_action_connect_im_summary">Connect at least one messaging platform</string>
+    <string name="setup_action_enter_api_key">Enter API Key</string>
+    <string name="setup_action_enter_api_key_summary">Add your %1$s API key</string>
+
     <!-- Dashboard -->
     <string name="dashboard_title">Status Overview</string>
     <string name="dashboard_version_title">Hermes Version</string>
