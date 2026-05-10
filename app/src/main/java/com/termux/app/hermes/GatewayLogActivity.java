@@ -1,16 +1,24 @@
 package com.termux.app.hermes;
 
+import android.content.ClipData;
+import android.content.ClipboardManager;
+import android.content.Context;
+import android.content.Intent;
 import android.graphics.Typeface;
 import android.os.Bundle;
+import android.os.FileObserver;
 import android.view.Gravity;
 import android.view.MenuItem;
 import android.view.View;
+import android.widget.ArrayAdapter;
 import android.widget.LinearLayout;
 import android.widget.ScrollView;
+import android.widget.Spinner;
 import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 import androidx.appcompat.app.ActionBar;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
@@ -35,13 +43,18 @@ public class GatewayLogActivity extends AppCompatActivity {
 
     private static final String LOG_FILE_PATH =
             TermuxConstants.TERMUX_HOME_DIR_PATH + "/.hermes/logs/gateway.log";
-    private static final int MAX_LINES = 200;
+    private static final int MAX_LINES = 500;
 
     private TextView mLogText;
     private ScrollView mScrollView;
     private LinearLayout mSessionList;
     private TextView mCurrentSessionText;
     private Runnable mUptimeUpdater;
+    private FileObserver mFileObserver;
+    private Spinner mFilterSpinner;
+    private String mCurrentFilter = "ALL";
+    private String mFullLogContent = "";
+    private boolean mAutoScroll = true;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -64,26 +77,22 @@ public class GatewayLogActivity extends AppCompatActivity {
         sessionHeader.setTextSize(16);
         layout.addView(sessionHeader);
 
-        // Current session indicator
         mCurrentSessionText = new TextView(this);
         mCurrentSessionText.setPadding(dp(16), dp(4), dp(16), dp(4));
         mCurrentSessionText.setTextSize(13);
         layout.addView(mCurrentSessionText);
 
-        // Session history list container
         mSessionList = new LinearLayout(this);
         mSessionList.setOrientation(LinearLayout.VERTICAL);
         mSessionList.setPadding(dp(16), dp(0), dp(16), dp(4));
         layout.addView(mSessionList);
 
-        // Clear history button
         TextView clearHistoryBtn = new TextView(this);
         clearHistoryBtn.setText(R.string.gateway_session_clear_title);
         clearHistoryBtn.setPadding(dp(16), dp(4), dp(16), dp(8));
         clearHistoryBtn.setOnClickListener(v -> showClearHistoryConfirm());
         layout.addView(clearHistoryBtn);
 
-        // Separator
         View separator = new View(this);
         separator.setBackgroundColor(ContextCompat.getColor(this, R.color.hermes_separator));
         LinearLayout.LayoutParams sepParams = new LinearLayout.LayoutParams(
@@ -92,9 +101,48 @@ public class GatewayLogActivity extends AppCompatActivity {
         separator.setLayoutParams(sepParams);
         layout.addView(separator);
 
+        // --- Filter bar ---
+        LinearLayout filterBar = new LinearLayout(this);
+        filterBar.setOrientation(LinearLayout.HORIZONTAL);
+        filterBar.setPadding(dp(8), dp(4), dp(8), dp(4));
+        filterBar.setGravity(Gravity.CENTER_VERTICAL);
+
+        TextView filterLabel = new TextView(this);
+        filterLabel.setText(R.string.gateway_log_filter_label);
+        filterLabel.setPadding(dp(4), dp(0), dp(8), dp(0));
+        filterBar.addView(filterLabel);
+
+        mFilterSpinner = new Spinner(this);
+        String[] filterOptions = {"ALL", "ERROR", "WARN", "INFO", "DEBUG"};
+        ArrayAdapter<String> adapter = new ArrayAdapter<>(this,
+                android.R.layout.simple_spinner_item, filterOptions);
+        adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+        mFilterSpinner.setAdapter(adapter);
+        mFilterSpinner.setOnItemSelectedListener(new android.widget.AdapterView.OnItemSelectedListener() {
+            @Override
+            public void onItemSelected(android.widget.AdapterView<?> parent, View view, int pos, long id) {
+                mCurrentFilter = filterOptions[pos];
+                applyFilter();
+            }
+            @Override
+            public void onNothingSelected(android.widget.AdapterView<?> parent) {}
+        });
+        filterBar.addView(mFilterSpinner);
+        layout.addView(filterBar);
+
         // --- Log Section ---
         mScrollView = new ScrollView(this);
         mScrollView.setFillViewport(true);
+        mScrollView.setOnScrollChangeListener((v, scrollX, scrollY, oldScrollX, oldScrollY) -> {
+            if (v instanceof ScrollView) {
+                ScrollView sv = (ScrollView) v;
+                View child = sv.getChildAt(sv.getChildCount() - 1);
+                if (child != null) {
+                    int diff = child.getBottom() - (sv.getHeight() + scrollY);
+                    mAutoScroll = diff < dp(50);
+                }
+            }
+        });
 
         mLogText = new TextView(this);
         mLogText.setPadding(dp(12), dp(12), dp(12), dp(12));
@@ -125,11 +173,24 @@ public class GatewayLogActivity extends AppCompatActivity {
         clearBtn.setOnClickListener(v -> showClearConfirm());
         buttonBar.addView(clearBtn);
 
+        TextView copyBtn = new TextView(this);
+        copyBtn.setText(R.string.gateway_log_copy);
+        copyBtn.setPadding(dp(16), dp(8), dp(16), dp(8));
+        copyBtn.setOnClickListener(v -> copyLog());
+        buttonBar.addView(copyBtn);
+
+        TextView shareBtn = new TextView(this);
+        shareBtn.setText(R.string.gateway_log_share);
+        shareBtn.setPadding(dp(16), dp(8), dp(16), dp(8));
+        shareBtn.setOnClickListener(v -> shareLog());
+        buttonBar.addView(shareBtn);
+
         layout.addView(buttonBar);
         setContentView(layout);
 
         loadLog();
         loadSessionHistory();
+        startFileObserver();
     }
 
     @Override
@@ -137,12 +198,20 @@ public class GatewayLogActivity extends AppCompatActivity {
         super.onResume();
         loadSessionHistory();
         startUptimeUpdates();
+        startFileObserver();
     }
 
     @Override
     protected void onPause() {
         super.onPause();
         stopUptimeUpdates();
+        stopFileObserver();
+    }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        stopFileObserver();
     }
 
     @Override
@@ -155,6 +224,35 @@ public class GatewayLogActivity extends AppCompatActivity {
     }
 
     // =========================================================================
+    // File observer for real-time updates
+    // =========================================================================
+
+    private void startFileObserver() {
+        stopFileObserver();
+        File logFile = new File(LOG_FILE_PATH);
+        File logDir = logFile.getParentFile();
+        if (logDir != null && logDir.exists()) {
+            int mask = FileObserver.MODIFY | FileObserver.CREATE | FileObserver.CLOSE_WRITE;
+            mFileObserver = new FileObserver(logDir, mask) {
+                @Override
+                public void onEvent(int event, @Nullable String path) {
+                    if (path != null && path.equals(logFile.getName())) {
+                        runOnUiThread(GatewayLogActivity.this::loadLog);
+                    }
+                }
+            };
+            mFileObserver.startWatching();
+        }
+    }
+
+    private void stopFileObserver() {
+        if (mFileObserver != null) {
+            mFileObserver.stopWatching();
+            mFileObserver = null;
+        }
+    }
+
+    // =========================================================================
     // Session history
     // =========================================================================
 
@@ -162,10 +260,8 @@ public class GatewayLogActivity extends AppCompatActivity {
         HermesConfigManager config = HermesConfigManager.getInstance();
         List<HermesConfigManager.Session> sessions = config.getSessionHistory(this);
 
-        // Update current session indicator
         updateCurrentSession();
 
-        // Build history list
         mSessionList.removeAllViews();
         if (sessions.isEmpty()) {
             TextView emptyText = new TextView(this);
@@ -178,7 +274,6 @@ public class GatewayLogActivity extends AppCompatActivity {
 
         SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.getDefault());
 
-        // Show sessions newest first
         for (int i = sessions.size() - 1; i >= 0; i--) {
             HermesConfigManager.Session session = sessions.get(i);
             TextView sessionView = new TextView(this);
@@ -248,19 +343,45 @@ public class GatewayLogActivity extends AppCompatActivity {
     }
 
     // =========================================================================
-    // Log loading
+    // Log loading and filtering
     // =========================================================================
 
     private void loadLog() {
         new Thread(() -> {
-            String content = readLastLines();
+            mFullLogContent = readLastLines();
             runOnUiThread(() -> {
-                mLogText.setText(content.isEmpty()
-                        ? getString(R.string.gateway_log_empty)
-                        : content);
-                mScrollView.post(() -> mScrollView.fullScroll(ScrollView.FOCUS_DOWN));
+                applyFilter();
+                if (mAutoScroll) {
+                    mScrollView.post(() -> mScrollView.fullScroll(ScrollView.FOCUS_DOWN));
+                }
             });
         }).start();
+    }
+
+    private void applyFilter() {
+        if (mFullLogContent.isEmpty()) {
+            mLogText.setText(getString(R.string.gateway_log_empty));
+            return;
+        }
+
+        if ("ALL".equals(mCurrentFilter)) {
+            mLogText.setText(mFullLogContent);
+            return;
+        }
+
+        StringBuilder filtered = new StringBuilder();
+        for (String line : mFullLogContent.split("\n")) {
+            String upper = line.toUpperCase();
+            if (upper.contains(" " + mCurrentFilter + " ") || upper.contains(" " + mCurrentFilter + ":") || upper.contains("[" + mCurrentFilter + "]")) {
+                filtered.append(line).append("\n");
+            }
+        }
+
+        if (filtered.length() == 0) {
+            mLogText.setText(getString(R.string.gateway_log_no_matches));
+        } else {
+            mLogText.setText(filtered.toString());
+        }
     }
 
     private String readLastLines() {
@@ -311,6 +432,31 @@ public class GatewayLogActivity extends AppCompatActivity {
                 Toast.makeText(this, R.string.gateway_log_cleared, Toast.LENGTH_SHORT).show();
             });
         }).start();
+    }
+
+    private void copyLog() {
+        try {
+            ClipboardManager cm = (ClipboardManager) getSystemService(Context.CLIPBOARD_SERVICE);
+            if (cm != null) {
+                ClipData clip = ClipData.newPlainText("Gateway Log", mLogText.getText());
+                cm.setPrimaryClip(clip);
+                Toast.makeText(this, R.string.gateway_log_copied, Toast.LENGTH_SHORT).show();
+            }
+        } catch (Exception e) {
+            Toast.makeText(this, "Copy failed: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+        }
+    }
+
+    private void shareLog() {
+        try {
+            Intent shareIntent = new Intent(Intent.ACTION_SEND);
+            shareIntent.setType("text/plain");
+            shareIntent.putExtra(Intent.EXTRA_TEXT, mLogText.getText());
+            shareIntent.putExtra(Intent.EXTRA_SUBJECT, "Hermes Gateway Log");
+            startActivity(Intent.createChooser(shareIntent, getString(R.string.gateway_log_share_title)));
+        } catch (Exception e) {
+            Toast.makeText(this, "Share failed: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+        }
     }
 
     private int dp(int value) {
