@@ -127,6 +127,11 @@
     <PreferenceCategory android:title="@string/hermes_cat_advanced">
 
         <Preference
+            android:key="hermes_agent_settings"
+            android:title="@string/agent_settings_title"
+            android:summary="@string/agent_settings_summary" />
+
+        <Preference
             android:key="hermes_gateway_diagnostic"
             android:title="@string/gateway_diagnostic_title"
             android:summary="@string/gateway_diagnostic_summary" />

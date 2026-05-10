@@ -18,6 +18,7 @@ import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentTransaction;
+import androidx.preference.EditTextPreference;
 import androidx.preference.ListPreference;
 import androidx.preference.Preference;
 import androidx.preference.PreferenceFragmentCompat;
@@ -278,6 +279,9 @@ public class HermesConfigActivity extends AppCompatActivity {
                     return true;
                 case "hermes_gateway_diagnostic":
                     startActivity(new Intent(requireContext(), HermesDiagnosticActivity.class));
+                    return true;
+                case "hermes_agent_settings":
+                    showFragment(new AgentSettingsFragment());
                     return true;
                 case "hermes_conversation_history":
                     startActivity(new Intent(requireContext(), HermesConversationActivity.class));
@@ -1684,6 +1688,148 @@ public class HermesConfigActivity extends AppCompatActivity {
                 } else {
                     statsPref.setSummary(getString(R.string.gateway_stats_stopped));
                 }
+            }
+        }
+    }
+
+    public static class AgentSettingsFragment extends PreferenceFragmentCompat {
+        private HermesConfigManager mConfigManager;
+
+        @Override
+        public void onCreatePreferences(Bundle savedInstanceState, String rootKey) {
+            setPreferencesFromResource(R.xml.hermes_agent_preferences, rootKey);
+            mConfigManager = HermesConfigManager.getInstance();
+
+            // Context compression
+            SwitchPreferenceCompat compressionPref = findPreference("agent_compression_enabled");
+            if (compressionPref != null) {
+                String val = mConfigManager.getEnvVar("HERMES_ENABLE_COMPRESSION");
+                compressionPref.setChecked(!"false".equals(val));
+                compressionPref.setOnPreferenceChangeListener((p, newVal) -> {
+                    mConfigManager.setEnvVar("HERMES_ENABLE_COMPRESSION", (Boolean) newVal ? "true" : "false");
+                    return true;
+                });
+            }
+
+            // Compression threshold
+            EditTextPreference thresholdPref = findPreference("agent_compression_threshold");
+            if (thresholdPref != null) {
+                String threshold = mConfigManager.getEnvVar("COMPRESSION_THRESHOLD");
+                if (!threshold.isEmpty()) thresholdPref.setText(threshold);
+                thresholdPref.setOnPreferenceChangeListener((p, newVal) -> {
+                    mConfigManager.setEnvVar("COMPRESSION_THRESHOLD", (String) newVal);
+                    return true;
+                });
+            }
+
+            // Context length
+            EditTextPreference contextLenPref = findPreference("agent_context_length");
+            if (contextLenPref != null) {
+                String ctxLen = mConfigManager.getEnvVar("CONTEXT_LENGTH");
+                if (!ctxLen.isEmpty()) contextLenPref.setText(ctxLen);
+                contextLenPref.setOnPreferenceChangeListener((p, newVal) -> {
+                    mConfigManager.setEnvVar("CONTEXT_LENGTH", (String) newVal);
+                    return true;
+                });
+            }
+
+            // Max turns
+            EditTextPreference maxTurnsPref = findPreference("agent_max_turns");
+            if (maxTurnsPref != null) {
+                String maxTurns = mConfigManager.getEnvVar("AGENT_MAX_TURNS");
+                if (!maxTurns.isEmpty()) maxTurnsPref.setText(maxTurns);
+                maxTurnsPref.setOnPreferenceChangeListener((p, newVal) -> {
+                    mConfigManager.setEnvVar("AGENT_MAX_TURNS", (String) newVal);
+                    return true;
+                });
+            }
+
+            // Gateway timeout
+            EditTextPreference timeoutPref = findPreference("agent_gateway_timeout");
+            if (timeoutPref != null) {
+                String timeout = mConfigManager.getEnvVar("AGENT_GATEWAY_TIMEOUT");
+                if (!timeout.isEmpty()) timeoutPref.setText(timeout);
+                timeoutPref.setOnPreferenceChangeListener((p, newVal) -> {
+                    mConfigManager.setEnvVar("AGENT_GATEWAY_TIMEOUT", (String) newVal);
+                    return true;
+                });
+            }
+
+            // Verbose
+            SwitchPreferenceCompat verbosePref = findPreference("agent_verbose");
+            if (verbosePref != null) {
+                String val = mConfigManager.getEnvVar("AGENT_VERBOSE");
+                verbosePref.setChecked("true".equals(val));
+                verbosePref.setOnPreferenceChangeListener((p, newVal) -> {
+                    mConfigManager.setEnvVar("AGENT_VERBOSE", (Boolean) newVal ? "true" : "false");
+                    return true;
+                });
+            }
+
+            // Memory enabled
+            SwitchPreferenceCompat memoryPref = findPreference("agent_memory_enabled");
+            if (memoryPref != null) {
+                String val = mConfigManager.getEnvVar("MEMORY_ENABLED");
+                memoryPref.setChecked(!"false".equals(val));
+                memoryPref.setOnPreferenceChangeListener((p, newVal) -> {
+                    mConfigManager.setEnvVar("MEMORY_ENABLED", (Boolean) newVal ? "true" : "false");
+                    return true;
+                });
+            }
+
+            // User profile
+            SwitchPreferenceCompat profilePref = findPreference("agent_user_profile_enabled");
+            if (profilePref != null) {
+                String val = mConfigManager.getEnvVar("USER_PROFILE_ENABLED");
+                profilePref.setChecked(!"false".equals(val));
+                profilePref.setOnPreferenceChangeListener((p, newVal) -> {
+                    mConfigManager.setEnvVar("USER_PROFILE_ENABLED", (Boolean) newVal ? "true" : "false");
+                    return true;
+                });
+            }
+
+            // Memory char limit
+            EditTextPreference memLimitPref = findPreference("agent_memory_char_limit");
+            if (memLimitPref != null) {
+                String limit = mConfigManager.getEnvVar("MEMORY_CHAR_LIMIT");
+                if (!limit.isEmpty()) memLimitPref.setText(limit);
+                memLimitPref.setOnPreferenceChangeListener((p, newVal) -> {
+                    mConfigManager.setEnvVar("MEMORY_CHAR_LIMIT", (String) newVal);
+                    return true;
+                });
+            }
+
+            // Session reset mode
+            ListPreference resetModePref = findPreference("agent_session_reset_mode");
+            if (resetModePref != null) {
+                String mode = mConfigManager.getEnvVar("SESSION_RESET_MODE");
+                if (!mode.isEmpty()) resetModePref.setValue(mode);
+                resetModePref.setOnPreferenceChangeListener((p, newVal) -> {
+                    mConfigManager.setEnvVar("SESSION_RESET_MODE", (String) newVal);
+                    return true;
+                });
+            }
+
+            // Session idle minutes
+            EditTextPreference idlePref = findPreference("agent_session_idle_minutes");
+            if (idlePref != null) {
+                String idle = mConfigManager.getEnvVar("SESSION_IDLE_MINUTES");
+                if (!idle.isEmpty()) idlePref.setText(idle);
+                idlePref.setOnPreferenceChangeListener((p, newVal) -> {
+                    mConfigManager.setEnvVar("SESSION_IDLE_MINUTES", (String) newVal);
+                    return true;
+                });
+            }
+
+            // Session reset hour
+            EditTextPreference hourPref = findPreference("agent_session_reset_hour");
+            if (hourPref != null) {
+                String hour = mConfigManager.getEnvVar("SESSION_RESET_HOUR");
+                if (!hour.isEmpty()) hourPref.setText(hour);
+                hourPref.setOnPreferenceChangeListener((p, newVal) -> {
+                    mConfigManager.setEnvVar("SESSION_RESET_HOUR", (String) newVal);
+                    return true;
+                });
             }
         }
     }
