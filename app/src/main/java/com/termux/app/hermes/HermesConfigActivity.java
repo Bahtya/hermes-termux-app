@@ -541,7 +541,11 @@ public class HermesConfigActivity extends AppCompatActivity {
 
         @Override
         public boolean onPreferenceTreeClick(@NonNull Preference preference) {
-            if ("llm_test_connection".equals(preference.getKey())) {
+            if ("llm_system_prompt_templates".equals(preference.getKey())) {
+            showTemplateDialog();
+            return true;
+        }
+        if ("llm_test_connection".equals(preference.getKey())) {
                 testConnection(preference);
                 return true;
             }

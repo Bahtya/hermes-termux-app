@@ -50,7 +50,7 @@ public class HermesConfigManager {
     private static final String KEY_MODEL_NAME = "model.name";
     private static final String KEY_MODEL_TEMPERATURE = "model.temperature";
     private static final String KEY_MODEL_MAX_TOKENS = "model.max_tokens";
-    private static final String KEY_MODEL_SYSTEM_PROMPT = "model.system_prompt";
+    private static final String KEY_SYSTEM_PROMPT = "model.system_prompt";
 
     // Feishu config.yaml keys (under feishu: section)
     private static final String KEY_FEISHU_APP_ID = "feishu.app_id";
@@ -59,9 +59,6 @@ public class HermesConfigManager {
     private static final String KEY_FEISHU_CONNECTION_MODE = "feishu.connection_mode";
     private static final String KEY_FEISHU_ALLOWED_USERS = "feishu.allowed_users";
     private static final String KEY_FEISHU_HOME_CHANNEL = "feishu.home_channel";
-
-    // Logging config.yaml keys
-    private static final String KEY_LOGGING_LEVEL = "logging.level";
 
     // ---- .env key constants ----
     private static final String ENV_OPENAI_API_KEY = "OPENAI_API_KEY";
@@ -299,7 +296,6 @@ public class HermesConfigManager {
         // Always include these sections in this order.
         sections.put("terminal", new LinkedHashMap<>());
         sections.put("model", new LinkedHashMap<>());
-        sections.put("logging", new LinkedHashMap<>());
         sections.put("feishu", new LinkedHashMap<>());
 
         for (Map.Entry<String, String> entry : mYamlConfig.entrySet()) {
@@ -540,12 +536,12 @@ public class HermesConfigManager {
         setYamlValue(KEY_MODEL_MAX_TOKENS, String.valueOf(maxTokens));
     }
 
-    public String getModelSystemPrompt() {
-        return getYamlValue(KEY_MODEL_SYSTEM_PROMPT, "");
+    public String getSystemPrompt() {
+        return getYamlValue(KEY_SYSTEM_PROMPT, "");
     }
 
-    public void setModelSystemPrompt(String systemPrompt) {
-        setYamlValue(KEY_MODEL_SYSTEM_PROMPT, systemPrompt != null ? systemPrompt : "");
+    public void setSystemPrompt(String prompt) {
+        setYamlValue(KEY_SYSTEM_PROMPT, prompt != null ? prompt : "");
     }
 
     // =========================================================================
@@ -708,20 +704,6 @@ public class HermesConfigManager {
     }
 
     // =========================================================================
-    // Logging config
-    // =========================================================================
-
-    /** Returns the configured log level: "quiet", "normal", or "debug". Default is "normal". */
-    public String getLogLevel() {
-        return getYamlValue(KEY_LOGGING_LEVEL, "normal");
-    }
-
-    /** Sets the log level and persists config.yaml. */
-    public void setLogLevel(String level) {
-        setYamlValue(KEY_LOGGING_LEVEL, level != null ? level : "normal");
-    }
-
-    // =========================================================================
     // Status helpers
     // =========================================================================
 
@@ -757,30 +739,6 @@ public class HermesConfigManager {
      */
     public boolean isFeishuConfigured() {
         return !getFeishuAppId().isEmpty() && !getFeishuAppSecret().isEmpty();
-    }
-
-    /** Returns true if a Telegram bot token is configured in .env. */
-    public boolean isTelegramConfigured() {
-        return !getEnvVar("TELEGRAM_BOT_TOKEN").isEmpty();
-    }
-
-    /** Returns true if a Discord bot token is configured in .env. */
-    public boolean isDiscordConfigured() {
-        return !getEnvVar("DISCORD_BOT_TOKEN").isEmpty();
-    }
-
-    /** Returns true if at least one IM platform is configured. */
-    public boolean isAnyImConfigured() {
-        return isFeishuConfigured() || isTelegramConfigured() || isDiscordConfigured();
-    }
-
-    /** Returns a comma-separated list of configured IM platform names. */
-    public String getConfiguredImPlatforms() {
-        java.util.List<String> platforms = new java.util.ArrayList<>();
-        if (isFeishuConfigured()) platforms.add("Feishu");
-        if (isTelegramConfigured()) platforms.add("Telegram");
-        if (isDiscordConfigured()) platforms.add("Discord");
-        return android.text.TextUtils.join(", ", platforms);
     }
 
     // =========================================================================
@@ -843,24 +801,5 @@ public class HermesConfigManager {
         } catch (IOException e) {
             Logger.logError(LOG_TAG, "Error writing to " + path + ": " + e.getMessage());
         }
-    }
-
-    /**
-     * Restarts the gateway service if it is currently running.
-     * Call this after config changes that require a gateway restart.
-     */
-    public static void restartGatewayIfRunning(android.content.Context context) {
-        HermesGatewayStatus.checkAsync((status, detail) -> {
-            if (status == HermesGatewayStatus.Status.RUNNING) {
-                new android.os.Handler(android.os.Looper.getMainLooper()).postDelayed(() -> {
-                    context.startService(new android.content.Intent(context, HermesGatewayService.class)
-                            .setAction(HermesGatewayService.ACTION_STOP));
-                    new android.os.Handler(android.os.Looper.getMainLooper()).postDelayed(() -> {
-                        context.startService(new android.content.Intent(context, HermesGatewayService.class)
-                                .setAction(HermesGatewayService.ACTION_START));
-                    }, 1500);
-                }, 500);
-            }
-        });
     }
 }
