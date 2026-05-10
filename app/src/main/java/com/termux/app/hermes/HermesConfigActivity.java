@@ -281,6 +281,19 @@ public class HermesConfigActivity extends AppCompatActivity {
                 case "hermes_help_faq":
                     showFaqDialog();
                     return true;
+                case "hermes_profile_save":
+                    showSaveProfileDialog();
+                    return true;
+                case "hermes_profile_switch":
+                    showSwitchProfileDialog();
+                    return true;
+                case "hermes_profile_delete":
+                    showDeleteProfileDialog();
+                    return true;
+                case "tutorial_reset":
+                    HermesTutorialOverlay.resetTutorial(requireContext());
+                    Toast.makeText(requireContext(), R.string.tutorial_reset_summary, Toast.LENGTH_SHORT).show();
+                    return true;
             }
             return super.onPreferenceTreeClick(preference);
         }
@@ -563,6 +576,87 @@ public class HermesConfigActivity extends AppCompatActivity {
                 sb.append(c);
             }
             return sb.toString();
+        }
+
+        private void updateProfileDisplay() {
+            Preference profilePref = findPreference("hermes_profile_current");
+            if (profilePref != null) {
+                String name = mConfigManager.getActiveProfileName(requireContext());
+                String provider = mConfigManager.getModelProvider();
+                String model = mConfigManager.getModelName();
+                if ("Default".equals(name)) {
+                    profilePref.setSummary(getString(R.string.profile_active_default));
+                } else {
+                    profilePref.setSummary(getString(R.string.profile_active_format, name, provider, model));
+                }
+            }
+        }
+
+        @Override
+        public void onResume() {
+            super.onResume();
+            updateProfileDisplay();
+        }
+
+        private void showSaveProfileDialog() {
+            android.widget.EditText input = new android.widget.EditText(requireContext());
+            input.setHint(R.string.profile_name_hint);
+            new AlertDialog.Builder(requireContext())
+                    .setTitle(R.string.profile_save_title)
+                    .setView(input)
+                    .setPositiveButton(android.R.string.ok, (d, w) -> {
+                        String name = input.getText().toString().trim();
+                        if (!name.isEmpty()) {
+                            mConfigManager.saveProfile(requireContext(), name);
+                            updateProfileDisplay();
+                            Toast.makeText(requireContext(),
+                                    getString(R.string.profile_saved, name), Toast.LENGTH_SHORT).show();
+                        }
+                    })
+                    .setNegativeButton(android.R.string.cancel, null)
+                    .show();
+        }
+
+        private void showSwitchProfileDialog() {
+            java.util.List<String> profiles = mConfigManager.getProfileNames(requireContext());
+            if (profiles.isEmpty()) {
+                Toast.makeText(requireContext(), R.string.profile_no_profiles, Toast.LENGTH_SHORT).show();
+                return;
+            }
+            String[] items = profiles.toArray(new String[0]);
+            new AlertDialog.Builder(requireContext())
+                    .setTitle(R.string.profile_switch_title)
+                    .setItems(items, (d, which) -> {
+                        String name = items[which];
+                        if (mConfigManager.loadProfile(requireContext(), name)) {
+                            HermesConfigManager.restartGatewayIfRunning(requireContext());
+                            updateProfileDisplay();
+                            Toast.makeText(requireContext(),
+                                    getString(R.string.profile_loaded, name), Toast.LENGTH_SHORT).show();
+                        } else {
+                            Toast.makeText(requireContext(), R.string.profile_not_found, Toast.LENGTH_SHORT).show();
+                        }
+                    })
+                    .show();
+        }
+
+        private void showDeleteProfileDialog() {
+            java.util.List<String> profiles = mConfigManager.getProfileNames(requireContext());
+            if (profiles.isEmpty()) {
+                Toast.makeText(requireContext(), R.string.profile_no_profiles, Toast.LENGTH_SHORT).show();
+                return;
+            }
+            String[] items = profiles.toArray(new String[0]);
+            new AlertDialog.Builder(requireContext())
+                    .setTitle(R.string.profile_delete_title)
+                    .setItems(items, (d, which) -> {
+                        String name = items[which];
+                        mConfigManager.deleteProfile(requireContext(), name);
+                        updateProfileDisplay();
+                        Toast.makeText(requireContext(),
+                                getString(R.string.profile_deleted, name), Toast.LENGTH_SHORT).show();
+                    })
+                    .show();
         }
     }
 
