@@ -44,6 +44,7 @@ public class HermesSetupWizardActivity extends AppCompatActivity {
     private LinearLayout mContentContainer;
     private Button mBtnBack;
     private Button mBtnNext;
+    private TextView mStepIndicator;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -64,6 +65,13 @@ public class HermesSetupWizardActivity extends AppCompatActivity {
         toolbar.setLayoutParams(new LinearLayout.LayoutParams(
                 LinearLayout.LayoutParams.MATCH_PARENT, toolbarHeight));
         root.addView(toolbar);
+
+        mStepIndicator = new TextView(this);
+        mStepIndicator.setTextSize(13);
+        mStepIndicator.setTextColor(0xFF666666);
+        mStepIndicator.setGravity(android.view.Gravity.CENTER);
+        mStepIndicator.setPadding(0, dp(8), 0, dp(4));
+        root.addView(mStepIndicator);
 
         mScrollView = new ScrollView(this);
         mScrollView.setFillViewport(true);
@@ -124,6 +132,7 @@ public class HermesSetupWizardActivity extends AppCompatActivity {
     private void showStep(int step) {
         mCurrentStep = step;
         mContentContainer.removeAllViews();
+        mStepIndicator.setText(getString(R.string.hermes_setup_step_indicator, step + 1, STEP_DONE + 1));
 
         mBtnBack.setVisibility(step > STEP_WELCOME ? View.VISIBLE : View.GONE);
         mBtnNext.setText(step < STEP_DONE ? getString(R.string.feishu_next) : getString(R.string.feishu_finish));
@@ -385,8 +394,8 @@ public class HermesSetupWizardActivity extends AppCompatActivity {
             getSupportActionBar().setSubtitle(R.string.hermes_setup_step_feishu);
         }
 
-        addTitle("Connect Messaging");
-        addParagraph("You can connect Hermes to your messaging platforms. This step is optional — you can set it up later from Settings.");
+        addTitle(R.string.hermes_setup_im_title);
+        addParagraph(R.string.hermes_setup_im_text);
 
         // Feishu button
         addSpacer(dp(8));
@@ -419,6 +428,13 @@ public class HermesSetupWizardActivity extends AppCompatActivity {
         });
         discordBtn.setLayoutParams(btnParams);
         mContentContainer.addView(discordBtn);
+
+        // WhatsApp button
+        Button whatsappBtn = new Button(this);
+        whatsappBtn.setText(R.string.hermes_setup_open_whatsapp_wizard);
+        whatsappBtn.setOnClickListener(v -> startActivity(new Intent(this, WhatsAppSetupActivity.class)));
+        whatsappBtn.setLayoutParams(btnParams);
+        mContentContainer.addView(whatsappBtn);
 
         addSpacer(dp(16));
         TextView skipNote = new TextView(this);
@@ -506,13 +522,22 @@ public class HermesSetupWizardActivity extends AppCompatActivity {
         boolean hasFeishu = mConfigManager.isFeishuConfigured();
         boolean hasTelegram = !mConfigManager.getEnvVar("TELEGRAM_BOT_TOKEN").isEmpty();
         boolean hasDiscord = !mConfigManager.getEnvVar("DISCORD_BOT_TOKEN").isEmpty();
+        boolean hasWhatsApp = !mConfigManager.getEnvVar("WHATSAPP_PHONE_NUMBER_ID").isEmpty();
 
         StringBuilder summary = new StringBuilder();
-        summary.append("AI: ").append(hasLLM ? ("Configured (" + provider + " / " + mConfigManager.getModelName() + ")") : "Not configured");
-        summary.append("\nFeishu: ").append(hasFeishu ? "Configured" : "Not configured");
-        summary.append("\nTelegram: ").append(hasTelegram ? "Configured" : "Not configured");
-        summary.append("\nDiscord: ").append(hasDiscord ? "Configured" : "Not configured");
-        summary.append("\nGateway: ").append(HermesGatewayService.isRunning() ? "Running" : "Not started");
+        if (hasLLM) {
+            summary.append(getString(R.string.hermes_setup_summary_ai, provider + " / " + mConfigManager.getModelName()));
+        } else {
+            summary.append(getString(R.string.hermes_setup_summary_ai_not_configured));
+        }
+        summary.append("\n");
+        summary.append(formatPlatformStatus("Feishu", hasFeishu)).append("\n");
+        summary.append(formatPlatformStatus("Telegram", hasTelegram)).append("\n");
+        summary.append(formatPlatformStatus("Discord", hasDiscord)).append("\n");
+        summary.append(formatPlatformStatus("WhatsApp", hasWhatsApp)).append("\n");
+        summary.append(HermesGatewayService.isRunning()
+                ? getString(R.string.hermes_setup_summary_gateway_running)
+                : getString(R.string.hermes_setup_summary_gateway_not_started));
 
         TextView summaryView = new TextView(this);
         summaryView.setText(summary.toString());
@@ -677,5 +702,11 @@ public class HermesSetupWizardActivity extends AppCompatActivity {
 
     private int dp(int value) {
         return (int) (value * getResources().getDisplayMetrics().density);
+    }
+
+    private String formatPlatformStatus(String name, boolean configured) {
+        return configured
+                ? getString(R.string.hermes_setup_summary_platform_configured, name)
+                : getString(R.string.hermes_setup_summary_platform_not_configured, name);
     }
 }
