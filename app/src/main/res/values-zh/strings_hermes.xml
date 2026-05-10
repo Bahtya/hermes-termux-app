@@ -306,6 +306,14 @@ App ID 以"cli_"开头，约 10-20 个字符。App Secret 较长（30+ 字符）
     <string name="help_im_message">消息平台如飞书、Telegram 和 Discord 是您与 Hermes AI 助手聊天的地方。请至少配置一个平台以开始对话。\n\n每个平台都需要从相应服务获取机器人令牌。</string>
     <string name="help_ok">知道了</string>
 
+    <!-- LLM Quick Switch -->
+    <string name="llm_quick_switch_title">快速切换模型</string>
+    <string name="llm_quick_switch_summary">无需离开仪表板即可更换提供商和模型</string>
+    <string name="llm_quick_switch_dialog_title">切换 AI 模型</string>
+    <string name="llm_quick_switch_provider_label">提供商</string>
+    <string name="llm_quick_switch_model_label">模型</string>
+    <string name="llm_quick_switch_saved">已切换至 %1$s / %2$s</string>
+
     <!-- Status labels -->
     <string name="llm_configured">已配置（%1$s）</string>
     <string name="llm_not_configured">未配置</string>
