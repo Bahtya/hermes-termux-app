@@ -16,6 +16,25 @@
             android:selectable="false" />
     </PreferenceCategory>
 
+    <PreferenceCategory android:title="@string/profile_category_title">
+        <Preference
+            android:key="hermes_profile_current"
+            android:title="@string/profile_current_title"
+            android:selectable="false" />
+        <Preference
+            android:key="hermes_profile_save"
+            android:title="@string/profile_save_title"
+            android:summary="@string/profile_save_summary" />
+        <Preference
+            android:key="hermes_profile_switch"
+            android:title="@string/profile_switch_title"
+            android:summary="@string/profile_switch_summary" />
+        <Preference
+            android:key="hermes_profile_delete"
+            android:title="@string/profile_delete_title"
+            android:summary="@string/profile_delete_summary" />
+    </PreferenceCategory>
+
     <PreferenceCategory android:title="@string/hermes_cat_general">
 
         <Preference

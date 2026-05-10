@@ -920,4 +920,112 @@ public class HermesConfigManager {
         });
     }
 
+    // =========================================================================
+    // Profile management
+    // =========================================================================
+
+    private static final String PROFILES_PREFS = "hermes_profiles";
+    private static final String KEY_PROFILES_JSON = "profiles_json";
+    private static final String KEY_ACTIVE_PROFILE = "active_profile";
+
+    /** Returns list of saved profile names. */
+    public List<String> getProfileNames(Context context) {
+        SharedPreferences prefs = context.getSharedPreferences(PROFILES_PREFS, Context.MODE_PRIVATE);
+        String json = prefs.getString(KEY_PROFILES_JSON, "{}");
+        List<String> names = new ArrayList<>();
+        try {
+            String[] parts = json.replace("{", "").replace("}", "").replace("\"", "").split(",");
+            for (String part : parts) {
+                String[] kv = part.split(":");
+                if (kv.length >= 1 && !kv[0].trim().isEmpty()) {
+                    names.add(kv[0].trim());
+                }
+            }
+        } catch (Exception ignored) {}
+        return names;
+    }
+
+    /** Returns the currently active profile name, or "Default" if none selected. */
+    public String getActiveProfileName(Context context) {
+        SharedPreferences prefs = context.getSharedPreferences(PROFILES_PREFS, Context.MODE_PRIVATE);
+        return prefs.getString(KEY_ACTIVE_PROFILE, "Default");
+    }
+
+    /** Sets the active profile by name. */
+    public void setActiveProfile(Context context, String profileName) {
+        SharedPreferences prefs = context.getSharedPreferences(PROFILES_PREFS, Context.MODE_PRIVATE);
+        prefs.edit().putString(KEY_ACTIVE_PROFILE, profileName).apply();
+    }
+
+    /** Saves the current configuration as a named profile. */
+    public void saveProfile(Context context, String profileName) {
+        if (profileName == null || profileName.isEmpty()) return;
+        String provider = getModelProvider();
+        String apiKey = getApiKey(provider);
+        String model = getModelName();
+        float temp = getModelTemperature();
+        int maxTokens = getModelMaxTokens();
+        String systemPrompt = getSystemPrompt();
+        String baseUrl = getEnvVar("OPENAI_BASE_URL");
+
+        String profileData = provider + "|" + (apiKey != null ? apiKey : "") + "|" + model
+                + "|" + temp + "|" + maxTokens + "|" + systemPrompt.replace("|", "\\|") + "|" + baseUrl;
+
+        SharedPreferences prefs = context.getSharedPreferences(PROFILES_PREFS, Context.MODE_PRIVATE);
+        String json = prefs.getString(KEY_PROFILES_JSON, "{}");
+        String entry = "\"" + profileName + "\":\"" + profileData.replace("\\", "\\\\").replace("\"", "\\\"") + "\"";
+        if (json.equals("{}")) {
+            json = "{" + entry + "}";
+        } else {
+            json = json.replaceAll("\"" + profileName + "\":\"[^\"]*\",?", "").trim();
+            if (json.endsWith(",")) json = json.substring(0, json.length() - 1);
+            if (json.equals("{")) json = "{" + entry + "}";
+            else json = json.substring(0, json.length() - 1) + "," + entry + "}";
+        }
+        prefs.edit().putString(KEY_PROFILES_JSON, json).apply();
+        setActiveProfile(context, profileName);
+    }
+
+    /** Loads a saved profile by name. Returns true if profile was found and loaded. */
+    public boolean loadProfile(Context context, String profileName) {
+        if (profileName == null) return false;
+        SharedPreferences prefs = context.getSharedPreferences(PROFILES_PREFS, Context.MODE_PRIVATE);
+        String json = prefs.getString(KEY_PROFILES_JSON, "{}");
+
+        String key = "\"" + profileName + "\":\"";
+        int start = json.indexOf(key);
+        if (start < 0) return false;
+        start += key.length();
+        int end = json.indexOf("\"", start);
+        if (end < 0) return false;
+        String profileData = json.substring(start, end).replace("\\\"", "\"").replace("\\\\", "\\");
+
+        String[] parts = profileData.split("\\|", -1);
+        if (parts.length < 5) return false;
+
+        setModelProvider(parts[0]);
+        if (!parts[1].isEmpty()) setApiKey(parts[0], parts[1]);
+        setModelName(parts[2]);
+        try { setModelTemperature(Float.parseFloat(parts[3])); } catch (Exception ignored) {}
+        try { setModelMaxTokens(Integer.parseInt(parts[4])); } catch (Exception ignored) {}
+        if (parts.length >= 6) setSystemPrompt(parts[5].replace("\\|", "|"));
+        if (parts.length >= 7 && !parts[6].isEmpty()) setEnvVar("OPENAI_BASE_URL", parts[6]);
+
+        setActiveProfile(context, profileName);
+        return true;
+    }
+
+    /** Deletes a saved profile by name. */
+    public void deleteProfile(Context context, String profileName) {
+        SharedPreferences prefs = context.getSharedPreferences(PROFILES_PREFS, Context.MODE_PRIVATE);
+        String json = prefs.getString(KEY_PROFILES_JSON, "{}");
+        json = json.replaceAll("\"" + profileName + "\":\"[^\"]*\",?", "");
+        json = json.replace(",}", "}").replace("{,", "{");
+        if (json.trim().equals("") || json.trim().equals("{}")) json = "{}";
+        prefs.edit().putString(KEY_PROFILES_JSON, json).apply();
+        if (getActiveProfileName(context).equals(profileName)) {
+            setActiveProfile(context, "Default");
+        }
+    }
+
 }
