@@ -1,0 +1,220 @@
+package com.termux.app.hermes;
+
+import android.app.Notification;
+import android.app.NotificationChannel;
+import android.app.NotificationManager;
+import android.app.PendingIntent;
+import android.app.Service;
+import android.content.Context;
+import android.content.Intent;
+import android.content.SharedPreferences;
+import android.os.Build;
+import android.os.Handler;
+import android.os.IBinder;
+import android.os.Looper;
+import android.util.Log;
+
+import androidx.annotation.Nullable;
+import androidx.core.app.NotificationCompat;
+import androidx.preference.PreferenceManager;
+
+import com.termux.R;
+import com.termux.app.TermuxActivity;
+import com.termux.shared.termux.TermuxConstants;
+
+import java.io.File;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+
+public class HermesGatewayService extends Service {
+
+    private static final String TAG = "HermesGateway";
+    private static final int NOTIFICATION_ID = 2001;
+    private static final String CHANNEL_ID = "hermes_gateway_channel";
+    public static final String ACTION_START = "com.hermes.termux.GATEWAY_START";
+    public static final String ACTION_STOP = "com.hermes.termux.GATEWAY_STOP";
+    public static final String ACTION_CHECK = "com.hermes.termux.GATEWAY_CHECK";
+    public static final String PREF_AUTO_START = "hermes_auto_start_gateway";
+
+    private final Handler mHandler = new Handler(Looper.getMainLooper());
+    private final ExecutorService mExecutor = Executors.newSingleThreadExecutor();
+    private Process mGatewayProcess;
+    private boolean mRunning = false;
+    private int mRestartAttempts = 0;
+    private static final int MAX_RESTARTS = 3;
+
+    private final Runnable mHealthCheck = new Runnable() {
+        @Override
+        public void run() {
+            if (mRunning) {
+                boolean alive = mGatewayProcess != null && mGatewayProcess.isAlive();
+                if (!alive && mRestartAttempts < MAX_RESTARTS) {
+                    Log.w(TAG, "Gateway process died, restarting (attempt " + (mRestartAttempts + 1) + ")");
+                    startGatewayProcess();
+                    mRestartAttempts++;
+                } else if (!alive) {
+                    Log.e(TAG, "Gateway failed after " + MAX_RESTARTS + " restart attempts");
+                    updateNotification("Gateway stopped (crash)");
+                    mRunning = false;
+                }
+                mHandler.postDelayed(this, 30_000);
+            }
+        }
+    };
+
+    @Override
+    public void onCreate() {
+        super.onCreate();
+        createNotificationChannel();
+    }
+
+    @Override
+    public int onStartCommand(Intent intent, int flags, int startId) {
+        if (intent != null) {
+            String action = intent.getAction();
+            if (ACTION_STOP.equals(action)) {
+                stopGateway();
+                return START_NOT_STICKY;
+            }
+        }
+
+        if (!mRunning) {
+            startGatewayProcess();
+        }
+        return START_STICKY;
+    }
+
+    private void startGatewayProcess() {
+        String home = TermuxConstants.TERMUX_HOME_DIR_PATH;
+        String binPath = TermuxConstants.TERMUX_BIN_PREFIX_DIR_PATH;
+        String hermesPath = binPath + "/hermes";
+
+        if (!new File(hermesPath).exists()) {
+            Log.w(TAG, "Hermes binary not found at " + hermesPath);
+            updateNotification("Hermes not installed");
+            return;
+        }
+
+        HermesConfigManager config = HermesConfigManager.getInstance();
+        String logDir = home + "/.hermes/logs";
+        new File(logDir).mkdirs();
+
+        mExecutor.execute(() -> {
+            try {
+                ProcessBuilder pb = new ProcessBuilder(
+                        binPath + "/bash", "-c",
+                        hermesPath + " gateway run >> " + logDir + "/gateway.log 2>&1"
+                );
+                pb.environment().put("HOME", home);
+                pb.environment().put("PATH", binPath + ":/system/bin:/system/xbin");
+                pb.environment().put("TERMUX_HOME", home);
+                pb.environment().put("TERMUX_PREFIX", TermuxConstants.TERMUX_PREFIX_DIR_PATH);
+
+                String envFile = home + "/.hermes/.env";
+                if (new File(envFile).exists()) {
+                    pb.environment().put("HERMES_ENV_FILE", envFile);
+                }
+
+                mGatewayProcess = pb.start();
+                mRunning = true;
+                mRestartAttempts = 0;
+
+                Notification notification = buildNotification("Hermes Gateway running");
+                startForeground(NOTIFICATION_ID, notification);
+
+                mHandler.postDelayed(mHealthCheck, 30_000);
+                Log.i(TAG, "Gateway process started");
+            } catch (Exception e) {
+                Log.e(TAG, "Failed to start gateway", e);
+                updateNotification("Gateway error: " + e.getMessage());
+            }
+        });
+    }
+
+    private void stopGateway() {
+        mRunning = false;
+        mHandler.removeCallbacks(mHealthCheck);
+
+        try {
+            ProcessBuilder pb = new ProcessBuilder(
+                    TermuxConstants.TERMUX_BIN_PREFIX_DIR_PATH + "/bash", "-c",
+                    "pkill -f 'hermes gateway' 2>/dev/null; echo done"
+            );
+            pb.environment().put("PATH", TermuxConstants.TERMUX_BIN_PREFIX_DIR_PATH + ":/system/bin");
+            pb.start();
+        } catch (Exception ignored) {}
+
+        if (mGatewayProcess != null) {
+            mGatewayProcess.destroy();
+            mGatewayProcess = null;
+        }
+
+        stopForeground(STOP_FOREGROUND_REMOVE);
+        stopSelf();
+    }
+
+    private void updateNotification(String text) {
+        NotificationManager nm = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
+        if (nm != null) {
+            nm.notify(NOTIFICATION_ID, buildNotification(text));
+        }
+    }
+
+    private Notification buildNotification(String text) {
+        Intent openIntent = new Intent(this, TermuxActivity.class);
+        PendingIntent pi = PendingIntent.getActivity(this, 0, openIntent,
+                PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE);
+
+        Intent stopIntent = new Intent(this, HermesGatewayService.class);
+        stopIntent.setAction(ACTION_STOP);
+        PendingIntent stopPi = PendingIntent.getService(this, 1, stopIntent,
+                PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE);
+
+        return new NotificationCompat.Builder(this, CHANNEL_ID)
+                .setContentTitle("Hermes Gateway")
+                .setContentText(text)
+                .setSmallIcon(R.drawable.ic_hermes)
+                .setContentIntent(pi)
+                .addAction(0, "Stop", stopPi)
+                .setOngoing(true)
+                .build();
+    }
+
+    private void createNotificationChannel() {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            NotificationChannel channel = new NotificationChannel(
+                    CHANNEL_ID,
+                    "Hermes Gateway",
+                    NotificationManager.IMPORTANCE_LOW
+            );
+            channel.setDescription("Hermes gateway status");
+            NotificationManager nm = getSystemService(NotificationManager.class);
+            if (nm != null) nm.createNotificationChannel(channel);
+        }
+    }
+
+    @Override
+    public void onDestroy() {
+        stopGateway();
+        mExecutor.shutdownNow();
+        super.onDestroy();
+    }
+
+    @Nullable
+    @Override
+    public IBinder onBind(Intent intent) {
+        return null;
+    }
+
+    public static boolean isAutoStartEnabled(Context context) {
+        SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(context);
+        return prefs.getBoolean(PREF_AUTO_START, false);
+    }
+
+    public static void setAutoStartEnabled(Context context, boolean enabled) {
+        PreferenceManager.getDefaultSharedPreferences(context)
+                .edit()
+                .putBoolean(PREF_AUTO_START, enabled)
+                .apply();
+    }
+}

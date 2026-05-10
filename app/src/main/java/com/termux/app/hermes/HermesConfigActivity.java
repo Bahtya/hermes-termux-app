@@ -1,5 +1,6 @@
 package com.termux.app.hermes;
 
+import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
 import android.view.MenuItem;
@@ -14,6 +15,7 @@ import androidx.fragment.app.FragmentTransaction;
 import androidx.preference.ListPreference;
 import androidx.preference.Preference;
 import androidx.preference.PreferenceFragmentCompat;
+import androidx.preference.SwitchPreferenceCompat;
 
 import com.termux.R;
 import com.termux.shared.termux.TermuxConstants;
@@ -78,6 +80,21 @@ public class HermesConfigActivity extends AppCompatActivity {
                         }
                         gatewayPref.setSummary(summary);
                     });
+                });
+            }
+
+            // Auto-start gateway toggle
+            SwitchPreferenceCompat autoStartPref = findPreference("hermes_auto_start_gateway");
+            if (autoStartPref != null) {
+                autoStartPref.setOnPreferenceChangeListener((p, newVal) -> {
+                    boolean enabled = (Boolean) newVal;
+                    HermesGatewayService.setAutoStartEnabled(requireContext(), enabled);
+                    if (enabled) {
+                        requireContext().startService(
+                                new Intent(requireContext(), HermesGatewayService.class)
+                                        .setAction(HermesGatewayService.ACTION_START));
+                    }
+                    return true;
                 });
             }
 
@@ -277,37 +294,27 @@ public class HermesConfigActivity extends AppCompatActivity {
         }
 
         private void runGatewayCommand(String action) {
-            String bashPath = TermuxConstants.TERMUX_BIN_PREFIX_DIR_PATH + "/bash";
-            String hermesPath = TermuxConstants.TERMUX_BIN_PREFIX_DIR_PATH + "/hermes";
-
-            String cmd;
+            Context ctx = requireContext();
             switch (action) {
                 case "start":
-                    cmd = "nohup " + hermesPath + " gateway run > ~/.hermes/logs/gateway.log 2>&1 &";
+                    ctx.startService(new Intent(ctx, HermesGatewayService.class)
+                            .setAction(HermesGatewayService.ACTION_START));
+                    Toast.makeText(ctx, R.string.gateway_started, Toast.LENGTH_SHORT).show();
                     break;
                 case "stop":
-                    cmd = "pkill -f 'hermes gateway' 2>/dev/null; echo 'Gateway stopped'";
+                    ctx.startService(new Intent(ctx, HermesGatewayService.class)
+                            .setAction(HermesGatewayService.ACTION_STOP));
+                    Toast.makeText(ctx, R.string.gateway_stopped, Toast.LENGTH_SHORT).show();
                     break;
                 case "restart":
-                    cmd = "pkill -f 'hermes gateway' 2>/dev/null; sleep 1; nohup " + hermesPath + " gateway run > ~/.hermes/logs/gateway.log 2>&1 &";
+                    ctx.startService(new Intent(ctx, HermesGatewayService.class)
+                            .setAction(HermesGatewayService.ACTION_STOP));
+                    new android.os.Handler(android.os.Looper.getMainLooper()).postDelayed(() -> {
+                        ctx.startService(new Intent(ctx, HermesGatewayService.class)
+                                .setAction(HermesGatewayService.ACTION_START));
+                    }, 1500);
+                    Toast.makeText(ctx, R.string.gateway_restarted, Toast.LENGTH_SHORT).show();
                     break;
-                default:
-                    return;
-            }
-
-            try {
-                ProcessBuilder pb = new ProcessBuilder(bashPath, "-c", cmd);
-                pb.environment().put("HOME", TermuxConstants.TERMUX_HOME_DIR_PATH);
-                pb.environment().put("PATH", TermuxConstants.TERMUX_BIN_PREFIX_DIR_PATH
-                        + ":/system/bin:/system/xbin");
-                pb.start();
-
-                int msgId = action.equals("start") ? R.string.gateway_started
-                        : action.equals("stop") ? R.string.gateway_stopped
-                        : R.string.gateway_restarted;
-                Toast.makeText(requireContext(), msgId, Toast.LENGTH_SHORT).show();
-            } catch (Exception e) {
-                Toast.makeText(requireContext(), "Error: " + e.getMessage(), Toast.LENGTH_LONG).show();
             }
         }
     }
