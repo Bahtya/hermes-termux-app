@@ -372,6 +372,27 @@ public class HermesConfigActivity extends AppCompatActivity {
                 case "hermes_import_config":
                     showImportConfirmDialog();
                     return true;
+                case "hermes_help_gateway":
+                    new AlertDialog.Builder(requireContext())
+                            .setTitle(R.string.help_gateway_title)
+                            .setMessage(R.string.help_gateway_message)
+                            .setPositiveButton(R.string.help_ok, null)
+                            .show();
+                    return true;
+                case "hermes_help_llm":
+                    new AlertDialog.Builder(requireContext())
+                            .setTitle(R.string.help_llm_title)
+                            .setMessage(R.string.help_llm_message)
+                            .setPositiveButton(R.string.help_ok, null)
+                            .show();
+                    return true;
+                case "hermes_help_im":
+                    new AlertDialog.Builder(requireContext())
+                            .setTitle(R.string.help_im_title)
+                            .setMessage(R.string.help_im_message)
+                            .setPositiveButton(R.string.help_ok, null)
+                            .show();
+                    return true;
             }
             return super.onPreferenceTreeClick(preference);
         }
