@@ -1548,17 +1548,17 @@ public class HermesConfigActivity extends AppCompatActivity {
 
         private String getProviderInfo(String provider) {
             switch (provider) {
-                case "openai":     return "GPT-4o, o1, o3 models. Best general-purpose.";
-                case "anthropic":  return "Claude models. Excellent for analysis and coding.";
-                case "google":     return "Gemini models. Good multimodal capabilities.";
-                case "deepseek":   return "Cost-effective. Strong reasoning models.";
-                case "openrouter": return "Access multiple providers through one API.";
-                case "xai":        return "Grok models from xAI.";
-                case "alibaba":    return "Qwen models. Strong multilingual support.";
-                case "mistral":    return "Mistral and Codestral models. EU-based.";
-                case "nvidia":     return "NVIDIA-hosted open models via NIM.";
-                case "ollama":     return "Run models locally. No API costs.";
-                default:           return "Any OpenAI-compatible API endpoint.";
+                case "openai":     return "Recommended: gpt-4o (best quality) or gpt-4o-mini (fast & cheap)";
+                case "anthropic":  return "Recommended: claude-sonnet-4-6 (balanced) or claude-haiku-4-5 (fast)";
+                case "google":     return "Recommended: gemini-2.5-flash (fast) or gemini-2.5-pro (advanced)";
+                case "deepseek":   return "Recommended: deepseek-chat (general) or deepseek-reasoner (math/code)";
+                case "openrouter": return "Recommended: anthropic/claude-sonnet-4-6 or openai/gpt-4o";
+                case "xai":        return "Recommended: grok-3 (general) or grok-3-mini (fast)";
+                case "alibaba":    return "Recommended: qwen-max (best) or qwen-plus (balanced)";
+                case "mistral":    return "Recommended: mistral-large-latest or codestral-latest (code)";
+                case "nvidia":     return "Recommended: meta/llama-3.3-70b-instruct or deepseek-ai/deepseek-r1";
+                case "ollama":     return "Run models locally. Try llama3, mistral, or codellama";
+                default:           return "Enter any OpenAI-compatible model name in the Model field above.";
             }
         }
 
