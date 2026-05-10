@@ -491,9 +491,9 @@ public class ImSetupActivity extends AppCompatActivity {
                     String platform = mPlatform;
                     String testPayload;
                     if (isTelegram()) {
-                        testPayload = "{"platform":"telegram","message":"Hermes test message from Android app"}";
+                        testPayload = "{\"platform\":\"telegram\",\"message\":\"Hermes test message from Android app\"}";
                     } else {
-                        testPayload = "{"platform":"discord","message":"Hermes test message from Android app"}";
+                        testPayload = "{\"platform\":\"discord\",\"message\":\"Hermes test message from Android app\"}";
                     }
                     
                     ProcessBuilder pb = new ProcessBuilder(
