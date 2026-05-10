@@ -375,6 +375,14 @@
     <string name="llm_base_url_title">Base URL</string>
     <string name="llm_base_url_summary">Custom endpoint URL (for Ollama or compatible APIs)</string>
 
+    <!-- LLM Advanced Parameters -->
+    <string name="llm_category_advanced">Advanced Parameters</string>
+    <string name="llm_temperature_title">Temperature</string>
+    <string name="llm_temperature_summary">Controls randomness (0.0 = precise, 2.0 = creative). Current: %1$s</string>
+    <string name="llm_max_tokens_title">Max Tokens</string>
+    <string name="llm_max_tokens_summary">Maximum response length (100–32768). Current: %1$d</string>
+    <string name="llm_max_tokens_invalid">Please enter a number between 100 and 32768</string>
+
     <!-- LLM Test Connection -->
     <string name="llm_test_connection_title">Test Connection</string>
     <string name="llm_test_connection_summary">Verify your API key and model are working</string>

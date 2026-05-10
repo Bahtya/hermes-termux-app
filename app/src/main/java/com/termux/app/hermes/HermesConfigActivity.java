@@ -484,6 +484,53 @@ public class HermesConfigActivity extends AppCompatActivity {
                 boolean needsUrl = "ollama".equals(currentProvider) || "custom".equals(currentProvider);
                 baseUrlPref.setVisible(needsUrl);
             }
+
+            // Temperature (stored as 0-20 integer, displayed as 0.0-2.0 float)
+            Preference tempPref = findPreference("llm_temperature");
+            if (tempPref != null) {
+                float currentTemp = mConfigManager.getModelTemperature();
+                int seekBarValue = Math.round(currentTemp * 10);
+                if (tempPref instanceof androidx.preference.SeekBarPreference) {
+                    ((androidx.preference.SeekBarPreference) tempPref).setValue(seekBarValue);
+                }
+                tempPref.setSummary(getString(R.string.llm_temperature_summary,
+                        String.format("%.1f", currentTemp)));
+                tempPref.setOnPreferenceChangeListener((p, newVal) -> {
+                    int val = (Integer) newVal;
+                    float temp = val / 10.0f;
+                    mConfigManager.setModelTemperature(temp);
+                    p.setSummary(getString(R.string.llm_temperature_summary,
+                            String.format("%.1f", temp)));
+                    return true;
+                });
+            }
+
+            // Max tokens
+            Preference maxTokensPref = findPreference("llm_max_tokens");
+            if (maxTokensPref != null) {
+                int currentMax = mConfigManager.getModelMaxTokens();
+                if (maxTokensPref instanceof androidx.preference.EditTextPreference) {
+                    ((androidx.preference.EditTextPreference) maxTokensPref).setText(String.valueOf(currentMax));
+                }
+                maxTokensPref.setSummary(getString(R.string.llm_max_tokens_summary, currentMax));
+                maxTokensPref.setOnPreferenceChangeListener((p, newVal) -> {
+                    try {
+                        int val = Integer.parseInt((String) newVal);
+                        if (val < 100 || val > 32768) {
+                            Toast.makeText(requireContext(), getString(R.string.llm_max_tokens_invalid),
+                                    Toast.LENGTH_SHORT).show();
+                            return false;
+                        }
+                        mConfigManager.setModelMaxTokens(val);
+                        p.setSummary(getString(R.string.llm_max_tokens_summary, val));
+                        return true;
+                    } catch (NumberFormatException e) {
+                        Toast.makeText(requireContext(), getString(R.string.llm_max_tokens_invalid),
+                                Toast.LENGTH_SHORT).show();
+                        return false;
+                    }
+                });
+            }
         }
 
         private void updateModelList(String provider) {

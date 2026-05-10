@@ -35,4 +35,21 @@
         android:summary="@string/llm_test_connection_summary"
         android:selectable="true" />
 
+    <PreferenceCategory android:title="@string/llm_category_advanced">
+        <SeekBarPreference
+            android:key="llm_temperature"
+            android:title="@string/llm_temperature_title"
+            android:summary="@string/llm_temperature_summary"
+            android:min="0"
+            android:max="20"
+            android:defaultValue="7" />
+
+        <EditTextPreference
+            android:key="llm_max_tokens"
+            android:title="@string/llm_max_tokens_title"
+            android:summary="@string/llm_max_tokens_summary"
+            android:inputType="number"
+            android:defaultValue="4096" />
+    </PreferenceCategory>
+
 </PreferenceScreen>

@@ -43,6 +43,14 @@
     <string name="llm_base_url_title">API 地址</string>
     <string name="llm_base_url_summary">自定义 API 地址（用于 Ollama 或兼容 API）</string>
 
+    <!-- LLM Advanced Parameters -->
+    <string name="llm_category_advanced">高级参数</string>
+    <string name="llm_temperature_title">温度</string>
+    <string name="llm_temperature_summary">控制随机性（0.0 = 精确，2.0 = 创意）。当前：%1$s</string>
+    <string name="llm_max_tokens_title">最大令牌数</string>
+    <string name="llm_max_tokens_summary">最大响应长度（100–32768）。当前：%1$d</string>
+    <string name="llm_max_tokens_invalid">请输入 100 到 32768 之间的数字</string>
+
     <!-- LLM Test Connection -->
     <string name="llm_test_connection_title">测试连接</string>
     <string name="llm_test_connection_summary">验证 API 密钥和模型是否正常工作</string>
