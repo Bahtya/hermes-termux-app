@@ -592,6 +592,9 @@ App ID starts with "cli_" and is about 10–20 characters. App Secret is longer 
     <string name="llm_test_last_pass">Last test: Passed (%1$s)</string>
     <string name="llm_test_last_fail">Last test: Failed (%1$s) — Tap to retry</string>
     <string name="llm_test_never_run">Not tested yet</string>
+    <string name="llm_test_never_run">Not tested yet — tap to verify</string>
+    <string name="llm_test_last_pass">Passed %1$s</string>
+    <string name="llm_test_last_fail">Failed %1$s — tap to retry</string>
 
     <!-- Gateway Control -->
     <string name="gateway_start_title">Start Gateway</string>
