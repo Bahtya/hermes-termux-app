@@ -1,14 +1,14 @@
 <?xml version="1.0" encoding="utf-8"?>
 
 <!DOCTYPE resources [
-    <!ENTITY TERMUX_PACKAGE_NAME "com.termux">
-    <!ENTITY TERMUX_APP_NAME "Termux">
-    <!ENTITY TERMUX_API_APP_NAME "Termux:API">
-    <!ENTITY TERMUX_BOOT_APP_NAME "Termux:Boot">
-    <!ENTITY TERMUX_FLOAT_APP_NAME "Termux:Float">
-    <!ENTITY TERMUX_STYLING_APP_NAME "Termux:Styling">
-    <!ENTITY TERMUX_TASKER_APP_NAME "Termux:Tasker">
-    <!ENTITY TERMUX_WIDGET_APP_NAME "Termux:Widget">
+    <!ENTITY TERMUX_PACKAGE_NAME "com.hermes.termux">
+    <!ENTITY TERMUX_APP_NAME "Hermes Termux">
+    <!ENTITY TERMUX_API_APP_NAME "Hermes Termux:API">
+    <!ENTITY TERMUX_BOOT_APP_NAME "Hermes Termux:Boot">
+    <!ENTITY TERMUX_FLOAT_APP_NAME "Hermes Termux:Float">
+    <!ENTITY TERMUX_STYLING_APP_NAME "Hermes Termux:Styling">
+    <!ENTITY TERMUX_TASKER_APP_NAME "Hermes Termux:Tasker">
+    <!ENTITY TERMUX_WIDGET_APP_NAME "Hermes Termux:Widget">
     ]>
 
 <resources>
@@ -53,6 +53,10 @@
     <string name="action_create_named_session_confirm">Create</string>
 
     <string name="action_toggle_soft_keyboard">Keyboard</string>
+
+    <string name="tab_bash">Bash</string>
+    <string name="tab_hermes">Hermes</string>
+    <string name="hermes_not_installed">Hermes CLI is not installed.\n\nPlace the hermes binary at:\n%1$s\nand make it executable:\nchmod +x %1$s</string>
 
     <string name="msg_enabling_terminal_toolbar">Enabling Terminal Toolbar</string>
     <string name="msg_disabling_terminal_toolbar">Disabling Terminal Toolbar</string>
