@@ -3,8 +3,6 @@ package com.termux.app.hermes;
 import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
-import android.os.Handler;
-import android.os.Looper;
 import android.view.MenuItem;
 import android.widget.Toast;
 
@@ -58,66 +56,32 @@ public class HermesConfigActivity extends AppCompatActivity {
     public static class HermesConfigFragment extends PreferenceFragmentCompat {
 
         private HermesConfigManager mConfigManager;
-        private final Handler mStatusHandler = new Handler(Looper.getMainLooper());
-        private static final long STATUS_REFRESH_INTERVAL_MS = 5000;
-        private boolean mRefreshing = false;
-
-        private final Runnable mStatusRefreshRunnable = new Runnable() {
-            @Override
-            public void run() {
-                if (!mRefreshing || getActivity() == null) return;
-                refreshGatewayStatus();
-                mStatusHandler.postDelayed(this, STATUS_REFRESH_INTERVAL_MS);
-            }
-        };
-
-        @Override
-        public void onResume() {
-            super.onResume();
-            mRefreshing = true;
-            refreshGatewayStatus();
-            mStatusHandler.postDelayed(mStatusRefreshRunnable, STATUS_REFRESH_INTERVAL_MS);
-        }
-
-        @Override
-        public void onPause() {
-            super.onPause();
-            mRefreshing = false;
-            mStatusHandler.removeCallbacks(mStatusRefreshRunnable);
-        }
-
-        private void refreshGatewayStatus() {
-            Preference dashGateway = findPreference("hermes_dashboard_gateway");
-            Preference gatewayPref = findPreference("hermes_gateway_control");
-
-            HermesGatewayStatus.checkAsync((status, detail) -> {
-                if (getActivity() == null) return;
-                getActivity().runOnUiThread(() -> {
-                    String label;
-                    switch (status) {
-                        case RUNNING:
-                            label = getString(R.string.dashboard_gateway_running);
-                            break;
-                        case NOT_INSTALLED:
-                            label = getString(R.string.dashboard_gateway_not_installed);
-                            break;
-                        default:
-                            label = getString(R.string.dashboard_gateway_stopped);
-                            break;
-                    }
-                    if (dashGateway != null) dashGateway.setSummary(label);
-                    if (gatewayPref != null) gatewayPref.setSummary(label);
-                });
-            });
-        }
 
         @Override
         public void onCreatePreferences(Bundle savedInstanceState, String rootKey) {
             setPreferencesFromResource(R.xml.hermes_preferences, rootKey);
             mConfigManager = HermesConfigManager.getInstance();
 
-            // --- Dashboard: Gateway status (initial, refreshed by onResume) ---
+            // --- Dashboard: Gateway status ---
             Preference dashGateway = findPreference("hermes_dashboard_gateway");
+            if (dashGateway != null) {
+                HermesGatewayStatus.checkAsync((status, detail) -> {
+                    if (getActivity() == null) return;
+                    getActivity().runOnUiThread(() -> {
+                        switch (status) {
+                            case RUNNING:
+                                dashGateway.setSummary(getString(R.string.dashboard_gateway_running));
+                                break;
+                            case NOT_INSTALLED:
+                                dashGateway.setSummary(getString(R.string.dashboard_gateway_not_installed));
+                                break;
+                            default:
+                                dashGateway.setSummary(getString(R.string.dashboard_gateway_stopped));
+                                break;
+                        }
+                    });
+                });
+            }
 
             // --- Dashboard: LLM status ---
             Preference dashLlm = findPreference("hermes_dashboard_llm");
@@ -145,6 +109,29 @@ public class HermesConfigActivity extends AppCompatActivity {
                     dashIm.setSummary(getString(R.string.dashboard_im_list,
                             android.text.TextUtils.join(", ", platforms)));
                 }
+            }
+
+            // Show gateway status
+            Preference gatewayPref = findPreference("hermes_gateway_control");
+            if (gatewayPref != null) {
+                HermesGatewayStatus.checkAsync((status, detail) -> {
+                    if (getActivity() == null) return;
+                    getActivity().runOnUiThread(() -> {
+                        String summary;
+                        switch (status) {
+                            case RUNNING:
+                                summary = getString(R.string.gateway_status_running);
+                                break;
+                            case NOT_INSTALLED:
+                                summary = getString(R.string.gateway_status_not_installed);
+                                break;
+                            default:
+                                summary = getString(R.string.gateway_status_stopped);
+                                break;
+                        }
+                        gatewayPref.setSummary(summary);
+                    });
+                });
             }
 
             // Auto-start gateway toggle
@@ -229,9 +216,8 @@ public class HermesConfigActivity extends AppCompatActivity {
                 case "hermes_check_update":
                     checkForUpdate(preference);
                     return true;
-                case "hermes_run_wizard":
-                    HermesSetupWizardActivity.clearDismissedFlag(requireContext());
-                    startActivity(new Intent(requireContext(), HermesSetupWizardActivity.class));
+                case "hermes_update_now":
+                    runUpgrade();
                     return true;
                 case "hermes_gateway_log":
                     startActivity(new Intent(requireContext(), GatewayLogActivity.class));
@@ -265,18 +251,26 @@ public class HermesConfigActivity extends AppCompatActivity {
             new Thread(() -> {
                 String[] result = fetchVersionInfo();
                 requireActivity().runOnUiThread(() -> {
+                    Preference updateNowPref = findPreference("hermes_update_now");
                     if (result == null) {
                         if (updatePref != null) {
                             updatePref.setSummary(getString(R.string.hermes_update_failed));
                         }
+                        if (updateNowPref != null) updateNowPref.setVisible(false);
                     } else {
                         String current = result[0];
                         String latest = result[1];
                         if (updatePref != null) {
                             if (latest != null && !latest.equals(current)) {
                                 updatePref.setSummary(getString(R.string.hermes_update_available, latest, current));
+                                if (updateNowPref != null) {
+                                    updateNowPref.setSummary(
+                                            getString(R.string.hermes_update_now_summary) + " → " + latest);
+                                    updateNowPref.setVisible(true);
+                                }
                             } else {
                                 updatePref.setSummary(getString(R.string.hermes_up_to_date, current));
+                                if (updateNowPref != null) updateNowPref.setVisible(false);
                             }
                         }
                     }
@@ -287,9 +281,12 @@ public class HermesConfigActivity extends AppCompatActivity {
         private String[] fetchVersionInfo() {
             try {
                 String binPath = TermuxConstants.TERMUX_BIN_PREFIX_DIR_PATH;
+
+                // Get current installed version
                 ProcessBuilder pb = new ProcessBuilder(binPath + "/bash", "-c",
-                        "hermes --version 2>/dev/null | head -1");
+                        "pip show hermes-agent 2>/dev/null | grep Version | head -1 | cut -d' ' -f2");
                 pb.environment().put("PATH", binPath + ":/system/bin");
+                pb.environment().put("HOME", TermuxConstants.TERMUX_HOME_DIR_PATH);
                 pb.redirectErrorStream(true);
                 Process p = pb.start();
                 p.waitFor();
@@ -298,23 +295,101 @@ public class HermesConfigActivity extends AppCompatActivity {
                 String current = reader.readLine();
                 if (current != null) current = current.trim();
 
+                if (current == null || current.isEmpty()) current = "unknown";
+
+                // Get latest version from PyPI
+                String latest = null;
                 ProcessBuilder pb2 = new ProcessBuilder(binPath + "/bash", "-c",
-                        "pip show hermes-agent 2>/dev/null | grep Version | head -1 | cut -d' ' -f2");
+                        "curl -s https://pypi.org/pypi/hermes-agent/json 2>/dev/null | grep -o '\"version\":\"[^\"]*\"' | head -1 | cut -d'\"' -f4");
                 pb2.environment().put("PATH", binPath + ":/system/bin");
-                pb2.environment().put("HOME", TermuxConstants.TERMUX_HOME_DIR_PATH);
                 pb2.redirectErrorStream(true);
                 Process p2 = pb2.start();
-                p2.waitFor();
+                p2.waitFor(10, java.util.concurrent.TimeUnit.SECONDS);
                 java.io.BufferedReader reader2 = new java.io.BufferedReader(
                         new java.io.InputStreamReader(p2.getInputStream()));
-                String pipVersion = reader2.readLine();
-                if (pipVersion != null) pipVersion = pipVersion.trim();
+                String line = reader2.readLine();
+                if (line != null && !line.trim().isEmpty()) {
+                    latest = line.trim();
+                }
 
-                if (current == null || current.isEmpty()) current = "unknown";
-                return new String[]{pipVersion != null ? pipVersion : current, null};
+                return new String[]{current, latest};
             } catch (Exception e) {
                 return null;
             }
+        }
+
+        private void runUpgrade() {
+            Preference updateNowPref = findPreference("hermes_update_now");
+            if (updateNowPref != null) {
+                updateNowPref.setSummary(getString(R.string.hermes_update_running));
+                updateNowPref.setEnabled(false);
+            }
+            new Thread(() -> {
+                try {
+                    String binPath = TermuxConstants.TERMUX_BIN_PREFIX_DIR_PATH;
+                    ProcessBuilder pb = new ProcessBuilder(binPath + "/bash", "-c",
+                            "pip install --upgrade hermes-agent 2>&1");
+                    pb.environment().put("PATH", binPath + ":/system/bin");
+                    pb.environment().put("HOME", TermuxConstants.TERMUX_HOME_DIR_PATH);
+                    pb.redirectErrorStream(true);
+                    Process p = pb.start();
+                    p.waitFor(120, java.util.concurrent.TimeUnit.SECONDS);
+
+                    // Read last few lines for the result
+                    java.io.BufferedReader reader = new java.io.BufferedReader(
+                            new java.io.InputStreamReader(p.getInputStream()));
+                    String lastLine = null;
+                    String line;
+                    while ((line = reader.readLine()) != null) {
+                        lastLine = line;
+                    }
+
+                    boolean success = p.exitValue() == 0;
+
+                    // Get new version
+                    String newVersion = "unknown";
+                    ProcessBuilder pbv = new ProcessBuilder(binPath + "/bash", "-c",
+                            "pip show hermes-agent 2>/dev/null | grep Version | head -1 | cut -d' ' -f2");
+                    pbv.environment().put("PATH", binPath + ":/system/bin");
+                    pbv.environment().put("HOME", TermuxConstants.TERMUX_HOME_DIR_PATH);
+                    pbv.redirectErrorStream(true);
+                    Process pv = pbv.start();
+                    pv.waitFor();
+                    java.io.BufferedReader vr = new java.io.BufferedReader(
+                            new java.io.InputStreamReader(pv.getInputStream()));
+                    String v = vr.readLine();
+                    if (v != null && !v.trim().isEmpty()) newVersion = v.trim();
+
+                    String finalNewVersion = newVersion;
+                    requireActivity().runOnUiThread(() -> {
+                        if (success) {
+                            Toast.makeText(requireContext(),
+                                    getString(R.string.hermes_update_success, finalNewVersion),
+                                    Toast.LENGTH_LONG).show();
+                            if (updateNowPref != null) updateNowPref.setVisible(false);
+                            Preference checkPref = findPreference("hermes_check_update");
+                            if (checkPref != null) {
+                                checkPref.setSummary(getString(R.string.hermes_up_to_date, finalNewVersion));
+                            }
+                        } else {
+                            String err = lastLine != null ? lastLine : "exit " + p.exitValue();
+                            Toast.makeText(requireContext(),
+                                    getString(R.string.hermes_update_error, err),
+                                    Toast.LENGTH_LONG).show();
+                            if (updateNowPref != null) {
+                                updateNowPref.setEnabled(true);
+                                updateNowPref.setSummary(getString(R.string.hermes_update_now_summary));
+                            }
+                        }
+                    });
+                } catch (Exception e) {
+                    requireActivity().runOnUiThread(() -> {
+                        Toast.makeText(requireContext(),
+                                getString(R.string.hermes_update_error, e.getMessage()),
+                                Toast.LENGTH_LONG).show();
+                    });
+                }
+            }).start();
         }
 
         private void showResetConfirmDialog() {

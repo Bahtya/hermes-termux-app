@@ -125,6 +125,10 @@
             android:key="hermes_run_wizard"
             android:title="@string/hermes_run_wizard_title"
             android:summary="@string/hermes_run_wizard_summary" />
+            android:key="hermes_update_now"
+            android:title="@string/hermes_update_now_title"
+            android:summary="@string/hermes_update_now_summary"
+            android:visible="false" />
 
         <Preference
             android:key="hermes_gateway_log"
