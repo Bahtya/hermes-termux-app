@@ -61,8 +61,6 @@
     <string name="gateway_status_running">运行中</string>
     <string name="gateway_status_stopped">已停止</string>
     <string name="gateway_status_not_installed">未安装</string>
-    <string name="gateway_auto_start_title">自动启动网关</string>
-    <string name="gateway_auto_start_summary">打开应用时自动启动 Hermes 网关</string>
 
     <!-- Status labels -->
     <string name="llm_configured">已配置（%1$s）</string>
@@ -70,14 +68,7 @@
     <string name="feishu_configured">已配置</string>
     <string name="feishu_not_configured">未配置</string>
 
-    <!-- Feishu Setup - new strings not in strings_feishu.xml -->
-    <string name="feishu_step_welcome">欢迎</string>
-    <string name="feishu_step_domain">选择平台</string>
-    <string name="feishu_step_create_app">创建应用</string>
-    <string name="feishu_step_credentials">输入凭证</string>
-    <string name="feishu_step_complete">完成</string>
-    <string name="feishu_welcome_text">将 Hermes 连接到飞书/Lark，直接在消息中与 AI 助手对话。\n\n本向导将引导您创建飞书机器人并连接到 Hermes。</string>
-    <string name="feishu_domain_label">选择您的平台：</string>
+    <!-- Feishu Setup - strings also in strings_feishu.xml are translated there -->
 
     <!-- Feishu welcome step strings -->
     <string name="feishu_welcome_desc">Hermes 可以连接飞书或 Lark，让您直接在消息中与 AI 助手对话。本向导将引导您完成几个简单步骤的设置。</string>
