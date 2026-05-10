@@ -743,6 +743,7 @@ App ID starts with "cli_" and is about 10–20 characters. App Secret is longer 
     <string name="setup_progress_summary">%1$d of %2$d steps complete</string>
     <string name="dashboard_gateway_title">Gateway</string>
     <string name="dashboard_gateway_running">Running</string>
+    <string name="dashboard_gateway_running_resource">Running — %1$d MB memory</string>
     <string name="dashboard_gateway_stopped">Stopped</string>
     <string name="dashboard_gateway_not_installed">Not installed</string>
     <string name="dashboard_llm_title">AI Provider</string>
