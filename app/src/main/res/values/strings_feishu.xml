@@ -1,67 +1,30 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <!-- Activity title -->
-    <string name="feishu_setup_title">Feishu / Lark Setup</string>
-
-    <!-- Step 1: Welcome -->
+    <!-- Additional Feishu strings not in main strings.xml -->
     <string name="feishu_welcome_title">Welcome to Feishu Integration</string>
-    <string name="feishu_welcome_description">Connect Hermes to a Feishu (飞书) or Lark bot to receive terminal notifications, run commands via chat, and get real-time alerts on your phone.\n\nThis wizard will guide you through:\n• Creating a Feishu/Lark application\n• Entering your bot credentials\n• Configuring the connection\n\nYou will need a Feishu or Lark account with developer access.</string>
-
-    <!-- Step 2: Choose Domain -->
+    <string name="feishu_welcome_description">Connect Hermes to a Feishu or Lark bot to receive terminal notifications, run commands via chat, and get real-time alerts on your phone.</string>
     <string name="feishu_domain_title">Choose Your Platform</string>
     <string name="feishu_domain_description">Select whether you use the Chinese (Feishu) or international (Lark) version.</string>
-    <string name="feishu_domain_feishu">Feishu (飞书) — China</string>
     <string name="feishu_domain_feishu_desc">For users in mainland China. Uses open.feishu.cn endpoints.</string>
-    <string name="feishu_domain_lark">Lark — International</string>
     <string name="feishu_domain_lark_desc">For users outside mainland China. Uses open.larksuite.com endpoints.</string>
-
-    <!-- Step 3: Create App -->
     <string name="feishu_create_app_title">Create Your Application</string>
     <string name="feishu_create_app_instructions">Follow these steps to create a bot application:\n\n1. Open the Developer Console\n2. Click \"Create Custom App\"\n3. Fill in the app name and description\n4. Under \"Permissions &amp; Scopes\", enable:\n   • im:message (Send messages)\n   • im:message.receive_v1 (Receive messages)\n5. Under \"Event Subscriptions\", add the message receive event\n6. Note down your App ID and App Secret from the Credentials page</string>
-    <string name="feishu_open_console">Open Developer Console</string>
-
-    <!-- Step 4: Enter Credentials -->
-    <string name="feishu_credentials_title">Enter App Credentials</string>
-    <string name="feishu_credentials_description">Enter the App ID and App Secret from your Feishu/Lark application credentials page.</string>
     <string name="feishu_app_id_hint">App ID (cli_xxxxxxxxxxxx)</string>
     <string name="feishu_app_secret_hint">App Secret</string>
-    <string name="feishu_app_id_label">App ID</string>
-    <string name="feishu_app_secret_label">App Secret</string>
     <string name="feishu_credentials_error_empty">Please enter both App ID and App Secret</string>
     <string name="feishu_credentials_error_invalid_id">App ID should start with \"cli_\"</string>
-
-    <!-- Step 5: Configure Bot -->
     <string name="feishu_configure_title">Configure Connection</string>
-    <string name="feishu_connection_mode">Connection Mode</string>
-    <string name="feishu_mode_websocket">WebSocket (Recommended)</string>
     <string name="feishu_mode_websocket_desc">Maintains a persistent connection. Best for real-time messaging. Works behind NAT/firewalls.</string>
-    <string name="feishu_mode_webhook">Webhook</string>
     <string name="feishu_mode_webhook_desc">Requires a publicly accessible URL. Hermes will POST events to your endpoint.</string>
     <string name="feishu_qr_code_title">Bot Pairing</string>
-    <string name="feishu_qr_code_description">Scan this QR code with Feishu/Lark to pair with your bot, or search for the bot by name in your organization.</string>
+    <string name="feishu_qr_code_description">Scan this QR code with Feishu/Lark to pair with your bot.</string>
     <string name="feishu_qr_generating">Generating QR code…</string>
-
-    <!-- Step 6: Complete -->
     <string name="feishu_complete_title">Setup Complete!</string>
-    <string name="feishu_complete_summary">Your Feishu/Lark bot is configured and ready.\n\nConfiguration saved to Hermes settings.\n\nYou can now:\n• Send terminal output to Feishu chats\n• Receive notifications for long-running commands\n• Execute commands from Feishu messages</string>
+    <string name="feishu_complete_summary">Your Feishu/Lark bot is configured and ready.</string>
     <string name="feishu_complete_save">Save &amp; Finish</string>
-
-    <!-- Navigation -->
-    <string name="feishu_button_next">Next</string>
-    <string name="feishu_button_back">Back</string>
-    <string name="feishu_button_cancel">Cancel</string>
-    <string name="feishu_button_finish">Finish</string>
-
-    <!-- Confirmation -->
     <string name="feishu_confirm_cancel_title">Cancel Setup?</string>
     <string name="feishu_confirm_cancel_message">Are you sure you want to cancel? No settings will be saved.</string>
-    <string name="feishu_confirm_cancel_yes">Yes, Cancel</string>
-    <string name="feishu_confirm_cancel_no">Continue Setup</string>
-
-    <!-- Toasts -->
     <string name="feishu_config_saved">Feishu configuration saved successfully</string>
     <string name="feishu_config_error">Failed to save configuration</string>
-
-    <!-- Content description -->
     <string name="feishu_step_indicator">Step %1$d of %2$d</string>
 </resources>
