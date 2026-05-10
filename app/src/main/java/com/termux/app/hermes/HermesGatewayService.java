@@ -30,11 +30,17 @@ public class HermesGatewayService extends Service {
 
     private static final String TAG = "HermesGateway";
     private static final int NOTIFICATION_ID = 2001;
+    private static final int ERROR_NOTIFICATION_ID = 2002;
     private static final String CHANNEL_ID = "hermes_gateway_channel";
+    private static final String ERROR_CHANNEL_ID = "hermes_gateway_errors";
     public static final String ACTION_START = "com.hermes.termux.GATEWAY_START";
     public static final String ACTION_STOP = "com.hermes.termux.GATEWAY_STOP";
     public static final String ACTION_CHECK = "com.hermes.termux.GATEWAY_CHECK";
+    public static final String ACTION_RESTART = "com.hermes.termux.GATEWAY_RESTART";
     public static final String PREF_AUTO_START = "hermes_auto_start_gateway";
+    private static final String PREF_RESTART_COUNT = "gateway_restart_count";
+    private static final String PREF_LAST_CRASH_TIME = "gateway_last_crash_time";
+    private static final long STABLE_UPTIME_MS = 60_000;
 
     private final Handler mHandler = new Handler(Looper.getMainLooper());
     private final ExecutorService mExecutor = Executors.newSingleThreadExecutor();
@@ -42,6 +48,7 @@ public class HermesGatewayService extends Service {
     private boolean mRunning = false;
     private int mRestartAttempts = 0;
     private static final int MAX_RESTARTS = 3;
+    private long mProcessStartTime = 0;
 
     private final Runnable mHealthCheck = new Runnable() {
         @Override
@@ -50,12 +57,22 @@ public class HermesGatewayService extends Service {
                 boolean alive = mGatewayProcess != null && mGatewayProcess.isAlive();
                 if (!alive && mRestartAttempts < MAX_RESTARTS) {
                     Log.w(TAG, "Gateway process died, restarting (attempt " + (mRestartAttempts + 1) + ")");
+                    showCrashNotification(mRestartAttempts + 1);
                     startGatewayProcess();
                     mRestartAttempts++;
+                    saveRestartState();
                 } else if (!alive) {
                     Log.e(TAG, "Gateway failed after " + MAX_RESTARTS + " restart attempts");
-                    updateNotification("Gateway stopped (crash)");
+                    showErrorNotification();
                     mRunning = false;
+                } else {
+                    // Process is alive — reset restart count after stable uptime
+                    long uptime = System.currentTimeMillis() - mProcessStartTime;
+                    if (uptime > STABLE_UPTIME_MS && mRestartAttempts > 0) {
+                        Log.i(TAG, "Gateway stable for 60s, resetting restart count");
+                        mRestartAttempts = 0;
+                        clearRestartState();
+                    }
                 }
                 mHandler.postDelayed(this, 30_000);
             }
@@ -76,9 +93,19 @@ public class HermesGatewayService extends Service {
                 stopGateway();
                 return START_NOT_STICKY;
             }
+            if (ACTION_RESTART.equals(action)) {
+                clearRestartState();
+                mRestartAttempts = 0;
+                cancelErrorNotification();
+                if (!mRunning) {
+                    startGatewayProcess();
+                }
+                return START_STICKY;
+            }
         }
 
         if (!mRunning) {
+            mRestartAttempts = loadRestartCount();
             startGatewayProcess();
         }
         return START_STICKY;
@@ -117,8 +144,12 @@ public class HermesGatewayService extends Service {
 
                 mGatewayProcess = pb.start();
                 mRunning = true;
-                mRestartAttempts = 0;
+                mProcessStartTime = System.currentTimeMillis();
+                if (mRestartAttempts == 0) {
+                    clearRestartState();
+                }
 
+                cancelErrorNotification();
                 Notification notification = buildNotification("Hermes Gateway running");
                 startForeground(NOTIFICATION_ID, notification);
 
@@ -182,15 +213,82 @@ public class HermesGatewayService extends Service {
 
     private void createNotificationChannel() {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            NotificationManager nm = getSystemService(NotificationManager.class);
+            if (nm == null) return;
+
             NotificationChannel channel = new NotificationChannel(
                     CHANNEL_ID,
                     "Hermes Gateway",
                     NotificationManager.IMPORTANCE_LOW
             );
             channel.setDescription("Hermes gateway status");
-            NotificationManager nm = getSystemService(NotificationManager.class);
-            if (nm != null) nm.createNotificationChannel(channel);
+            nm.createNotificationChannel(channel);
+
+            NotificationChannel errorChannel = new NotificationChannel(
+                    ERROR_CHANNEL_ID,
+                    "Hermes Gateway Alerts",
+                    NotificationManager.IMPORTANCE_DEFAULT
+            );
+            errorChannel.setDescription("Gateway crash and restart alerts");
+            nm.createNotificationChannel(errorChannel);
         }
+    }
+
+    private void showCrashNotification(int attempt) {
+        Notification notification = new NotificationCompat.Builder(this, ERROR_CHANNEL_ID)
+                .setContentTitle("Hermes Gateway Restarted")
+                .setContentText("Gateway crashed and was restarted (attempt " + attempt + "/" + MAX_RESTARTS + ")")
+                .setSmallIcon(R.drawable.ic_hermes)
+                .setAutoCancel(true)
+                .setPriority(NotificationCompat.PRIORITY_DEFAULT)
+                .build();
+        NotificationManager nm = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
+        if (nm != null) nm.notify(ERROR_NOTIFICATION_ID, notification);
+    }
+
+    private void showErrorNotification() {
+        Intent restartIntent = new Intent(this, HermesGatewayService.class);
+        restartIntent.setAction(ACTION_RESTART);
+        PendingIntent restartPi = PendingIntent.getService(this, 2, restartIntent,
+                PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE);
+
+        Notification notification = new NotificationCompat.Builder(this, ERROR_CHANNEL_ID)
+                .setContentTitle("Hermes Gateway Stopped")
+                .setContentText("Gateway crashed " + MAX_RESTARTS + " times and could not recover")
+                .setSmallIcon(R.drawable.ic_hermes)
+                .setAutoCancel(false)
+                .setOngoing(true)
+                .addAction(0, "Restart", restartPi)
+                .setPriority(NotificationCompat.PRIORITY_HIGH)
+                .build();
+        NotificationManager nm = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
+        if (nm != null) nm.notify(ERROR_NOTIFICATION_ID, notification);
+    }
+
+    private void cancelErrorNotification() {
+        NotificationManager nm = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
+        if (nm != null) nm.cancel(ERROR_NOTIFICATION_ID);
+    }
+
+    private void saveRestartState() {
+        getSharedPreferences("hermes_gateway", MODE_PRIVATE)
+                .edit()
+                .putInt(PREF_RESTART_COUNT, mRestartAttempts)
+                .putLong(PREF_LAST_CRASH_TIME, System.currentTimeMillis())
+                .apply();
+    }
+
+    private void clearRestartState() {
+        getSharedPreferences("hermes_gateway", MODE_PRIVATE)
+                .edit()
+                .remove(PREF_RESTART_COUNT)
+                .remove(PREF_LAST_CRASH_TIME)
+                .apply();
+    }
+
+    private int loadRestartCount() {
+        return getSharedPreferences("hermes_gateway", MODE_PRIVATE)
+                .getInt(PREF_RESTART_COUNT, 0);
     }
 
     @Override
