@@ -51,7 +51,7 @@ public class HermesInstaller {
         startInstallThread(context, false);
     }
 
-    static void retryInstall(Context context) {
+    public static void retryInstall(Context context) {
         startInstallThread(context, true);
     }
 

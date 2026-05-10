@@ -428,4 +428,10 @@
     <!-- Notification Permission -->
     <string name="notification_permission_granted">已启用网关状态通知</string>
     <string name="notification_permission_denied">通知权限被拒绝。网关状态可能不会显示在通知栏中。</string>
+    <!-- Setup Banner -->
+    <string name="hermes_not_installed_banner_title">Hermes Agent 未安装</string>
+    <string name="hermes_not_installed_banner_summary">点击此处安装 Hermes Agent，安装完成后即可使用网关和 AI 功能。</string>
+    <string name="hermes_not_installed_banner_installing">正在安装 Hermes Agent…</string>
+    <string name="hermes_not_installed_banner_installed">Hermes Agent 安装成功！</string>
+    <string name="hermes_not_installed_banner_failed">安装失败，点击重试。</string>
 </resources>

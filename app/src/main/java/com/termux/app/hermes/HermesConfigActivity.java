@@ -23,6 +23,7 @@ import androidx.preference.PreferenceFragmentCompat;
 import androidx.preference.SwitchPreferenceCompat;
 
 import com.termux.R;
+import com.termux.app.HermesInstaller;
 import com.termux.shared.termux.TermuxConstants;
 
 import java.io.File;
@@ -93,6 +94,13 @@ public class HermesConfigActivity extends AppCompatActivity {
         public void onCreatePreferences(Bundle savedInstanceState, String rootKey) {
             setPreferencesFromResource(R.xml.hermes_preferences, rootKey);
             mConfigManager = HermesConfigManager.getInstance();
+
+            // --- Not installed banner ---
+            Preference banner = findPreference("hermes_not_installed_banner");
+            if (banner != null) {
+                boolean installed = new File(TermuxConstants.TERMUX_BIN_PREFIX_DIR_PATH + "/hermes").exists();
+                banner.setVisible(!installed);
+            }
 
             // --- Dashboard: Gateway status ---
             Preference dashGateway = findPreference("hermes_dashboard_gateway");
@@ -247,6 +255,9 @@ public class HermesConfigActivity extends AppCompatActivity {
                 case "hermes_gateway_control":
                     showFragment(new GatewayControlFragment());
                     return true;
+                case "hermes_not_installed_banner":
+                    triggerInstallFromBanner(preference);
+                    return true;
                 case "hermes_check_update":
                     checkForUpdate(preference);
                     return true;
@@ -264,6 +275,33 @@ public class HermesConfigActivity extends AppCompatActivity {
                     return true;
             }
             return super.onPreferenceTreeClick(preference);
+        }
+
+        private void triggerInstallFromBanner(Preference banner) {
+            if (banner != null) {
+                banner.setSummary(getString(R.string.hermes_not_installed_banner_installing));
+                banner.setEnabled(false);
+            }
+            new Thread(() -> {
+                // Delete marker to allow re-install
+                new File(TermuxConstants.TERMUX_DATA_HOME_DIR_PATH + "/hermes-installed").delete();
+                HermesInstaller.retryInstall(requireContext());
+                // Wait and check result
+                try { Thread.sleep(15000); } catch (InterruptedException ignored) {}
+                boolean installed = new File(TermuxConstants.TERMUX_BIN_PREFIX_DIR_PATH + "/hermes").exists();
+                if (getActivity() == null) return;
+                getActivity().runOnUiThread(() -> {
+                    if (installed) {
+                        if (banner != null) banner.setVisible(false);
+                        Toast.makeText(requireContext(), R.string.hermes_not_installed_banner_installed, Toast.LENGTH_LONG).show();
+                    } else {
+                        if (banner != null) {
+                            banner.setSummary(getString(R.string.hermes_not_installed_banner_failed));
+                            banner.setEnabled(true);
+                        }
+                    }
+                });
+            }).start();
         }
 
         private void showFragment(Fragment fragment) {
