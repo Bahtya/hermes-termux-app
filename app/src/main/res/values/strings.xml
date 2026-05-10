@@ -1062,4 +1062,39 @@
         <item>url</item>
     </string-array>
 
+
+    <!-- WhatsApp Business Integration -->
+    <string name="whatsapp_setup_title">WhatsApp Business Setup</string>
+    <string name="whatsapp_setup_summary">Configure WhatsApp Business API for AI assistant</string>
+    <string name="whatsapp_welcome_title">Connect WhatsApp Business</string>
+    <string name="whatsapp_welcome_desc">Hermes can connect to WhatsApp Business API so your AI assistant can respond to WhatsApp messages.</string>
+    <string name="whatsapp_get_token_steps">How to set up WhatsApp Business API:
+
+1. Go to business.facebook.com and create a Business account
+2. Go to WhatsApp Manager and create a phone number
+3. Get the Phone Number ID from WhatsApp settings
+4. Create a Permanent Access Token in App Dashboard
+5. Enter the credentials below</string>
+    <string name="whatsapp_phone_id_title">Phone Number ID</string>
+    <string name="whatsapp_phone_id_hint">Enter your WhatsApp Phone Number ID</string>
+    <string name="whatsapp_token_title">Access Token</string>
+    <string name="whatsapp_token_hint">Enter your permanent access token</string>
+    <string name="whatsapp_account_id_title">Business Account ID</string>
+    <string name="whatsapp_account_id_hint">Enter your WhatsApp Business Account ID</string>
+    <string name="whatsapp_verify_token_title">Webhook Verify Token</string>
+    <string name="whatsapp_verify_token_hint">Custom token for webhook verification</string>
+    <string name="whatsapp_test_title">Test Connection</string>
+    <string name="whatsapp_test_desc">Testing connection to WhatsApp Business API…</string>
+    <string name="whatsapp_test_success">WhatsApp API connected successfully!</string>
+    <string name="whatsapp_test_fail">Connection failed. Check your credentials.</string>
+    <string name="whatsapp_complete_title">WhatsApp Business Connected</string>
+    <string name="whatsapp_complete_next_steps">Next steps:
+
+• Configure webhook URL in Meta Developer Portal
+• Start the Hermes Gateway
+• Send a message to your WhatsApp Business number
+• You can change settings anytime from Hermes Settings</string>
+    <string name="whatsapp_configured">WhatsApp Business configured</string>
+    <string name="whatsapp_not_configured">Not configured</string>
+
 </resources>
