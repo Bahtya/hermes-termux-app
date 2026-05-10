@@ -1348,3 +1348,4 @@ public class HermesConfigManager {
         }
         return map;
     }
+}
