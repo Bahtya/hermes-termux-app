@@ -67,6 +67,14 @@
 
     <PreferenceCategory android:title="@string/hermes_cat_advanced">
 
+        <ListPreference
+            android:key="hermes_log_level"
+            android:title="@string/log_level_title"
+            android:summary="@string/log_level_summary"
+            android:entries="@array/log_level_names"
+            android:entryValues="@array/log_level_values"
+            android:defaultValue="normal" />
+
         <Preference
             android:key="hermes_config_summary"
             android:title="@string/config_summary_title"

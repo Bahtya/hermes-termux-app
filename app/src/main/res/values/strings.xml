@@ -628,5 +628,22 @@
     <string name="help_link_github">GitHub Repository</string>
     <string name="help_link_docs">Official Documentation</string>
     <string name="help_link_issues">Report an Issue</string>
+    <!-- Log Level -->
+    <string name="log_level_title">Log Level</string>
+    <string name="log_level_summary">Control gateway log verbosity</string>
+    <string name="log_level_quiet">Quiet (errors only)</string>
+    <string name="log_level_normal">Normal</string>
+    <string name="log_level_debug">Debug (verbose)</string>
+
+    <string-array name="log_level_names">
+        <item>@string/log_level_quiet</item>
+        <item>@string/log_level_normal</item>
+        <item>@string/log_level_debug</item>
+    </string-array>
+    <string-array name="log_level_values">
+        <item>quiet</item>
+        <item>normal</item>
+        <item>debug</item>
+    </string-array>
 
 </resources>

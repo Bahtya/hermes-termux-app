@@ -263,6 +263,16 @@ public class HermesConfigActivity extends AppCompatActivity {
                         ? getString(R.string.discord_configured)
                         : getString(R.string.discord_not_configured));
             }
+
+            // Log level preference
+            ListPreference logLevelPref = findPreference("hermes_log_level");
+            if (logLevelPref != null) {
+                logLevelPref.setValue(mConfigManager.getLogLevel());
+                logLevelPref.setOnPreferenceChangeListener((p, newVal) -> {
+                    mConfigManager.setLogLevel((String) newVal);
+                    return true;
+                });
+            }
         }
 
         @Override

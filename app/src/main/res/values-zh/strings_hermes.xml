@@ -302,4 +302,10 @@
     <string name="help_link_github">GitHub 仓库</string>
     <string name="help_link_docs">官方文档</string>
     <string name="help_link_issues">报告问题</string>
+    <!-- Log Level -->
+    <string name="log_level_title">日志级别</string>
+    <string name="log_level_summary">控制网关日志详细程度</string>
+    <string name="log_level_quiet">安静（仅错误）</string>
+    <string name="log_level_normal">正常</string>
+    <string name="log_level_debug">调试（详细）</string>
 </resources>
