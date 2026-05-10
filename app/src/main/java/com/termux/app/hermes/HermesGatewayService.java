@@ -115,8 +115,6 @@ public class HermesGatewayService extends Service {
         createNotificationChannel();
     }
 
-    @Override
-
     private int getNotificationImportance() {
         try {
             return Integer.parseInt(HermesConfigManager.getInstance()
@@ -136,6 +134,7 @@ public class HermesGatewayService extends Service {
                 .getEnvVar("GATEWAY_NOTIF_VIBRATE"));
     }
 
+    @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
         if (intent != null) {
             String action = intent.getAction();
@@ -318,12 +317,19 @@ public class HermesGatewayService extends Service {
             NotificationManager nm = getSystemService(NotificationManager.class);
             if (nm == null) return;
 
+            int importance = getNotificationImportance();
             NotificationChannel channel = new NotificationChannel(
                     CHANNEL_ID,
                     "Hermes Gateway",
-                    NotificationManager.IMPORTANCE_LOW
+                    importance
             );
             channel.setDescription("Hermes gateway status");
+            if (isNotificationSoundEnabled()) {
+                channel.setSound(android.media.AudioManager.STREAM_NOTIFICATION, null);
+            }
+            if (isNotificationVibrateEnabled()) {
+                channel.setVibrationPattern(new long[]{0, 300, 200, 300});
+            }
             nm.createNotificationChannel(channel);
 
             NotificationChannel errorChannel = new NotificationChannel(
