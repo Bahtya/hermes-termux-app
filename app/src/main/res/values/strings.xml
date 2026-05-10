@@ -376,6 +376,14 @@
         <item>gemma2</item>
     </string-array>
 
+    <!-- Config Unsaved Changes -->
+    <string name="config_unsaved_title">Unsaved Changes</string>
+    <string name="config_unsaved_message">You have unsaved changes. Do you want to save them?</string>
+    <string name="config_unsaved_save">Save</string>
+    <string name="config_unsaved_discard">Discard</string>
+    <string name="config_unsaved_cancel">Cancel</string>
+    <string name="config_changes_saved">Changes saved</string>
+
     <!-- LLM Base URL -->
     <string name="llm_base_url_title">Base URL</string>
     <string name="llm_base_url_summary">Custom endpoint URL (for Ollama or compatible APIs)</string>
