@@ -601,6 +601,7 @@
         <item>code</item>
         <item>custom</item>
     </string-array>
+<<<<<<< HEAD
     <string name="install_title">Hermes Installation</string>
     <string name="help_title">Hermes Help</string>
     <string name="gateway_diagnostic_title">Gateway Diagnostic</string>
@@ -745,4 +746,15 @@
         <item>weekly</item>
         <item>monthly</item>
     </string-array>
+=======
+
+    <!-- IM Test Message -->
+    <string name="im_test_message_title">Send Test Message</string>
+    <string name="im_test_message_summary">Send a test message through the gateway to verify connectivity</string>
+    <string name="im_test_message_sending">Sending test message…</string>
+    <string name="im_test_message_success">Test message sent successfully!</string>
+    <string name="im_test_message_fail">Failed to send test message: %1$s</string>
+    <string name="im_test_message_no_gateway">Start the gateway first to send a test message.</string>
+    <string name="im_test_message_button">Send Test Message</string>
+>>>>>>> 6ff75123 (feat: Add IM platform message preview and test send)
 </resources>

@@ -470,4 +470,76 @@ public class ImSetupActivity extends AppCompatActivity {
             }
         }
     }
+
+    private void sendTestMessage() {
+        // Check if gateway is running first
+        HermesGatewayStatus.checkAsync((status, detail) -> {
+            if (status != HermesGatewayStatus.Status.RUNNING) {
+                runOnUiThread(() -> 
+                    Toast.makeText(this, R.string.im_test_message_no_gateway, Toast.LENGTH_LONG).show());
+                return;
+            }
+            runOnUiThread(() -> 
+                Toast.makeText(this, R.string.im_test_message_sending, Toast.LENGTH_SHORT).show());
+            
+            // Send test message via gateway HTTP API
+            new Thread(() -> {
+                try {
+                    String binPath = TermuxConstants.TERMUX_BIN_PREFIX_DIR_PATH;
+                    String curlPath = binPath + "/curl";
+                    
+                    String platform = mPlatform;
+                    String testPayload;
+                    if (isTelegram()) {
+                        testPayload = "{"platform":"telegram","message":"Hermes test message from Android app"}";
+                    } else {
+                        testPayload = "{"platform":"discord","message":"Hermes test message from Android app"}";
+                    }
+                    
+                    ProcessBuilder pb = new ProcessBuilder(
+                        curlPath, "-s", "-w", "\n%{http_code}",
+                        "-X", "POST",
+                        "-H", "Content-Type: application/json",
+                        "-d", testPayload,
+                        "--connect-timeout", "10",
+                        "http://127.0.0.1:8080/test-message"
+                    );
+                    pb.environment().put("PATH", binPath + ":/system/bin");
+                    pb.redirectErrorStream(true);
+                    
+                    Process p = pb.start();
+                    java.io.BufferedReader reader = new java.io.BufferedReader(
+                        new java.io.InputStreamReader(p.getInputStream()));
+                    StringBuilder output = new StringBuilder();
+                    String line;
+                    String lastLine = "";
+                    while ((line = reader.readLine()) != null) {
+                        output.append(line).append("\n");
+                        lastLine = line;
+                    }
+                    p.waitFor();
+                    
+                    int httpCode = 0;
+                    try {
+                        httpCode = Integer.parseInt(lastLine.trim());
+                    } catch (NumberFormatException ignored) {}
+                    
+                    int finalCode = httpCode;
+                    runOnUiThread(() -> {
+                        if (finalCode == 200 || finalCode == 204) {
+                            Toast.makeText(this, R.string.im_test_message_success, Toast.LENGTH_SHORT).show();
+                        } else if (finalCode == 0) {
+                            Toast.makeText(this, getString(R.string.im_test_message_fail, "no response"), Toast.LENGTH_LONG).show();
+                        } else {
+                            Toast.makeText(this, getString(R.string.im_test_message_fail, "HTTP " + finalCode), Toast.LENGTH_LONG).show();
+                        }
+                    });
+                } catch (Exception e) {
+                    runOnUiThread(() -> 
+                        Toast.makeText(this, getString(R.string.im_test_message_fail, e.getMessage()), Toast.LENGTH_LONG).show());
+                }
+            }).start();
+        });
+    }
+
 }
