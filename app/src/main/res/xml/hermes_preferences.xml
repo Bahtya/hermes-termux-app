@@ -39,6 +39,11 @@
             android:key="validation_system_prompt"
             android:title="@string/validation_system_prompt_title"
             android:selectable="true" />
+        <Preference
+            android:key="error_recovery_fix"
+            android:title="@string/error_recovery_title"
+            android:summary="@string/error_recovery_checking"
+            android:selectable="true" />
     </PreferenceCategory>
 
     <PreferenceCategory android:title="@string/usage_category_title">
