@@ -110,6 +110,9 @@
             android:key="hermes_battery_optimization"
             android:title="@string/battery_optimization_title"
             android:summary="@string/battery_optimization_summary_off" />
+            android:key="hermes_notification_perm"
+            android:title="@string/notification_perm_title"
+            android:summary="@string/notification_perm_denied" />
 
     </PreferenceCategory>
 
