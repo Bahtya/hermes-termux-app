@@ -34,6 +34,22 @@
         android:summary="@string/llm_base_url_summary"
         android:inputType="textUri" />
 
+    <PreferenceCategory android:title="@string/llm_params_category_title">
+        <EditTextPreference
+            android:key="llm_temperature"
+            android:title="@string/llm_temperature_title"
+            android:summary="@string/llm_temperature_summary"
+            android:inputType="numberDecimal"
+            android:defaultValue="0.7" />
+
+        <EditTextPreference
+            android:key="llm_max_tokens"
+            android:title="@string/llm_max_tokens_title"
+            android:summary="@string/llm_max_tokens_summary"
+            android:inputType="number"
+            android:defaultValue="4096" />
+    </PreferenceCategory>
+
     <Preference
         android:key="llm_test_connection"
         android:title="@string/llm_test_connection_title"

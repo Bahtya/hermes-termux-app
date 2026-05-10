@@ -677,6 +677,50 @@ public class HermesConfigActivity extends AppCompatActivity {
                 boolean needsUrl = "ollama".equals(currentProvider) || "custom".equals(currentProvider);
                 baseUrlPref.setVisible(needsUrl);
             }
+
+            // Temperature parameter
+            Preference tempPref = findPreference("llm_temperature");
+            if (tempPref != null) {
+                float currentTemp = mConfigManager.getModelTemperature();
+                tempPref.setSummary(getString(R.string.llm_temperature_summary) + "  Current: " + currentTemp);
+                tempPref.setOnPreferenceChangeListener((p, newVal) -> {
+                    try {
+                        float val = Float.parseFloat((String) newVal);
+                        if (val < 0f || val > 2f) {
+                            Toast.makeText(requireContext(), R.string.llm_temperature_invalid, Toast.LENGTH_SHORT).show();
+                            return false;
+                        }
+                        mConfigManager.setModelTemperature(val);
+                        p.setSummary(getString(R.string.llm_temperature_summary) + "  Current: " + val);
+                    } catch (NumberFormatException e) {
+                        Toast.makeText(requireContext(), R.string.llm_temperature_invalid, Toast.LENGTH_SHORT).show();
+                        return false;
+                    }
+                    return true;
+                });
+            }
+
+            // Max tokens parameter
+            Preference maxTokensPref = findPreference("llm_max_tokens");
+            if (maxTokensPref != null) {
+                int currentMax = mConfigManager.getModelMaxTokens();
+                maxTokensPref.setSummary(getString(R.string.llm_max_tokens_summary) + "  Current: " + currentMax);
+                maxTokensPref.setOnPreferenceChangeListener((p, newVal) -> {
+                    try {
+                        int val = Integer.parseInt((String) newVal);
+                        if (val < 256 || val > 32768) {
+                            Toast.makeText(requireContext(), R.string.llm_max_tokens_invalid, Toast.LENGTH_SHORT).show();
+                            return false;
+                        }
+                        mConfigManager.setModelMaxTokens(val);
+                        p.setSummary(getString(R.string.llm_max_tokens_summary) + "  Current: " + val);
+                    } catch (NumberFormatException e) {
+                        Toast.makeText(requireContext(), R.string.llm_max_tokens_invalid, Toast.LENGTH_SHORT).show();
+                        return false;
+                    }
+                    return true;
+                });
+            }
         }
 
         private void updateModelList(String provider) {
