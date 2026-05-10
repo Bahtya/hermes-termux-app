@@ -260,12 +260,30 @@
     <string name="hermes_version_label">Hermes Agent version</string>
 
     <!-- LLM Preferences -->
+    <string name="llm_preset_title">Quick Preset</string>
+    <string name="llm_preset_summary">Choose a preset for optimal settings</string>
     <string name="llm_provider_title">AI Provider</string>
     <string name="llm_provider_summary">Select your LLM provider</string>
     <string name="llm_api_key_title">API Key</string>
     <string name="llm_api_key_summary">Enter your provider API key</string>
     <string name="llm_model_title">Model</string>
     <string name="llm_model_summary">Model name to use (e.g. gpt-4o, claude-sonnet-4-6)</string>
+
+    <!-- LLM Preset Arrays -->
+    <string-array name="llm_preset_names">
+        <item>Creative Writing</item>
+        <item>Balanced (Default)</item>
+        <item>Precise / Factual</item>
+        <item>Code Assistant</item>
+        <item>Custom</item>
+    </string-array>
+    <string-array name="llm_preset_values">
+        <item>creative</item>
+        <item>balanced</item>
+        <item>precise</item>
+        <item>code</item>
+        <item>custom</item>
+    </string-array>
 
     <!-- LLM Provider Arrays -->
     <string-array name="llm_provider_names">
