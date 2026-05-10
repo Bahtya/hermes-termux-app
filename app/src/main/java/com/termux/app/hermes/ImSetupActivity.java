@@ -11,6 +11,7 @@ import android.widget.EditText;
 import android.widget.LinearLayout;
 import android.widget.ScrollView;
 import android.widget.TextView;
+import android.widget.Button;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
@@ -207,9 +208,7 @@ public class ImSetupActivity extends AppCompatActivity {
         if (tokenInput != null) {
             String token = tokenInput.getText().toString().trim();
             if (token.isEmpty()) {
-                Toast.makeText(this, isTelegram()
-                        ? "Please enter a bot token"
-                        : "Please enter a bot token", Toast.LENGTH_SHORT).show();
+                Toast.makeText(this, R.string.im_test_no_token, Toast.LENGTH_SHORT).show();
                 mCurrentStep = STEP_TOKEN;
                 showStep(STEP_TOKEN);
                 return;
@@ -241,33 +240,67 @@ public class ImSetupActivity extends AppCompatActivity {
 
         TextView status = new TextView(this);
         status.setId(R.id.im_test_status);
-        status.setText("Testing connection…");
+        status.setText(R.string.im_test_running);
         status.setTextSize(14);
-        status.setPadding(pad, 0, pad, pad);
+        status.setPadding(pad, 0, pad, dp(8));
         mContent.addView(status, wrap);
 
-        runImTest(status);
+        TextView detail = new TextView(this);
+        detail.setId(R.id.im_test_detail);
+        detail.setTextSize(12);
+        detail.setPadding(pad, 0, pad, dp(8));
+        detail.setVisibility(View.GONE);
+        mContent.addView(detail, wrap);
+
+        Button retryBtn = new Button(this);
+        retryBtn.setId(R.id.im_test_retry);
+        retryBtn.setText(R.string.im_test_retry);
+        retryBtn.setVisibility(View.GONE);
+        retryBtn.setOnClickListener(v -> {
+            status.setText(R.string.im_test_running);
+            status.setTextColor(getResources().getColor(android.R.color.secondary_text_dark));
+            detail.setVisibility(View.GONE);
+            retryBtn.setVisibility(View.GONE);
+            runImTest(status, detail, retryBtn);
+        });
+        mContent.addView(retryBtn, wrap);
+
+        runImTest(status, detail, retryBtn);
     }
 
-    private void runImTest(TextView status) {
+    private void runImTest(TextView status, TextView detail, View retryBtn) {
         String tokenKey = isTelegram() ? "TELEGRAM_BOT_TOKEN" : "DISCORD_BOT_TOKEN";
         String token = mConfigManager.getEnvVar(tokenKey);
 
         new Thread(() -> {
-            boolean success = testToken(token);
+            String[] result = testTokenWithDetail(token);
+            boolean success = "200".equals(result[0]);
             runOnUiThread(() -> {
                 if (success) {
                     status.setText(isTelegram() ? R.string.telegram_test_success : R.string.discord_test_success);
                     status.setTextColor(getResources().getColor(android.R.color.holo_green_dark));
+                    if (detail != null) {
+                        detail.setText(getString(R.string.im_test_detail_success, result[1]));
+                        detail.setTextColor(getResources().getColor(android.R.color.secondary_text_dark));
+                        detail.setVisibility(View.VISIBLE);
+                    }
                 } else {
                     status.setText(isTelegram() ? R.string.telegram_test_fail : R.string.discord_test_fail);
                     status.setTextColor(getResources().getColor(android.R.color.holo_red_dark));
+                    if (detail != null) {
+                        detail.setText(getString(R.string.im_test_detail_fail, result[0], result[1]));
+                        detail.setTextColor(getResources().getColor(android.R.color.secondary_text_dark));
+                        detail.setVisibility(View.VISIBLE);
+                    }
+                    if (retryBtn != null) {
+                        retryBtn.setVisibility(View.VISIBLE);
+                    }
                 }
             });
         }).start();
     }
 
-    private boolean testToken(String token) {
+    private String[] testTokenWithDetail(String token) {
         try {
             String binPath = TermuxConstants.TERMUX_BIN_PREFIX_DIR_PATH;
             String curlPath = binPath + "/curl";
@@ -281,10 +314,10 @@ public class ImSetupActivity extends AppCompatActivity {
 
             ProcessBuilder pb;
             if (isTelegram()) {
-                pb = new ProcessBuilder(curlPath, "-s", "-o", "/dev/null", "-w", "%{http_code}",
+                pb = new ProcessBuilder(curlPath, "-s", "-w", "\n%{http_code}",
                         "--connect-timeout", "10", url);
             } else {
-                pb = new ProcessBuilder(curlPath, "-s", "-o", "/dev/null", "-w", "%{http_code}",
+                pb = new ProcessBuilder(curlPath, "-s", "-w", "\n%{http_code}",
                         "--connect-timeout", "10", "-H", "Authorization: Bot " + token, url);
             }
 
@@ -293,18 +326,42 @@ public class ImSetupActivity extends AppCompatActivity {
 
             Process p = pb.start();
             BufferedReader reader = new BufferedReader(new InputStreamReader(p.getInputStream()));
-            String output = reader.readLine();
+            StringBuilder output = new StringBuilder();
+            String line;
+            String lastLine = "";
+            while ((line = reader.readLine()) != null) {
+                output.append(line).append("\n");
+                lastLine = line;
+            }
             p.waitFor();
 
             int httpCode = 0;
             try {
-                httpCode = Integer.parseInt(output != null ? output.trim() : "0");
+                httpCode = Integer.parseInt(lastLine.trim());
             } catch (NumberFormatException ignored) {}
 
-            return httpCode == 200;
+            String body = output.toString().replace(lastLine, "").trim();
+            if (httpCode == 200 && isTelegram()) {
+                // Extract bot username from response
+                if (body.contains(""username":"")) {
+                    int start = body.indexOf(""username":"") + 11;
+                    int end = body.indexOf(""", start);
+                    return new String[]{"200", "@" + body.substring(start, end)};
+                }
+            }
+            return new String[]{String.valueOf(httpCode), httpCode == 200 ? "OK" : truncate(body, 200)};
         } catch (Exception e) {
-            return false;
+            return new String[]{"0", e.getMessage() != null ? e.getMessage() : "Network error"};
         }
+    }
+
+    private String truncate(String s, int maxLen) {
+        if (s == null) return "";
+        return s.length() > maxLen ? s.substring(0, maxLen) + "…" : s;
+    }
+
+    private boolean testToken(String token) {
+        return "200".equals(testTokenWithDetail(token)[0]);
     }
 
     private void showComplete() {
