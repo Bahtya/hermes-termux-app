@@ -13,6 +13,8 @@ import android.view.WindowManager;
 
 import com.termux.R;
 
+import androidx.core.content.ContextCompat;
+
 /**
  * A small overlay view that shows a colored dot indicating the Hermes gateway status.
  * Green = running, red = stopped, gray = not installed.
@@ -127,12 +129,12 @@ public class HermesStatusOverlay extends View {
     private int getColorForStatus(HermesGatewayStatus.Status status) {
         switch (status) {
             case RUNNING:
-                return 0xFF4CAF50; // Green
+                return ContextCompat.getColor(getContext(), R.color.hermes_status_running);
             case STOPPED:
-                return 0xFFF44336; // Red
+                return ContextCompat.getColor(getContext(), R.color.hermes_status_stopped);
             case NOT_INSTALLED:
             default:
-                return 0xFF9E9E9E; // Gray
+                return ContextCompat.getColor(getContext(), R.color.hermes_status_not_installed);
         }
     }
 

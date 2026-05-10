@@ -33,6 +33,8 @@ import com.google.zxing.common.BitMatrix;
 import com.google.zxing.qrcode.QRCodeWriter;
 import com.termux.R;
 
+import androidx.core.content.ContextCompat;
+
 import java.util.EnumMap;
 import java.util.Map;
 import java.util.concurrent.ExecutorService;
@@ -182,7 +184,7 @@ public class FeishuSetupActivity extends AppCompatActivity {
         stepsTv.setText(R.string.feishu_welcome_steps);
         stepsTv.setTextSize(14);
         stepsTv.setLineSpacing(dp(4), 1f);
-        stepsTv.setTextColor(0xFF666666);
+        stepsTv.setTextColor(ContextCompat.getColor(this, R.color.hermes_text_secondary));
         ll.addView(stepsTv);
 
         sv.addView(ll);
@@ -220,7 +222,7 @@ public class FeishuSetupActivity extends AppCompatActivity {
         TextView feishuHint = new TextView(this);
         feishuHint.setText(R.string.feishu_domain_feishu_hint);
         feishuHint.setTextSize(12);
-        feishuHint.setTextColor(0xFF888888);
+        feishuHint.setTextColor(ContextCompat.getColor(this, R.color.hermes_text_hint));
         feishuHint.setPadding(dp(40), 0, 0, dp(8));
 
         RadioButton rbLark = new RadioButton(this);
@@ -233,7 +235,7 @@ public class FeishuSetupActivity extends AppCompatActivity {
         TextView larkHint = new TextView(this);
         larkHint.setText(R.string.feishu_domain_lark_hint);
         larkHint.setTextSize(12);
-        larkHint.setTextColor(0xFF888888);
+        larkHint.setTextColor(ContextCompat.getColor(this, R.color.hermes_text_hint));
         larkHint.setPadding(dp(40), 0, 0, dp(8));
 
         rg.addView(rbFeishu);
@@ -271,8 +273,8 @@ public class FeishuSetupActivity extends AppCompatActivity {
             numTv.setText(String.valueOf(i + 1));
             numTv.setTextSize(14);
             numTv.setTypeface(null, android.graphics.Typeface.BOLD);
-            numTv.setTextColor(0xFFFFFFFF);
-            numTv.setBackgroundColor(0xFF4A90D9);
+            numTv.setTextColor(ContextCompat.getColor(this, R.color.hermes_step_number_text));
+            numTv.setBackgroundColor(ContextCompat.getColor(this, R.color.hermes_step_number_bg));
             numTv.setGravity(Gravity.CENTER);
             int numSize = dp(28);
             LinearLayout.LayoutParams numParams = new LinearLayout.LayoutParams(numSize, numSize);
@@ -320,7 +322,7 @@ public class FeishuSetupActivity extends AppCompatActivity {
         TextView tipTv = new TextView(this);
         tipTv.setText(R.string.feishu_create_app_tip);
         tipTv.setTextSize(12);
-        tipTv.setTextColor(0xFF888888);
+        tipTv.setTextColor(ContextCompat.getColor(this, R.color.hermes_text_hint));
         tipTv.setLineSpacing(dp(2), 1f);
         ll.addView(tipTv);
 
@@ -344,7 +346,7 @@ public class FeishuSetupActivity extends AppCompatActivity {
         TextView qrLabel = new TextView(this);
         qrLabel.setText(R.string.feishu_qr_scan_hint);
         qrLabel.setTextSize(13);
-        qrLabel.setTextColor(0xFF666666);
+        qrLabel.setTextColor(ContextCompat.getColor(this, R.color.hermes_text_secondary));
         qrLabel.setPadding(0, 0, 0, dp(8));
         ll.addView(qrLabel);
 
@@ -388,8 +390,8 @@ public class FeishuSetupActivity extends AppCompatActivity {
             pasteBtn.setText(getString(R.string.feishu_paste_detected, clipboardContent.substring(0, Math.min(16, clipboardContent.length())) + "..."));
             pasteBtn.setAllCaps(false);
             pasteBtn.setCornerRadius(dp(20));
-            pasteBtn.setBackgroundColor(0xFF4CAF50);
-            pasteBtn.setTextColor(0xFFFFFFFF);
+            pasteBtn.setBackgroundColor(ContextCompat.getColor(this, R.color.hermes_paste_button_bg));
+            pasteBtn.setTextColor(ContextCompat.getColor(this, R.color.hermes_paste_button_text));
             pasteBtn.setOnClickListener(v -> {
                 // Will be filled in after appIdEdit is created
             });
@@ -550,15 +552,15 @@ public class FeishuSetupActivity extends AppCompatActivity {
                         validationTv.setVisibility(View.GONE);
                     } else if (!aid.startsWith("cli_") && !aid.isEmpty()) {
                         validationTv.setText(R.string.feishu_app_id_format_hint);
-                        validationTv.setTextColor(0xFFFF9800);
+                        validationTv.setTextColor(ContextCompat.getColor(FeishuSetupActivity.this, R.color.hermes_validation_warning));
                         validationTv.setVisibility(View.VISIBLE);
                     } else if (aid.length() < 10 || sec.length() < 10) {
                         validationTv.setText(R.string.feishu_credentials_short);
-                        validationTv.setTextColor(0xFFFF9800);
+                        validationTv.setTextColor(ContextCompat.getColor(FeishuSetupActivity.this, R.color.hermes_validation_warning));
                         validationTv.setVisibility(View.VISIBLE);
                     } else {
                         validationTv.setText(R.string.feishu_credentials_ok);
-                        validationTv.setTextColor(0xFF4CAF50);
+                        validationTv.setTextColor(ContextCompat.getColor(FeishuSetupActivity.this, R.color.hermes_validation_success));
                         validationTv.setVisibility(View.VISIBLE);
                     }
                 }
@@ -601,7 +603,7 @@ public class FeishuSetupActivity extends AppCompatActivity {
         testResultArea.setOrientation(LinearLayout.VERTICAL);
         testResultArea.setId(R.id.feishu_test_result_area);
         testResultArea.setPadding(dp(16), dp(16), dp(16), dp(16));
-        testResultArea.setBackgroundColor(0xFFF5F5F5);
+        testResultArea.setBackgroundColor(ContextCompat.getColor(this, R.color.hermes_card_background));
         ll.addView(testResultArea);
 
         ProgressBar progressBar = new ProgressBar(this);
@@ -685,7 +687,7 @@ public class FeishuSetupActivity extends AppCompatActivity {
         summary.setTextSize(14);
         summary.setLineSpacing(dp(4), 1f);
         summary.setPadding(dp(16), dp(16), dp(16), dp(16));
-        summary.setBackgroundColor(0xFFF5F5F5);
+        summary.setBackgroundColor(ContextCompat.getColor(this, R.color.hermes_card_background));
         ll.addView(summary);
 
         addSpacer(ll, dp(16));
@@ -851,10 +853,10 @@ public class FeishuSetupActivity extends AppCompatActivity {
                 if (testStatus != null) {
                     if (success) {
                         testStatus.setText(R.string.feishu_test_success);
-                        testStatus.setTextColor(0xFF4CAF50);
+                        testStatus.setTextColor(ContextCompat.getColor(FeishuSetupActivity.this, R.color.hermes_validation_success));
                     } else {
                         testStatus.setText(R.string.feishu_test_warning);
-                        testStatus.setTextColor(0xFFFF9800);
+                        testStatus.setTextColor(ContextCompat.getColor(FeishuSetupActivity.this, R.color.hermes_validation_warning));
                     }
                 }
             });
@@ -947,7 +949,7 @@ public class FeishuSetupActivity extends AppCompatActivity {
             TextView desc = new TextView(this);
             desc.setText(descRes);
             desc.setTextSize(14);
-            desc.setTextColor(0xFF666666);
+            desc.setTextColor(ContextCompat.getColor(this, R.color.hermes_text_secondary));
             desc.setLineSpacing(dp(3), 1f);
             desc.setPadding(0, 0, 0, dp(16));
             parent.addView(desc);
@@ -967,7 +969,7 @@ public class FeishuSetupActivity extends AppCompatActivity {
                 LinearLayout.LayoutParams.MATCH_PARENT, 1);
         params.setMargins(0, dp(8), 0, dp(8));
         divider.setLayoutParams(params);
-        divider.setBackgroundColor(0xFFE0E0E0);
+        divider.setBackgroundColor(ContextCompat.getColor(this, R.color.hermes_divider));
         parent.addView(divider);
     }
 

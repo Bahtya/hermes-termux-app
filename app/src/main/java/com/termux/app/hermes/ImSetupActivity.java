@@ -19,6 +19,8 @@ import androidx.appcompat.app.ActionBar;
 import androidx.appcompat.app.AppCompatActivity;
 
 import com.termux.R;
+
+import androidx.core.content.ContextCompat;
 import com.termux.shared.termux.TermuxConstants;
 
 import java.io.BufferedReader;
@@ -258,7 +260,7 @@ public class ImSetupActivity extends AppCompatActivity {
         retryBtn.setVisibility(View.GONE);
         retryBtn.setOnClickListener(v -> {
             status.setText(R.string.im_test_running);
-            status.setTextColor(getResources().getColor(android.R.color.secondary_text_dark));
+            status.setTextColor(ContextCompat.getColor(this, R.color.hermes_text_secondary));
             detail.setVisibility(View.GONE);
             retryBtn.setVisibility(View.GONE);
             runImTest(status, detail, retryBtn);
@@ -278,18 +280,18 @@ public class ImSetupActivity extends AppCompatActivity {
             runOnUiThread(() -> {
                 if (success) {
                     status.setText(isTelegram() ? R.string.telegram_test_success : R.string.discord_test_success);
-                    status.setTextColor(getResources().getColor(android.R.color.holo_green_dark));
+                    status.setTextColor(ContextCompat.getColor(this, R.color.hermes_status_running));
                     if (detail != null) {
                         detail.setText(getString(R.string.im_test_detail_success, result[1]));
-                        detail.setTextColor(getResources().getColor(android.R.color.secondary_text_dark));
+                        detail.setTextColor(ContextCompat.getColor(this, R.color.hermes_text_secondary));
                         detail.setVisibility(View.VISIBLE);
                     }
                 } else {
                     status.setText(isTelegram() ? R.string.telegram_test_fail : R.string.discord_test_fail);
-                    status.setTextColor(getResources().getColor(android.R.color.holo_red_dark));
+                    status.setTextColor(ContextCompat.getColor(this, R.color.hermes_status_stopped));
                     if (detail != null) {
                         detail.setText(getString(R.string.im_test_detail_fail, result[0], result[1]));
-                        detail.setTextColor(getResources().getColor(android.R.color.secondary_text_dark));
+                        detail.setTextColor(ContextCompat.getColor(this, R.color.hermes_text_secondary));
                         detail.setVisibility(View.VISIBLE);
                     }
                     if (retryBtn != null) {
