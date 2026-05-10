@@ -1335,6 +1335,9 @@ public class HermesConfigActivity extends AppCompatActivity {
             setPreferencesFromResource(R.xml.hermes_gateway_preferences, rootKey);
             mConfigManager = HermesConfigManager.getInstance();
 
+            // Stats display
+            updateStatsDisplay();
+
             // Auto-restart toggle
             Preference autoRestartPref = findPreference("gateway_auto_restart");
             if (autoRestartPref != null) {
@@ -1438,6 +1441,26 @@ public class HermesConfigActivity extends AppCompatActivity {
                     }, 1500);
                     Toast.makeText(ctx, R.string.gateway_restarted, Toast.LENGTH_SHORT).show();
                     break;
+            }
+        }
+
+        @Override
+        public void onResume() {
+            super.onResume();
+            updateStatsDisplay();
+        }
+
+        private void updateStatsDisplay() {
+            boolean running = HermesGatewayService.isRunning();
+            String uptime = HermesGatewayService.getFormattedUptime();
+
+            Preference statsPref = findPreference("gateway_stats");
+            if (statsPref != null) {
+                if (running && !uptime.isEmpty()) {
+                    statsPref.setSummary(getString(R.string.gateway_stats_running, uptime));
+                } else {
+                    statsPref.setSummary(getString(R.string.gateway_stats_stopped));
+                }
             }
         }
     }
