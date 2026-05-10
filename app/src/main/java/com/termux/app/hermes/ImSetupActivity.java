@@ -345,7 +345,7 @@ public class ImSetupActivity extends AppCompatActivity {
                 // Extract bot username from response
                 if (body.contains("\"username\":\"")) {
                     int start = body.indexOf("\"username\":\"") + 13;
-                    int end = body.indexOf(""", start);
+                    int end = body.indexOf("\\\"", start);
                     return new String[]{"200", "@" + body.substring(start, end)};
                 }
             }
