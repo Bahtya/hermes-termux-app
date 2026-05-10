@@ -65,6 +65,10 @@ public class HermesConfigManager {
     private static final String ENV_GOOGLE_API_KEY = "GOOGLE_API_KEY";
     private static final String ENV_DEEPSEEK_API_KEY = "DEEPSEEK_API_KEY";
     private static final String ENV_OPENROUTER_API_KEY = "OPENROUTER_API_KEY";
+    private static final String ENV_XAI_API_KEY = "XAI_API_KEY";
+    private static final String ENV_ALIBABA_API_KEY = "DASHSCOPE_API_KEY";
+    private static final String ENV_MISTRAL_API_KEY = "MISTRAL_API_KEY";
+    private static final String ENV_NVIDIA_API_KEY = "NVIDIA_API_KEY";
     private static final String ENV_FEISHU_APP_ID = "FEISHU_APP_ID";
     private static final String ENV_FEISHU_APP_SECRET = "FEISHU_APP_SECRET";
     private static final String ENV_FEISHU_DOMAIN = "FEISHU_DOMAIN";
@@ -389,6 +393,8 @@ public class HermesConfigManager {
         String[] knownKeys = {
                 ENV_OPENAI_API_KEY, ENV_ANTHROPIC_API_KEY, ENV_GOOGLE_API_KEY,
                 ENV_DEEPSEEK_API_KEY, ENV_OPENROUTER_API_KEY,
+                ENV_XAI_API_KEY, ENV_ALIBABA_API_KEY, ENV_MISTRAL_API_KEY, ENV_NVIDIA_API_KEY,
+                "OLLAMA_API_KEY", "OPENAI_BASE_URL",
                 ENV_FEISHU_APP_ID, ENV_FEISHU_APP_SECRET,
                 ENV_FEISHU_DOMAIN, ENV_FEISHU_CONNECTION_MODE
         };
@@ -558,6 +564,16 @@ public class HermesConfigManager {
                 return ENV_DEEPSEEK_API_KEY;
             case "OPENROUTER":
                 return ENV_OPENROUTER_API_KEY;
+            case "XAI":
+                return ENV_XAI_API_KEY;
+            case "ALIBABA":
+                return ENV_ALIBABA_API_KEY;
+            case "MISTRAL":
+                return ENV_MISTRAL_API_KEY;
+            case "NVIDIA":
+                return ENV_NVIDIA_API_KEY;
+            case "OLLAMA":
+                return "OLLAMA_API_KEY";
             default:
                 // Fallback: provider name + _API_KEY
                 return upper + "_API_KEY";
@@ -665,7 +681,8 @@ public class HermesConfigManager {
         String apiKey = getApiKey(provider);
         if (apiKey.isEmpty()) {
             // Check all known providers
-            String[] providers = {"openai", "anthropic", "google", "deepseek", "openrouter"};
+            String[] providers = {"openai", "anthropic", "google", "deepseek", "openrouter",
+                    "xai", "alibaba", "mistral", "nvidia", "ollama", "custom"};
             boolean anyKey = false;
             for (String p : providers) {
                 if (!getApiKey(p).isEmpty()) {
