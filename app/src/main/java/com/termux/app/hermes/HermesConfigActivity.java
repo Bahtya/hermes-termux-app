@@ -33,6 +33,8 @@ import com.termux.R;
 import com.termux.app.hermes.HermesTutorialOverlay;
 import com.termux.shared.termux.TermuxConstants;
 
+import androidx.core.content.ContextCompat;
+
 import java.io.File;
 import java.util.List;
 
@@ -1087,12 +1089,12 @@ public class HermesConfigActivity extends AppCompatActivity {
             String apiKey = mConfigManager.getApiKey(provider);
             String model = mConfigManager.getModelName();
 
-            if (apiKey == null || apiKey.isEmpty()) {
-                issues.add("api_key");
-            }
-            if (model == null || model.isEmpty()) {
-                issues.add("model");
-            }
+            boolean hasApiKey = apiKey != null && !apiKey.isEmpty();
+            boolean hasModel = model != null && !model.isEmpty();
+            boolean hasIm = false;
+
+            if (!hasApiKey) issues.add("api_key");
+            if (!hasModel) issues.add("model");
 
             int imCount = 0;
             if (mConfigManager.isFeishuConfigured()) imCount++;
@@ -1101,13 +1103,106 @@ public class HermesConfigActivity extends AppCompatActivity {
             if (!mConfigManager.getEnvVar("WHATSAPP_PHONE_NUMBER_ID").isEmpty()) imCount++;
             if (imCount == 0) {
                 issues.add("im");
+            } else {
+                hasIm = true;
             }
 
-            if (issues.isEmpty()) {
-                healthPref.setSummary(getString(R.string.health_check_ready));
+            // Check gateway status
+            boolean[] hasGateway = {false};
+            HermesGatewayStatus.checkAsync((status, detail) -> {
+                hasGateway[0] = (status == HermesGatewayStatus.Status.RUNNING);
+            });
+
+            // Calculate progress: 4 items (gateway installed, api key, model, IM)
+            int total = 4;
+            int done = 0;
+            if (hasApiKey) done++;
+            if (hasModel) done++;
+            if (hasIm) done++;
+            if (new File(TermuxConstants.TERMUX_BIN_PREFIX_DIR_PATH + "/hermes").exists()) done++;
+
+            int percent = (done * 100) / total;
+
+            if (issues.isEmpty() && hasIm) {
+                healthPref.setSummary(getString(R.string.health_check_ready) + " (" + percent + "%)");
             } else {
-                healthPref.setSummary(getString(R.string.health_check_issues, issues.size()));
+                healthPref.setSummary(getString(R.string.health_check_issues, issues.size()) + " — " + percent + "% complete");
             }
+
+            healthPref.setOnPreferenceClickListener(p -> {
+                showSetupProgress();
+                return true;
+            });
+        }
+
+        private void showSetupProgress() {
+            float density = getResources().getDisplayMetrics().density;
+            ScrollView scrollView = new ScrollView(requireContext());
+            LinearLayout layout = new LinearLayout(requireContext());
+            layout.setOrientation(LinearLayout.VERTICAL);
+            int pad = (int) (16 * density);
+            layout.setPadding(pad, pad, pad, pad);
+
+            String provider = mConfigManager.getModelProvider();
+            String apiKey = mConfigManager.getApiKey(provider);
+            String model = mConfigManager.getModelName();
+            boolean hasApiKey = apiKey != null && !apiKey.isEmpty();
+            boolean hasModel = model != null && !model.isEmpty();
+            boolean hasIm = false;
+            java.util.List<String> imPlatforms = new java.util.ArrayList<>();
+            if (mConfigManager.isFeishuConfigured()) { imPlatforms.add("Feishu"); hasIm = true; }
+            if (!mConfigManager.getEnvVar("TELEGRAM_BOT_TOKEN").isEmpty()) { imPlatforms.add("Telegram"); hasIm = true; }
+            if (!mConfigManager.getEnvVar("DISCORD_BOT_TOKEN").isEmpty()) { imPlatforms.add("Discord"); hasIm = true; }
+            if (!mConfigManager.getEnvVar("WHATSAPP_PHONE_NUMBER_ID").isEmpty()) { imPlatforms.add("WhatsApp"); hasIm = true; }
+
+            boolean gatewayInstalled = new File(TermuxConstants.TERMUX_BIN_PREFIX_DIR_PATH + "/hermes").exists();
+            String[][] items = {
+                    {"Install Gateway", gatewayInstalled ? "Done" : "Not installed"},
+                    {"Configure LLM API Key", hasApiKey ? "Done (" + provider + ")" : "Not configured"},
+                    {"Select Model", hasModel ? "Done (" + model + ")" : "Not selected"},
+                    {"Connect IM Platform", hasIm ? "Done (" + android.text.TextUtils.join(", ", imPlatforms) + ")" : "Not connected"}
+            };
+
+            for (String[] item : items) {
+                LinearLayout row = new LinearLayout(requireContext());
+                row.setOrientation(LinearLayout.HORIZONTAL);
+                row.setPadding(0, (int) (4 * density), 0, (int) (4 * density));
+
+                TextView check = new TextView(requireContext());
+                check.setText(item[1].startsWith("Done") ? "✓" : "○");
+                check.setTextSize(16);
+                check.setTextColor(item[1].startsWith("Done")
+                        ? ContextCompat.getColor(requireContext(), R.color.hermes_status_running)
+                        : ContextCompat.getColor(requireContext(), R.color.hermes_text_secondary));
+                check.setPadding(0, 0, (int) (8 * density), 0);
+                row.addView(check);
+
+                TextView label = new TextView(requireContext());
+                label.setText(item[0]);
+                label.setTextSize(14);
+                LinearLayout.LayoutParams labelParams = new LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 1f);
+                label.setLayoutParams(labelParams);
+                row.addView(label);
+
+                TextView status = new TextView(requireContext());
+                status.setText(item[1]);
+                status.setTextSize(12);
+                status.setTextColor(ContextCompat.getColor(requireContext(), R.color.hermes_text_secondary));
+                row.addView(status);
+
+                layout.addView(row);
+            }
+
+            scrollView.addView(layout);
+
+            int done = (gatewayInstalled ? 1 : 0) + (hasApiKey ? 1 : 0) + (hasModel ? 1 : 0) + (hasIm ? 1 : 0);
+            String title = "Setup Progress: " + (done * 100 / 4) + "%";
+
+            new AlertDialog.Builder(requireContext())
+                    .setTitle(title)
+                    .setView(scrollView)
+                    .setPositiveButton(android.R.string.ok, null)
+                    .show();
         }
 
         private void updateValidationDisplay() {
