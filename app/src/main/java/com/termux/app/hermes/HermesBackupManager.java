@@ -11,7 +11,6 @@ import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileReader;
 import java.io.FileWriter;
-import java.io.FilenameFilter;
 import java.text.SimpleDateFormat;
 import java.util.Arrays;
 import java.util.Date;
@@ -78,27 +77,24 @@ public class HermesBackupManager {
         String backupPath = BACKUP_DIR + "/" + BACKUP_PREFIX + timestamp + ".json";
 
         StringBuilder json = new StringBuilder();
-        json.append("{
-");
+        json.append("{");
 
         // Read config.yaml
         String yamlPath = HermesConfigManager.CONFIG_YAML_PATH;
         File yamlFile = new File(yamlPath);
         if (yamlFile.exists()) {
-            json.append("  "config_yaml": "");
+            json.append("\"config_yaml\":\"");
             json.append(escapeJson(readFile(yamlPath)));
-            json.append("",
-");
+            json.append("\",");
         }
 
         // Read .env
         String envPath = HermesConfigManager.ENV_FILE_PATH;
         File envFile = new File(envPath);
         if (envFile.exists()) {
-            json.append("  "env": "");
+            json.append("\"env\":\"");
             json.append(escapeJson(readFile(envPath)));
-            json.append(""
-");
+            json.append("\"");
         }
 
         json.append("}");
@@ -132,10 +128,11 @@ public class HermesBackupManager {
     }
 
     private static void cleanupOldBackups(File backupDir) {
+        int keep = 5;
         String[] files = backupDir.list((dir, name) -> name.startsWith(BACKUP_PREFIX) && name.endsWith(".json"));
-        if (files == null || files.length <= 5) return;
+        if (files == null || files.length <= keep) return;
         Arrays.sort(files);
-        for (int i = 0; i < files.length - 5; i++) {
+        for (int i = 0; i < files.length - keep; i++) {
             new File(backupDir, files[i]).delete();
         }
     }
@@ -173,9 +170,9 @@ public class HermesBackupManager {
                 char next = json.charAt(i + 1);
                 if (next == 'n') { sb.append('\n'); i++; continue; }
                 if (next == 't') { sb.append('\t'); i++; continue; }
-                if (next == '\\"') { sb.append('"'); i++; continue; }
+                if (next == '"') { sb.append('"'); i++; continue; }
                 if (next == '\\') { sb.append('\\'); i++; continue; }
-            } else if (c == '"' && (i == 0 || json.charAt(i - 1) != '\\')) {
+            } else if (c == '"') {
                 return sb.toString();
             }
             sb.append(c);
