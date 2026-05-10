@@ -73,6 +73,16 @@
             android:title="@string/hermes_reset_title"
             android:summary="@string/hermes_reset_summary" />
 
+        <Preference
+            android:key="hermes_export_config"
+            android:title="@string/hermes_export_title"
+            android:summary="@string/hermes_export_summary" />
+
+        <Preference
+            android:key="hermes_import_config"
+            android:title="@string/hermes_import_title"
+            android:summary="@string/hermes_import_summary" />
+
     </PreferenceCategory>
 
 </PreferenceScreen>
