@@ -84,12 +84,23 @@ public class HermesConfigManager {
     private static final String KEY_SESSION_IDLE_MINUTES = "session_reset.idle_minutes";
     private static final String KEY_SESSION_RESET_HOUR = "session_reset.at_hour";
 
+    // Model routing config keys
+    private static final String KEY_ROUTING_MODE = "model_routing.mode";
+    private static final String KEY_ROUTING_FAST_MODEL = "model_routing.fast_model";
+    private static final String KEY_ROUTING_THRESHOLD = "model_routing.complexity_threshold";
+
     // Tool management config keys
     private static final String KEY_TOOL_TERMINAL = "tools.terminal";
     private static final String KEY_TOOL_WEB_SEARCH = "tools.web_search";
     private static final String KEY_TOOL_FILE_OPS = "tools.file_operations";
     private static final String KEY_TOOL_BROWSER = "tools.browser";
     private static final String KEY_TOOL_CODE_EXEC = "tools.code_execution";
+
+    // Browser tool config keys
+    private static final String KEY_BROWSER_INACTIVITY_TIMEOUT = "browser.inactivity_timeout";
+    private static final String KEY_BROWSER_USER_AGENT = "browser.user_agent";
+    private static final String KEY_BROWSER_HEADLESS = "browser.headless";
+    private static final String KEY_BROWSER_MAX_TABS = "browser.max_tabs";
 
     // ---- .env key constants ----
     private static final String ENV_OPENAI_API_KEY = "OPENAI_API_KEY";
@@ -676,6 +687,39 @@ public class HermesConfigManager {
 
     public String getSystemPrompt() {
         return getYamlValue(KEY_SYSTEM_PROMPT, "");
+    }
+
+    // =========================================================================
+    // Model routing config
+    // =========================================================================
+
+    public String getModelRoutingMode() {
+        return getYamlValue(KEY_ROUTING_MODE, "off");
+    }
+
+    public void setModelRoutingMode(String mode) {
+        setYamlValue(KEY_ROUTING_MODE, mode);
+    }
+
+    public String getModelRoutingFastModel() {
+        return getYamlValue(KEY_ROUTING_FAST_MODEL, "");
+    }
+
+    public void setModelRoutingFastModel(String model) {
+        setYamlValue(KEY_ROUTING_FAST_MODEL, model);
+    }
+
+    public float getModelRoutingThreshold() {
+        String val = getYamlValue(KEY_ROUTING_THRESHOLD, "0.5");
+        try {
+            return Float.parseFloat(val);
+        } catch (NumberFormatException e) {
+            return 0.5f;
+        }
+    }
+
+    public void setModelRoutingThreshold(float threshold) {
+        setYamlValue(KEY_ROUTING_THRESHOLD, String.valueOf(threshold));
     }
 
     public void setSystemPrompt(String prompt) {

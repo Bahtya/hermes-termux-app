@@ -122,4 +122,32 @@
             android:defaultValue="true" />
     </PreferenceCategory>
 
+    <PreferenceCategory android:title="@string/browser_category_title">
+        <EditTextPreference
+            android:key="browser_inactivity_timeout"
+            android:title="@string/browser_inactivity_timeout_title"
+            android:summary="@string/browser_inactivity_timeout_summary"
+            android:inputType="number"
+            android:defaultValue="30" />
+
+        <EditTextPreference
+            android:key="browser_user_agent"
+            android:title="@string/browser_user_agent_title"
+            android:summary="@string/browser_user_agent_summary"
+            android:inputType="textVisiblePassword" />
+
+        <SwitchPreferenceCompat
+            android:key="browser_headless"
+            android:title="@string/browser_headless_title"
+            android:summary="@string/browser_headless_summary"
+            android:defaultValue="true" />
+
+        <EditTextPreference
+            android:key="browser_max_tabs"
+            android:title="@string/browser_max_tabs_title"
+            android:summary="@string/browser_max_tabs_summary"
+            android:inputType="number"
+            android:defaultValue="5" />
+    </PreferenceCategory>
+
 </PreferenceScreen>
