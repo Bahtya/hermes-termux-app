@@ -417,6 +417,7 @@
     <string name="gateway_log_refresh">Refresh</string>
     <string name="gateway_log_clear">Clear Log</string>
     <string name="gateway_log_empty">No log entries yet.</string>
+    <string name="gateway_log_search_hint">Search logs…</string>
     <string name="gateway_log_clear_confirm_title">Clear Log?</string>
     <string name="gateway_log_clear_confirm_message">This will delete all gateway log entries.</string>
     <string name="gateway_log_cleared">Log cleared</string>
