@@ -1,5 +1,8 @@
 package com.termux.app.hermes;
 
+import android.content.ClipData;
+import android.content.ClipboardManager;
+import android.content.Context;
 import android.content.Intent;
 import android.graphics.Bitmap;
 import android.net.Uri;
@@ -360,6 +363,23 @@ public class FeishuSetupActivity extends AppCompatActivity {
             qrImageView.setImageBitmap(qrBitmap);
         }
 
+        // Auto-detect clipboard for App ID
+        String clipboardContent = getClipboardText();
+        if (clipboardContent != null && clipboardContent.startsWith("cli_")) {
+            addSpacer(ll, dp(4));
+            com.google.android.material.button.MaterialButton pasteBtn =
+                    new com.google.android.material.button.MaterialButton(this);
+            pasteBtn.setText(getString(R.string.feishu_paste_detected, clipboardContent.substring(0, Math.min(16, clipboardContent.length())) + "..."));
+            pasteBtn.setAllCaps(false);
+            pasteBtn.setCornerRadius(dp(20));
+            pasteBtn.setBackgroundColor(0xFF4CAF50);
+            pasteBtn.setTextColor(0xFFFFFFFF);
+            pasteBtn.setOnClickListener(v -> {
+                // Will be filled in after appIdEdit is created
+            });
+            ll.addView(pasteBtn);
+        }
+
         // Or enter manually section
         addDivider(ll);
         addSpacer(ll, dp(8));
@@ -371,25 +391,53 @@ public class FeishuSetupActivity extends AppCompatActivity {
         manualLabel.setPadding(0, 0, 0, dp(8));
         ll.addView(manualLabel);
 
-        // App ID
+        // App ID with paste button
         TextView appIdLabel = new TextView(this);
         appIdLabel.setText(R.string.feishu_app_id_label);
         appIdLabel.setPadding(0, dp(12), 0, dp(4));
         ll.addView(appIdLabel);
 
+        LinearLayout appIdRow = new LinearLayout(this);
+        appIdRow.setOrientation(LinearLayout.HORIZONTAL);
         EditText appIdEdit = new EditText(this);
         appIdEdit.setId(R.id.feishu_app_id_input);
         appIdEdit.setHint("cli_xxxxxxxxxxxx");
         appIdEdit.setSingleLine();
         appIdEdit.setText(mConfigManager.getFeishuAppId());
-        ll.addView(appIdEdit);
+        LinearLayout.LayoutParams appIdParams = new LinearLayout.LayoutParams(
+                0, LinearLayout.LayoutParams.WRAP_CONTENT, 1f);
+        appIdEdit.setLayoutParams(appIdParams);
+        appIdRow.addView(appIdEdit);
 
-        // App Secret
+        com.google.android.material.button.MaterialButton pasteAppIdBtn =
+                new com.google.android.material.button.MaterialButton(this);
+        pasteAppIdBtn.setText(R.string.feishu_paste);
+        pasteAppIdBtn.setAllCaps(false);
+        pasteAppIdBtn.setCornerRadius(dp(16));
+        int btnPad = dp(8);
+        pasteAppIdBtn.setPadding(btnPad, 0, btnPad, 0);
+        pasteAppIdBtn.setOnClickListener(v -> {
+            String clip = getClipboardText();
+            if (clip != null && !clip.isEmpty()) {
+                appIdEdit.setText(clip.trim());
+            }
+        });
+        LinearLayout.LayoutParams pasteParams = new LinearLayout.LayoutParams(
+                LinearLayout.LayoutParams.WRAP_CONTENT, LinearLayout.LayoutParams.WRAP_CONTENT);
+        pasteParams.gravity = Gravity.CENTER_VERTICAL;
+        pasteParams.setMarginStart(dp(4));
+        pasteAppIdBtn.setLayoutParams(pasteParams);
+        appIdRow.addView(pasteAppIdBtn);
+        ll.addView(appIdRow);
+
+        // App Secret with paste button
         TextView appSecretLabel = new TextView(this);
         appSecretLabel.setText(R.string.feishu_app_secret_label);
         appSecretLabel.setPadding(0, dp(12), 0, dp(4));
         ll.addView(appSecretLabel);
 
+        LinearLayout appSecretRow = new LinearLayout(this);
+        appSecretRow.setOrientation(LinearLayout.HORIZONTAL);
         EditText appSecretEdit = new EditText(this);
         appSecretEdit.setId(R.id.feishu_app_secret_input);
         appSecretEdit.setHint("xxxxxxxxxxxxxxxxxxxxxxxxxx");
@@ -397,7 +445,47 @@ public class FeishuSetupActivity extends AppCompatActivity {
         appSecretEdit.setInputType(android.text.InputType.TYPE_CLASS_TEXT |
                 android.text.InputType.TYPE_TEXT_VARIATION_PASSWORD);
         appSecretEdit.setText(mConfigManager.getFeishuAppSecret());
-        ll.addView(appSecretEdit);
+        LinearLayout.LayoutParams secretParams = new LinearLayout.LayoutParams(
+                0, LinearLayout.LayoutParams.WRAP_CONTENT, 1f);
+        appSecretEdit.setLayoutParams(secretParams);
+        appSecretRow.addView(appSecretEdit);
+
+        com.google.android.material.button.MaterialButton pasteSecretBtn =
+                new com.google.android.material.button.MaterialButton(this);
+        pasteSecretBtn.setText(R.string.feishu_paste);
+        pasteSecretBtn.setAllCaps(false);
+        pasteSecretBtn.setCornerRadius(dp(16));
+        pasteSecretBtn.setPadding(btnPad, 0, btnPad, 0);
+        pasteSecretBtn.setOnClickListener(v -> {
+            String clip = getClipboardText();
+            if (clip != null && !clip.isEmpty()) {
+                appSecretEdit.setText(clip.trim());
+            }
+        });
+        pasteSecretBtn.setLayoutParams(pasteParams);
+        appSecretRow.addView(pasteSecretBtn);
+
+        // Toggle visibility button for secret
+        com.google.android.material.button.MaterialButton toggleVisBtn =
+                new com.google.android.material.button.MaterialButton(this);
+        toggleVisBtn.setText(R.string.feishu_toggle_visibility);
+        toggleVisBtn.setAllCaps(false);
+        toggleVisBtn.setCornerRadius(dp(16));
+        toggleVisBtn.setPadding(btnPad, 0, btnPad, 0);
+        toggleVisBtn.setOnClickListener(v -> {
+            int currentInputType = appSecretEdit.getInputType();
+            if ((currentInputType & android.text.InputType.TYPE_TEXT_VARIATION_PASSWORD) != 0) {
+                appSecretEdit.setInputType(android.text.InputType.TYPE_CLASS_TEXT |
+                        android.text.InputType.TYPE_TEXT_VARIATION_VISIBLE_PASSWORD);
+            } else {
+                appSecretEdit.setInputType(android.text.InputType.TYPE_CLASS_TEXT |
+                        android.text.InputType.TYPE_TEXT_VARIATION_PASSWORD);
+            }
+            appSecretEdit.setSelection(appSecretEdit.getText().length());
+        });
+        toggleVisBtn.setLayoutParams(pasteParams);
+        appSecretRow.addView(toggleVisBtn);
+        ll.addView(appSecretRow);
 
         // Connection Mode
         TextView connLabel = new TextView(this);
@@ -744,5 +832,19 @@ public class FeishuSetupActivity extends AppCompatActivity {
 
     private int dp(int dp) {
         return (int) (dp * getResources().getDisplayMetrics().density);
+    }
+
+    private String getClipboardText() {
+        try {
+            ClipboardManager cm = (ClipboardManager) getSystemService(Context.CLIPBOARD_SERVICE);
+            if (cm != null && cm.hasPrimaryClip()) {
+                ClipData clip = cm.getPrimaryClip();
+                if (clip != null && clip.getItemCount() > 0) {
+                    CharSequence text = clip.getItemAt(0).getText();
+                    if (text != null) return text.toString();
+                }
+            }
+        } catch (Exception ignored) {}
+        return null;
     }
 }
