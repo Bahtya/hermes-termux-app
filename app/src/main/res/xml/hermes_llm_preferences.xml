@@ -75,6 +75,11 @@
     </PreferenceCategory>
 
     <Preference
+        android:key="llm_system_prompt_templates"
+        android:title="@string/llm_templates_title"
+        android:summary="@string/llm_templates_summary" />
+
+    <Preference
         android:key="llm_test_connection"
         android:title="@string/llm_test_connection_title"
         android:summary="@string/llm_test_connection_summary"
