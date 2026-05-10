@@ -624,6 +624,15 @@ App ID starts with "cli_" and is about 10–20 characters. App Secret is longer 
     <string name="dashboard_version_checking">Checking…</string>
     <string name="dashboard_version_format">v%1$s</string>
     <string name="dashboard_version_not_installed">Not installed</string>
+
+    <!-- LLM Quick Switch -->
+    <string name="llm_quick_switch_title">Quick Switch Model</string>
+    <string name="llm_quick_switch_summary">Change provider and model without leaving dashboard</string>
+    <string name="llm_quick_switch_dialog_title">Switch AI Model</string>
+    <string name="llm_quick_switch_provider_label">Provider</string>
+    <string name="llm_quick_switch_model_label">Model</string>
+    <string name="llm_quick_switch_saved">Switched to %1$s / %2$s</string>
+
     <string name="llm_configured">Configured (%1$s)</string>
     <string name="llm_not_configured">Not configured</string>
     <string name="feishu_configured">Configured</string>

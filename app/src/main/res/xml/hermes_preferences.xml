@@ -35,6 +35,10 @@
             android:title="@string/dashboard_llm_title"
             android:selectable="false" />
         <Preference
+            android:key="hermes_llm_quick_switch"
+            android:title="@string/llm_quick_switch_title"
+            android:summary="@string/llm_quick_switch_summary" />
+        <Preference
             android:key="hermes_dashboard_im"
             android:title="@string/dashboard_im_title"
             android:selectable="false" />
