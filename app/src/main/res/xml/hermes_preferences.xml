@@ -102,4 +102,12 @@
             android:summary="@string/config_import_summary" />
     </PreferenceCategory>
 
+
+    <PreferenceCategory android:title="Help">
+        <Preference
+            android:key="tutorial_reset"
+            android:title="@string/tutorial_reset_title"
+            android:summary="@string/tutorial_reset_summary" />
+    </PreferenceCategory>
+
 </PreferenceScreen>

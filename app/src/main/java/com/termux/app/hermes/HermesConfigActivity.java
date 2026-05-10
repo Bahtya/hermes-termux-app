@@ -6,6 +6,8 @@ import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
 import android.view.MenuItem;
+import android.view.View;
+import android.view.ViewGroup;
 import android.widget.ScrollView;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -22,6 +24,7 @@ import androidx.preference.PreferenceFragmentCompat;
 import androidx.preference.SwitchPreferenceCompat;
 
 import com.termux.R;
+import com.termux.app.hermes.HermesTutorialOverlay;
 import com.termux.shared.termux.TermuxConstants;
 
 import java.io.File;
@@ -32,6 +35,15 @@ public class HermesConfigActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_hermes_config);
+
+        // Show tutorial for first-time users
+        if (!HermesTutorialOverlay.isTutorialDone(this)) {
+            View rootView = findViewById(android.R.id.content);
+            if (rootView != null) {
+                rootView.post(() -> HermesTutorialOverlay.showIfNeeded(this,
+                        (ViewGroup) rootView, null));
+            }
+        }
         setSupportActionBar(findViewById(R.id.hermes_config_toolbar));
 
         ActionBar actionBar = getSupportActionBar();

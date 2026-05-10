@@ -821,6 +821,20 @@
         <item>120</item>
     </string-array>
 
+    <!-- Tutorial -->
+    <string name="tutorial_welcome_title">Welcome to Hermes!</string>
+    <string name="tutorial_welcome_desc">Hermes connects AI assistants to messaging platforms. Let us show you around.</string>
+    <string name="tutorial_gateway_title">Start Gateway</string>
+    <string name="tutorial_gateway_desc">Tap the Gateway tab to start/stop the Hermes gateway service.</string>
+    <string name="tutorial_llm_title">Configure LLM</string>
+    <string name="tutorial_llm_desc">Go to the LLM tab to set up your AI provider and API key.</string>
+    <string name="tutorial_im_title">Connect IM</string>
+    <string name="tutorial_im_desc">Use the IM tab to connect Feishu, Telegram, or Discord.</string>
+    <string name="tutorial_done_title">You are all set!</string>
+    <string name="tutorial_done_desc">Start the gateway and your AI assistant will begin responding.</string>
+    <string name="tutorial_reset_title">Restart Tutorial</string>
+    <string name="tutorial_reset_summary">Show the first-time tutorial again</string>
+
     <!-- Notification settings -->
     <string name="gateway_notif_category">Notification Settings</string>
     <string name="gateway_notif_importance_title">Notification Level</string>
