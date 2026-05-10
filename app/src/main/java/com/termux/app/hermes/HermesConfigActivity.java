@@ -841,9 +841,27 @@ public class HermesConfigActivity extends AppCompatActivity {
 
     public static class GatewayControlFragment extends PreferenceFragmentCompat {
 
+        private androidx.activity.result.ActivityResultLauncher<String> mNotifPermLauncher;
+
+        @Override
+        public void onCreate(Bundle savedInstanceState) {
+            super.onCreate(savedInstanceState);
+            mNotifPermLauncher = registerForActivityResult(
+                    new androidx.activity.result.contract.ActivityResultContracts.RequestPermission(),
+                    isGranted -> {
+                        Preference permPref = findPreference("gateway_notif_permission");
+                        if (permPref != null) {
+                            permPref.setSummary(isGranted
+                                    ? getString(R.string.gateway_notif_perm_granted)
+                                    : getString(R.string.gateway_notif_perm_denied));
+                        }
+                    });
+        }
+
         @Override
         public void onCreatePreferences(Bundle savedInstanceState, String rootKey) {
             setPreferencesFromResource(R.xml.hermes_gateway_preferences, rootKey);
+            updatePermSummary();
         }
 
         @Override
@@ -853,16 +871,69 @@ public class HermesConfigActivity extends AppCompatActivity {
 
             switch (key) {
                 case "gateway_start":
-                    runGatewayCommand("start");
+                    ensureNotificationPermissionThen(() -> runGatewayCommand("start"));
                     return true;
                 case "gateway_stop":
                     runGatewayCommand("stop");
                     return true;
                 case "gateway_restart":
-                    runGatewayCommand("restart");
+                    ensureNotificationPermissionThen(() -> runGatewayCommand("restart"));
+                    return true;
+                case "gateway_notif_permission":
+                    requestNotificationPermission();
                     return true;
             }
             return super.onPreferenceTreeClick(preference);
+        }
+
+        private void ensureNotificationPermissionThen(Runnable action) {
+            if (android.os.Build.VERSION.SDK_INT >= 33) {
+                if (requireContext().checkSelfPermission("android.permission.POST_NOTIFICATIONS")
+                        == android.content.pm.PackageManager.PERMISSION_GRANTED) {
+                    action.run();
+                } else {
+                    new AlertDialog.Builder(requireContext())
+                            .setTitle(R.string.gateway_notif_perm_rationale_title)
+                            .setMessage(R.string.gateway_notif_perm_rationale_message)
+                            .setPositiveButton(R.string.gateway_notif_perm_enable, (d, w) -> {
+                                mNotifPermLauncher.launch("android.permission.POST_NOTIFICATIONS");
+                                action.run();
+                            })
+                            .setNegativeButton(R.string.gateway_notif_perm_skip, (d, w) -> action.run())
+                            .show();
+                }
+            } else {
+                action.run();
+            }
+        }
+
+        private void requestNotificationPermission() {
+            if (android.os.Build.VERSION.SDK_INT >= 33) {
+                if (requireContext().checkSelfPermission("android.permission.POST_NOTIFICATIONS")
+                        == android.content.pm.PackageManager.PERMISSION_GRANTED) {
+                    Preference permPref = findPreference("gateway_notif_permission");
+                    if (permPref != null) permPref.setSummary(getString(R.string.gateway_notif_perm_granted));
+                } else {
+                    mNotifPermLauncher.launch("android.permission.POST_NOTIFICATIONS");
+                }
+            } else {
+                Preference permPref = findPreference("gateway_notif_permission");
+                if (permPref != null) permPref.setSummary(getString(R.string.gateway_notif_perm_granted));
+            }
+        }
+
+        private void updatePermSummary() {
+            Preference permPref = findPreference("gateway_notif_permission");
+            if (permPref == null) return;
+            if (android.os.Build.VERSION.SDK_INT < 33) {
+                permPref.setSummary(getString(R.string.gateway_notif_perm_granted));
+            } else {
+                boolean granted = requireContext().checkSelfPermission("android.permission.POST_NOTIFICATIONS")
+                        == android.content.pm.PackageManager.PERMISSION_GRANTED;
+                permPref.setSummary(granted
+                        ? getString(R.string.gateway_notif_perm_granted)
+                        : getString(R.string.gateway_notif_perm_summary));
+            }
         }
 
         private void runGatewayCommand(String action) {
