@@ -325,7 +325,10 @@ public class HermesGatewayService extends Service {
             );
             channel.setDescription("Hermes gateway status");
             if (isNotificationSoundEnabled()) {
-                channel.setSound(android.media.AudioManager.STREAM_NOTIFICATION, null);
+                channel.setSound(android.media.RingtoneManager.getDefaultUri(android.media.RingtoneManager.TYPE_NOTIFICATION),
+                        new android.media.AudioAttributes.Builder()
+                                .setUsage(android.media.AudioAttributes.USAGE_NOTIFICATION)
+                                .build());
             }
             if (isNotificationVibrateEnabled()) {
                 channel.setVibrationPattern(new long[]{0, 300, 200, 300});
