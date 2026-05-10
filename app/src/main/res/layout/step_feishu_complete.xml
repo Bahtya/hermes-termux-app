@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:fillViewport="true"
@@ -11,7 +12,6 @@
         android:orientation="vertical"
         android:gravity="center_horizontal">
 
-        <!-- Success icon -->
         <ImageView
             android:layout_width="64dp"
             android:layout_height="64dp"
@@ -29,9 +29,7 @@
             android:gravity="center"
             android:layout_marginBottom="20dp" />
 
-        <!-- Summary card -->
         <com.google.android.material.card.MaterialCardView
-            xmlns:app="http://schemas.android.com/apk/res-auto"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             app:cardBackgroundColor="?android:attr/colorBackground"
@@ -48,8 +46,6 @@
                 android:textColor="?android:attr/textColorPrimary"
                 android:lineSpacingMultiplier="1.4"
                 android:padding="16dp" />
-
         </com.google.android.material.card.MaterialCardView>
-
     </LinearLayout>
 </ScrollView>
