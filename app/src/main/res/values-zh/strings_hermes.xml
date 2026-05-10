@@ -230,4 +230,9 @@
     <string name="config_summary_section_persona">人设</string>
     <string name="config_summary_key_set">已设置</string>
     <string name="config_summary_key_not_set">未设置</string>
+
+    <!-- Custom Model -->
+    <string name="llm_model_custom">自定义（手动输入）</string>
+    <string name="llm_custom_model_title">自定义模型名称</string>
+    <string name="llm_custom_model_summary">输入要使用的模型名称</string>
 </resources>
