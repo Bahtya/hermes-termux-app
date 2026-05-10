@@ -78,6 +78,11 @@
     <PreferenceCategory android:title="@string/hermes_cat_advanced">
 
         <Preference
+            android:key="hermes_gateway_diagnostic"
+            android:title="@string/gateway_diagnostic_title"
+            android:summary="@string/gateway_diagnostic_summary" />
+
+        <Preference
             android:key="hermes_check_update"
             android:title="@string/hermes_check_update_title"
             android:summary="@string/hermes_check_update_summary" />
