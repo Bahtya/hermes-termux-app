@@ -49,6 +49,12 @@ public class HermesGatewayService extends Service {
     private int mRestartAttempts = 0;
     private static final int MAX_RESTARTS = 3;
     private long mProcessStartTime = 0;
+    private static volatile long sStartTime = 0;
+
+    /** Returns the timestamp when the gateway was last started, or 0 if not running. */
+    public static long getStartTime() {
+        return sStartTime;
+    }
 
     private final Runnable mHealthCheck = new Runnable() {
         @Override
@@ -65,6 +71,7 @@ public class HermesGatewayService extends Service {
                     Log.e(TAG, "Gateway failed after " + MAX_RESTARTS + " restart attempts");
                     showErrorNotification();
                     mRunning = false;
+                    sStartTime = 0;
                 } else {
                     // Process is alive — reset restart count after stable uptime
                     long uptime = System.currentTimeMillis() - mProcessStartTime;
@@ -145,6 +152,7 @@ public class HermesGatewayService extends Service {
                 mGatewayProcess = pb.start();
                 mRunning = true;
                 mProcessStartTime = System.currentTimeMillis();
+                sStartTime = mProcessStartTime;
                 if (mRestartAttempts == 0) {
                     clearRestartState();
                 }
@@ -164,6 +172,7 @@ public class HermesGatewayService extends Service {
 
     private void stopGateway() {
         mRunning = false;
+        sStartTime = 0;
         mHandler.removeCallbacks(mHealthCheck);
 
         try {

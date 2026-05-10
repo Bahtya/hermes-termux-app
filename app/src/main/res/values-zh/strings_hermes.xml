@@ -313,4 +313,8 @@
     <string name="llm_paste_key_summary">从剪贴板粘贴 API 密钥</string>
     <string name="llm_paste_key_success">API 密钥已从剪贴板粘贴</string>
     <string name="llm_paste_key_empty">剪贴板为空或不包含密钥</string>
+    <!-- Uptime -->
+    <string name="uptime_hours_minutes">%1$d小时%2$d分钟</string>
+    <string name="uptime_minutes">%1$d分钟</string>
+    <string name="uptime_just_started">刚刚启动</string>
 </resources>
