@@ -216,10 +216,16 @@
 
     <string name="hermes_llm_config_title">LLM Configuration</string>
     <string name="hermes_llm_config_summary">Set AI provider, API key, and model</string>
+    <string name="hermes_feishu_toggle">Enable Feishu</string>
+    <string name="hermes_feishu_toggle_summary">Connect to Feishu when gateway is running</string>
     <string name="hermes_feishu_setup_title">Feishu / Lark Setup</string>
     <string name="hermes_feishu_setup_summary">One-click Feishu bot configuration</string>
+    <string name="hermes_telegram_toggle">Enable Telegram</string>
+    <string name="hermes_telegram_toggle_summary">Connect to Telegram when gateway is running</string>
     <string name="hermes_telegram_setup_title">Telegram Setup</string>
     <string name="hermes_telegram_setup_summary">Connect your Telegram bot</string>
+    <string name="hermes_discord_toggle">Enable Discord</string>
+    <string name="hermes_discord_toggle_summary">Connect to Discord when gateway is running</string>
     <string name="hermes_discord_setup_title">Discord Setup</string>
     <string name="hermes_discord_setup_summary">Connect your Discord bot</string>
     <string name="hermes_language_title">Language</string>

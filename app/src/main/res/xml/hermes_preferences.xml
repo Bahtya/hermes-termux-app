@@ -90,15 +90,33 @@
             android:summary="@string/hermes_llm_config_summary"
             android:icon="@drawable/ic_settings" />
 
+        <SwitchPreferenceCompat
+            android:key="hermes_feishu_enabled"
+            android:title="@string/hermes_feishu_toggle"
+            android:summary="@string/hermes_feishu_toggle_summary"
+            android:defaultValue="true" />
+
         <Preference
             android:key="hermes_feishu_setup"
             android:title="@string/hermes_feishu_setup_title"
             android:summary="@string/hermes_feishu_setup_summary" />
 
+        <SwitchPreferenceCompat
+            android:key="hermes_telegram_enabled"
+            android:title="@string/hermes_telegram_toggle"
+            android:summary="@string/hermes_telegram_toggle_summary"
+            android:defaultValue="true" />
+
         <Preference
             android:key="hermes_telegram_setup"
             android:title="@string/hermes_telegram_setup_title"
             android:summary="@string/hermes_telegram_setup_summary" />
+
+        <SwitchPreferenceCompat
+            android:key="hermes_discord_enabled"
+            android:title="@string/hermes_discord_toggle"
+            android:summary="@string/hermes_discord_toggle_summary"
+            android:defaultValue="true" />
 
         <Preference
             android:key="hermes_discord_setup"
