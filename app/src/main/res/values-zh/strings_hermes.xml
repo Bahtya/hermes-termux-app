@@ -33,6 +33,60 @@
     <string name="hermes_import_success">配置导入成功</string>
     <string name="hermes_import_failed">导入失败：%1$s</string>
 
+    <!-- Help & FAQ -->
+    <string name="hermes_help_faq_title">帮助与常见问题</string>
+    <string name="hermes_help_faq_summary">常见问题和故障排除</string>
+    <string name="hermes_help_faq_dialog_title">帮助与常见问题</string>
+    <string name="hermes_help_copy_debug">复制调试信息</string>
+    <string name="hermes_help_debug_copied">调试信息已复制到剪贴板</string>
+    <string name="hermes_help_faq_content" formatted="false"><![CDATA[
+<h3>入门指南</h3>
+<p><b>使用 Hermes 需要什么？</b><br/>
+您需要：① AI 提供商的 API 密钥（如 OpenAI、Anthropic）和 ② 至少一个消息平台（飞书、Telegram 或 Discord）。使用仪表板上的设置进度追踪器来引导您完成配置。</p>
+
+<h3>API 密钥问题</h3>
+<p><b>在哪里获取 API 密钥？</b><br/>
+• OpenAI：platform.openai.com → API Keys<br/>
+• Anthropic：console.anthropic.com → Keys<br/>
+• DeepSeek（深度求索）：platform.deepseek.com → API Keys<br/>
+• Google AI：aistudio.google.com → 获取 API Key</p>
+
+<p><b>API 密钥无效</b><br/>
+1. 检查开头/结尾是否有多余空格<br/>
+2. 确认选择了正确的提供商<br/>
+3. 确认密钥未过期或被撤销<br/>
+4. 使用 LLM 配置中的"测试连接"按钮验证</p>
+
+<h3>网关无法启动</h3>
+<p><b>网关显示"未安装"</b><br/>
+等待 Hermes 安装完成（首次启动可能需要 2–5 分钟）。查看通知栏了解进度。</p>
+
+<p><b>网关不断崩溃</b><br/>
+1. 打开网关日志查看错误信息<br/>
+2. 验证 API 密钥是否正确<br/>
+3. 确认至少配置了一个消息平台<br/>
+4. 尝试从网关控制中重启网关</p>
+
+<h3>连接问题</h3>
+<p><b>Ollama：无法连接 localhost</b><br/>
+确保 Ollama 在同一设备上运行。默认地址是 http://localhost:11434。如果 Ollama 在其他机器上，请在"API 地址"中设置正确的 IP。</p>
+
+<p><b>网络错误</b><br/>
+1. 检查网络连接<br/>
+2. 如果使用了防火墙/VPN，尝试关闭<br/>
+3. 使用网关控制中的"连接诊断"功能</p>
+
+<h3>飞书设置</h3>
+<p><b>如何创建飞书机器人</b><br/>
+1. 打开 open.feishu.cn → 创建应用 → 机器人<br/>
+2. 在应用中启用"机器人"能力<br/>
+3. 复制 App ID（以 cli_ 开头）和 App Secret<br/>
+4. 使用 Hermes 设置中的配置向导</p>
+
+<p><b>App ID 格式</b><br/>
+App ID 以"cli_"开头，约 10-20 个字符。App Secret 较长（30+ 字符）。</p>
+]]></string>
+
     <!-- LLM Preferences -->
     <string name="llm_preset_title">快捷预设</string>
     <string name="llm_preset_summary">选择预设以获得最佳参数设置</string>
