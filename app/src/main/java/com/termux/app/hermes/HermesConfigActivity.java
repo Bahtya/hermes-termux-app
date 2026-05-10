@@ -1,9 +1,13 @@
 package com.termux.app.hermes;
 
+import android.content.ClipData;
+import android.content.ClipboardManager;
 import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
 import android.view.MenuItem;
+import android.widget.ScrollView;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
@@ -149,11 +153,6 @@ public class HermesConfigActivity extends AppCompatActivity {
                 });
             }
 
-            // IM platform enable/disable toggles
-            setupImToggle("hermes_feishu_enabled", "feishu");
-            setupImToggle("hermes_telegram_enabled", "telegram");
-            setupImToggle("hermes_discord_enabled", "discord");
-
             // Show LLM config status
             Preference llmPref = findPreference("hermes_llm_config");
             if (llmPref != null) {
@@ -233,6 +232,9 @@ public class HermesConfigActivity extends AppCompatActivity {
                 case "hermes_import_config":
                     showImportConfirmDialog();
                     return true;
+                case "hermes_help_faq":
+                    showFaqDialog();
+                    return true;
             }
             return super.onPreferenceTreeClick(preference);
         }
@@ -305,15 +307,91 @@ public class HermesConfigActivity extends AppCompatActivity {
             }
         }
 
-        private void setupImToggle(String prefKey, String platform) {
-            SwitchPreferenceCompat toggle = findPreference(prefKey);
-            if (toggle != null) {
-                toggle.setChecked(mConfigManager.isImPlatformEnabled(platform));
-                toggle.setOnPreferenceChangeListener((p, newVal) -> {
-                    mConfigManager.setImPlatformEnabled(platform, (Boolean) newVal);
-                    return true;
-                });
+        private void showFaqDialog() {
+            ScrollView scrollView = new ScrollView(requireContext());
+            TextView textView = new TextView(requireContext());
+            int padding = (int) (24 * getResources().getDisplayMetrics().density);
+            textView.setPadding(padding, padding, padding, 0);
+            textView.setText(getString(R.string.hermes_faq_content));
+            scrollView.addView(textView);
+
+            AlertDialog dialog = new AlertDialog.Builder(requireContext())
+                    .setTitle(R.string.hermes_help_faq_title)
+                    .setView(scrollView)
+                    .setPositiveButton(android.R.string.ok, null)
+                    .setNeutralButton(R.string.hermes_faq_copy_debug, (d, which) -> copyDebugInfo())
+                    .show();
+        }
+
+        private void copyDebugInfo() {
+            StringBuilder sb = new StringBuilder();
+            sb.append("=== Hermes Debug Info ===\n\n");
+
+            // Provider & Model
+            String provider = mConfigManager.getModelProvider();
+            String model = mConfigManager.getModelName();
+            sb.append("Provider: ").append(provider).append("\n");
+            sb.append("Model: ").append(model).append("\n");
+
+            // API Key status (masked)
+            String apiKey = mConfigManager.getApiKey(provider);
+            if (apiKey != null && !apiKey.isEmpty()) {
+                String masked;
+                if (apiKey.length() < 8) {
+                    masked = "****";
+                } else {
+                    masked = apiKey.substring(0, 4) + "..." + apiKey.substring(apiKey.length() - 4);
+                }
+                sb.append("API Key: ").append(masked).append("\n");
+            } else {
+                sb.append("API Key: (not set)\n");
             }
+
+            // IM status
+            sb.append("\nMessaging:\n");
+            if (mConfigManager.isFeishuConfigured()) {
+                sb.append("  Feishu: Configured\n");
+            } else {
+                sb.append("  Feishu: Not configured\n");
+            }
+            if (!mConfigManager.getEnvVar("TELEGRAM_BOT_TOKEN").isEmpty()) {
+                sb.append("  Telegram: Configured\n");
+            } else {
+                sb.append("  Telegram: Not configured\n");
+            }
+            if (!mConfigManager.getEnvVar("DISCORD_BOT_TOKEN").isEmpty()) {
+                sb.append("  Discord: Configured\n");
+            } else {
+                sb.append("  Discord: Not configured\n");
+            }
+
+            // Gateway status
+            sb.append("\nGateway: ");
+            HermesGatewayStatus.checkAsync((status, detail) -> {
+                if (getActivity() == null) return;
+                getActivity().runOnUiThread(() -> {
+                    String statusStr;
+                    switch (status) {
+                        case RUNNING:
+                            statusStr = "Running";
+                            break;
+                        case NOT_INSTALLED:
+                            statusStr = "Not installed";
+                            break;
+                        default:
+                            statusStr = "Stopped";
+                            break;
+                    }
+                    sb.append(statusStr).append("\n");
+
+                    ClipboardManager clipboard = (ClipboardManager) requireContext()
+                            .getSystemService(Context.CLIPBOARD_SERVICE);
+                    ClipData clip = ClipData.newPlainText("Hermes Debug Info", sb.toString());
+                    clipboard.setPrimaryClip(clip);
+                    Toast.makeText(requireContext(), R.string.hermes_faq_debug_copied,
+                            Toast.LENGTH_SHORT).show();
+                });
+            });
         }
 
         private void showResetConfirmDialog() {
@@ -457,8 +535,6 @@ public class HermesConfigActivity extends AppCompatActivity {
                 apiKeyPref.setOnPreferenceChangeListener((p, newVal) -> {
                     mConfigManager.setApiKey(mConfigManager.getModelProvider(), (String) newVal);
                     p.setSummary(maskApiKey((String) newVal));
-                    invalidateTestCache();
-                    updateTestConnectionSummary();
                     return true;
                 });
             }
@@ -550,39 +626,6 @@ public class HermesConfigActivity extends AppCompatActivity {
             return super.onPreferenceTreeClick(preference);
         }
 
-        private void cacheTestResult(boolean passed) {
-            requireContext().getSharedPreferences(PREFS_LLM_TEST, Context.MODE_PRIVATE)
-                    .edit()
-                    .putString(KEY_TEST_STATUS, passed ? "pass" : "fail")
-                    .putLong(KEY_TEST_TIME, System.currentTimeMillis())
-                    .putString(KEY_TEST_PROVIDER, mConfigManager.getModelProvider())
-                    .putString(KEY_TEST_MODEL, mConfigManager.getModelName())
-                    .apply();
-        }
-
-        private void invalidateTestCache() {
-            requireContext().getSharedPreferences(PREFS_LLM_TEST, Context.MODE_PRIVATE)
-                    .edit().clear().apply();
-        }
-
-        private void updateTestConnectionSummary() {
-            Preference testPref = findPreference("llm_test_connection");
-            if (testPref == null) return;
-            android.content.SharedPreferences prefs = requireContext().getSharedPreferences(PREFS_LLM_TEST, Context.MODE_PRIVATE);
-            String status = prefs.getString(KEY_TEST_STATUS, null);
-            if (status == null) {
-                testPref.setSummary(getString(R.string.llm_test_never_run));
-                return;
-            }
-            long time = prefs.getLong(KEY_TEST_TIME, 0);
-            CharSequence timeStr = android.text.format.DateUtils.getRelativeTimeSpanString(time);
-            if ("pass".equals(status)) {
-                testPref.setSummary(getString(R.string.llm_test_last_pass, timeStr));
-            } else {
-                testPref.setSummary(getString(R.string.llm_test_last_fail, timeStr));
-            }
-        }
-
         private void testConnection(Preference testPref) {
             String provider = mConfigManager.getModelProvider();
             String apiKey = mConfigManager.getApiKey(provider);
@@ -602,21 +645,17 @@ public class HermesConfigActivity extends AppCompatActivity {
                 String[] result = performConnectionTest(provider, finalApiKey, model);
                 requireActivity().runOnUiThread(() -> {
                     if (result[0].equals("success")) {
-                        cacheTestResult(true);
                         if ("ollama".equals(provider)) {
                             testPref.setSummary(getString(R.string.llm_test_success_no_key, provider));
                         } else {
                             testPref.setSummary(getString(R.string.llm_test_success, model));
                         }
+                    } else if (result[0].equals("auth")) {
+                        testPref.setSummary(getString(R.string.llm_test_fail_auth));
+                    } else if (result[0].equals("network")) {
+                        testPref.setSummary(getString(R.string.llm_test_fail_network));
                     } else {
-                        cacheTestResult(false);
-                        if (result[0].equals("auth")) {
-                            testPref.setSummary(getString(R.string.llm_test_fail_auth));
-                        } else if (result[0].equals("network")) {
-                            testPref.setSummary(getString(R.string.llm_test_fail_network));
-                        } else {
-                            testPref.setSummary(getString(R.string.llm_test_fail_generic, result[1]));
-                        }
+                        testPref.setSummary(getString(R.string.llm_test_fail_generic, result[1]));
                     }
                 });
             }).start();
