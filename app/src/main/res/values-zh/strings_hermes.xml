@@ -121,6 +121,55 @@ App ID 以"cli_"开头，约 10-20 个字符。App Secret 较长（30+ 字符）
         <item>自定义</item>
     </string-array>
 
+    <!-- LLM Config Categories -->
+    <string name="llm_category_provider">提供商</string>
+    <string name="llm_category_auth">认证</string>
+    <string name="llm_category_endpoint">端点</string>
+    <string name="llm_category_model">模型</string>
+    <string name="llm_category_test">连接测试</string>
+
+    <!-- LLM Provider Info -->
+    <string name="llm_provider_info_title">提供商说明</string>
+    <string name="llm_provider_info_openai">OpenAI — 业界领先的 GPT-4o、o1 等模型</string>
+    <string name="llm_provider_info_anthropic">Anthropic — Claude 系列模型，以安全性和推理能力著称</string>
+    <string name="llm_provider_info_google">Google Gemini — Google DeepMind 的多模态模型</string>
+    <string name="llm_provider_info_deepseek">DeepSeek — 中国的高质量开源模型</string>
+    <string name="llm_provider_info_openrouter">OpenRouter — 统一接口访问 100+ 模型</string>
+    <string name="llm_provider_info_xai">xAI — xAI 出品的 Grok 模型</string>
+    <string name="llm_provider_info_alibaba">阿里云通义千问 — 阿里云 DashScope 出品</string>
+    <string name="llm_provider_info_mistral">Mistral — 欧洲AI实验室，开源和商业模型</string>
+    <string name="llm_provider_info_nvidia">NVIDIA NIM — 通过 NVIDIA API 运行优化模型</string>
+    <string name="llm_provider_info_ollama">Ollama — 在本设备上运行开源模型</string>
+    <string name="llm_provider_info_custom">自定义 — 任何 OpenAI 兼容 API 端点</string>
+
+    <!-- LLM API Key Hints -->
+    <string name="llm_api_key_hint_openai">在 platform.openai.com/api-keys 获取密钥</string>
+    <string name="llm_api_key_hint_anthropic">在 console.anthropic.com 获取密钥</string>
+    <string name="llm_api_key_hint_google">在 aistudio.google.com/apikey 获取密钥</string>
+    <string name="llm_api_key_hint_deepseek">在 platform.deepseek.com 获取密钥</string>
+    <string name="llm_api_key_hint_openrouter">在 openrouter.ai/keys 获取密钥</string>
+    <string name="llm_api_key_hint_xai">在 console.x.ai 获取密钥</string>
+    <string name="llm_api_key_hint_alibaba">在 dashscope.console.aliyun.com 获取密钥</string>
+    <string name="llm_api_key_hint_mistral">在 console.mistral.ai 获取密钥</string>
+    <string name="llm_api_key_hint_nvidia">在 build.nvidia.com 获取密钥</string>
+    <string name="llm_api_key_hint_ollama">Ollama 在本地运行 — 无需 API 密钥</string>
+    <string name="llm_api_key_hint_custom">输入您自定义端点的 API 密钥</string>
+    <string name="llm_api_key_not_needed">此提供商无需 API 密钥</string>
+
+    <!-- LLM Base URL -->
+    <string name="llm_base_url_hint_default">根据提供商自动配置</string>
+    <string name="llm_base_url_hint_ollama">Ollama 默认：http://localhost:11434</string>
+    <string name="llm_base_url_hint_custom">输入 OpenAI 兼容 API 的完整地址</string>
+    <string name="llm_base_url_auto_set">自动配置：%1$s</string>
+
+    <!-- Custom Model -->
+    <string name="llm_custom_model_title">自定义模型名称</string>
+    <string name="llm_custom_model_summary">输入列表中没有的模型名称</string>
+
+    <!-- LLM Validation -->
+    <string name="llm_api_key_format_warn">API 密钥格式可能有误 — 请仔细检查</string>
+    <string name="llm_base_url_invalid">URL 格式无效</string>
+
     <!-- LLM Test Connection -->
     <string name="llm_test_connection_title">测试连接</string>
     <string name="llm_test_connection_summary">验证 API 密钥和模型是否正常工作</string>

@@ -446,9 +446,56 @@ App ID starts with "cli_" and is about 10–20 characters. App Secret is longer 
         <item>@string/llm_model_custom</item>
     </string-array>
 
+    <!-- LLM Config Categories -->
+    <string name="llm_category_provider">Provider</string>
+    <string name="llm_category_auth">Authentication</string>
+    <string name="llm_category_endpoint">Endpoint</string>
+    <string name="llm_category_model">Model</string>
+    <string name="llm_category_test">Connection Test</string>
+
+    <!-- LLM Provider Info -->
+    <string name="llm_provider_info_title">Provider Info</string>
+    <string name="llm_provider_info_openai">OpenAI — industry-leading models like GPT-4o and o1</string>
+    <string name="llm_provider_info_anthropic">Anthropic — Claude models known for safety and reasoning</string>
+    <string name="llm_provider_info_google">Google Gemini — multimodal models by Google DeepMind</string>
+    <string name="llm_provider_info_deepseek">DeepSeek — high-quality open-source models from China</string>
+    <string name="llm_provider_info_openrouter">OpenRouter — unified API for 100+ models from all providers</string>
+    <string name="llm_provider_info_xai">xAI — Grok models by xAI</string>
+    <string name="llm_provider_info_alibaba">Alibaba Qwen — models by Alibaba Cloud (DashScope)</string>
+    <string name="llm_provider_info_mistral">Mistral — European AI lab, open and commercial models</string>
+    <string name="llm_provider_info_nvidia">NVIDIA NIM — optimized models via NVIDIA API</string>
+    <string name="llm_provider_info_ollama">Ollama — run open-source models locally on this device</string>
+    <string name="llm_provider_info_custom">Custom — any OpenAI-compatible API endpoint</string>
+
+    <!-- LLM API Key Hints -->
+    <string name="llm_api_key_hint_openai">Get your key at platform.openai.com/api-keys</string>
+    <string name="llm_api_key_hint_anthropic">Get your key at console.anthropic.com</string>
+    <string name="llm_api_key_hint_google">Get your key at aistudio.google.com/apikey</string>
+    <string name="llm_api_key_hint_deepseek">Get your key at platform.deepseek.com</string>
+    <string name="llm_api_key_hint_openrouter">Get your key at openrouter.ai/keys</string>
+    <string name="llm_api_key_hint_xai">Get your key at console.x.ai</string>
+    <string name="llm_api_key_hint_alibaba">Get your key at dashscope.console.aliyun.com</string>
+    <string name="llm_api_key_hint_mistral">Get your key at console.mistral.ai</string>
+    <string name="llm_api_key_hint_nvidia">Get your key at build.nvidia.com</string>
+    <string name="llm_api_key_hint_ollama">Ollama runs locally — no API key needed</string>
+    <string name="llm_api_key_hint_custom">Enter the API key for your custom endpoint</string>
+    <string name="llm_api_key_not_needed">No API key required for this provider</string>
+
     <!-- LLM Base URL -->
     <string name="llm_base_url_title">Base URL</string>
     <string name="llm_base_url_summary">Custom endpoint URL (for Ollama or compatible APIs)</string>
+    <string name="llm_base_url_hint_default">Automatically set based on provider</string>
+    <string name="llm_base_url_hint_ollama">Ollama default: http://localhost:11434</string>
+    <string name="llm_base_url_hint_custom">Enter the full URL of your OpenAI-compatible API</string>
+    <string name="llm_base_url_auto_set">Auto-configured: %1$s</string>
+
+    <!-- Custom Model -->
+    <string name="llm_custom_model_title">Custom Model Name</string>
+    <string name="llm_custom_model_summary">Enter a model name not in the list above</string>
+
+    <!-- LLM Validation -->
+    <string name="llm_api_key_format_warn">API key format looks incorrect — please double-check</string>
+    <string name="llm_base_url_invalid">URL format is invalid</string>
 
     <!-- Custom Model -->
     <string name="llm_custom_model_title">Custom Model Name</string>
