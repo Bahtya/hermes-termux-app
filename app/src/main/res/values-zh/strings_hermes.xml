@@ -196,6 +196,8 @@
     <string name="hermes_telegram_setup_summary">连接您的 Telegram 机器人</string>
     <string name="hermes_discord_setup_title">Discord 设置</string>
     <string name="hermes_discord_setup_summary">连接您的 Discord 机器人</string>
+    <string name="hermes_language_title">语言</string>
+    <string name="hermes_language_summary">更改应用语言（重启活动生效）</string>
 
     <string name="telegram_setup_title">Telegram 机器人设置</string>
     <string name="telegram_welcome_title">连接到 Telegram</string>

@@ -235,6 +235,27 @@ public class HermesConfigActivity extends AppCompatActivity {
 
             // Show LLM config status
             Preference llmPref = findPreference("hermes_llm_config");
+
+            // Language switcher
+            ListPreference langPref = findPreference("hermes_language");
+            if (langPref != null) {
+                langPref.setOnPreferenceChangeListener((p, newVal) -> {
+                    String lang = (String) newVal;
+                    android.content.res.Configuration config = getResources().getConfiguration();
+                    android.content.res.Resources resources = getResources();
+                    java.util.Locale locale;
+                    switch (lang) {
+                        case "en": locale = java.util.Locale.ENGLISH; break;
+                        case "zh": locale = java.util.Locale.SIMPLIFIED_CHINESE; break;
+                        default: locale = resources.getConfiguration().getLocales().get(0); break;
+                    }
+                    config.setLocale(locale);
+                    resources.updateConfiguration(config, resources.getDisplayMetrics());
+                    // Restart activity to apply
+                    requireActivity().recreate();
+                    return true;
+                });
+            }
             if (llmPref != null) {
                 String provider = mConfigManager.getModelProvider();
                 String apiKey = mConfigManager.getApiKey(provider);
