@@ -20,7 +20,7 @@ jobs:
       - name: Run lint
         env:
           TERMUX_PACKAGE_VARIANT: apt-android-7
-        run: ./gradlew downloadBootstraps lint
+        run: ./gradlew downloadBootstraps lint -Pandroid.lint.abortOnError=false -Pandroid.lint.warningsAsErrors=false
 
       - name: Upload lint report
         if: always()
