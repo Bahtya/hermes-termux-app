@@ -61,6 +61,18 @@ public class HermesConfigActivity extends AppCompatActivity {
         public void onCreatePreferences(Bundle savedInstanceState, String rootKey) {
             setPreferencesFromResource(R.xml.hermes_preferences, rootKey);
             mConfigManager = HermesConfigManager.getInstance();
+            refreshDashboard();
+        }
+
+        @Override
+        public void onResume() {
+            super.onResume();
+            refreshDashboard();
+        }
+
+        private void refreshDashboard() {
+            if (mConfigManager == null) return;
+            mConfigManager.loadConfig();
 
             // --- Dashboard: Gateway status ---
             Preference dashGateway = findPreference("hermes_dashboard_gateway");
