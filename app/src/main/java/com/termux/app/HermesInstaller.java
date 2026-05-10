@@ -52,7 +52,7 @@ public class HermesInstaller {
         File bootDir = TermuxConstants.TERMUX_BOOT_SCRIPTS_DIR;
         FileUtils.createDirectoryFile(bootDir.getAbsolutePath());
 
-        String script = "#!/data/data/com.termux/files/usr/bin/sh\n"
+        String script = "#!" + TermuxConstants.TERMUX_BIN_PREFIX_DIR_PATH + "/sh\n"
                 + "# Auto-start Hermes gateway on boot\n"
                 + "if command -v hermes >/dev/null 2>&1; then\n"
                 + "    hermes gateway run &\n"
