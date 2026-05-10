@@ -89,7 +89,6 @@
     <string name="whatsapp_complete_summary">已连接令牌: %s</string>
 
     <!-- Discord -->
-    <string name="discord_setup_title">Discord 机器人设置</string>
     <string name="discord_intents_title">必需的机器人意图</string>
     <string name="discord_intents_desc">为让 Hermes 读取消息，你必须在 Discord 开发者门户中启用这些特权网关意图:</string>
     <string name="discord_intent_message_content">消息内容意图（必需）</string>
@@ -101,7 +100,6 @@
     <string name="discord_invite_copy">复制邀请链接</string>
 
     <!-- Telegram -->
-    <string name="telegram_setup_title">Telegram 机器人设置</string>
 
     <!-- Generation Parameters -->
     <string name="llm_top_p_title">Top P (核采样)</string>
