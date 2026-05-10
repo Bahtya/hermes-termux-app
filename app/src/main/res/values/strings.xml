@@ -576,4 +576,67 @@
     <string name="hermes_setup_done_title">You\'re all set!</string>
     <string name="hermes_setup_done_text">Hermes is ready to go. You can start the gateway from the Hermes Settings or use the Web UI tab.\n\nTo change your settings at any time, tap the Hermes icon in the sidebar.</string>
 
+    <string name="im_scan_qr_code">Scan QR Code</string>
+    <string name="im_scan_qr_prompt">Scan QR code to fill credentials</string>
+    <string name="im_scan_token_filled">Token filled from QR code</string>
+    <string name="im_test_no_token">Please enter a bot token first</string>
+    <string name="im_test_running">Testing connection...</string>
+    <string name="im_test_retry">Retry</string>
+    <string name="im_test_detail_success">Connected! Bot: %1$s</string>
+    <string name="im_test_detail_fail">Failed: %1$s - %2$s</string>
+    <string name="feishu_scan_qr_code">Scan QR Code</string>
+    <string name="feishu_scan_prompt">Scan a QR code to fill credentials</string>
+    <string name="feishu_scan_filled">Credentials filled from QR code</string>
+    <string name="feishu_scan_app_id_filled">App ID filled: %1$s</string>
+    <string name="feishu_no_qr_scanner">No QR scanner app found. Please install one.</string>
+    <string name="help_what_is_hermes_title">What is Hermes?</string>
+    <string name="help_what_is_hermes">Hermes is an AI assistant gateway that connects language models to messaging platforms like Feishu, Telegram, and Discord.</string>
+    <string name="help_quick_start_title">Quick Start</string>
+    <string name="help_quick_start">1. Configure your LLM provider and API key
+2. Set up a messaging platform
+3. Start the gateway</string>
+    <string name="help_connecting_im_title">Connecting Messaging Platforms</string>
+    <string name="help_connecting_im">Hermes supports Feishu/Lark, Telegram, and Discord. Use the setup wizard for guided configuration.</string>
+    <string name="help_troubleshooting_title">Troubleshooting</string>
+    <string name="help_troubleshooting">If the gateway won't start, check the gateway log for errors. Make sure your API key is valid and your network connection works.</string>
+    <string name="help_links_title">Useful Links</string>
+    <string name="help_link_docs">Documentation</string>
+    <string name="help_link_github">GitHub Repository</string>
+    <string name="help_link_issues">Report an Issue</string>
+    <string name="help_faq_title">FAQ</string>
+    <string name="help_faq">Frequently Asked Questions</string>
+    <string name="install_subtitle">Setting up Hermes Agent</string>
+    <string name="install_checking">Checking for Hermes...</string>
+    <string name="install_downloading">Downloading Hermes...</string>
+    <string name="install_configuring">Configuring...</string>
+    <string name="install_complete">Hermes installed successfully!</string>
+    <string name="install_failed">Installation failed: %1$s</string>
+    <string name="install_failed_help">Check your internet connection and try again.</string>
+    <string name="install_retry">Retry</string>
+    <string name="install_retrying">Retrying (%1$d/%2$d)...</string>
+    <string name="install_skip">Skip</string>
+    <string name="install_step_check">Checking</string>
+    <string name="install_step_download">Downloading</string>
+    <string name="install_step_configure">Configuring</string>
+    <string name="install_step_done">Done</string>
+    <string name="install_title">Hermes Installation</string>
+    <string name="help_title">Hermes Help</string>
+    <string name="llm_get_api_key_title">Get API Key</string>
+    <string name="llm_get_api_key_summary">Open provider dashboard to get or manage your API key</string>
+    <string name="llm_docs_title">Provider Documentation</string>
+    <string name="llm_docs_summary">View setup guides and pricing</string>
+    <string-array name="llm_preset_names">
+        <item>Balanced</item>
+        <item>Creative</item>
+        <item>Precise</item>
+        <item>Code</item>
+        <item>Custom</item>
+    </string-array>
+    <string-array name="llm_preset_values">
+        <item>balanced</item>
+        <item>creative</item>
+        <item>precise</item>
+        <item>code</item>
+        <item>custom</item>
+    </string-array>
 </resources>
