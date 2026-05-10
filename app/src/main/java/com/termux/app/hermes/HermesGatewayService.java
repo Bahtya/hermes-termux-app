@@ -319,7 +319,7 @@ public class HermesGatewayService extends Service {
     private void showCrashNotification(int attempt) {
         Notification notification = new NotificationCompat.Builder(this, ERROR_CHANNEL_ID)
                 .setContentTitle("Hermes Gateway Restarted")
-                .setContentText("Gateway crashed and was restarted (attempt " + attempt + "/" + MAX_RESTARTS + ")")
+                .setContentText("Gateway crashed and was restarted (attempt " + attempt + "/" + getMaxRestarts() + ")")
                 .setSmallIcon(R.drawable.ic_hermes)
                 .setAutoCancel(true)
                 .setPriority(NotificationCompat.PRIORITY_DEFAULT)
@@ -336,7 +336,7 @@ public class HermesGatewayService extends Service {
 
         Notification notification = new NotificationCompat.Builder(this, ERROR_CHANNEL_ID)
                 .setContentTitle("Hermes Gateway Stopped")
-                .setContentText("Gateway crashed " + MAX_RESTARTS + " times and could not recover")
+                .setContentText("Gateway crashed " + getMaxRestarts() + " times and could not recover")
                 .setSmallIcon(R.drawable.ic_hermes)
                 .setAutoCancel(false)
                 .setOngoing(true)
