@@ -532,6 +532,22 @@ App ID starts with "cli_" and is about 10–20 characters. App Secret is longer 
     <string name="gateway_stopped_crash_message">Crashed %1$d times — could not recover</string>
 
         <!-- Gateway Control -->
+    <!-- LLM Config QR Share -->
+    <string name="llm_category_share">Share Config</string>
+    <string name="llm_export_qr_title">Export as QR Code</string>
+    <string name="llm_export_qr_summary">Generate QR code with your LLM settings (excludes API key)</string>
+    <string name="llm_import_qr_title">Import via QR Code</string>
+    <string name="llm_import_qr_summary">Scan a QR code to load LLM settings</string>
+    <string name="llm_qr_export_title">LLM Configuration QR Code</string>
+    <string name="llm_qr_export_warning">API keys are NOT included in the QR code for security</string>
+    <string name="llm_qr_import_confirm_title">Apply Imported Configuration?</string>
+    <string name="llm_qr_import_confirm_message">Provider: %1$s\nModel: %2$s\nBase URL: %3$s\n\nApply these settings?</string>
+    <string name="llm_qr_import_applied">Configuration imported successfully</string>
+    <string name="llm_qr_import_failed">Failed to read QR code: %1$s</string>
+    <string name="llm_qr_no_scanner">No QR scanner app found. Please install a barcode scanner.</string>
+    <string name="llm_qr_invalid_data">Invalid configuration data in QR code</string>
+
+    <!-- Gateway Control -->
     <string name="gateway_start_title">Start Gateway</string>
     <string name="gateway_start_summary">Start the Hermes messaging gateway</string>
     <string name="gateway_auto_start_title">Auto-start Gateway</string>

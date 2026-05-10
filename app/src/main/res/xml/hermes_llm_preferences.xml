@@ -145,4 +145,15 @@
 
     </PreferenceCategory>
 
+    <PreferenceCategory android:title="@string/llm_category_share">
+        <Preference
+            android:key="llm_export_qr"
+            android:title="@string/llm_export_qr_title"
+            android:summary="@string/llm_export_qr_summary" />
+        <Preference
+            android:key="llm_import_qr"
+            android:title="@string/llm_import_qr_title"
+            android:summary="@string/llm_import_qr_summary" />
+    </PreferenceCategory>
+
 </PreferenceScreen>
