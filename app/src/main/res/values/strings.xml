@@ -239,4 +239,14 @@
     <!-- Donate Preference -->
     <string name="donate_preference_title">Donate</string>
 
+
+
+    <!-- Hermes Web -->
+    <string name="hermes_web_title">Hermes Web</string>
+    <string name="hermes_web_not_found_title">Web UI not found</string>
+    <string name="hermes_web_not_found_message">Hermes web server is not running. Start the gateway to enable the web UI.</string>
+    <string name="hermes_web_start_gateway">Start Gateway</string>
+    <string name="hermes_not_installed_title">Hermes not installed</string>
+    <string name="hermes_not_installed_message">Hermes Agent is not installed yet at:\n%1$s\n\nPlease wait for the auto-install to complete.</string>
+
 </resources>
