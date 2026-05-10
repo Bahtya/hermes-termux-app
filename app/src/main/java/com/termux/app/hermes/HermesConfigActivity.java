@@ -745,20 +745,41 @@ public class HermesConfigActivity extends AppCompatActivity {
             String finalApiKey = apiKey;
 
             new Thread(() -> {
+                // Phase 1: Basic connectivity check (existing validation)
                 String[] result = performConnectionTest(provider, finalApiKey, model);
+                if (!result[0].equals("success")) {
+                    requireActivity().runOnUiThread(() -> {
+                        if (result[0].equals("auth")) {
+                            testPref.setSummary(getString(R.string.llm_test_fail_auth));
+                        } else if (result[0].equals("network")) {
+                            testPref.setSummary(getString(R.string.llm_test_fail_network));
+                        } else {
+                            testPref.setSummary(getString(R.string.llm_test_fail_generic, result[1]));
+                        }
+                    });
+                    return;
+                }
+
+                // Phase 2: Model response test (streaming test)
+                requireActivity().runOnUiThread(() ->
+                        testPref.setSummary(getString(R.string.llm_test_streaming)));
+                String[] streamResult = performModelResponseTest(provider, finalApiKey, model);
                 requireActivity().runOnUiThread(() -> {
-                    if (result[0].equals("success")) {
+                    if (streamResult[0].equals("success_fast")) {
+                        testPref.setSummary(getString(R.string.llm_test_success_fast,
+                                streamResult[1], Integer.parseInt(streamResult[2])));
+                    } else if (streamResult[0].equals("success_slow")) {
+                        testPref.setSummary(getString(R.string.llm_test_success_slow,
+                                Integer.parseInt(streamResult[2])));
+                    } else if (streamResult[0].equals("no_response")) {
+                        testPref.setSummary(getString(R.string.llm_test_fail_no_response));
+                    } else {
+                        // Fallback: basic validation succeeded, show basic success
                         if ("ollama".equals(provider)) {
                             testPref.setSummary(getString(R.string.llm_test_success_no_key, provider));
                         } else {
                             testPref.setSummary(getString(R.string.llm_test_success, model));
                         }
-                    } else if (result[0].equals("auth")) {
-                        testPref.setSummary(getString(R.string.llm_test_fail_auth));
-                    } else if (result[0].equals("network")) {
-                        testPref.setSummary(getString(R.string.llm_test_fail_network));
-                    } else {
-                        testPref.setSummary(getString(R.string.llm_test_fail_generic, result[1]));
                     }
                 });
             }).start();
@@ -832,6 +853,139 @@ public class HermesConfigActivity extends AppCompatActivity {
                 case "nvidia":     return "https://integrate.api.nvidia.com/v1/models";
                 case "ollama":     return baseUrl.isEmpty() ? "http://localhost:11434/api/tags" : baseUrl + "/api/tags";
                 case "custom":     return baseUrl.isEmpty() ? null : baseUrl + "/models";
+                default:           return null;
+            }
+        }
+
+        /**
+         * Phase 2: Send a minimal chat completion request to verify the model can actually respond.
+         * Returns String[] with:
+         *   [0] = "success_fast" | "success_slow" | "no_response" | "error"
+         *   [1] = model name (on success)
+         *   [2] = response time in ms (on success)
+         */
+        private String[] performModelResponseTest(String provider, String apiKey, String model) {
+            try {
+                String binPath = TermuxConstants.TERMUX_BIN_PREFIX_DIR_PATH;
+                String curlPath = binPath + "/curl";
+
+                if (!new File(curlPath).exists()) {
+                    return new String[]{"error", "curl not available", "0"};
+                }
+
+                String baseUrl = mConfigManager.getEnvVar("OPENAI_BASE_URL");
+                String url = getProviderChatUrl(provider, model, baseUrl);
+                if (url == null) {
+                    return new String[]{"error", "Unknown provider for chat test", "0"};
+                }
+
+                // Build the curl command based on provider
+                ProcessBuilder pb;
+                if ("ollama".equals(provider)) {
+                    String jsonBody = "{\"model\":\"" + model + "\",\"prompt\":\"Say OK\",\"stream\":false}";
+                    pb = new ProcessBuilder(curlPath, "-s", "-w", "\n%{http_code}",
+                            "--connect-timeout", "10", "--max-time", "30",
+                            "-X", "POST", url,
+                            "-H", "Content-Type: application/json",
+                            "-d", jsonBody);
+                } else if ("google".equals(provider)) {
+                    String jsonBody = "{\"contents\":[{\"parts\":[{\"text\":\"Say OK\"}]}],\"generationConfig\":{\"maxOutputTokens\":10}}";
+                    pb = new ProcessBuilder(curlPath, "-s", "-w", "\n%{http_code}",
+                            "--connect-timeout", "10", "--max-time", "30",
+                            "-X", "POST", url,
+                            "-H", "Content-Type: application/json",
+                            "-d", jsonBody);
+                } else {
+                    // OpenAI-compatible providers
+                    String jsonBody = "{\"model\":\"" + model + "\",\"messages\":[{\"role\":\"user\",\"content\":\"Say OK\"}],\"max_tokens\":10,\"stream\":false}";
+                    pb = new ProcessBuilder(curlPath, "-s", "-w", "\n%{http_code}",
+                            "--connect-timeout", "10", "--max-time", "30",
+                            "-X", "POST", url,
+                            "-H", "Content-Type: application/json",
+                            "-H", "Authorization: Bearer " + apiKey,
+                            "-d", jsonBody);
+                }
+
+                pb.environment().put("PATH", binPath + ":/system/bin");
+                pb.redirectErrorStream(true);
+
+                long startTime = System.currentTimeMillis();
+                Process p = pb.start();
+                java.io.BufferedReader reader = new java.io.BufferedReader(
+                        new java.io.InputStreamReader(p.getInputStream()));
+                StringBuilder output = new StringBuilder();
+                String line;
+                while ((line = reader.readLine()) != null) {
+                    output.append(line).append("\n");
+                }
+                p.waitFor();
+                long elapsed = System.currentTimeMillis() - startTime;
+
+                String fullOutput = output.toString().trim();
+                // Last line is the HTTP code from -w flag
+                String[] lines = fullOutput.split("\n");
+                String lastLine = lines.length > 0 ? lines[lines.length - 1].trim() : "";
+                int httpCode = 0;
+                try {
+                    httpCode = Integer.parseInt(lastLine);
+                } catch (NumberFormatException ignored) {}
+
+                // Reconstruct the response body (everything except the last line)
+                String responseBody = "";
+                if (lines.length > 1) {
+                    StringBuilder bodyBuilder = new StringBuilder();
+                    for (int i = 0; i < lines.length - 1; i++) {
+                        bodyBuilder.append(lines[i]);
+                    }
+                    responseBody = bodyBuilder.toString();
+                }
+
+                if (httpCode == 200 && !responseBody.isEmpty()) {
+                    // Check that the response contains actual content
+                    boolean hasContent = responseBody.contains("choices")
+                            || responseBody.contains("content")
+                            || responseBody.contains("response")
+                            || responseBody.contains("candidates")
+                            || responseBody.contains("OK");
+                    if (hasContent) {
+                        if (elapsed < 10000) {
+                            return new String[]{"success_fast", model, String.valueOf(elapsed)};
+                        } else {
+                            return new String[]{"success_slow", model, String.valueOf(elapsed)};
+                        }
+                    } else {
+                        return new String[]{"no_response", "", "0"};
+                    }
+                } else if (httpCode == 401 || httpCode == 403) {
+                    return new String[]{"error", "Auth failed in model test", "0"};
+                } else if (httpCode == 404) {
+                    return new String[]{"no_response", "Model not found", "0"};
+                } else if (httpCode == 0) {
+                    return new String[]{"error", "No response from server", "0"};
+                } else {
+                    return new String[]{"no_response", "HTTP " + httpCode, "0"};
+                }
+            } catch (Exception e) {
+                return new String[]{"error", e.getMessage() != null ? e.getMessage() : "exception", "0"};
+            }
+        }
+
+        /**
+         * Get the chat completion endpoint URL for a given provider.
+         */
+        private String getProviderChatUrl(String provider, String model, String baseUrl) {
+            switch (provider) {
+                case "openai":     return "https://api.openai.com/v1/chat/completions";
+                case "anthropic":  return "https://api.anthropic.com/v1/chat/completions";
+                case "deepseek":   return "https://api.deepseek.com/v1/chat/completions";
+                case "openrouter": return "https://openrouter.ai/api/v1/chat/completions";
+                case "xai":        return "https://api.x.ai/v1/chat/completions";
+                case "alibaba":    return "https://dashscope.aliyuncs.com/compatible-mode/v1/chat/completions";
+                case "mistral":    return "https://api.mistral.ai/v1/chat/completions";
+                case "nvidia":     return "https://integrate.api.nvidia.com/v1/chat/completions";
+                case "google":     return "https://generativelanguage.googleapis.com/v1beta/models/" + model + ":generateContent";
+                case "ollama":     return baseUrl.isEmpty() ? "http://localhost:11434/api/generate" : baseUrl + "/api/generate";
+                case "custom":     return baseUrl.isEmpty() ? null : baseUrl + "/chat/completions";
                 default:           return null;
             }
         }

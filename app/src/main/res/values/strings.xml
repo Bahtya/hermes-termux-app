@@ -385,6 +385,10 @@
     <string name="llm_test_fail_network">Network error — check your internet connection.</string>
     <string name="llm_test_fail_generic">Test failed: %1$s</string>
     <string name="llm_test_no_key">Please enter an API key first.</string>
+    <string name="llm_test_streaming">Testing model response…</string>
+    <string name="llm_test_success_fast">Connection successful! Model %1$s responded in %2$dms.</string>
+    <string name="llm_test_success_slow">Connection OK but response was slow (%1$dms). Model may be under load.</string>
+    <string name="llm_test_fail_no_response">API key valid but model did not respond. Check model name.</string>
 
     <!-- Gateway Control -->
     <string name="gateway_start_title">Start Gateway</string>

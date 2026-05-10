@@ -66,6 +66,10 @@
     <string name="llm_test_fail_network">网络错误 — 请检查网络连接。</string>
     <string name="llm_test_fail_generic">测试失败：%1$s</string>
     <string name="llm_test_no_key">请先输入 API 密钥。</string>
+    <string name="llm_test_streaming">正在测试模型响应…</string>
+    <string name="llm_test_success_fast">连接成功！模型 %1$s 在 %2$dms 内响应。</string>
+    <string name="llm_test_success_slow">连接正常但响应较慢（%1$dms），模型可能负载较高。</string>
+    <string name="llm_test_fail_no_response">API 密钥有效但模型未响应，请检查模型名称。</string>
 
     <!-- LLM Provider Arrays -->
     <string-array name="llm_provider_names">
