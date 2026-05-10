@@ -24,6 +24,16 @@ jobs:
           distribution: temurin
           java-version: '17'
 
+      - name: Cache Gradle packages
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.gradle/caches
+            ~/.gradle/wrapper
+          key: gradle-${{ runner.os }}-${{ hashFiles('**/*.gradle*', '**/gradle-wrapper.properties') }}
+          restore-keys: |
+            gradle-${{ runner.os }}-
+
       - name: Build debug APK
         env:
           TERMUX_PACKAGE_VARIANT: ${{ matrix.package_variant }}
