@@ -184,6 +184,26 @@ public class HermesConfigActivity extends AppCompatActivity {
                 }
             }
 
+            // --- Dashboard: Hermes Agent version ---
+            Preference dashVersion = findPreference("hermes_dashboard_version");
+            if (dashVersion != null) {
+                Preference finalDashVersion = dashVersion;
+                new Thread(() -> {
+                    String version = getHermesVersion();
+                    if (getActivity() != null) {
+                        getActivity().runOnUiThread(() -> {
+                            if (version != null) {
+                                finalDashVersion.setSummary(
+                                        getString(R.string.dashboard_version_format, version));
+                            } else {
+                                finalDashVersion.setSummary(
+                                        getString(R.string.dashboard_version_not_installed));
+                            }
+                        });
+                    }
+                }).start();
+            }
+
             // Show gateway status
             Preference gatewayPref = findPreference("hermes_gateway_control");
             if (gatewayPref != null) {
@@ -684,6 +704,33 @@ public class HermesConfigActivity extends AppCompatActivity {
                 sb.append(c);
             }
             return sb.toString();
+        }
+
+        private String getHermesVersion() {
+            try {
+                String binPath = TermuxConstants.TERMUX_BIN_PREFIX_DIR_PATH;
+                String hermesPath = binPath + "/hermes";
+                if (!new java.io.File(hermesPath).exists()) return null;
+
+                ProcessBuilder pb = new ProcessBuilder(hermesPath, "--version");
+                pb.environment().put("PATH", binPath + ":/system/bin");
+                pb.redirectErrorStream(true);
+                Process p = pb.start();
+                java.io.BufferedReader reader = new java.io.BufferedReader(
+                        new java.io.InputStreamReader(p.getInputStream()));
+                String line = reader.readLine();
+                p.waitFor();
+                reader.close();
+
+                if (line != null) {
+                    String trimmed = line.trim();
+                    if (trimmed.startsWith("hermes ")) return trimmed.substring(7).trim();
+                    return trimmed;
+                }
+                return null;
+            } catch (Exception e) {
+                return null;
+            }
         }
     }
 

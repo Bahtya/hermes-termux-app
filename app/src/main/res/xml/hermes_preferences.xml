@@ -18,6 +18,11 @@
             android:key="hermes_dashboard_im"
             android:title="@string/dashboard_im_title"
             android:selectable="false" />
+        <Preference
+            android:key="hermes_dashboard_version"
+            android:title="@string/dashboard_version_title"
+            android:summary="@string/dashboard_version_checking"
+            android:selectable="false" />
     </PreferenceCategory>
 
     <PreferenceCategory android:title="@string/hermes_cat_general">
