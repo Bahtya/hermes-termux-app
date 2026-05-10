@@ -647,10 +647,6 @@
     <string name="llm_get_api_key_summary">Open provider dashboard to get or manage your API key</string>
     <string name="llm_docs_title">Provider Documentation</string>
     <string name="llm_docs_summary">View setup guides and pricing</string>
-    <string name="llm_test_streaming">Testing model response...</string>
-    <string name="llm_test_success_fast">Connection successful! Model %1$s responded in %2$dms.</string>
-    <string name="llm_test_success_slow">Connection OK but response was slow (%1$dms). Model may be under load.</string>
-    <string name="llm_test_fail_no_response">API key valid but model did not respond. Check model name.</string>
     <string name="hermes_help_faq_title">Help &amp; FAQ</string>
     <string name="hermes_help_faq_summary">Common questions and troubleshooting</string>
     <string name="help_what_is_hermes_title">What is Hermes?</string>
