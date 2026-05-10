@@ -779,6 +779,17 @@
     <string name="conversation_title">Conversation History</string>
     <string name="conversation_filter_label">Filter:</string>
     <string name="conversation_empty">No conversations found. Start a chat through your IM platform to see history here.</string>
+    <string-array name="conversation_filter_names">
+        <item>All</item>
+        <item>Today</item>
+        <item>Last 7 Days</item>
+        <item>Last 30 Days</item>
+    </string-array>
+    <string name="conversation_date_today">Today</string>
+    <string name="conversation_date_yesterday">Yesterday</string>
+    <string name="conversation_gateway_log">Gateway Log (%d messages)</string>
+    <string name="conversation_platform_general">General</string>
+    <string name="conversation_platform_whatsapp">WhatsApp</string>
     <string name="gateway_diagnostic_title">Gateway Diagnostic</string>
     <string name="gateway_diagnostic_summary">Run connectivity diagnostic</string>
     <string name="gateway_notif_perm_title">Notification Permission</string>
