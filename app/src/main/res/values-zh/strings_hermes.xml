@@ -186,7 +186,15 @@
     <string name="feishu_step4_title">输入凭证</string>
     <string name="feishu_step4_desc">用飞书扫描下方二维码打开凭证页面，或手动输入。</string>
     <string name="feishu_qr_scan_hint">用飞书扫描此二维码打开开发者控制台：</string>
+    <string name="feishu_scan_qr_code">扫描二维码</string>
+    <string name="feishu_scan_prompt">将摄像头对准飞书凭证二维码</string>
+    <string name="feishu_no_qr_scanner">未找到二维码扫描应用。请安装条形码扫描器或手动粘贴凭证。</string>
+    <string name="feishu_scan_app_id_filled">已从二维码填入 App ID</string>
+    <string name="feishu_scan_filled">已填入二维码内容 — 请核实</string>
     <string name="feishu_manual_entry_label">或手动输入凭证：</string>
+    <string name="im_scan_qr_code">扫描二维码</string>
+    <string name="im_scan_qr_prompt">将摄像头对准机器人令牌二维码</string>
+    <string name="im_scan_token_filled">已从二维码填入令牌</string>
     <string name="feishu_paste">粘贴</string>
     <string name="feishu_toggle_visibility">显示</string>
     <string name="feishu_paste_detected">检测到 App ID！点击填入：%1$s</string>

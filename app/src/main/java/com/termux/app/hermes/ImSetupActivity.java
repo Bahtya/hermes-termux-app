@@ -3,6 +3,7 @@ package com.termux.app.hermes;
 import android.content.ClipData;
 import android.content.ClipboardManager;
 import android.content.Context;
+import android.content.Intent;
 import android.os.Bundle;
 import android.view.MenuItem;
 import android.view.View;
@@ -32,6 +33,7 @@ public class ImSetupActivity extends AppCompatActivity {
     private static final int STEP_TOKEN = 1;
     private static final int STEP_TEST = 2;
     private static final int STEP_COMPLETE = 3;
+    private static final int REQUEST_CODE_QR_SCAN = 0x494D;
 
     private String mPlatform;
     private int mCurrentStep = STEP_INSTRUCTIONS;
@@ -170,6 +172,13 @@ public class ImSetupActivity extends AppCompatActivity {
             }
         });
         mContent.addView(pasteBtn, wrap);
+
+        // Scan QR code button
+        View scanBtn = new TextView(this);
+        ((TextView) scanBtn).setText(R.string.im_scan_qr_code);
+        scanBtn.setPadding(pad, dp(4), pad, dp(4));
+        scanBtn.setOnClickListener(v -> launchQrScanner());
+        mContent.addView(scanBtn, wrap);
 
         TextView usersTitle = new TextView(this);
         usersTitle.setText(isTelegram() ? R.string.telegram_allowed_users_title : R.string.discord_allowed_users_title);
@@ -360,5 +369,48 @@ public class ImSetupActivity extends AppCompatActivity {
 
     private int dp(int value) {
         return (int) (value * getResources().getDisplayMetrics().density);
+    }
+
+    private void launchQrScanner() {
+        Intent intent = new Intent("com.google.zxing.client.android.SCAN");
+        intent.putExtra("SCAN_MODE", "QR_CODE_MODE");
+        intent.putExtra("PROMPT_MESSAGE", getString(R.string.im_scan_qr_prompt));
+
+        if (intent.resolveActivity(getPackageManager()) != null) {
+            startActivityForResult(intent, REQUEST_CODE_QR_SCAN);
+            return;
+        }
+
+        String[] scannerPackages = {
+                "com.google.zxing.client.android",
+                "com.srowen.bs.android",
+                "com.gamma.scan",
+                "la.droid.qr",
+                "com.application_onestop.qrscanner"
+        };
+        for (String pkg : scannerPackages) {
+            intent.setPackage(pkg);
+            if (intent.resolveActivity(getPackageManager()) != null) {
+                startActivityForResult(intent, REQUEST_CODE_QR_SCAN);
+                return;
+            }
+        }
+
+        Toast.makeText(this, R.string.feishu_no_qr_scanner, Toast.LENGTH_LONG).show();
+    }
+
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+        if (requestCode == REQUEST_CODE_QR_SCAN && resultCode == RESULT_OK && data != null) {
+            String scanResult = data.getStringExtra("SCAN_RESULT");
+            if (scanResult != null && !scanResult.isEmpty() && mCurrentStep == STEP_TOKEN) {
+                EditText tokenInput = findViewById(R.id.im_token_input);
+                if (tokenInput != null) {
+                    tokenInput.setText(scanResult.trim());
+                    Toast.makeText(this, R.string.im_scan_token_filled, Toast.LENGTH_SHORT).show();
+                }
+            }
+        }
     }
 }
