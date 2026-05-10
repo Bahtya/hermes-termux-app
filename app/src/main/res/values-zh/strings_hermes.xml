@@ -95,6 +95,15 @@
     <string name="gateway_stop_summary">停止运行中的网关</string>
     <string name="gateway_restart_title">重启网关</string>
     <string name="gateway_restart_summary">重启网关进程</string>
+
+    <!-- Gateway Pre-check -->
+    <string name="gateway_precheck_no_llm_title">AI 提供商未配置</string>
+    <string name="gateway_precheck_no_llm_message">您需要先配置 AI 提供商和 API 密钥才能启动网关。\n\n请先设置您的 LLM 提供商。</string>
+    <string name="gateway_precheck_no_llm_action">配置 AI</string>
+    <string name="gateway_precheck_no_im_title">未配置消息平台</string>
+    <string name="gateway_precheck_no_im_message">尚未设置消息平台。网关将启动但不会接收任何平台的消息。\n\n您可以稍后从设置中配置消息平台。</string>
+    <string name="gateway_precheck_no_im_action_start">仍然启动</string>
+    <string name="gateway_precheck_no_im_action_setup">配置消息平台</string>
     <string name="gateway_started">网关启动中…</string>
     <string name="gateway_stopped">网关已停止</string>
     <string name="gateway_restarted">网关重启中…</string>
