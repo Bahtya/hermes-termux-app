@@ -50,6 +50,9 @@ public class HermesGatewayService extends Service {
     private static final int MAX_RESTARTS = 3;
     private long mProcessStartTime = 0;
 
+    // Static reference for uptime queries from activities
+    private static volatile HermesGatewayService sInstance;
+
     private final Runnable mHealthCheck = new Runnable() {
         @Override
         public void run() {
@@ -82,6 +85,7 @@ public class HermesGatewayService extends Service {
     @Override
     public void onCreate() {
         super.onCreate();
+        sInstance = this;
         createNotificationChannel();
     }
 
@@ -146,6 +150,7 @@ public class HermesGatewayService extends Service {
                 mRunning = true;
                 mProcessStartTime = System.currentTimeMillis();
                 if (mRestartAttempts == 0) {
+                    HermesConfigManager.getInstance().recordSessionStart(HermesGatewayService.this);
                     clearRestartState();
                 }
 
@@ -163,6 +168,9 @@ public class HermesGatewayService extends Service {
     }
 
     private void stopGateway() {
+        if (mRunning) {
+            HermesConfigManager.getInstance().recordSessionStop(HermesGatewayService.this);
+        }
         mRunning = false;
         mHandler.removeCallbacks(mHealthCheck);
 
@@ -294,6 +302,7 @@ public class HermesGatewayService extends Service {
     @Override
     public void onDestroy() {
         stopGateway();
+        sInstance = null;
         mExecutor.shutdownNow();
         super.onDestroy();
     }
@@ -314,5 +323,38 @@ public class HermesGatewayService extends Service {
                 .edit()
                 .putBoolean(PREF_AUTO_START, enabled)
                 .apply();
+    }
+
+    /** Returns true if the gateway service is currently running. */
+    public static boolean isRunning() {
+        HermesGatewayService instance = sInstance;
+        return instance != null && instance.mRunning;
+    }
+
+    /**
+     * Returns a human-readable string representing the current gateway uptime,
+     * e.g. "2h 15m 30s". Returns an empty string if the gateway is not running.
+     */
+    public static String getFormattedUptime() {
+        HermesGatewayService instance = sInstance;
+        if (instance == null || !instance.mRunning || instance.mProcessStartTime == 0) {
+            return "";
+        }
+        long elapsed = System.currentTimeMillis() - instance.mProcessStartTime;
+        return formatDuration(elapsed);
+    }
+
+    /** Formats a duration in milliseconds to a human-readable string like "2h 15m 30s". */
+    public static String formatDuration(long millis) {
+        long seconds = millis / 1000;
+        long hours = seconds / 3600;
+        long minutes = (seconds % 3600) / 60;
+        long secs = seconds % 60;
+
+        StringBuilder sb = new StringBuilder();
+        if (hours > 0) sb.append(hours).append("h ");
+        if (minutes > 0 || hours > 0) sb.append(minutes).append("m ");
+        sb.append(secs).append("s");
+        return sb.toString();
     }
 }

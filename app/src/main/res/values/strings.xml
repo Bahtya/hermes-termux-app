@@ -412,6 +412,18 @@
     <string name="gateway_log_cleared">Log cleared</string>
     <string name="hermes_gateway_log_summary">View gateway log for troubleshooting</string>
 
+    <!-- Gateway Session History -->
+    <string name="gateway_session_history_title">Session History</string>
+    <string name="gateway_session_current">Current Session</string>
+    <string name="gateway_session_running">Running</string>
+    <string name="gateway_session_start">Started: %1$s</string>
+    <string name="gateway_session_duration">Duration: %1$s</string>
+    <string name="gateway_session_clear_title">Clear History</string>
+    <string name="gateway_session_clear_confirm_title">Clear session history?</string>
+    <string name="gateway_session_clear_confirm_message">This will delete all gateway session records.</string>
+    <string name="gateway_session_cleared">Session history cleared</string>
+    <string name="gateway_session_empty">No session history yet.</string>
+
     <!-- Dashboard -->
     <string name="dashboard_title">Status Overview</string>
     <string name="dashboard_gateway_title">Gateway</string>

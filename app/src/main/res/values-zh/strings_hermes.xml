@@ -93,6 +93,18 @@
     <string name="gateway_log_cleared">日志已清除</string>
     <string name="hermes_gateway_log_summary">查看网关日志以排查问题</string>
 
+    <!-- Gateway Session History -->
+    <string name="gateway_session_history_title">会话历史</string>
+    <string name="gateway_session_current">当前会话</string>
+    <string name="gateway_session_running">运行中</string>
+    <string name="gateway_session_start">启动时间：%1$s</string>
+    <string name="gateway_session_duration">运行时长：%1$s</string>
+    <string name="gateway_session_clear_title">清除历史</string>
+    <string name="gateway_session_clear_confirm_title">清除会话历史？</string>
+    <string name="gateway_session_clear_confirm_message">这将删除所有网关会话记录。</string>
+    <string name="gateway_session_cleared">会话历史已清除</string>
+    <string name="gateway_session_empty">暂无会话记录。</string>
+
     <!-- Dashboard -->
     <string name="dashboard_title">状态概览</string>
     <string name="dashboard_gateway_title">网关</string>

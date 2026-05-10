@@ -1,5 +1,8 @@
 package com.termux.app.hermes;
 
+import android.content.Context;
+import android.content.SharedPreferences;
+
 import com.termux.shared.logger.Logger;
 import com.termux.shared.termux.TermuxConstants;
 
@@ -9,8 +12,10 @@ import java.io.File;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -792,5 +797,106 @@ public class HermesConfigManager {
         } catch (IOException e) {
             Logger.logError(LOG_TAG, "Error writing to " + path + ": " + e.getMessage());
         }
+    }
+
+    // =========================================================================
+    // Gateway session tracking
+    // =========================================================================
+
+    private static final String SESSION_PREFS_NAME = "hermes_gateway_sessions";
+    private static final String KEY_SESSION_COUNT = "session_count";
+    private static final int MAX_SESSIONS = 10;
+
+    /** Simple data class representing a completed gateway session. */
+    public static class Session {
+        public final long startTime;
+        public final long stopTime;
+        public final long duration;
+
+        public Session(long startTime, long stopTime, long duration) {
+            this.startTime = startTime;
+            this.stopTime = stopTime;
+            this.duration = duration;
+        }
+    }
+
+    /**
+     * Records the start of a gateway session.
+     * Stores the current timestamp so that {@link #recordSessionStop(Context)} can compute duration.
+     */
+    public void recordSessionStart(Context context) {
+        SharedPreferences prefs = context.getSharedPreferences(SESSION_PREFS_NAME, Context.MODE_PRIVATE);
+        prefs.edit().putLong("pending_start_time", System.currentTimeMillis()).apply();
+    }
+
+    /**
+     * Records the end of the current gateway session.
+     * Reads the pending start time, computes duration, and appends the session to history.
+     * Oldest sessions are removed when the list exceeds {@link #MAX_SESSIONS}.
+     */
+    public void recordSessionStop(Context context) {
+        SharedPreferences prefs = context.getSharedPreferences(SESSION_PREFS_NAME, Context.MODE_PRIVATE);
+        long startTime = prefs.getLong("pending_start_time", 0);
+        if (startTime == 0) return;
+
+        long stopTime = System.currentTimeMillis();
+        long duration = stopTime - startTime;
+
+        int count = prefs.getInt(KEY_SESSION_COUNT, 0);
+
+        // Shift sessions if at max capacity
+        int startIdx = 0;
+        if (count >= MAX_SESSIONS) {
+            startIdx = 1;
+        } else {
+            count++;
+        }
+
+        SharedPreferences.Editor editor = prefs.edit();
+
+        // Shift existing sessions (drop oldest)
+        for (int i = startIdx; i < MAX_SESSIONS - 1; i++) {
+            long st = prefs.getLong("session_" + i + "_start", 0);
+            long sp = prefs.getLong("session_" + i + "_stop", 0);
+            long du = prefs.getLong("session_" + i + "_duration", 0);
+            if (st == 0) break;
+            int targetIdx = i - startIdx;
+            editor.putLong("session_" + targetIdx + "_start", st);
+            editor.putLong("session_" + targetIdx + "_stop", sp);
+            editor.putLong("session_" + targetIdx + "_duration", du);
+        }
+
+        // Write new session at the end
+        int newIdx = count - 1;
+        editor.putLong("session_" + newIdx + "_start", startTime);
+        editor.putLong("session_" + newIdx + "_stop", stopTime);
+        editor.putLong("session_" + newIdx + "_duration", duration);
+        editor.putInt(KEY_SESSION_COUNT, count);
+        editor.remove("pending_start_time");
+        editor.apply();
+    }
+
+    /**
+     * Returns the list of recorded gateway sessions, newest last.
+     * Returns an empty list if no sessions have been recorded.
+     */
+    public List<Session> getSessionHistory(Context context) {
+        List<Session> sessions = new ArrayList<>();
+        SharedPreferences prefs = context.getSharedPreferences(SESSION_PREFS_NAME, Context.MODE_PRIVATE);
+        int count = prefs.getInt(KEY_SESSION_COUNT, 0);
+        for (int i = 0; i < count; i++) {
+            long start = prefs.getLong("session_" + i + "_start", 0);
+            long stop = prefs.getLong("session_" + i + "_stop", 0);
+            long dur = prefs.getLong("session_" + i + "_duration", 0);
+            if (start > 0) {
+                sessions.add(new Session(start, stop, dur));
+            }
+        }
+        return sessions;
+    }
+
+    /** Deletes all stored session history. */
+    public void clearSessionHistory(Context context) {
+        context.getSharedPreferences(SESSION_PREFS_NAME, Context.MODE_PRIVATE).edit().clear().apply();
     }
 }
