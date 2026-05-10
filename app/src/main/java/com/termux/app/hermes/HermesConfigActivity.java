@@ -479,6 +479,12 @@ public class HermesConfigActivity extends AppCompatActivity {
 
     public static class LlmConfigFragment extends PreferenceFragmentCompat {
 
+        private static final String PREFS_LLM_TEST = "hermes_llm_test";
+        private static final String KEY_TEST_STATUS = "last_status";
+        private static final String KEY_TEST_TIME = "last_time";
+        private static final String KEY_TEST_PROVIDER = "last_provider";
+        private static final String KEY_TEST_MODEL = "last_model";
+
         private HermesConfigManager mConfigManager;
 
         @Override
@@ -496,10 +502,15 @@ public class HermesConfigActivity extends AppCompatActivity {
                     apiKeyPref.setSummary(maskApiKey(currentKey));
                 }
                 apiKeyPref.setOnPreferenceChangeListener((p, newVal) -> {
-                    mConfigManager.setApiKey(mConfigManager.getModelProvider(), (String) newVal);
-                    p.setSummary(maskApiKey((String) newVal));
+                    String key = ((String) newVal).trim();
+                    mConfigManager.setApiKey(mConfigManager.getModelProvider(), key);
+                    p.setSummary(key.isEmpty() ? "" : maskApiKey(key));
+                    updateApiKeyHint(key);
+                    invalidateTestCache();
+                    updateTestConnectionSummary();
                     return true;
                 });
+                updateApiKeyHint(currentKey);
             }
 
             Preference providerPref = findPreference("llm_provider");
@@ -512,7 +523,8 @@ public class HermesConfigActivity extends AppCompatActivity {
                     String key = mConfigManager.getApiKey(provider);
                     Preference akp = findPreference("llm_api_key");
                     if (akp != null) {
-                        akp.setSummary(key != null ? maskApiKey(key) : "");
+                        akp.setSummary(key != null && !key.isEmpty() ? maskApiKey(key) : "");
+                        updateApiKeyHint(key);
                     }
 
                     Preference baseUrlPref = findPreference("llm_base_url");
@@ -520,6 +532,9 @@ public class HermesConfigActivity extends AppCompatActivity {
                         boolean needsUrl = "ollama".equals(provider) || "custom".equals(provider);
                         baseUrlPref.setVisible(needsUrl);
                     }
+
+                    invalidateTestCache();
+                    updateTestConnectionSummary();
                     return true;
                 });
             }
@@ -528,6 +543,8 @@ public class HermesConfigActivity extends AppCompatActivity {
             if (modelPref != null) {
                 modelPref.setOnPreferenceChangeListener((p, newVal) -> {
                     mConfigManager.setModelName((String) newVal);
+                    invalidateTestCache();
+                    updateTestConnectionSummary();
                     return true;
                 });
             }
@@ -541,6 +558,8 @@ public class HermesConfigActivity extends AppCompatActivity {
                 boolean needsUrl = "ollama".equals(currentProvider) || "custom".equals(currentProvider);
                 baseUrlPref.setVisible(needsUrl);
             }
+
+            updateTestConnectionSummary();
         }
 
         private void updateModelList(String provider) {
@@ -578,6 +597,47 @@ public class HermesConfigActivity extends AppCompatActivity {
         private String maskApiKey(String key) {
             if (key == null || key.length() < 8) return "****";
             return key.substring(0, 4) + "..." + key.substring(key.length() - 4);
+        }
+
+        private void updateApiKeyHint(String key) {
+            Preference apiKeyPref = findPreference("llm_api_key");
+            if (apiKeyPref == null) return;
+            String provider = mConfigManager.getModelProvider();
+
+            if ("ollama".equals(provider)) {
+                apiKeyPref.setSummary(getString(R.string.llm_api_key_no_key_needed));
+                return;
+            }
+
+            if (key == null || key.isEmpty()) {
+                int hintRes = getProviderHintRes(provider);
+                apiKeyPref.setSummary(getString(hintRes));
+                return;
+            }
+
+            // Warn about spaces
+            if (key.contains(" ") || key.contains("\n") || key.contains("\t")) {
+                apiKeyPref.setSummary(getString(R.string.llm_api_key_has_spaces));
+                return;
+            }
+
+            // Warn about short keys
+            if (key.length() < 20) {
+                apiKeyPref.setSummary(getString(R.string.llm_api_key_too_short));
+                return;
+            }
+
+            apiKeyPref.setSummary(maskApiKey(key));
+        }
+
+        private int getProviderHintRes(String provider) {
+            switch (provider) {
+                case "openai": return R.string.llm_api_key_hint_openai;
+                case "anthropic": return R.string.llm_api_key_hint_anthropic;
+                case "google": return R.string.llm_api_key_hint_google;
+                case "deepseek": return R.string.llm_api_key_hint_deepseek;
+                default: return R.string.llm_api_key_hint_generic;
+            }
         }
 
         @Override
