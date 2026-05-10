@@ -509,6 +509,29 @@ App ID starts with "cli_" and is about 10–20 characters. App Secret is longer 
     <string name="llm_temperature_invalid">Temperature must be between 0.0 and 2.0</string>
     <string name="llm_max_tokens_invalid">Max tokens must be between 256 and 32768</string>
 
+    <!-- LLM System Prompt / Persona -->
+    <string name="llm_category_persona">Persona</string>
+    <string name="llm_system_prompt_title">System Prompt</string>
+    <string name="llm_system_prompt_summary">Custom instructions for the AI assistant</string>
+    <string name="llm_persona_template_title">Persona Templates</string>
+    <string name="llm_persona_template_summary">Choose a preset persona or write your own</string>
+    <string-array name="llm_persona_names">
+        <item>Default Assistant</item>
+        <item>Friendly Helper</item>
+        <item>Professional Expert</item>
+        <item>Creative Writer</item>
+        <item>Code Assistant</item>
+        <item>Custom</item>
+    </string-array>
+    <string-array name="llm_persona_prompts">
+        <item>You are a helpful AI assistant. Answer questions clearly and concisely.</item>
+        <item>You are a warm and friendly AI assistant. Be encouraging and use a positive tone. Add relevant emojis occasionally.</item>
+        <item>You are a professional expert consultant. Provide thorough, well-structured answers with citations when possible.</item>
+        <item>You are a creative writing assistant. Help with stories, poetry, and creative ideas. Be imaginative and expressive.</item>
+        <item>You are a coding expert. Help with programming questions by providing clear, well-commented code examples. Explain your reasoning.</item>
+        <item></item>
+    </string-array>
+
     <!-- LLM Test Connection -->
     <string name="llm_test_connection_title">Test Connection</string>
     <string name="llm_test_connection_summary">Verify your API key and model are working</string>

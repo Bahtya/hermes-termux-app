@@ -156,4 +156,17 @@
             android:summary="@string/llm_import_qr_summary" />
     </PreferenceCategory>
 
+    <PreferenceCategory android:title="@string/llm_category_persona">
+        <Preference
+            android:key="llm_persona_template"
+            android:title="@string/llm_persona_template_title"
+            android:summary="@string/llm_persona_template_summary" />
+
+        <EditTextPreference
+            android:key="llm_system_prompt"
+            android:title="@string/llm_system_prompt_title"
+            android:summary="@string/llm_system_prompt_summary"
+            android:inputType="textMultiLine" />
+    </PreferenceCategory>
+
 </PreferenceScreen>

@@ -2,13 +2,8 @@ package com.termux.app.hermes;
 
 import android.content.Context;
 import android.content.Intent;
-import android.graphics.Bitmap;
 import android.os.Bundle;
-import android.view.Gravity;
 import android.view.MenuItem;
-import android.view.View;
-import android.widget.ImageView;
-import android.LinearLayout;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
@@ -20,17 +15,10 @@ import androidx.fragment.app.FragmentTransaction;
 import androidx.preference.ListPreference;
 import androidx.preference.Preference;
 import androidx.preference.PreferenceFragmentCompat;
-
-import androidx.activity.result.ActivityResultLauncher;
-import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.preference.SwitchPreferenceCompat;
 
 import com.termux.R;
 import com.termux.shared.termux.TermuxConstants;
-
-import com.google.zxing.BarcodeFormat;
-import com.google.zxing.qrcode.QRCodeWriter;
-import com.google.zxing.common.BitMatrix;
 
 import java.io.File;
 
@@ -435,21 +423,6 @@ public class HermesConfigActivity extends AppCompatActivity {
     public static class LlmConfigFragment extends PreferenceFragmentCompat {
 
         private HermesConfigManager mConfigManager;
-        private ActivityResultLauncher<Intent> mQrScanLauncher;
-
-        @Override
-        public void onCreate(Bundle savedInstanceState) {
-            super.onCreate(savedInstanceState);
-            mQrScanLauncher = registerForActivityResult(
-                    new ActivityResultContracts.StartActivityForResult(),
-                    result -> {
-                        if (result.getResultCode() == getActivity().RESULT_OK && result.getData() != null) {
-                            String scanned = result.getData().getStringExtra("SCAN_RESULT");
-                            if (scanned != null) handleQrImport(scanned);
-                        }
-                    }
-            );
-        }
 
         @Override
         public void onCreatePreferences(Bundle savedInstanceState, String rootKey) {
@@ -511,6 +484,51 @@ public class HermesConfigActivity extends AppCompatActivity {
                 boolean needsUrl = "ollama".equals(currentProvider) || "custom".equals(currentProvider);
                 baseUrlPref.setVisible(needsUrl);
             }
+
+            // System prompt
+            Preference systemPromptPref = findPreference("llm_system_prompt");
+            if (systemPromptPref != null) {
+                String currentPrompt = mConfigManager.getModelSystemPrompt();
+                if (!currentPrompt.isEmpty() && systemPromptPref instanceof androidx.preference.EditTextPreference) {
+                    ((androidx.preference.EditTextPreference) systemPromptPref).setText(currentPrompt);
+                    systemPromptPref.setSummary(currentPrompt.length() > 60
+                            ? currentPrompt.substring(0, 60) + "…"
+                            : currentPrompt);
+                }
+                systemPromptPref.setOnPreferenceChangeListener((p, newVal) -> {
+                    String prompt = (String) newVal;
+                    mConfigManager.setModelSystemPrompt(prompt);
+                    p.setSummary(prompt.isEmpty() ? getString(R.string.llm_system_prompt_summary)
+                            : (prompt.length() > 60 ? prompt.substring(0, 60) + "…" : prompt));
+                    return true;
+                });
+            }
+        }
+
+        private void showPersonaTemplateDialog() {
+            String[] names = getResources().getStringArray(R.array.llm_persona_names);
+            String[] prompts = getResources().getStringArray(R.array.llm_persona_prompts);
+
+            new AlertDialog.Builder(requireContext())
+                    .setTitle(R.string.llm_persona_template_title)
+                    .setItems(names, (dialog, which) -> {
+                        if (which < prompts.length) {
+                            String selectedPrompt = prompts[which];
+                            if (!selectedPrompt.isEmpty()) {
+                                mConfigManager.setModelSystemPrompt(selectedPrompt);
+                                Preference sp = findPreference("llm_system_prompt");
+                                if (sp instanceof androidx.preference.EditTextPreference) {
+                                    ((androidx.preference.EditTextPreference) sp).setText(selectedPrompt);
+                                }
+                                if (sp != null) {
+                                    sp.setSummary(selectedPrompt.length() > 60
+                                            ? selectedPrompt.substring(0, 60) + "…"
+                                            : selectedPrompt);
+                                }
+                            }
+                        }
+                    })
+                    .show();
         }
 
         private void updateModelList(String provider) {
@@ -557,149 +575,11 @@ public class HermesConfigActivity extends AppCompatActivity {
                 testConnection(preference);
                 return true;
             }
-            if ("llm_export_qr".equals(key)) {
-                showQrExport();
-                return true;
-            }
-            if ("llm_import_qr".equals(key)) {
-                launchQrScanner();
+            if ("llm_persona_template".equals(key)) {
+                showPersonaTemplateDialog();
                 return true;
             }
             return super.onPreferenceTreeClick(preference);
-        }
-
-        private void showQrExport() {
-            String provider = mConfigManager.getModelProvider();
-            String model = mConfigManager.getModelName();
-            String baseUrl = mConfigManager.getEnvVar("OPENAI_BASE_URL");
-
-            // Build JSON config (NO API key for security)
-            String json = "{\"hermes_llm\":{\"provider\":\"" + provider
-                    + "\",\"model\":\"" + model
-                    + "\",\"base_url\":\"" + baseUrl + "\"}}";
-
-            Bitmap qrBitmap = generateQRCode(json, 256);
-            if (qrBitmap == null) {
-                Toast.makeText(requireContext(), "Failed to generate QR code", Toast.LENGTH_SHORT).show();
-                return;
-            }
-
-            // Build dialog with QR image
-            LinearLayout ll = new LinearLayout(requireContext());
-            ll.setOrientation(LinearLayout.VERTICAL);
-            ll.setGravity(Gravity.CENTER_HORIZONTAL);
-            ll.setPadding(48, 32, 48, 16);
-
-            ImageView iv = new ImageView(requireContext());
-            iv.setImageBitmap(qrBitmap);
-            LinearLayout.LayoutParams imgParams = new LinearLayout.LayoutParams(256, 256);
-            iv.setLayoutParams(imgParams);
-            ll.addView(iv);
-
-            android.widget.TextView warning = new android.widget.TextView(requireContext());
-            warning.setText(getString(R.string.llm_qr_export_warning));
-            warning.setTextSize(12);
-            warning.setGravity(Gravity.CENTER);
-            warning.setPadding(0, 16, 0, 0);
-            ll.addView(warning);
-
-            new AlertDialog.Builder(requireContext())
-                    .setTitle(R.string.llm_qr_export_title)
-                    .setView(ll)
-                    .setPositiveButton(android.R.string.ok, null)
-                    .show();
-        }
-
-        private Bitmap generateQRCode(String content, int sizePx) {
-            try {
-                QRCodeWriter writer = new QRCodeWriter();
-                BitMatrix matrix = writer.encode(content, BarcodeFormat.QR_CODE, sizePx, sizePx);
-                Bitmap bitmap = Bitmap.createBitmap(sizePx, sizePx, Bitmap.Config.RGB_565);
-                for (int x = 0; x < sizePx; x++) {
-                    for (int y = 0; y < sizePx; y++) {
-                        bitmap.setPixel(x, y, matrix.get(x, y) ? 0xFF000000 : 0xFFFFFFFF);
-                    }
-                }
-                return bitmap;
-            } catch (Exception e) {
-                return null;
-            }
-        }
-
-        private void launchQrScanner() {
-            try {
-                Intent intent = new Intent("com.google.zxing.client.android.SCAN");
-                intent.putExtra("SCAN_MODE", "QR_CODE_MODE");
-                mQrScanLauncher.launch(intent);
-            } catch (Exception e) {
-                Toast.makeText(requireContext(), getString(R.string.llm_qr_no_scanner),
-                        Toast.LENGTH_LONG).show();
-            }
-        }
-
-        private void handleQrImport(String scannedData) {
-            if (scannedData == null || !scannedData.contains("hermes_llm")) {
-                Toast.makeText(requireContext(), getString(R.string.llm_qr_invalid_data),
-                        Toast.LENGTH_SHORT).show();
-                return;
-            }
-
-            try {
-                String provider = extractJsonField(scannedData, "provider");
-                String model = extractJsonField(scannedData, "model");
-                String baseUrl = extractJsonField(scannedData, "base_url");
-
-                if (provider == null || provider.isEmpty()) {
-                    Toast.makeText(requireContext(), getString(R.string.llm_qr_invalid_data),
-                            Toast.LENGTH_SHORT).show();
-                    return;
-                }
-
-                String displayUrl = baseUrl != null ? baseUrl : "";
-                new AlertDialog.Builder(requireContext())
-                        .setTitle(R.string.llm_qr_import_confirm_title)
-                        .setMessage(getString(R.string.llm_qr_import_confirm_message,
-                                provider, model != null ? model : "", displayUrl))
-                        .setPositiveButton(android.R.string.ok, (d, w) -> {
-                            mConfigManager.setModelProvider(provider);
-                            if (model != null && !model.isEmpty()) {
-                                mConfigManager.setModelName(model);
-                            }
-                            if (baseUrl != null && !baseUrl.isEmpty()) {
-                                mConfigManager.setEnvVar("OPENAI_BASE_URL", baseUrl);
-                            }
-
-                            // Refresh UI
-                            updateModelList(provider);
-                            Preference providerPref = findPreference("llm_provider");
-                            if (providerPref instanceof ListPreference) {
-                                ((ListPreference) providerPref).setValue(provider);
-                            }
-                            Preference modelPref = findPreference("llm_model");
-                            if (modelPref instanceof ListPreference && model != null) {
-                                ((ListPreference) modelPref).setValue(model);
-                            }
-
-                            Toast.makeText(requireContext(), getString(R.string.llm_qr_import_applied),
-                                    Toast.LENGTH_SHORT).show();
-                        })
-                        .setNegativeButton(android.R.string.cancel, null)
-                        .show();
-            } catch (Exception e) {
-                Toast.makeText(requireContext(),
-                        getString(R.string.llm_qr_import_failed, e.getMessage()),
-                        Toast.LENGTH_SHORT).show();
-            }
-        }
-
-        private String extractJsonField(String json, String field) {
-            String key = "\"" + field + "\":\"";
-            int start = json.indexOf(key);
-            if (start < 0) return null;
-            start += key.length();
-            int end = json.indexOf("\"", start);
-            if (end < 0) return null;
-            return json.substring(start, end);
         }
 
         private void testConnection(Preference testPref) {
