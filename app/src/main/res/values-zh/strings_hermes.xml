@@ -245,4 +245,8 @@
     <string name="hermes_faq_copy_debug">复制调试信息</string>
     <string name="hermes_faq_debug_copied">调试信息已复制到剪贴板</string>
     <string name="hermes_faq_content"><b>入门指南</b>\nHermes 将 AI 助手连接到消息平台。设置步骤：\n1. 配置 LLM 提供商和 API 密钥\n2. 连接消息平台（飞书、Telegram 或 Discord）\n3. 启动网关\n\n<b>API 密钥问题</b>\n• \"认证失败\" — 检查 API 密钥是否正确且未过期\n• OpenAI 密钥以 \"sk-\" 开头\n• Anthropic 密钥以 \"sk-ant-\" 开头\n• 使用\"测试连接\"在启动网关前验证\n\n<b>网关故障排除</b>\n• 网关无法启动 — 检查是否有其他实例在运行，尝试\"重启\"\n• 网关频繁停止 — 禁用本应用的电池优化\n• 查看网关日志了解错误详情\n\n<b>连接问题</b>\n• \"网络错误\" — 确保网络可用\n• 超时 — 尝试不同的模型或降低复杂度\n• 防火墙 — 确保出站 HTTPS（端口 443）未被阻止\n\n<b>飞书/Lark 设置</b>\n• 使用飞书扫描二维码打开开发者控制台\n• 创建机器人应用并启用机器人能力\n• 将 App ID 和 App Secret 复制到设置向导\n• 在开发者控制台启用消息事件订阅</string>
+    <string name="llm_get_api_key_title">获取 API 密钥</string>
+    <string name="llm_get_api_key_summary">打开提供商控制台获取或管理 API 密钥</string>
+    <string name="llm_docs_title">提供商文档</string>
+    <string name="llm_docs_summary">查看设置指南和价格信息</string>
 </resources>
