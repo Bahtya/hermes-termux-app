@@ -139,6 +139,60 @@ public class ImSetupActivity extends AppCompatActivity {
         steps.setPadding(pad, dp(8), pad, pad);
         steps.setBackground(getResources().getDrawable(android.R.drawable.dialog_holo_light_frame));
         mContent.addView(steps, wrap);
+
+        // Discord-specific: intents guide and invite link
+        if (!isTelegram()) {
+            TextView intentsTitle = new TextView(this);
+            intentsTitle.setText(R.string.discord_intents_title);
+            intentsTitle.setTextSize(16);
+            intentsTitle.setTypeface(null, android.graphics.Typeface.BOLD);
+            intentsTitle.setPadding(pad, dp(16), pad, dp(4));
+            mContent.addView(intentsTitle, wrap);
+
+            TextView intentsDesc = new TextView(this);
+            intentsDesc.setText(R.string.discord_intents_desc);
+            intentsDesc.setTextSize(13);
+            intentsDesc.setPadding(pad, 0, pad, dp(8));
+            mContent.addView(intentsDesc, wrap);
+
+            String[] intentItems = {
+                    getString(R.string.discord_intent_message_content),
+                    getString(R.string.discord_intent_server_members),
+                    getString(R.string.discord_intent_presence)
+            };
+            for (String item : intentItems) {
+                TextView intentLine = new TextView(this);
+                intentLine.setText("• " + item);
+                intentLine.setTextSize(13);
+                intentLine.setPadding(dp(32), dp(2), pad, dp(2));
+                mContent.addView(intentLine, wrap);
+            }
+
+            TextView inviteTitle = new TextView(this);
+            inviteTitle.setText(R.string.discord_invite_title);
+            inviteTitle.setTextSize(16);
+            inviteTitle.setTypeface(null, android.graphics.Typeface.BOLD);
+            inviteTitle.setPadding(pad, dp(16), pad, dp(4));
+            mContent.addView(inviteTitle, wrap);
+
+            TextView inviteDesc = new TextView(this);
+            inviteDesc.setText(R.string.discord_invite_desc);
+            inviteDesc.setTextSize(13);
+            inviteDesc.setPadding(pad, 0, pad, dp(8));
+            mContent.addView(inviteDesc, wrap);
+
+            TextView inviteBtn = new TextView(this);
+            inviteBtn.setText(R.string.discord_invite_copy);
+            inviteBtn.setTextColor(0xFF1565C0);
+            inviteBtn.setTextSize(14);
+            inviteBtn.setPadding(pad, dp(4), pad, dp(8));
+            inviteBtn.setOnClickListener(v -> {
+                ClipboardManager clipboard = (ClipboardManager) getSystemService(Context.CLIPBOARD_SERVICE);
+                clipboard.setPrimaryClip(ClipData.newPlainText("Discord Invite", getString(R.string.discord_invite_link)));
+                Toast.makeText(this, R.string.feishu_copied, Toast.LENGTH_SHORT).show();
+            });
+            mContent.addView(inviteBtn, wrap);
+        }
     }
 
     private void showTokenEntry() {
