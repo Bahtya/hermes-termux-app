@@ -20,6 +20,8 @@ import androidx.preference.SwitchPreferenceCompat;
 import com.termux.R;
 import com.termux.shared.termux.TermuxConstants;
 
+import java.io.File;
+
 public class HermesConfigActivity extends AppCompatActivity {
 
     @Override
