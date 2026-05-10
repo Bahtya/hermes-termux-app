@@ -513,6 +513,15 @@
     <string name="discord_configured">Configured</string>
     <string name="discord_not_configured">Not configured</string>
 
+    <!-- Help Tooltips -->
+    <string name="help_gateway_title">What is the Gateway?</string>
+    <string name="help_gateway_message">The Hermes Gateway is a background service that connects your AI provider to your messaging platforms. It needs to be running for Hermes to receive and respond to messages.\n\nStart it from the Gateway Control screen or use the quick-start button.</string>
+    <string name="help_llm_title">What is an AI Provider?</string>
+    <string name="help_llm_message">The AI Provider (LLM) is the brain of your Hermes assistant. You need an API key from providers like OpenAI, Anthropic, or use a free local model with Ollama.\n\nConfigure it from the LLM Configuration screen.</string>
+    <string name="help_im_title">What are Messaging Platforms?</string>
+    <string name="help_im_message">Messaging platforms like Feishu, Telegram, and Discord are where you chat with your Hermes AI assistant. Configure at least one platform to start chatting.\n\nEach platform needs its own bot token from the respective service.</string>
+    <string name="help_ok">Got it</string>
+
     <!-- Telegram Setup -->
     <string name="telegram_setup_title">Telegram Bot Setup</string>
     <string name="telegram_welcome_title">Connect to Telegram</string>
