@@ -7,10 +7,28 @@
     <string name="agent_category_session">会话管理</string>
     <string name="agent_compression_summary">自动压缩对话上下文以节省 token</string>
     <string name="agent_compression_title">上下文压缩</string>
+    <string name="agent_compression_threshold_title">压缩阈值</string>
+    <string name="agent_compression_threshold_summary">上下文超过此比例时触发压缩 (0.1–0.9)</string>
+    <string name="agent_context_length_title">上下文长度</string>
+    <string name="agent_context_length_summary">最大上下文窗口大小 (token 数)</string>
+    <string name="agent_max_turns_title">最大轮次</string>
+    <string name="agent_max_turns_summary">每次对话最大工具调用迭代次数</string>
+    <string name="agent_gateway_timeout_title">不活跃超时（秒）</string>
+    <string name="agent_gateway_timeout_summary">网关不活跃多少秒后超时</string>
+    <string name="agent_verbose_title">详细日志</string>
+    <string name="agent_verbose_summary">启用详细的 Agent 日志记录以便调试</string>
     <string name="agent_memory_summary">允许 Agent 在会话之间存储个人笔记</string>
     <string name="agent_memory_title">Agent 记忆</string>
+    <string name="agent_user_profile_title">用户画像</string>
+    <string name="agent_user_profile_summary">允许 Agent 建立你的偏好画像</string>
+    <string name="agent_memory_limit_title">记忆字符上限</string>
+    <string name="agent_memory_limit_summary">Agent 笔记的最大字符数</string>
     <string name="agent_session_reset_summary">自动重置会话的时机</string>
     <string name="agent_session_reset_title">会话重置模式</string>
+    <string name="agent_session_idle_title">空闲超时（分钟）</string>
+    <string name="agent_session_idle_summary">不活跃多少分钟后重置会话</string>
+    <string name="agent_session_reset_hour_title">每日重置时间</string>
+    <string name="agent_session_reset_hour_summary">每天几点重置会话 (0–23)</string>
     <string name="agent_settings_summary">配置 Agent 行为、记忆和会话管理</string>
     <string name="agent_settings_title">Agent 设置</string>
 
@@ -19,6 +37,11 @@
     <string name="error_recovery_checking">正在检查系统状态…</string>
     <string name="error_recovery_multiple_issues">发现多个问题 - 点击查看第一个</string>
     <string name="error_recovery_title">系统健康</string>
+    <string name="error_recovery_no_api_key">缺少 API 密钥 - 点击配置 LLM 提供商</string>
+    <string name="error_recovery_no_im">未配置 IM 平台 - 点击设置消息通道</string>
+    <string name="error_recovery_not_installed">Hermes 未安装 - 点击开始安装</string>
+    <string name="error_recovery_gateway_down">网关已停止 - 点击启动</string>
+    <string name="error_recovery_no_prompt">未设置系统提示词 - 点击添加</string>
 
     <!-- Gateway Auto Start -->
     <string name="gateway_auto_start_summary">设备启动时自动运行 Hermes 网关</string>
@@ -99,8 +122,6 @@
     <string name="discord_invite_desc">使用此链接将你的机器人邀请到 Discord 服务器。</string>
     <string name="discord_invite_copy">复制邀请链接</string>
 
-    <!-- Telegram -->
-
     <!-- Generation Parameters -->
     <string name="llm_top_p_title">Top P (核采样)</string>
     <string name="llm_top_p_summary">控制采样范围 (0.0-1.0)</string>
@@ -152,4 +173,147 @@
     <string name="config_import_confirm_title">确认导入配置？</string>
     <string name="config_import_confirm_message">这将覆盖当前设置。是否继续？</string>
     <string name="config_import_success">配置导入成功</string>
+    <string name="config_export_success">配置已导出到: %1$s</string>
+    <string name="config_export_fail">导出失败: %1$s</string>
+
+    <!-- Unsaved Changes -->
+
+    <!-- Model Routing -->
+    <string name="llm_category_routing">模型路由</string>
+    <string name="llm_routing_mode_title">路由模式</string>
+    <string name="llm_routing_mode_summary">根据任务复杂度使用不同模型以优化成本</string>
+    <string name="llm_routing_fast_model_title">快速/廉价模型</string>
+    <string name="llm_routing_fast_model_summary">用于简单任务的模型（如 gpt-4o-mini、claude-haiku-4-5）</string>
+    <string name="llm_routing_threshold_title">复杂度阈值</string>
+    <string name="llm_routing_threshold_summary">超过此阈值 (0.0–1.0) 的任务使用主模型</string>
+
+    <!-- Browser Tool -->
+    <string name="browser_category_title">浏览器工具</string>
+    <string name="browser_inactivity_timeout_title">不活跃超时（分钟）</string>
+    <string name="browser_inactivity_timeout_summary">N 分钟无活动后关闭浏览器（默认 30）</string>
+    <string name="browser_user_agent_title">自定义 User Agent</string>
+    <string name="browser_user_agent_summary">用于网页抓取的自定义 UA 字符串（留空使用默认）</string>
+    <string name="browser_headless_title">无头模式</string>
+    <string name="browser_headless_summary">在无窗口模式下运行浏览器</string>
+    <string name="browser_max_tabs_title">最大并发标签页</string>
+    <string name="browser_max_tabs_summary">Agent 可打开的最大浏览器标签数（默认 5）</string>
+
+    <!-- Voice Transcription -->
+    <string name="voice_category_title">语音转文字</string>
+    <string name="voice_provider_title">转写服务提供商</string>
+    <string name="voice_provider_summary">选择语音消息的转写方式</string>
+    <string name="voice_language_title">语言代码</string>
+    <string name="voice_language_summary">转写语言（如 en、zh、ja、ko）</string>
+    <string name="voice_local_model_title">Whisper 模型大小</string>
+    <string name="voice_local_model_summary">本地 Whisper 模型大小（越大越准但越慢）</string>
+    <string name="voice_custom_endpoint_title">自定义端点</string>
+    <string name="voice_custom_endpoint_summary">OpenAI 兼容的转写 API 端点 URL</string>
+
+    <!-- Rate Limiting -->
+    <string name="rate_limit_category_title">速率限制</string>
+    <string name="rate_limit_user_per_min_title">每用户每分钟最大消息数</string>
+    <string name="rate_limit_user_per_min_summary">单个用户每分钟可发送的最大消息数（默认 10）</string>
+    <string name="rate_limit_global_per_min_title">全局每分钟最大消息数</string>
+    <string name="rate_limit_global_per_min_summary">所有用户每分钟最大消息数（默认 30）</string>
+    <string name="rate_limit_cooldown_title">用户冷却时间（秒）</string>
+    <string name="rate_limit_cooldown_summary">同一用户两次消息之间的最小间隔秒数（默认 5）</string>
+    <string name="rate_limit_concurrent_title">最大并发 LLM 请求数</string>
+    <string name="rate_limit_concurrent_summary">同时进行的最大 LLM API 调用数（默认 3）</string>
+    <string name="rate_limit_queue_mode_title">超限消息处理方式</string>
+    <string name="rate_limit_queue_mode_summary">超过速率限制时如何处理消息</string>
+
+    <!-- Logging -->
+    <string name="logging_category_title">日志</string>
+    <string name="logging_level_title">日志级别</string>
+    <string name="logging_level_summary">记录的最低日志级别（默认 INFO）</string>
+    <string name="logging_to_file_title">写入日志文件</string>
+    <string name="logging_to_file_summary">将 Agent 日志写入文件以便查看</string>
+    <string name="logging_max_file_size_title">日志文件最大大小 (MB)</string>
+    <string name="logging_max_file_size_summary">超过此大小时轮转日志文件（默认 10MB）</string>
+    <string name="logging_max_files_title">最大日志文件数</string>
+    <string name="logging_max_files_summary">保留的轮转日志文件数量（默认 5）</string>
+
+    <!-- Dashboard -->
+
+    <!-- LLM Config -->
+    <string name="llm_temperature_title">温度</string>
+    <string name="llm_temperature_summary">控制随机性 (0.0 - 2.0，默认 0.7)</string>
+    <string name="llm_max_tokens_title">最大 Token 数</string>
+    <string name="llm_max_tokens_summary">最大回复长度（默认 4096）</string>
+    <string name="llm_system_prompt_title">系统提示词</string>
+    <string name="llm_system_prompt_summary">AI 助手的自定义系统提示词</string>
+    <string name="llm_persona_template_title">人设模板</string>
+    <string name="llm_persona_template_summary">选择预设人设</string>
+    <string name="llm_preset_title">配置预设</string>
+    <string name="llm_preset_summary">快速设置常用场景</string>
+
+    <!-- LLM Categories -->
+    <string name="llm_category_provider">提供商</string>
+    <string name="llm_category_auth">认证</string>
+    <string name="llm_category_endpoint">端点</string>
+    <string name="llm_category_model">模型</string>
+    <string name="llm_category_test">测试</string>
+    <string name="llm_category_share">分享配置</string>
+    <string name="llm_category_persona">人设</string>
+    <string name="llm_params_category_title">参数</string>
+
+    <!-- Telegram -->
+
+    <!-- Discord -->
+
+    <!-- Gateway Status -->
+
+    <!-- Hermes Config -->
+
+    <!-- Gateway Control -->
+
+    <!-- Gateway Log -->
+
+    <!-- Hermes Help -->
+
+    <!-- Session Arrays -->
+    <string-array name="agent_session_reset_names">
+        <item>从不</item>
+        <item>空闲时</item>
+        <item>每天定时</item>
+        <item>两者（空闲 + 定时）</item>
+    </string-array>
+
+    <!-- Rate Limit Queue Mode -->
+    <string-array name="rate_limit_queue_mode_names">
+        <item>排队（有空闲时处理）</item>
+        <item>拒绝（发送错误消息）</item>
+    </string-array>
+
+    <!-- Voice Provider -->
+    <string-array name="voice_provider_names">
+        <item>OpenAI Whisper</item>
+        <item>本地 Whisper（设备端）</item>
+        <item>Google 语音转文字</item>
+        <item>自定义（OpenAI 兼容）</item>
+    </string-array>
+
+    <!-- Whisper Models -->
+    <string-array name="voice_whisper_model_names">
+        <item>Tiny（最快，39MB）</item>
+        <item>Base（快速，74MB）</item>
+        <item>Small（平衡，244MB）</item>
+        <item>Medium（准确，769MB）</item>
+        <item>Large（最佳，1550MB）</item>
+    </string-array>
+
+    <!-- Logging Levels -->
+    <string-array name="logging_level_names">
+        <item>Debug（详细）</item>
+        <item>Info（正常）</item>
+        <item>Warning（仅重要）</item>
+        <item>Error（仅严重）</item>
+    </string-array>
+
+    <!-- Routing Modes -->
+    <string-array name="llm_routing_mode_names">
+        <item>关闭（始终使用主模型）</item>
+        <item>按复杂度路由</item>
+        <item>按成本路由</item>
+    </string-array>
 </resources>
