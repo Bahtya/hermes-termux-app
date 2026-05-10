@@ -1,5 +1,6 @@
 package com.termux.app.hermes;
 
+import android.content.Intent;
 import android.os.Bundle;
 import android.text.Editable;
 import android.text.TextWatcher;
@@ -97,6 +98,12 @@ public class GatewayLogActivity extends AppCompatActivity {
         clearBtn.setOnClickListener(v -> showClearConfirm());
         buttonBar.addView(clearBtn);
 
+        TextView shareBtn = new TextView(this);
+        shareBtn.setText(R.string.gateway_log_share);
+        shareBtn.setPadding(dp(16), dp(8), dp(16), dp(8));
+        shareBtn.setOnClickListener(v -> shareLog());
+        buttonBar.addView(shareBtn);
+
         layout.addView(buttonBar);
         setContentView(layout);
 
@@ -191,6 +198,19 @@ public class GatewayLogActivity extends AppCompatActivity {
                 Toast.makeText(this, R.string.gateway_log_cleared, Toast.LENGTH_SHORT).show();
             });
         }).start();
+    }
+
+    private void shareLog() {
+        CharSequence text = mLogText.getText();
+        if (text == null || text.toString().equals(getString(R.string.gateway_log_empty))) {
+            Toast.makeText(this, R.string.gateway_log_share_empty, Toast.LENGTH_SHORT).show();
+            return;
+        }
+        Intent shareIntent = new Intent(Intent.ACTION_SEND);
+        shareIntent.setType("text/plain");
+        shareIntent.putExtra(Intent.EXTRA_SUBJECT, getString(R.string.gateway_log_share_title));
+        shareIntent.putExtra(Intent.EXTRA_TEXT, text.toString());
+        startActivity(Intent.createChooser(shareIntent, getString(R.string.gateway_log_share_title)));
     }
 
     private int dp(int value) {
