@@ -1,7 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <!-- Additional Feishu strings not in main strings.xml -->
-    <string name="feishu_welcome_title">Welcome to Feishu Integration</string>
     <string name="feishu_welcome_description">Connect Hermes to a Feishu or Lark bot to receive terminal notifications, run commands via chat, and get real-time alerts on your phone.</string>
     <string name="feishu_domain_title">Choose Your Platform</string>
     <string name="feishu_domain_description">Select whether you use the Chinese (Feishu) or international (Lark) version.</string>
@@ -13,6 +12,7 @@
     <string name="feishu_app_secret_hint">App Secret</string>
     <string name="feishu_credentials_error_empty">Please enter both App ID and App Secret</string>
     <string name="feishu_credentials_error_invalid_id">App ID should start with \"cli_\"</string>
+    <string name="feishu_credentials_title">Enter Credentials</string>
     <string name="feishu_configure_title">Configure Connection</string>
     <string name="feishu_mode_websocket_desc">Maintains a persistent connection. Best for real-time messaging. Works behind NAT/firewalls.</string>
     <string name="feishu_mode_webhook_desc">Requires a publicly accessible URL. Hermes will POST events to your endpoint.</string>
@@ -20,7 +20,7 @@
     <string name="feishu_qr_code_description">Scan this QR code with Feishu/Lark to pair with your bot.</string>
     <string name="feishu_qr_generating">Generating QR code…</string>
     <string name="feishu_complete_title">Setup Complete!</string>
-    <string name="feishu_complete_summary">Your Feishu/Lark bot is configured and ready.</string>
+    <string name="feishu_complete_summary_text">Your Feishu/Lark bot is configured and ready.</string>
     <string name="feishu_complete_save">Save &amp; Finish</string>
     <string name="feishu_confirm_cancel_title">Cancel Setup?</string>
     <string name="feishu_confirm_cancel_message">Are you sure you want to cancel? No settings will be saved.</string>

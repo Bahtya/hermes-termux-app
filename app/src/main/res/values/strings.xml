@@ -376,28 +376,73 @@
 
     <!-- Feishu Setup -->
     <string name="feishu_setup_title">Feishu / Lark Setup</string>
-    <string name="feishu_step_welcome">Welcome</string>
-    <string name="feishu_step_domain">Choose Platform</string>
-    <string name="feishu_step_create_app">Create App</string>
-    <string name="feishu_step_credentials">Enter Credentials</string>
-    <string name="feishu_step_complete">Complete</string>
-    <string name="feishu_welcome_text">Connect Hermes to Feishu/Lark to chat with your AI assistant directly in messages.\n\nThis wizard will guide you through creating a Feishu bot and connecting it to Hermes.</string>
-    <string name="feishu_domain_label">Select your platform:</string>
-    <string name="feishu_credentials_title">Enter your App credentials from the Developer Console:</string>
-    <string name="feishu_domain_feishu">Feishu (飞书)</string>
-    <string name="feishu_domain_lark">Lark (International)</string>
-    <string name="feishu_create_app_text">1. Open the Feishu Developer Console\n2. Click "Create App"\n3. Choose "Bot" as the app type\n4. Fill in app name and description</string>
-    <string name="feishu_open_console">Open Developer Console</string>
-    <string name="feishu_app_id_label">App ID</string>
-    <string name="feishu_app_secret_label">App Secret</string>
-    <string name="feishu_connection_mode">Connection Mode</string>
-    <string name="feishu_mode_websocket">WebSocket (Recommended)</string>
-    <string name="feishu_mode_webhook">Webhook</string>
-    <string name="feishu_save_success">Feishu configuration saved!</string>
+    <string name="feishu_step_progress">Step %1$d/%2$d</string>
     <string name="feishu_next">Next</string>
     <string name="feishu_back">Back</string>
     <string name="feishu_finish">Finish</string>
     <string name="feishu_cancel">Cancel</string>
+    <string name="feishu_skip_test">Skip Test</string>
+
+    <!-- Step 1: Welcome -->
+    <string name="feishu_welcome_title">Connect to Feishu / Lark</string>
+    <string name="feishu_welcome_desc">Hermes can connect to Feishu (飞书) or Lark so you can chat with your AI assistant directly in messages. This wizard will guide you through the setup in a few simple steps.</string>
+    <string name="feishu_welcome_steps">What you\'ll do:\n\n1. Choose your platform (Feishu or Lark)\n2. Create a bot in the Developer Console\n3. Enter your App credentials\n4. Test the connection\n\n⏱ Takes about 3–5 minutes</string>
+
+    <!-- Step 2: Domain -->
+    <string name="feishu_step2_title">Choose Platform</string>
+    <string name="feishu_step2_desc">Select which platform you use. Feishu is for China, Lark is for international users.</string>
+    <string name="feishu_domain_label">Select your platform:</string>
+    <string name="feishu_domain_feishu">Feishu (飞书)</string>
+    <string name="feishu_domain_feishu_hint">For users in mainland China</string>
+    <string name="feishu_domain_lark">Lark (International)</string>
+    <string name="feishu_domain_lark_hint">For international users</string>
+
+    <!-- Step 3: Create App -->
+    <string name="feishu_step3_title">Create Your Bot</string>
+    <string name="feishu_step3_desc">Follow these steps in the Feishu Developer Console to create your bot app.</string>
+    <string name="feishu_create_app_tip">💡 Tip: After creating the app, go to \"Bot\" section and enable the bot capability. Then find your App ID and App Secret on the app\'s credentials page.</string>
+    <string name="feishu_open_console">Open Developer Console</string>
+
+    <string-array name="feishu_create_app_steps">
+        <item>Open the Developer Console by tapping the button below</item>
+        <item>Tap \"Create App\" and choose \"Bot\" as the app type</item>
+        <item>Enter a name for your bot (e.g. \"My Hermes Bot\")</item>
+        <item>Go to \"Bot\" section and enable bot capability</item>
+        <item>Copy the App ID and App Secret from the credentials page</item>
+    </string-array>
+
+    <!-- Step 4: Credentials -->
+    <string name="feishu_step4_title">Enter Credentials</string>
+    <string name="feishu_step4_desc">Scan the QR code below with Feishu to open the credentials page, or enter them manually.</string>
+    <string name="feishu_qr_scan_hint">Scan this QR code with Feishu to open the Developer Console:</string>
+    <string name="feishu_manual_entry_label">Or enter credentials manually:</string>
+    <string name="feishu_paste">Paste</string>
+    <string name="feishu_toggle_visibility">Show</string>
+    <string name="feishu_paste_detected">App ID detected! Tap to fill: %1$s</string>
+    <string name="feishu_app_id_label">App ID</string>
+    <string name="feishu_app_secret_label">App Secret</string>
+    <string name="feishu_app_id_format_hint">App ID usually starts with \"cli_\"</string>
+    <string name="feishu_credentials_short">Credentials look too short — please double-check</string>
+    <string name="feishu_credentials_ok">Credentials look valid</string>
+    <string name="feishu_credentials_required">App ID and App Secret are required</string>
+    <string name="feishu_connection_mode">Connection Mode</string>
+    <string name="feishu_mode_websocket">WebSocket (Recommended)</string>
+    <string name="feishu_mode_webhook">Webhook</string>
+
+    <!-- Step 5: Test -->
+    <string name="feishu_step5_title">Test Connection</string>
+    <string name="feishu_step5_desc">Let\'s verify your configuration before saving. This tests that your credentials are correct.</string>
+    <string name="feishu_test_config_summary">Platform: %1$s\nApp ID: %2$s\nConnection: %3$s</string>
+    <string name="feishu_test_ready">Tap \"Test Connection\" to verify your credentials</string>
+    <string name="feishu_run_test">Test Connection</string>
+    <string name="feishu_test_running">Testing connection…</string>
+    <string name="feishu_test_success">Connection test passed! Your bot is ready.</string>
+    <string name="feishu_test_warning">Could not verify connection, but credentials look valid. You can continue and test later.</string>
+
+    <!-- Step 6: Complete -->
+    <string name="feishu_save_success">Setup Complete!</string>
+    <string name="feishu_complete_summary">Platform: %1$s\nApp ID: %2$s…\nConnection: %3$s</string>
+    <string name="feishu_complete_next_steps">Next steps:\n\n• Start the Hermes Gateway from Settings to begin receiving messages\n• Send a message to your bot on Feishu to start chatting\n• You can change these settings anytime from Hermes Settings</string>
 
     <!-- Hermes Web -->
     <string name="hermes_web_title">Hermes Web</string>
