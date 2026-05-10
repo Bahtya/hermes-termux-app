@@ -24,7 +24,7 @@ public class HermesTabBarController {
     static final String TAB_HERMES = "hermes";
 
     private static final String HERMES_BIN_PATH =
-        TermuxConstants.TERMUX_HOME_DIR_PATH + "/hermes";
+        TermuxConstants.TERMUX_BIN_PREFIX_DIR_PATH + "/hermes";
 
     private final TermuxActivity mActivity;
     private final LinearLayout mTabBar;
@@ -108,9 +108,11 @@ public class HermesTabBarController {
             mActivity.getTermuxTerminalSessionClient().addHermesSession(
                 HERMES_BIN_PATH, null, TermuxConstants.TERMUX_HOME_DIR_PATH, TAB_HERMES);
         } else {
-            // Hermes not installed — create a shell session named "hermes" that shows a message
+            // Hermes not installed yet — run hermes command which will fail with a helpful message
             mActivity.getTermuxTerminalSessionClient().addHermesSession(
-                null, null, TermuxConstants.TERMUX_HOME_DIR_PATH, TAB_HERMES);
+                TermuxConstants.TERMUX_BIN_PREFIX_DIR_PATH + "/bash",
+                new String[]{"-c", "echo 'Hermes is being installed... Please wait or switch to Bash tab.'; echo 'Once installed, close this session and switch back to Hermes.'; exec bash"},
+                TermuxConstants.TERMUX_HOME_DIR_PATH, TAB_HERMES);
         }
     }
 
