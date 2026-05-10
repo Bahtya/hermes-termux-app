@@ -297,6 +297,12 @@ App ID 以"cli_"开头，约 10-20 个字符。App Secret 较长（30+ 字符）
     <string name="gateway_notif_perm_denied">权限被拒绝 — 网关可能在没有可见通知的情况下运行</string>
     <string name="gateway_notif_perm_enable">开启</string>
     <string name="gateway_notif_perm_skip">跳过</string>
+    <string name="validation_title">配置检查</string>
+    <string name="validation_no_api_key">未设置 %1$s 的 API 密钥</string>
+    <string name="validation_no_model">未选择模型</string>
+    <string name="validation_no_im">未配置消息平台</string>
+    <string name="validation_start_anyway">仍然启动网关？</string>
+    <string name="validation_start">启动</string>
     <string name="gateway_stopped">网关已停止</string>
     <string name="gateway_restarted">网关重启中…</string>
     <string name="gateway_auto_restart_toast">正在应用配置更改…</string>

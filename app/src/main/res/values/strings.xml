@@ -637,6 +637,12 @@ App ID starts with "cli_" and is about 10–20 characters. App Secret is longer 
     <string name="gateway_notif_perm_denied">Permission denied — gateway may run without visible notification</string>
     <string name="gateway_notif_perm_enable">Enable</string>
     <string name="gateway_notif_perm_skip">Skip</string>
+    <string name="validation_title">Configuration Check</string>
+    <string name="validation_no_api_key">No API key set for %1$s</string>
+    <string name="validation_no_model">No model selected</string>
+    <string name="validation_no_im">No messaging platform configured</string>
+    <string name="validation_start_anyway">Start gateway anyway?</string>
+    <string name="validation_start">Start</string>
     <string name="gateway_stopped">Gateway stopped</string>
     <string name="gateway_restarted">Gateway restarting…</string>
     <string name="gateway_auto_restart_toast">Applying config changes…</string>
