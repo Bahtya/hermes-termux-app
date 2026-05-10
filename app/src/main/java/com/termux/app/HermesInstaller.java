@@ -222,6 +222,43 @@ public class HermesInstaller {
         try (FileOutputStream out = new FileOutputStream(HERMES_MARKER_FILE)) {
             out.write("1\n".getBytes("UTF-8"));
         }
+        deployShellProfile();
+    }
+
+    private static void deployShellProfile() throws Exception {
+        String home = TermuxConstants.TERMUX_HOME_DIR_PATH;
+        File bashrc = new File(home, ".bashrc");
+        String hermesBlock = "\n# Hermes Terminal Configuration\n"
+                + "export USER=hermes\n"
+                + "export LOGNAME=hermes\n"
+                + "export PS1='\\[\\e[1;32m\\]hermes@hermes\\[\\e[0m\\]:\\[\\e[1;34m\\]\\w\\[\\e[0m\\]\\$ '\n";
+
+        if (bashrc.exists()) {
+            String content = readFile(bashrc);
+            if (!content.contains("Hermes Terminal Configuration")) {
+                try (FileOutputStream out = new FileOutputStream(bashrc, true)) {
+                    out.write(hermesBlock.getBytes("UTF-8"));
+                }
+                Logger.logInfo(LOG_TAG, "Appended Hermes shell profile to .bashrc");
+            }
+        } else {
+            try (FileOutputStream out = new FileOutputStream(bashrc)) {
+                out.write(hermesBlock.getBytes("UTF-8"));
+            }
+            Os.chmod(bashrc.getAbsolutePath(), 0644);
+            Logger.logInfo(LOG_TAG, "Created .bashrc with Hermes shell profile");
+        }
+    }
+
+    private static String readFile(File file) throws Exception {
+        StringBuilder sb = new StringBuilder();
+        try (BufferedReader reader = new BufferedReader(new java.io.FileReader(file))) {
+            String line;
+            while ((line = reader.readLine()) != null) {
+                sb.append(line).append("\n");
+            }
+        }
+        return sb.toString();
     }
 
     public static class RetryReceiver extends BroadcastReceiver {
