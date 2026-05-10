@@ -33,6 +33,17 @@
     <string name="llm_base_url_title">API 地址</string>
     <string name="llm_base_url_summary">自定义 API 地址（用于 Ollama 或兼容 API）</string>
 
+    <!-- LLM Test Connection -->
+    <string name="llm_test_connection_title">测试连接</string>
+    <string name="llm_test_connection_summary">验证 API 密钥和模型是否正常工作</string>
+    <string name="llm_test_running">正在测试连接…</string>
+    <string name="llm_test_success">连接成功！模型 %1$s 可访问。</string>
+    <string name="llm_test_success_no_key">连接成功（%1$s 不需要 API 密钥）。</string>
+    <string name="llm_test_fail_auth">认证失败 — 请检查您的 API 密钥。</string>
+    <string name="llm_test_fail_network">网络错误 — 请检查网络连接。</string>
+    <string name="llm_test_fail_generic">测试失败：%1$s</string>
+    <string name="llm_test_no_key">请先输入 API 密钥。</string>
+
     <!-- LLM Provider Arrays -->
     <string-array name="llm_provider_names">
         <item>OpenAI</item>

@@ -361,6 +361,17 @@
     <string name="llm_base_url_title">Base URL</string>
     <string name="llm_base_url_summary">Custom endpoint URL (for Ollama or compatible APIs)</string>
 
+    <!-- LLM Test Connection -->
+    <string name="llm_test_connection_title">Test Connection</string>
+    <string name="llm_test_connection_summary">Verify your API key and model are working</string>
+    <string name="llm_test_running">Testing connection…</string>
+    <string name="llm_test_success">Connection successful! Model %1$s is reachable.</string>
+    <string name="llm_test_success_no_key">Connection successful (no API key needed for %1$s).</string>
+    <string name="llm_test_fail_auth">Authentication failed — check your API key.</string>
+    <string name="llm_test_fail_network">Network error — check your internet connection.</string>
+    <string name="llm_test_fail_generic">Test failed: %1$s</string>
+    <string name="llm_test_no_key">Please enter an API key first.</string>
+
     <!-- Gateway Control -->
     <string name="gateway_start_title">Start Gateway</string>
     <string name="gateway_start_summary">Start the Hermes messaging gateway</string>
