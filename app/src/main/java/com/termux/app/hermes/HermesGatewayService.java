@@ -115,6 +115,25 @@ public class HermesGatewayService extends Service {
         createNotificationChannel();
     }
 
+    private int getNotificationImportance() {
+        try {
+            return Integer.parseInt(HermesConfigManager.getInstance()
+                    .getEnvVar("GATEWAY_NOTIF_IMPORTANCE"));
+        } catch (Exception e) {
+            return NotificationManager.IMPORTANCE_DEFAULT;
+        }
+    }
+
+    private boolean isNotificationSoundEnabled() {
+        return !"false".equals(HermesConfigManager.getInstance()
+                .getEnvVar("GATEWAY_NOTIF_SOUND"));
+    }
+
+    private boolean isNotificationVibrateEnabled() {
+        return "true".equals(HermesConfigManager.getInstance()
+                .getEnvVar("GATEWAY_NOTIF_VIBRATE"));
+    }
+
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
         if (intent != null) {
@@ -298,12 +317,22 @@ public class HermesGatewayService extends Service {
             NotificationManager nm = getSystemService(NotificationManager.class);
             if (nm == null) return;
 
+            int importance = getNotificationImportance();
             NotificationChannel channel = new NotificationChannel(
                     CHANNEL_ID,
                     "Hermes Gateway",
-                    NotificationManager.IMPORTANCE_LOW
+                    importance
             );
             channel.setDescription("Hermes gateway status");
+            if (isNotificationSoundEnabled()) {
+                channel.setSound(android.media.RingtoneManager.getDefaultUri(android.media.RingtoneManager.TYPE_NOTIFICATION),
+                        new android.media.AudioAttributes.Builder()
+                                .setUsage(android.media.AudioAttributes.USAGE_NOTIFICATION)
+                                .build());
+            }
+            if (isNotificationVibrateEnabled()) {
+                channel.setVibrationPattern(new long[]{0, 300, 200, 300});
+            }
             nm.createNotificationChannel(channel);
 
             NotificationChannel errorChannel = new NotificationChannel(
