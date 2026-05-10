@@ -109,7 +109,8 @@
                 <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:orientation="horizontal">
+                    android:orientation="horizontal"
+                    android:gravity="center_vertical">
                     <ImageButton
                         android:id="@+id/settings_button"
                         android:layout_width="40dp"
@@ -117,6 +118,18 @@
                         android:src="@drawable/ic_settings"
                         android:background="@null"
                         android:contentDescription="@string/action_open_settings"
+                        app:tint="?attr/termuxActivityDrawerImageTint" />
+                    <View
+                        android:layout_width="0dp"
+                        android:layout_height="0dp"
+                        android:layout_weight="1" />
+                    <ImageButton
+                        android:id="@+id/hermes_settings_button"
+                        android:layout_width="40dp"
+                        android:layout_height="40dp"
+                        android:src="@drawable/ic_hermes"
+                        android:background="@null"
+                        android:contentDescription="@string/hermes_config_title"
                         app:tint="?attr/termuxActivityDrawerImageTint" />
                 </LinearLayout>
 
