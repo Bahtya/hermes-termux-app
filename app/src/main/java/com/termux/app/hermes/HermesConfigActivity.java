@@ -541,6 +541,10 @@ public class HermesConfigActivity extends AppCompatActivity {
                     .show();
         }
 
+        private int dp(int value) {
+            return (int) (value * getResources().getDisplayMetrics().density);
+        }
+
         private void showFaqDialog() {
             ScrollView scrollView = new ScrollView(requireContext());
             TextView textView = new TextView(requireContext());
