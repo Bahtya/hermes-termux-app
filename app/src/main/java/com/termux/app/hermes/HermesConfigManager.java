@@ -202,7 +202,15 @@ public class HermesConfigManager {
                 + "FEISHU_APP_ID=\n"
                 + "FEISHU_APP_SECRET=\n"
                 + "FEISHU_DOMAIN=feishu\n"
-                + "FEISHU_CONNECTION_MODE=websocket\n";
+                + "FEISHU_CONNECTION_MODE=websocket\n"
+                + "\n"
+                + "# Telegram Integration\n"
+                + "TELEGRAM_BOT_TOKEN=\n"
+                + "TELEGRAM_ALLOWED_USERS=\n"
+                + "\n"
+                + "# Discord Integration\n"
+                + "DISCORD_BOT_TOKEN=\n"
+                + "DISCORD_ALLOWED_USERS=\n";
 
         writeStringToFile(ENV_FILE_PATH, defaultEnv);
         Logger.logInfo(LOG_TAG, "Created default .env file");
@@ -399,6 +407,14 @@ public class HermesConfigManager {
         writeEnvLine(sb, ENV_FEISHU_DOMAIN);
         writeEnvLine(sb, ENV_FEISHU_CONNECTION_MODE);
 
+        sb.append("\n# Telegram Integration\n");
+        writeEnvLine(sb, "TELEGRAM_BOT_TOKEN");
+        writeEnvLine(sb, "TELEGRAM_ALLOWED_USERS");
+
+        sb.append("\n# Discord Integration\n");
+        writeEnvLine(sb, "DISCORD_BOT_TOKEN");
+        writeEnvLine(sb, "DISCORD_ALLOWED_USERS");
+
         // Write any additional keys that were set dynamically
         String[] knownKeys = {
                 ENV_OPENAI_API_KEY, ENV_ANTHROPIC_API_KEY, ENV_GOOGLE_API_KEY,
@@ -406,7 +422,9 @@ public class HermesConfigManager {
                 ENV_XAI_API_KEY, ENV_ALIBABA_API_KEY, ENV_MISTRAL_API_KEY, ENV_NVIDIA_API_KEY,
                 "OLLAMA_API_KEY", "OPENAI_BASE_URL",
                 ENV_FEISHU_APP_ID, ENV_FEISHU_APP_SECRET,
-                ENV_FEISHU_DOMAIN, ENV_FEISHU_CONNECTION_MODE
+                ENV_FEISHU_DOMAIN, ENV_FEISHU_CONNECTION_MODE,
+                "TELEGRAM_BOT_TOKEN", "TELEGRAM_ALLOWED_USERS",
+                "DISCORD_BOT_TOKEN", "DISCORD_ALLOWED_USERS"
         };
         for (Map.Entry<String, String> entry : mEnvVars.entrySet()) {
             boolean isKnown = false;

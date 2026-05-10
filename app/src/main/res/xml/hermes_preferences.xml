@@ -14,6 +14,16 @@
             android:title="@string/hermes_feishu_setup_title"
             android:summary="@string/hermes_feishu_setup_summary" />
 
+        <Preference
+            android:key="hermes_telegram_setup"
+            android:title="@string/hermes_telegram_setup_title"
+            android:summary="@string/hermes_telegram_setup_summary" />
+
+        <Preference
+            android:key="hermes_discord_setup"
+            android:title="@string/hermes_discord_setup_title"
+            android:summary="@string/hermes_discord_setup_summary" />
+
     </PreferenceCategory>
 
     <PreferenceCategory android:title="@string/hermes_cat_gateway">
