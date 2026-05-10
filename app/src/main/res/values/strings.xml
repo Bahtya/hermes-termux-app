@@ -252,6 +252,10 @@
     <string name="hermes_llm_config_summary">Set AI provider, API key, and model</string>
     <string name="hermes_feishu_setup_title">Feishu / Lark Setup</string>
     <string name="hermes_feishu_setup_summary">One-click Feishu bot configuration</string>
+    <string name="hermes_telegram_setup_title">Telegram Setup</string>
+    <string name="hermes_telegram_setup_summary">Connect your Telegram bot</string>
+    <string name="hermes_discord_setup_title">Discord Setup</string>
+    <string name="hermes_discord_setup_summary">Connect your Discord bot</string>
     <string name="hermes_gateway_control_title">Gateway Control</string>
     <string name="hermes_gateway_control_summary">Start, stop, or restart the Hermes gateway</string>
     <string name="hermes_reset_title">Reset Configuration</string>
@@ -382,6 +386,42 @@
     <string name="llm_not_configured">Not configured</string>
     <string name="feishu_configured">Configured</string>
     <string name="feishu_not_configured">Not configured</string>
+    <string name="telegram_configured">Configured</string>
+    <string name="telegram_not_configured">Not configured</string>
+    <string name="discord_configured">Configured</string>
+    <string name="discord_not_configured">Not configured</string>
+
+    <!-- Telegram Setup -->
+    <string name="telegram_setup_title">Telegram Bot Setup</string>
+    <string name="telegram_welcome_title">Connect to Telegram</string>
+    <string name="telegram_welcome_desc">Hermes can connect to Telegram so you can chat with your AI assistant directly in Telegram messages.</string>
+    <string name="telegram_token_title">Bot Token</string>
+    <string name="telegram_token_hint">Paste your bot token from @BotFather</string>
+    <string name="telegram_allowed_users_title">Allowed Users (Optional)</string>
+    <string name="telegram_allowed_users_hint">Comma-separated user IDs (leave empty to allow all)</string>
+    <string name="telegram_get_token_steps">How to get your bot token:\n\n1. Open Telegram and search for @BotFather\n2. Send /newbot to create a new bot\n3. Choose a name and username for your bot\n4. Copy the bot token provided by BotFather</string>
+    <string name="telegram_test_title">Test Connection</string>
+    <string name="telegram_test_desc">Verify your bot token is valid by testing the connection.</string>
+    <string name="telegram_test_success">Bot token is valid! Your Telegram bot is ready.</string>
+    <string name="telegram_test_fail">Invalid bot token — please check and try again.</string>
+    <string name="telegram_complete_title">Telegram Setup Complete!</string>
+    <string name="telegram_complete_next_steps">Next steps:\n\n• Start the Hermes Gateway from Settings\n• Send a message to your bot on Telegram\n• You can change settings anytime from Hermes Settings</string>
+
+    <!-- Discord Setup -->
+    <string name="discord_setup_title">Discord Bot Setup</string>
+    <string name="discord_welcome_title">Connect to Discord</string>
+    <string name="discord_welcome_desc">Hermes can connect to Discord so you can chat with your AI assistant in Discord servers and DMs.</string>
+    <string name="discord_token_title">Bot Token</string>
+    <string name="discord_token_hint">Paste your bot token from Discord Developer Portal</string>
+    <string name="discord_allowed_users_title">Allowed Users (Optional)</string>
+    <string name="discord_allowed_users_hint">Comma-separated Discord user IDs (leave empty to allow all)</string>
+    <string name="discord_get_token_steps">How to get your bot token:\n\n1. Go to discord.com/developers/applications\n2. Click \"New Application\" and name it\n3. Go to \"Bot\" section and click \"Reset Token\"\n4. Copy the bot token\n5. Enable \"Message Content Intent\" under Bot > Privileged Gateway Intents</string>
+    <string name="discord_test_title">Test Connection</string>
+    <string name="discord_test_desc">Verify your bot token is valid by testing the connection.</string>
+    <string name="discord_test_success">Bot token is valid! Your Discord bot is ready.</string>
+    <string name="discord_test_fail">Invalid bot token — please check and try again.</string>
+    <string name="discord_complete_title">Discord Setup Complete!</string>
+    <string name="discord_complete_next_steps">Next steps:\n\n• Invite your bot to your Discord server\n• Start the Hermes Gateway from Settings\n• Send a message to your bot on Discord\n• You can change settings anytime from Hermes Settings</string>
 
     <!-- Feishu Setup -->
     <string name="feishu_setup_title">Feishu / Lark Setup</string>
