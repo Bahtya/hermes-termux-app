@@ -1217,4 +1217,26 @@
         <item>large</item>
     </string-array>
 
+    <!-- Rate Limiting -->
+    <string name="rate_limit_category_title">Rate Limiting</string>
+    <string name="rate_limit_user_per_min_title">Max Messages per User (per minute)</string>
+    <string name="rate_limit_user_per_min_summary">Maximum messages a single user can send per minute (default 10)</string>
+    <string name="rate_limit_global_per_min_title">Max Global Messages (per minute)</string>
+    <string name="rate_limit_global_per_min_summary">Maximum messages across all users per minute (default 30)</string>
+    <string name="rate_limit_cooldown_title">User Cooldown (seconds)</string>
+    <string name="rate_limit_cooldown_summary">Seconds between messages from the same user (default 5)</string>
+    <string name="rate_limit_concurrent_title">Max Concurrent LLM Requests</string>
+    <string name="rate_limit_concurrent_summary">Maximum simultaneous LLM API calls (default 3)</string>
+    <string name="rate_limit_queue_mode_title">Excess Message Mode</string>
+    <string name="rate_limit_queue_mode_summary">What to do when rate limit is exceeded</string>
+
+    <string-array name="rate_limit_queue_mode_names">
+        <item>Queue (process when available)</item>
+        <item>Reject (send error message)</item>
+    </string-array>
+    <string-array name="rate_limit_queue_mode_values">
+        <item>queue</item>
+        <item>reject</item>
+    </string-array>
+
 </resources>

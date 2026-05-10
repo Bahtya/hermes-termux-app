@@ -108,6 +108,13 @@ public class HermesConfigManager {
     private static final String KEY_VOICE_LOCAL_MODEL = "voice.local_model";
     private static final String KEY_VOICE_CUSTOM_ENDPOINT = "voice.custom_endpoint";
 
+    // Rate limiting config keys
+    private static final String KEY_RATE_LIMIT_USER_PER_MIN = "rate_limit.max_per_user_per_minute";
+    private static final String KEY_RATE_LIMIT_GLOBAL_PER_MIN = "rate_limit.max_global_per_minute";
+    private static final String KEY_RATE_LIMIT_COOLDOWN = "rate_limit.cooldown_seconds";
+    private static final String KEY_RATE_LIMIT_CONCURRENT = "rate_limit.max_concurrent_requests";
+    private static final String KEY_RATE_LIMIT_QUEUE_MODE = "rate_limit.queue_mode";
+
     // ---- .env key constants ----
     private static final String ENV_OPENAI_API_KEY = "OPENAI_API_KEY";
     private static final String ENV_ANTHROPIC_API_KEY = "ANTHROPIC_API_KEY";
@@ -766,6 +773,54 @@ public class HermesConfigManager {
 
     public void setSystemPrompt(String prompt) {
         setYamlValue(KEY_SYSTEM_PROMPT, prompt != null ? prompt : "");
+    }
+
+    // =========================================================================
+    // Rate limiting config
+    // =========================================================================
+
+    public int getRateLimitUserPerMinute() {
+        String val = getYamlValue(KEY_RATE_LIMIT_USER_PER_MIN, "10");
+        try { return Integer.parseInt(val); } catch (NumberFormatException e) { return 10; }
+    }
+
+    public void setRateLimitUserPerMinute(int limit) {
+        setYamlValue(KEY_RATE_LIMIT_USER_PER_MIN, String.valueOf(limit));
+    }
+
+    public int getRateLimitGlobalPerMinute() {
+        String val = getYamlValue(KEY_RATE_LIMIT_GLOBAL_PER_MIN, "30");
+        try { return Integer.parseInt(val); } catch (NumberFormatException e) { return 30; }
+    }
+
+    public void setRateLimitGlobalPerMinute(int limit) {
+        setYamlValue(KEY_RATE_LIMIT_GLOBAL_PER_MIN, String.valueOf(limit));
+    }
+
+    public int getRateLimitCooldown() {
+        String val = getYamlValue(KEY_RATE_LIMIT_COOLDOWN, "5");
+        try { return Integer.parseInt(val); } catch (NumberFormatException e) { return 5; }
+    }
+
+    public void setRateLimitCooldown(int seconds) {
+        setYamlValue(KEY_RATE_LIMIT_COOLDOWN, String.valueOf(seconds));
+    }
+
+    public int getRateLimitConcurrent() {
+        String val = getYamlValue(KEY_RATE_LIMIT_CONCURRENT, "3");
+        try { return Integer.parseInt(val); } catch (NumberFormatException e) { return 3; }
+    }
+
+    public void setRateLimitConcurrent(int max) {
+        setYamlValue(KEY_RATE_LIMIT_CONCURRENT, String.valueOf(max));
+    }
+
+    public String getRateLimitQueueMode() {
+        return getYamlValue(KEY_RATE_LIMIT_QUEUE_MODE, "queue");
+    }
+
+    public void setRateLimitQueueMode(String mode) {
+        setYamlValue(KEY_RATE_LIMIT_QUEUE_MODE, mode);
     }
 
     // =========================================================================
