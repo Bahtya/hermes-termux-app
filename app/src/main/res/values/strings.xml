@@ -281,6 +281,13 @@
     <string name="hermes_update_failed">Failed to check for updates</string>
     <string name="hermes_version_label">Hermes Agent version</string>
 
+    <!-- Help & FAQ -->
+    <string name="hermes_help_faq_title">Help &amp; FAQ</string>
+    <string name="hermes_help_faq_summary">Common questions and troubleshooting</string>
+    <string name="hermes_faq_copy_debug">Copy Debug Info</string>
+    <string name="hermes_faq_debug_copied">Debug info copied to clipboard</string>
+    <string name="hermes_faq_content"><b>Getting Started</b>\nHermes connects AI assistants to messaging platforms. Setup steps:\n1. Configure your LLM provider and API key\n2. Connect a messaging platform (Feishu, Telegram, or Discord)\n3. Start the gateway\n\n<b>API Key Issues</b>\n• \"Authentication failed\" — Check your API key is correct and has not expired\n• OpenAI keys start with \"sk-\"\n• Anthropic keys start with \"sk-ant-\"\n• Use \"Test Connection\" to verify before starting gateway\n\n<b>Gateway Troubleshooting</b>\n• Gateway won\'t start — Check if another instance is running. Try \"Restart\"\n• Gateway keeps stopping — Disable battery optimization for this app\n• Check gateway logs for error details\n\n<b>Connection Issues</b>\n• \"Network error\" — Ensure internet is available\n• Timeouts — Try a different model or reduce complexity\n• Firewall — Ensure outbound HTTPS (port 443) is allowed\n\n<b>Feishu/Lark Setup</b>\n• Scan QR code with Feishu app to open developer console\n• Create a bot application and enable bot capability\n• Copy App ID and App Secret into the setup wizard\n• Enable message event subscription in developer console</string>
+
     <!-- LLM Preferences -->
     <string name="llm_provider_title">AI Provider</string>
     <string name="llm_provider_summary">Select your LLM provider</string>

@@ -1,9 +1,13 @@
 package com.termux.app.hermes;
 
+import android.content.ClipData;
+import android.content.ClipboardManager;
 import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
 import android.view.MenuItem;
+import android.widget.ScrollView;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
@@ -228,6 +232,9 @@ public class HermesConfigActivity extends AppCompatActivity {
                 case "hermes_import_config":
                     showImportConfirmDialog();
                     return true;
+                case "hermes_help_faq":
+                    showFaqDialog();
+                    return true;
             }
             return super.onPreferenceTreeClick(preference);
         }
@@ -298,6 +305,93 @@ public class HermesConfigActivity extends AppCompatActivity {
             } catch (Exception e) {
                 return null;
             }
+        }
+
+        private void showFaqDialog() {
+            ScrollView scrollView = new ScrollView(requireContext());
+            TextView textView = new TextView(requireContext());
+            int padding = (int) (24 * getResources().getDisplayMetrics().density);
+            textView.setPadding(padding, padding, padding, 0);
+            textView.setText(getString(R.string.hermes_faq_content));
+            scrollView.addView(textView);
+
+            AlertDialog dialog = new AlertDialog.Builder(requireContext())
+                    .setTitle(R.string.hermes_help_faq_title)
+                    .setView(scrollView)
+                    .setPositiveButton(android.R.string.ok, null)
+                    .setNeutralButton(R.string.hermes_faq_copy_debug, (d, which) -> copyDebugInfo())
+                    .show();
+        }
+
+        private void copyDebugInfo() {
+            StringBuilder sb = new StringBuilder();
+            sb.append("=== Hermes Debug Info ===\n\n");
+
+            // Provider & Model
+            String provider = mConfigManager.getModelProvider();
+            String model = mConfigManager.getModelName();
+            sb.append("Provider: ").append(provider).append("\n");
+            sb.append("Model: ").append(model).append("\n");
+
+            // API Key status (masked)
+            String apiKey = mConfigManager.getApiKey(provider);
+            if (apiKey != null && !apiKey.isEmpty()) {
+                String masked;
+                if (apiKey.length() < 8) {
+                    masked = "****";
+                } else {
+                    masked = apiKey.substring(0, 4) + "..." + apiKey.substring(apiKey.length() - 4);
+                }
+                sb.append("API Key: ").append(masked).append("\n");
+            } else {
+                sb.append("API Key: (not set)\n");
+            }
+
+            // IM status
+            sb.append("\nMessaging:\n");
+            if (mConfigManager.isFeishuConfigured()) {
+                sb.append("  Feishu: Configured\n");
+            } else {
+                sb.append("  Feishu: Not configured\n");
+            }
+            if (!mConfigManager.getEnvVar("TELEGRAM_BOT_TOKEN").isEmpty()) {
+                sb.append("  Telegram: Configured\n");
+            } else {
+                sb.append("  Telegram: Not configured\n");
+            }
+            if (!mConfigManager.getEnvVar("DISCORD_BOT_TOKEN").isEmpty()) {
+                sb.append("  Discord: Configured\n");
+            } else {
+                sb.append("  Discord: Not configured\n");
+            }
+
+            // Gateway status
+            sb.append("\nGateway: ");
+            HermesGatewayStatus.checkAsync((status, detail) -> {
+                if (getActivity() == null) return;
+                getActivity().runOnUiThread(() -> {
+                    String statusStr;
+                    switch (status) {
+                        case RUNNING:
+                            statusStr = "Running";
+                            break;
+                        case NOT_INSTALLED:
+                            statusStr = "Not installed";
+                            break;
+                        default:
+                            statusStr = "Stopped";
+                            break;
+                    }
+                    sb.append(statusStr).append("\n");
+
+                    ClipboardManager clipboard = (ClipboardManager) requireContext()
+                            .getSystemService(Context.CLIPBOARD_SERVICE);
+                    ClipData clip = ClipData.newPlainText("Hermes Debug Info", sb.toString());
+                    clipboard.setPrimaryClip(clip);
+                    Toast.makeText(requireContext(), R.string.hermes_faq_debug_copied,
+                            Toast.LENGTH_SHORT).show();
+                });
+            });
         }
 
         private void showResetConfirmDialog() {
