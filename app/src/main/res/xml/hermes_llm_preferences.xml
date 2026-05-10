@@ -142,10 +142,13 @@
     <PreferenceCategory
         android:key="llm_category_persona"
         android:title="@string/llm_category_persona">
-        <Preference
+        <ListPreference
             android:key="llm_persona_template"
             android:title="@string/llm_persona_template_title"
-            android:summary="@string/llm_persona_template_summary" />
+            android:summary="@string/llm_persona_template_summary"
+            android:entries="@array/llm_persona_names"
+            android:entryValues="@array/llm_persona_values"
+            android:defaultValue="custom" />
 
         <EditTextPreference
             android:key="llm_system_prompt"

@@ -723,6 +723,26 @@
         <item>code</item>
         <item>custom</item>
     </string-array>
+
+    <string-array name="llm_persona_names">
+        <item>Custom (use system prompt below)</item>
+        <item>Professional Assistant</item>
+        <item>Friendly Companion</item>
+        <item>Creative Writer</item>
+        <item>Technical Expert</item>
+        <item>Concise Helper</item>
+        <item>Language Tutor</item>
+    </string-array>
+    <string-array name="llm_persona_values">
+        <item>custom</item>
+        <item>professional</item>
+        <item>friendly</item>
+        <item>creative</item>
+        <item>technical</item>
+        <item>concise</item>
+        <item>tutor</item>
+    </string-array>
+
     <string name="install_title">Hermes Installation</string>
     <string name="help_title">Hermes Help</string>
         <!-- Diagnostic -->
