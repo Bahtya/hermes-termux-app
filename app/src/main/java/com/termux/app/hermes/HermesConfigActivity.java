@@ -532,6 +532,7 @@ public class HermesConfigActivity extends AppCompatActivity {
 
             String currentProvider = mConfigManager.getModelProvider();
             updateModelList(currentProvider);
+            updateProviderHints(currentProvider);
 
             Preference apiKeyPref = findPreference("llm_api_key");
             if (apiKeyPref != null) {
@@ -553,6 +554,7 @@ public class HermesConfigActivity extends AppCompatActivity {
                     String provider = (String) newVal;
                     mConfigManager.setModelProvider(provider);
                     updateModelList(provider);
+                    updateProviderHints(provider);
 
                     String key = mConfigManager.getApiKey(provider);
                     Preference akp = findPreference("llm_api_key");
@@ -560,11 +562,6 @@ public class HermesConfigActivity extends AppCompatActivity {
                         akp.setSummary(key != null ? maskApiKey(key) : "");
                     }
 
-                    Preference baseUrlPref = findPreference("llm_base_url");
-                    if (baseUrlPref != null) {
-                        boolean needsUrl = "ollama".equals(provider) || "custom".equals(provider);
-                        baseUrlPref.setVisible(needsUrl);
-                    }
                     mHasUnsavedChanges = true;
                     return true;
                 });
@@ -586,8 +583,6 @@ public class HermesConfigActivity extends AppCompatActivity {
                     mHasUnsavedChanges = true;
                     return true;
                 });
-                boolean needsUrl = "ollama".equals(currentProvider) || "custom".equals(currentProvider);
-                baseUrlPref.setVisible(needsUrl);
             }
         }
 
@@ -630,6 +625,109 @@ public class HermesConfigActivity extends AppCompatActivity {
 
         private void reloadConfig() {
             HermesConfigManager.reinitialize();
+        }
+
+        private void updateProviderHints(String provider) {
+            // Update API key hint
+            Preference apiKeyHint = findPreference("llm_api_key_hint");
+            if (apiKeyHint != null) {
+                apiKeyHint.setSummary(getApiKeyHint(provider));
+            }
+
+            // Update base URL hint
+            Preference baseUrlHint = findPreference("llm_base_url_hint");
+            if (baseUrlHint != null) {
+                baseUrlHint.setSummary(getBaseUrlHint(provider));
+            }
+
+            // Update provider info
+            Preference providerInfo = findPreference("llm_provider_info");
+            if (providerInfo != null) {
+                providerInfo.setSummary(getProviderInfo(provider));
+            }
+
+            // Update cost estimate
+            Preference costPref = findPreference("llm_cost_estimate");
+            if (costPref != null) {
+                costPref.setSummary(getCostEstimate(provider));
+            }
+
+            // Show/hide base URL based on provider
+            Preference baseUrlPref = findPreference("llm_base_url");
+            if (baseUrlPref != null) {
+                boolean needsUrl = "ollama".equals(provider) || "custom".equals(provider);
+                baseUrlPref.setVisible(needsUrl);
+            }
+
+            // Show/hide custom model input
+            Preference customModel = findPreference("llm_custom_model");
+            if (customModel != null) {
+                customModel.setVisible("custom".equals(provider));
+            }
+        }
+
+        private String getApiKeyHint(String provider) {
+            switch (provider) {
+                case "openai":     return "OpenAI keys start with sk-";
+                case "anthropic":  return "Anthropic keys start with sk-ant-";
+                case "google":     return "Get your key from Google AI Studio";
+                case "deepseek":   return "DeepSeek keys from platform.deepseek.com";
+                case "openrouter": return "OpenRouter keys from openrouter.ai/keys";
+                case "xai":        return "xAI keys from console.x.ai";
+                case "alibaba":    return "DashScope keys from Aliyun console";
+                case "mistral":    return "Mistral keys from console.mistral.ai";
+                case "nvidia":     return "NVIDIA API key from build.nvidia.com";
+                case "ollama":     return "No API key needed for local Ollama";
+                default:           return "Enter your API key";
+            }
+        }
+
+        private String getBaseUrlHint(String provider) {
+            switch (provider) {
+                case "openai":     return "https://api.openai.com/v1";
+                case "anthropic":  return "https://api.anthropic.com/v1";
+                case "google":     return "https://generativelanguage.googleapis.com/v1beta";
+                case "deepseek":   return "https://api.deepseek.com/v1";
+                case "openrouter": return "https://openrouter.ai/api/v1";
+                case "xai":        return "https://api.x.ai/v1";
+                case "alibaba":    return "https://dashscope.aliyuncs.com/compatible-mode/v1";
+                case "mistral":    return "https://api.mistral.ai/v1";
+                case "nvidia":     return "https://integrate.api.nvidia.com/v1";
+                case "ollama":     return "http://localhost:11434/v1";
+                default:           return "Leave empty for default provider URL";
+            }
+        }
+
+        private String getProviderInfo(String provider) {
+            switch (provider) {
+                case "openai":     return "GPT-4o, o1, o3 models. Best general-purpose.";
+                case "anthropic":  return "Claude models. Excellent for analysis and coding.";
+                case "google":     return "Gemini models. Good multimodal capabilities.";
+                case "deepseek":   return "Cost-effective. Strong reasoning models.";
+                case "openrouter": return "Access multiple providers through one API.";
+                case "xai":        return "Grok models from xAI.";
+                case "alibaba":    return "Qwen models. Strong multilingual support.";
+                case "mistral":    return "Mistral and Codestral models. EU-based.";
+                case "nvidia":     return "NVIDIA-hosted open models via NIM.";
+                case "ollama":     return "Run models locally. No API costs.";
+                default:           return "Any OpenAI-compatible API endpoint.";
+            }
+        }
+
+        private String getCostEstimate(String provider) {
+            switch (provider) {
+                case "openai":     return "~$2.50/1M input tokens (gpt-4o)";
+                case "anthropic":  return "~$3.00/1M input tokens (claude-sonnet-4-6)";
+                case "google":     return "~$1.25/1M input tokens (gemini-2.5-flash)";
+                case "deepseek":   return "~$0.27/1M input tokens (deepseek-chat)";
+                case "openrouter": return "Varies by model. Check openrouter.ai";
+                case "xai":        return "~$3.00/1M input tokens (grok-3)";
+                case "alibaba":    return "~$0.40/1M input tokens (qwen-max)";
+                case "mistral":    return "~$2.00/1M input tokens (mistral-large)";
+                case "nvidia":     return "Free tier available. Pay-per-use.";
+                case "ollama":     return "Free (runs on your device)";
+                default:           return "Depends on your provider pricing.";
+            }
         }
 
         private void updateModelList(String provider) {
