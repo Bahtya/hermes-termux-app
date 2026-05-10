@@ -69,7 +69,7 @@ public class HermesConversationActivity extends AppCompatActivity {
         filterBar.addView(filterLabel);
 
         mFilterSpinner = new Spinner(this);
-        String[] filters = {"All", "Today", "Last 7 Days", "Last 30 Days"};
+        String[] filters = getResources().getStringArray(R.array.conversation_filter_names);
         mFilterSpinner.setAdapter(new android.widget.ArrayAdapter<>(this,
                 android.R.layout.simple_spinner_dropdown_item, filters));
         mFilterSpinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
@@ -212,7 +212,7 @@ public class HermesConversationActivity extends AppCompatActivity {
                     }
                     if (msgCount > 0) {
                         entries.add(new ConvEntry(
-                                "Gateway Log (" + msgCount + " messages)",
+                                getString(R.string.conversation_gateway_log, msgCount),
                                 file.getAbsolutePath(),
                                 file.lastModified(),
                                 file.length(),
@@ -281,15 +281,16 @@ public class HermesConversationActivity extends AppCompatActivity {
         if (name.contains("feishu") || name.contains("lark")) return "Feishu";
         if (name.contains("telegram")) return "Telegram";
         if (name.contains("discord")) return "Discord";
-        return "General";
+        if (name.contains("whatsapp")) return getString(R.string.conversation_platform_whatsapp);
+        return getString(R.string.conversation_platform_general);
     }
 
     private String formatDate(long millis) {
         Date date = new Date(millis);
         long now = System.currentTimeMillis();
         long diff = now - millis;
-        if (diff < 86_400_000) return "Today";
-        if (diff < 2 * 86_400_000) return "Yesterday";
+        if (diff < 86_400_000) return getString(R.string.conversation_date_today);
+        if (diff < 2 * 86_400_000) return getString(R.string.conversation_date_yesterday);
         return new SimpleDateFormat("MMMM d, yyyy", Locale.getDefault()).format(date);
     }
 
