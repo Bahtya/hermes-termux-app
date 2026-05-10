@@ -62,6 +62,16 @@
     <string name="gateway_status_stopped">已停止</string>
     <string name="gateway_status_not_installed">未安装</string>
 
+    <!-- Gateway Log -->
+    <string name="gateway_log_title">网关日志</string>
+    <string name="gateway_log_refresh">刷新</string>
+    <string name="gateway_log_clear">清除日志</string>
+    <string name="gateway_log_empty">暂无日志记录。</string>
+    <string name="gateway_log_clear_confirm_title">清除日志？</string>
+    <string name="gateway_log_clear_confirm_message">这将删除所有网关日志记录。</string>
+    <string name="gateway_log_cleared">日志已清除</string>
+    <string name="hermes_gateway_log_summary">查看网关日志以排查问题</string>
+
     <!-- Status labels -->
     <string name="llm_configured">已配置（%1$s）</string>
     <string name="llm_not_configured">未配置</string>
