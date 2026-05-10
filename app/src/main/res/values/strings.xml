@@ -293,6 +293,15 @@
     <string name="gateway_started">Gateway starting…</string>
     <string name="gateway_stopped">Gateway stopped</string>
     <string name="gateway_restarted">Gateway restarting…</string>
+    <string name="gateway_status_running">Running</string>
+    <string name="gateway_status_stopped">Stopped</string>
+    <string name="gateway_status_not_installed">Not installed</string>
+
+    <!-- Status indicators -->
+    <string name="llm_configured">Configured (%1$s)</string>
+    <string name="llm_not_configured">Not configured</string>
+    <string name="feishu_configured">Configured</string>
+    <string name="feishu_not_configured">Not configured</string>
 
     <!-- Feishu Setup -->
     <string name="feishu_setup_title">Feishu / Lark Setup</string>
