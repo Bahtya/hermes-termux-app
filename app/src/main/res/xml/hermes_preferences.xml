@@ -14,6 +14,10 @@
             android:key="hermes_dashboard_im"
             android:title="@string/dashboard_im_title"
             android:selectable="false" />
+        <Preference
+            android:key="hermes_conversation_history"
+            android:title="@string/conversation_title"
+            android:summary="@string/conversation_empty" />
     </PreferenceCategory>
 
     <PreferenceCategory android:title="@string/profile_category_title">
