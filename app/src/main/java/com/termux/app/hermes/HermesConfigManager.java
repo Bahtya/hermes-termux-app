@@ -99,6 +99,13 @@ public class HermesConfigManager {
         loadConfig();
     }
 
+    /** Call after hermes-agent installation completes to reinitialize config. */
+    public static void reinitialize() {
+        HermesConfigManager mgr = getInstance();
+        mgr.ensureDefaultConfig();
+        mgr.loadConfig();
+    }
+
     // =========================================================================
     // Path helpers
     // =========================================================================
@@ -155,22 +162,18 @@ public class HermesConfigManager {
                 "# Hermes Agent Configuration\n"
                 + "terminal:\n"
                 + "  backend: local\n"
-                + "  # cwd: /home/user\n"
                 + "\n"
                 + "model:\n"
                 + "  provider: openai\n"
-                + "  name: gpt-4\n"
+                + "  name: gpt-4o\n"
                 + "  temperature: 0.7\n"
                 + "  max_tokens: 4096\n"
                 + "\n"
                 + "feishu:\n"
                 + "  app_id: \"\"\n"
                 + "  app_secret: \"\"\n"
-                + "  # domain: feishu or lark\n"
                 + "  domain: feishu\n"
-                + "  # connection_mode: websocket or webhook\n"
                 + "  connection_mode: websocket\n"
-                + "  # allowed_users: comma-separated user IDs\n"
                 + "  allowed_users: \"\"\n"
                 + "  home_channel: \"\"\n";
 
@@ -187,6 +190,13 @@ public class HermesConfigManager {
                 + "GOOGLE_API_KEY=\n"
                 + "DEEPSEEK_API_KEY=\n"
                 + "OPENROUTER_API_KEY=\n"
+                + "XAI_API_KEY=\n"
+                + "DASHSCOPE_API_KEY=\n"
+                + "MISTRAL_API_KEY=\n"
+                + "NVIDIA_API_KEY=\n"
+                + "OLLAMA_API_KEY=\n"
+                + "# Custom OpenAI-compatible endpoint\n"
+                + "OPENAI_BASE_URL=\n"
                 + "\n"
                 + "# Feishu Integration\n"
                 + "FEISHU_APP_ID=\n"

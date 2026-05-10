@@ -14,6 +14,7 @@ import android.system.Os;
 import androidx.core.app.NotificationCompat;
 
 import com.termux.R;
+import com.termux.app.hermes.HermesConfigManager;
 import com.termux.shared.file.FileUtils;
 import com.termux.shared.logger.Logger;
 import com.termux.shared.termux.TermuxConstants;
@@ -85,6 +86,7 @@ public class HermesInstaller {
 
                 if (success) {
                     markInstalled();
+                    HermesConfigManager.reinitialize();
                     showSuccess(context, "Hermes Agent installed successfully");
                     Logger.logInfo(LOG_TAG, "Hermes installation complete.");
                 } else {
