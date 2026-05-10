@@ -23,6 +23,17 @@
             android:title="@string/dashboard_version_title"
             android:summary="@string/dashboard_version_checking"
             android:selectable="false" />
+            android:key="hermes_help_gateway"
+            android:title="@string/help_gateway_title"
+            android:summary="@string/dashboard_gateway_title" />
+        <Preference
+            android:key="hermes_help_llm"
+            android:title="@string/help_llm_title"
+            android:summary="@string/dashboard_llm_title" />
+        <Preference
+            android:key="hermes_help_im"
+            android:title="@string/help_im_title"
+            android:summary="@string/dashboard_im_title" />
     </PreferenceCategory>
 
     <PreferenceCategory android:title="@string/hermes_cat_general">

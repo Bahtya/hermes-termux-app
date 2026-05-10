@@ -193,6 +193,15 @@
     <string name="dashboard_version_format">v%1$s</string>
     <string name="dashboard_version_not_installed">未安装</string>
 
+    <!-- Help Tooltips -->
+    <string name="help_gateway_title">什么是网关？</string>
+    <string name="help_gateway_message">Hermes 网关是一个后台服务，将您的 AI 提供商连接到消息平台。网关需要保持运行，Hermes 才能接收和回复消息。\n\n您可以从"网关控制"屏幕启动它，或使用快捷启动按钮。</string>
+    <string name="help_llm_title">什么是 AI 提供商？</string>
+    <string name="help_llm_message">AI 提供商（LLM）是 Hermes 助手的大脑。您需要从 OpenAI、Anthropic 等提供商获取 API 密钥，或使用 Ollama 运行免费本地模型。\n\n从"LLM 配置"屏幕进行设置。</string>
+    <string name="help_im_title">什么是消息平台？</string>
+    <string name="help_im_message">消息平台如飞书、Telegram 和 Discord 是您与 Hermes AI 助手聊天的地方。请至少配置一个平台以开始对话。\n\n每个平台都需要从相应服务获取机器人令牌。</string>
+    <string name="help_ok">知道了</string>
+
     <!-- Status labels -->
     <string name="llm_configured">已配置（%1$s）</string>
     <string name="llm_not_configured">未配置</string>
