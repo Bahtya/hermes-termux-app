@@ -439,6 +439,18 @@
     <string name="gateway_diag_gateway_process">Gateway process</string>
     <string name="gateway_diag_gateway_running">Running</string>
     <string name="gateway_diag_gateway_stopped">Not running</string>
+    <!-- Gateway Start Validation -->
+    <string name="validation_start_title">Start Gateway?</string>
+    <string name="validation_ready_header">Ready:</string>
+    <string name="validation_warnings_header">Warnings:</string>
+    <string name="validation_no_provider">No LLM provider selected</string>
+    <string name="validation_no_api_key">API key not set for %1$s</string>
+    <string name="validation_llm_ok">%1$s / %2$s</string>
+    <string name="validation_llm_ok_ollama">Ollama (local)</string>
+    <string name="validation_no_im">No messaging platform configured</string>
+    <string name="validation_feishu_ok">Feishu connected</string>
+    <string name="validation_telegram_ok">Telegram connected</string>
+    <string name="validation_discord_ok">Discord connected</string>
 
     <!-- Gateway Log -->
     <string name="gateway_log_title">Gateway Log</string>
