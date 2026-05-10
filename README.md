@@ -1,13 +1,48 @@
-# Termux application
+# Hermes Termux
 
-[![Build status](https://github.com/termux/termux-app/workflows/Build/badge.svg)](https://github.com/termux/termux-app/actions)
-[![Testing status](https://github.com/termux/termux-app/workflows/Unit%20tests/badge.svg)](https://github.com/termux/termux-app/actions)
-[![Join the chat at https://gitter.im/termux/termux](https://badges.gitter.im/termux/termux.svg)](https://gitter.im/termux/termux)
-[![Join the Termux discord server](https://img.shields.io/discord/641256914684084234.svg?label=&logo=discord&logoColor=ffffff&color=5865F2)](https://discord.gg/HXpF69X)
-[![Termux library releases at Jitpack](https://jitpack.io/v/termux/termux-app.svg)](https://jitpack.io/#termux/termux-app)
+[![Build APK](https://github.com/Bahtya/hermes-termux-app/actions/workflows/build-apk.yml/badge.svg?branch=main)](https://github.com/Bahtya/hermes-termux-app/actions/workflows/build-apk.yml)
+[![Release](https://github.com/Bahtya/hermes-termux-app/actions/workflows/release.yml/badge.svg)](https://github.com/Bahtya/hermes-termux-app/actions/workflows/release.yml)
+[![PR Checks](https://github.com/Bahtya/hermes-termux-app/actions/workflows/pr_checks.yml/badge.svg)](https://github.com/Bahtya/hermes-termux-app/actions/workflows/pr_checks.yml)
+[![GitHub release](https://img.shields.io/github/v/release/Bahtya/hermes-termux-app?include_prereleases)](https://github.com/Bahtya/hermes-termux-app/releases)
 
+A fork of [Termux](https://termux.dev) with integrated [Hermes Agent](https://github.com/nousresearch/hermes-agent) — providing an out-of-the-box AI assistant with LLM and IM platform integration through an easy-to-use Android UI.
 
-[Termux](https://termux.dev) is an Android terminal application and Linux environment.
+## Features
+
+- **LLM Configuration UI** — Configure AI providers (OpenAI, Anthropic, Google, DeepSeek, OpenRouter, xAI, Alibaba, Mistral, NVIDIA, Ollama, Custom) with API key, model selection, and connection testing
+- **IM Platform Integration** — Guided setup for Feishu/Lark (with QR code scanning), Telegram, and Discord
+- **Gateway Management** — Start/stop/restart the Hermes gateway with auto-restart on config changes, boot auto-start, and connectivity diagnostics
+- **Setup Progress Tracker** — Visual checklist guiding new users through configuration
+- **Multi-language** — English and Chinese (simplified) UI
+- **Help & FAQ** — In-app troubleshooting guide for common issues
+- **Battery Optimization** — Prompt to whitelist app for reliable gateway operation
+- **Config Backup** — Export/import configuration for easy migration
+
+## Download
+
+Download the latest APK from [GitHub Releases](https://github.com/Bahtya/hermes-termux-app/releases).
+
+## Quick Start
+
+1. Install the APK and open the app
+2. Follow the setup wizard (or go to Hermes Settings)
+3. Configure your LLM provider and API key
+4. Connect at least one messaging platform (Feishu, Telegram, or Discord)
+5. Start the gateway — your AI assistant is ready!
+
+## Based on
+
+[Termux](https://termux.dev) — an Android terminal application and Linux environment.
+
+For the original Termux packages, see [termux/termux-packages](https://github.com/termux/termux-packages).
+
+***
+
+**NOTICE: Termux may be unstable on Android 12+.** See the original [Termux README](https://github.com/termux/termux-app) for details on phantom process killing.
+
+***
+
+## Contents
 
 Note that this repository is for the app itself (the user interface and the terminal emulation). For the packages installable inside the app, see [termux/termux-packages](https://github.com/termux/termux-packages).
 
