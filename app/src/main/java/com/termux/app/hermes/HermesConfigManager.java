@@ -84,6 +84,13 @@ public class HermesConfigManager {
     private static final String KEY_SESSION_IDLE_MINUTES = "session_reset.idle_minutes";
     private static final String KEY_SESSION_RESET_HOUR = "session_reset.at_hour";
 
+    // Tool management config keys
+    private static final String KEY_TOOL_TERMINAL = "tools.terminal";
+    private static final String KEY_TOOL_WEB_SEARCH = "tools.web_search";
+    private static final String KEY_TOOL_FILE_OPS = "tools.file_operations";
+    private static final String KEY_TOOL_BROWSER = "tools.browser";
+    private static final String KEY_TOOL_CODE_EXEC = "tools.code_execution";
+
     // ---- .env key constants ----
     private static final String ENV_OPENAI_API_KEY = "OPENAI_API_KEY";
     private static final String ENV_ANTHROPIC_API_KEY = "ANTHROPIC_API_KEY";

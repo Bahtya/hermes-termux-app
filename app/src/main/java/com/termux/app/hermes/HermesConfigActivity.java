@@ -2330,6 +2330,26 @@ public class HermesConfigActivity extends AppCompatActivity {
                     return true;
                 });
             }
+
+            // Tool management toggles
+            String[][] toolKeys = {
+                    {"agent_tool_terminal", "tools.terminal"},
+                    {"agent_tool_web_search", "tools.web_search"},
+                    {"agent_tool_file_ops", "tools.file_operations"},
+                    {"agent_tool_browser", "tools.browser"},
+                    {"agent_tool_code_exec", "tools.code_execution"}
+            };
+            for (String[] tool : toolKeys) {
+                SwitchPreferenceCompat toolPref = findPreference(tool[0]);
+                if (toolPref != null) {
+                    String val = mConfigManager.getYamlValue(tool[1], "true");
+                    toolPref.setChecked(!"false".equals(val));
+                    toolPref.setOnPreferenceChangeListener((p, newVal) -> {
+                        mConfigManager.setYamlValue(tool[1], (Boolean) newVal ? "true" : "false");
+                        return true;
+                    });
+                }
+            }
         }
     }
 }
