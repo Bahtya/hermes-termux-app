@@ -115,6 +115,12 @@ public class HermesConfigManager {
     private static final String KEY_RATE_LIMIT_CONCURRENT = "rate_limit.max_concurrent_requests";
     private static final String KEY_RATE_LIMIT_QUEUE_MODE = "rate_limit.queue_mode";
 
+    // Logging config keys
+    private static final String KEY_LOGGING_LEVEL = "logging.level";
+    private static final String KEY_LOGGING_MAX_FILE_SIZE = "logging.max_file_size_mb";
+    private static final String KEY_LOGGING_MAX_FILES = "logging.max_files";
+    private static final String KEY_LOGGING_TO_FILE = "logging.to_file";
+
     // ---- .env key constants ----
     private static final String ENV_OPENAI_API_KEY = "OPENAI_API_KEY";
     private static final String ENV_ANTHROPIC_API_KEY = "ANTHROPIC_API_KEY";
@@ -821,6 +827,45 @@ public class HermesConfigManager {
 
     public void setRateLimitQueueMode(String mode) {
         setYamlValue(KEY_RATE_LIMIT_QUEUE_MODE, mode);
+    }
+
+    // =========================================================================
+    // Logging config
+    // =========================================================================
+
+    public String getLoggingLevel() {
+        return getYamlValue(KEY_LOGGING_LEVEL, "INFO");
+    }
+
+    public void setLoggingLevel(String level) {
+        setYamlValue(KEY_LOGGING_LEVEL, level);
+    }
+
+    public int getLoggingMaxFileSize() {
+        String val = getYamlValue(KEY_LOGGING_MAX_FILE_SIZE, "10");
+        try { return Integer.parseInt(val); } catch (NumberFormatException e) { return 10; }
+    }
+
+    public void setLoggingMaxFileSize(int sizeMb) {
+        setYamlValue(KEY_LOGGING_MAX_FILE_SIZE, String.valueOf(sizeMb));
+    }
+
+    public int getLoggingMaxFiles() {
+        String val = getYamlValue(KEY_LOGGING_MAX_FILES, "5");
+        try { return Integer.parseInt(val); } catch (NumberFormatException e) { return 5; }
+    }
+
+    public void setLoggingMaxFiles(int count) {
+        setYamlValue(KEY_LOGGING_MAX_FILES, String.valueOf(count));
+    }
+
+    public boolean isLoggingToFile() {
+        String val = getYamlValue(KEY_LOGGING_TO_FILE, "true");
+        return !"false".equals(val);
+    }
+
+    public void setLoggingToFile(boolean enabled) {
+        setYamlValue(KEY_LOGGING_TO_FILE, enabled ? "true" : "false");
     }
 
     // =========================================================================
