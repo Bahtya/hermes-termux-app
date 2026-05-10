@@ -9,13 +9,18 @@ on:
       - main
 
 concurrency:
-  group: tests-${{ github.ref }}
+  group: tests-${{ github.ref }}-${{ matrix.package_variant }}
   cancel-in-progress: true
 
 jobs:
   testing:
     runs-on: ubuntu-latest
     timeout-minutes: 15
+    strategy:
+      fail-fast: false
+      matrix:
+        package_variant: [ apt-android-7, apt-android-5 ]
+
     steps:
     - name: Clone repository
       uses: actions/checkout@v6
@@ -32,18 +37,18 @@ jobs:
         path: |
           ~/.gradle/caches
           ~/.gradle/wrapper
-        key: gradle-${{ runner.os }}-${{ hashFiles('**/*.gradle*', '**/gradle-wrapper.properties') }}
+        key: gradle-${{ runner.os }}-${{ matrix.package_variant }}-${{ hashFiles('**/*.gradle*', '**/gradle-wrapper.properties') }}
         restore-keys: |
-          gradle-${{ runner.os }}-
+          gradle-${{ runner.os }}-${{ matrix.package_variant }}-
 
     - name: Execute tests
       env:
-        TERMUX_PACKAGE_VARIANT: apt-android-7
+        TERMUX_PACKAGE_VARIANT: ${{ matrix.package_variant }}
       run: ./gradlew downloadBootstraps test
 
     - name: Upload test report
       if: always()
       uses: actions/upload-artifact@v7
       with:
-        name: test-report
+        name: test-report-${{ matrix.package_variant }}
         path: app/build/reports/tests/

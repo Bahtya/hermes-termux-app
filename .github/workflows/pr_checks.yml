@@ -5,13 +5,18 @@ on:
     branches: [ main ]
 
 concurrency:
-  group: pr-checks-${{ github.event.pull_request.number }}
+  group: pr-checks-${{ github.event.pull_request.number }}-${{ matrix.package_variant }}
   cancel-in-progress: true
 
 jobs:
   lint:
     runs-on: ubuntu-latest
     timeout-minutes: 15
+    strategy:
+      fail-fast: false
+      matrix:
+        package_variant: [ apt-android-7, apt-android-5 ]
+
     steps:
       - name: Checkout repository
         uses: actions/checkout@v6
@@ -28,23 +33,22 @@ jobs:
           path: |
             ~/.gradle/caches
             ~/.gradle/wrapper
-          key: gradle-${{ runner.os }}-${{ hashFiles('**/*.gradle*', '**/gradle-wrapper.properties') }}
+          key: gradle-${{ runner.os }}-${{ matrix.package_variant }}-${{ hashFiles('**/*.gradle*', '**/gradle-wrapper.properties') }}
           restore-keys: |
-            gradle-${{ runner.os }}-
+            gradle-${{ runner.os }}-${{ matrix.package_variant }}-
 
       - name: Build APK
         env:
-          TERMUX_PACKAGE_VARIANT: apt-android-7
+          TERMUX_PACKAGE_VARIANT: ${{ matrix.package_variant }}
         run: ./gradlew downloadBootstraps assembleDebug -x lint
 
       - name: Run lint
         id: lint
         continue-on-error: true
         env:
-          TERMUX_PACKAGE_VARIANT: apt-android-7
+          TERMUX_PACKAGE_VARIANT: ${{ matrix.package_variant }}
         run: |
           ./gradlew :app:lint -Pandroid.lint.abortOnError=false -Pandroid.lint.warningsAsErrors=false 2>&1 | tee lint-output.txt || true
-          # Count issues
           ERRORS=$(grep -c "Severity: Error" lint-output.txt || echo "0")
           WARNINGS=$(grep -c "Severity: Warning" lint-output.txt || echo "0")
           echo "errors=$ERRORS" >> $GITHUB_OUTPUT
@@ -54,21 +58,26 @@ jobs:
         if: always()
         uses: actions/upload-artifact@v7
         with:
-          name: lint-report
+          name: lint-report-${{ matrix.package_variant }}
           path: app/build/reports/lint-results-debug.html
 
       - name: Lint summary
         if: always()
         run: |
-          echo "### Lint Results" >> $GITHUB_STEP_SUMMARY
+          echo "### Lint Results (${{ matrix.package_variant }})" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
           echo "- **Errors**: ${{ steps.lint.outputs.errors }}" >> $GITHUB_STEP_SUMMARY
           echo "- **Warnings**: ${{ steps.lint.outputs.warnings }}" >> $GITHUB_STEP_SUMMARY
-          echo "- **Report**: Download the lint-report artifact for details" >> $GITHUB_STEP_SUMMARY
+          echo "- **Report**: Download the lint-report-${{ matrix.package_variant }} artifact for details" >> $GITHUB_STEP_SUMMARY
 
   unit-tests:
     runs-on: ubuntu-latest
     timeout-minutes: 15
+    strategy:
+      fail-fast: false
+      matrix:
+        package_variant: [ apt-android-7, apt-android-5 ]
+
     steps:
       - name: Clone repository
         uses: actions/checkout@v6
@@ -85,23 +94,23 @@ jobs:
           path: |
             ~/.gradle/caches
             ~/.gradle/wrapper
-          key: gradle-${{ runner.os }}-${{ hashFiles('**/*.gradle*', '**/gradle-wrapper.properties') }}
+          key: gradle-${{ runner.os }}-${{ matrix.package_variant }}-${{ hashFiles('**/*.gradle*', '**/gradle-wrapper.properties') }}
           restore-keys: |
-            gradle-${{ runner.os }}-
+            gradle-${{ runner.os }}-${{ matrix.package_variant }}-
 
       - name: Execute tests
         env:
-          TERMUX_PACKAGE_VARIANT: apt-android-7
+          TERMUX_PACKAGE_VARIANT: ${{ matrix.package_variant }}
         run: ./gradlew downloadBootstraps test
 
       - name: Upload test report
         if: always()
         uses: actions/upload-artifact@v7
         with:
-          name: test-report
+          name: test-report-${{ matrix.package_variant }}
           path: app/build/reports/tests/
 
       - name: Test summary
         if: always()
         run: |
-          echo "### Unit Tests ${{ job.status == 'success' && '✅' || '❌' }}" >> $GITHUB_STEP_SUMMARY
+          echo "### Unit Tests (${{ matrix.package_variant }}) ${{ job.status == 'success' && '✅' || '❌' }}" >> $GITHUB_STEP_SUMMARY
