@@ -111,6 +111,13 @@
     <string name="gateway_status_running">运行中</string>
     <string name="gateway_status_stopped">已停止</string>
     <string name="gateway_status_not_installed">未安装</string>
+    <string name="gateway_notif_stop">停止</string>
+    <string name="gateway_notif_restart">重启</string>
+    <string name="gateway_notif_running">Hermes 网关运行中</string>
+    <string name="gateway_notif_channel_name">Hermes 网关</string>
+    <string name="gateway_notif_channel_desc">Hermes 网关状态</string>
+    <string name="gateway_notif_error_channel_name">Hermes 网关警报</string>
+    <string name="gateway_notif_error_channel_desc">网关崩溃和重启警报</string>
 
     <!-- Gateway Diagnostic -->
     <string name="gateway_diagnostic_title">连接诊断</string>

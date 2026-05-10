@@ -423,6 +423,13 @@
     <string name="gateway_status_running">Running</string>
     <string name="gateway_status_stopped">Stopped</string>
     <string name="gateway_status_not_installed">Not installed</string>
+    <string name="gateway_notif_stop">Stop</string>
+    <string name="gateway_notif_restart">Restart</string>
+    <string name="gateway_notif_running">Hermes Gateway running</string>
+    <string name="gateway_notif_channel_name">Hermes Gateway</string>
+    <string name="gateway_notif_channel_desc">Hermes gateway status</string>
+    <string name="gateway_notif_error_channel_name">Hermes Gateway Alerts</string>
+    <string name="gateway_notif_error_channel_desc">Gateway crash and restart alerts</string>
 
     <!-- Gateway Diagnostic -->
     <string name="gateway_diagnostic_title">Connection Diagnostic</string>
