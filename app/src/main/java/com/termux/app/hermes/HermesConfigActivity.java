@@ -1,3 +1,4 @@
+import com.termux.app.hermes.HermesTutorialOverlay;
 package com.termux.app.hermes;
 
 import android.content.ClipData;
@@ -32,6 +33,15 @@ public class HermesConfigActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_hermes_config);
+
+        // Show tutorial for first-time users
+        if (!HermesTutorialOverlay.isTutorialDone(this)) {
+            View rootView = findViewById(android.R.id.content);
+            if (rootView != null) {
+                rootView.post(() -> HermesTutorialOverlay.showIfNeeded(this,
+                        (ViewGroup) rootView, null));
+            }
+        }
         setSupportActionBar(findViewById(R.id.hermes_config_toolbar));
 
         ActionBar actionBar = getSupportActionBar();

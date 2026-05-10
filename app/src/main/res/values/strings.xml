@@ -821,29 +821,17 @@
         <item>120</item>
     </string-array>
 
-    <!-- Notification settings -->
-    <string name="gateway_notif_category">Notification Settings</string>
-    <string name="gateway_notif_importance_title">Notification Level</string>
-    <string name="gateway_notif_importance_summary">Control how gateway notifications appear</string>
-    <string name="gateway_notif_sound_title">Notification Sound</string>
-    <string name="gateway_notif_sound_summary">Play sound for gateway status changes</string>
-    <string name="gateway_notif_vibrate_title">Vibration</string>
-    <string name="gateway_notif_vibrate_summary">Vibrate for gateway status changes</string>
-    <string name="gateway_quiet_hours_title">Quiet Hours</string>
-    <string name="gateway_quiet_hours_summary">Suppress non-critical notifications during specified hours</string>
-    <string name="gateway_quiet_hours_start">Start Time</string>
-    <string name="gateway_quiet_hours_end">End Time</string>
-
-    <string-array name="notif_importance_names">
-        <item>Silent (no popup)</item>
-        <item>Low (status bar only)</item>
-        <item>Default (with sound)</item>
-        <item>High (heads-up notification)</item>
-    </string-array>
-    <string-array name="notif_importance_values">
-        <item>1</item>
-        <item>2</item>
-        <item>3</item>
-        <item>4</item>
-    </string-array>
+    <!-- Tutorial -->
+    <string name="tutorial_welcome_title">Welcome to Hermes!</string>
+    <string name="tutorial_welcome_desc">Hermes connects AI assistants to messaging platforms. Let us show you around.</string>
+    <string name="tutorial_gateway_title">Start Gateway</string>
+    <string name="tutorial_gateway_desc">Tap the Gateway tab to start/stop the Hermes gateway service.</string>
+    <string name="tutorial_llm_title">Configure LLM</string>
+    <string name="tutorial_llm_desc">Go to the LLM tab to set up your AI provider and API key.</string>
+    <string name="tutorial_im_title">Connect IM</string>
+    <string name="tutorial_im_desc">Use the IM tab to connect Feishu, Telegram, or Discord.</string>
+    <string name="tutorial_done_title">You are all set!</string>
+    <string name="tutorial_done_desc">Start the gateway and your AI assistant will begin responding.</string>
+    <string name="tutorial_reset_title">Restart Tutorial</string>
+    <string name="tutorial_reset_summary">Show the first-time tutorial again</string>
 </resources>
