@@ -184,6 +184,21 @@ App ID 以"cli_"开头，约 10-20 个字符。App Secret 较长（30+ 字符）
     <string name="llm_test_last_fail">上次测试：失败（%1$s）— 点击重试</string>
     <string name="llm_test_never_run">尚未测试</string>
 
+    <!-- LLM Config QR Share -->
+    <string name="llm_category_share">分享配置</string>
+    <string name="llm_export_qr_title">导出为二维码</string>
+    <string name="llm_export_qr_summary">生成包含 LLM 设置的二维码（不包含 API 密钥）</string>
+    <string name="llm_import_qr_title">通过二维码导入</string>
+    <string name="llm_import_qr_summary">扫描二维码加载 LLM 设置</string>
+    <string name="llm_qr_export_title">LLM 配置二维码</string>
+    <string name="llm_qr_export_warning">出于安全考虑，二维码不包含 API 密钥</string>
+    <string name="llm_qr_import_confirm_title">应用导入的配置？</string>
+    <string name="llm_qr_import_confirm_message">提供商：%1$s\n模型：%2$s\nAPI 地址：%3$s\n\n是否应用这些设置？</string>
+    <string name="llm_qr_import_applied">配置导入成功</string>
+    <string name="llm_qr_import_failed">读取二维码失败：%1$s</string>
+    <string name="llm_qr_no_scanner">未找到二维码扫描应用。请安装条形码扫描器。</string>
+    <string name="llm_qr_invalid_data">二维码中的配置数据无效</string>
+
     <!-- LLM Provider Arrays -->
     <string-array name="llm_provider_names">
         <item>OpenAI</item>
