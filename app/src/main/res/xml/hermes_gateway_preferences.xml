@@ -16,4 +16,9 @@
         android:title="@string/gateway_restart_title"
         android:summary="@string/gateway_restart_summary" />
 
+    <Preference
+        android:key="gateway_diagnostic"
+        android:title="@string/gateway_diagnostic_title"
+        android:summary="@string/gateway_diagnostic_summary" />
+
 </PreferenceScreen>

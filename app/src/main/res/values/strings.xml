@@ -412,6 +412,34 @@
     <string name="gateway_status_stopped">Stopped</string>
     <string name="gateway_status_not_installed">Not installed</string>
 
+    <!-- Gateway Diagnostic -->
+    <string name="gateway_diagnostic_title">Connection Diagnostic</string>
+    <string name="gateway_diagnostic_summary">Test connectivity to LLM and IM platforms</string>
+    <string name="gateway_diagnostic_running">Running diagnostics…</string>
+    <string name="gateway_diagnostic_title_dialog">Connection Diagnostic</string>
+    <string name="gateway_diag_hermes_binary">Hermes binary</string>
+    <string name="gateway_diag_hermes_version">Hermes version: %1$s</string>
+    <string name="gateway_diag_hermes_not_found">Hermes binary not found</string>
+    <string name="gateway_diag_llm_api">LLM API (%1$s)</string>
+    <string name="gateway_diag_llm_ok">Connected — model %1$s accessible</string>
+    <string name="gateway_diag_llm_auth">Auth failed — check your API key</string>
+    <string name="gateway_diag_llm_network">Network error — check your connection</string>
+    <string name="gateway_diag_llm_no_key">No API key configured</string>
+    <string name="gateway_diag_im_feishu">Feishu</string>
+    <string name="gateway_diag_im_feishu_ok">Credentials configured</string>
+    <string name="gateway_diag_im_feishu_no">Not configured</string>
+    <string name="gateway_diag_im_telegram">Telegram</string>
+    <string name="gateway_diag_im_telegram_ok">Bot token valid</string>
+    <string name="gateway_diag_im_telegram_fail">Bot token invalid</string>
+    <string name="gateway_diag_im_telegram_no">Not configured</string>
+    <string name="gateway_diag_im_discord">Discord</string>
+    <string name="gateway_diag_im_discord_ok">Bot token valid</string>
+    <string name="gateway_diag_im_discord_fail">Bot token invalid</string>
+    <string name="gateway_diag_im_discord_no">Not configured</string>
+    <string name="gateway_diag_gateway_process">Gateway process</string>
+    <string name="gateway_diag_gateway_running">Running</string>
+    <string name="gateway_diag_gateway_stopped">Not running</string>
+
     <!-- Gateway Log -->
     <string name="gateway_log_title">Gateway Log</string>
     <string name="gateway_log_refresh">Refresh</string>

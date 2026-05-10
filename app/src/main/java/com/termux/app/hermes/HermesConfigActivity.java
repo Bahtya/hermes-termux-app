@@ -1028,6 +1028,9 @@ public class HermesConfigActivity extends AppCompatActivity {
                 case "gateway_restart":
                     validateAndStartGateway(this, () -> runGatewayCommand("restart"));
                     return true;
+                case "gateway_diagnostic":
+                    runDiagnostic();
+                    return true;
             }
             return super.onPreferenceTreeClick(preference);
         }
@@ -1054,6 +1057,218 @@ public class HermesConfigActivity extends AppCompatActivity {
                     }, 1500);
                     Toast.makeText(ctx, R.string.gateway_restarted, Toast.LENGTH_SHORT).show();
                     break;
+            }
+        private void runDiagnostic() {
+            Preference diagPref = findPreference("gateway_diagnostic");
+            if (diagPref != null) {
+                diagPref.setSummary(getString(R.string.gateway_diagnostic_running));
+            }
+
+            new Thread(() -> {
+                StringBuilder report = new StringBuilder();
+                HermesConfigManager config = HermesConfigManager.getInstance();
+                String binPath = TermuxConstants.TERMUX_BIN_PREFIX_DIR_PATH;
+
+                // 1. Check Hermes binary
+                String hermesPath = binPath + "/hermes";
+                if (new java.io.File(hermesPath).exists()) {
+                    String version = getHermesVersion(binPath, hermesPath);
+                    report.append("✅ ").append(getString(R.string.gateway_diag_hermes_binary))
+                            .append(": ").append(getString(R.string.gateway_diag_hermes_version, version)).append("\n");
+                } else {
+                    report.append("❌ ").append(getString(R.string.gateway_diag_hermes_binary))
+                            .append(": ").append(getString(R.string.gateway_diag_hermes_not_found)).append("\n");
+                }
+
+                // 2. Check LLM API
+                String provider = config.getModelProvider();
+                String apiKey = config.getApiKey(provider);
+                report.append(checkLlmConnectivity(provider, apiKey, config.getModelName(), binPath)).append("\n");
+
+                // 3. Check IM platforms
+                report.append(checkFeishuStatus(config)).append("\n");
+                report.append(checkTelegramStatus(config, binPath)).append("\n");
+                report.append(checkDiscordStatus(config, binPath)).append("\n");
+
+                // 4. Check gateway process
+                HermesGatewayStatus.checkAsync((status, detail) -> {
+                    if (getActivity() == null) return;
+                    getActivity().runOnUiThread(() -> {
+                        if (status == HermesGatewayStatus.Status.RUNNING) {
+                            report.append("✅ ").append(getString(R.string.gateway_diag_gateway_process))
+                                    .append(": ").append(getString(R.string.gateway_diag_gateway_running));
+                        } else {
+                            report.append("⚠️ ").append(getString(R.string.gateway_diag_gateway_process))
+                                    .append(": ").append(getString(R.string.gateway_diag_gateway_stopped));
+                        }
+
+                        String result = report.toString();
+                        if (diagPref != null) {
+                            diagPref.setSummary(getString(R.string.gateway_diagnostic_summary));
+                        }
+                        new AlertDialog.Builder(requireContext())
+                                .setTitle(R.string.gateway_diagnostic_title_dialog)
+                                .setMessage(result)
+                                .setPositiveButton(android.R.string.ok, null)
+                                .show();
+                    });
+                });
+            }).start();
+        }
+
+        private String getHermesVersion(String binPath, String hermesPath) {
+            try {
+                ProcessBuilder pb = new ProcessBuilder(binPath + "/bash", "-c",
+                        hermesPath + " --version 2>/dev/null | head -1");
+                pb.environment().put("PATH", binPath + ":/system/bin");
+                pb.redirectErrorStream(true);
+                Process p = pb.start();
+                java.io.BufferedReader reader = new java.io.BufferedReader(
+                        new java.io.InputStreamReader(p.getInputStream()));
+                String line = reader.readLine();
+                p.waitFor();
+                return (line != null) ? line.trim() : "unknown";
+            } catch (Exception e) {
+                return "unknown";
+            }
+        }
+
+        private String checkLlmConnectivity(String provider, String apiKey, String model, String binPath) {
+            String label = getString(R.string.gateway_diag_llm_api, provider);
+            if (apiKey == null || apiKey.isEmpty()) {
+                if ("ollama".equals(provider)) {
+                    return "✅ " + label + ": " + getString(R.string.llm_test_success_no_key, provider);
+                }
+                return "⚠️ " + label + ": " + getString(R.string.gateway_diag_llm_no_key);
+            }
+            try {
+                String curlPath = binPath + "/curl";
+                if (!new java.io.File(curlPath).exists()) {
+                    return "⚠️ " + label + ": curl not available";
+                }
+                String url = getProviderTestUrl(provider);
+                if (url == null) {
+                    return "⚠️ " + label + ": unknown provider";
+                }
+
+                ProcessBuilder pb;
+                if ("ollama".equals(provider)) {
+                    pb = new ProcessBuilder(curlPath, "-s", "-o", "/dev/null", "-w", "%{http_code}",
+                            "--connect-timeout", "5", url);
+                } else if ("google".equals(provider)) {
+                    pb = new ProcessBuilder(curlPath, "-s", "-o", "/dev/null", "-w", "%{http_code}",
+                            "--connect-timeout", "10", url + apiKey);
+                } else {
+                    pb = new ProcessBuilder(curlPath, "-s", "-o", "/dev/null", "-w", "%{http_code}",
+                            "--connect-timeout", "10", "-H", "Authorization: Bearer " + apiKey, url);
+                }
+                pb.environment().put("PATH", binPath + ":/system/bin");
+                pb.redirectErrorStream(true);
+
+                Process p = pb.start();
+                java.io.BufferedReader reader = new java.io.BufferedReader(
+                        new java.io.InputStreamReader(p.getInputStream()));
+                String output = reader.readLine();
+                p.waitFor();
+
+                int httpCode = 0;
+                try { httpCode = Integer.parseInt(output != null ? output.trim() : "0"); } catch (NumberFormatException ignored) {}
+
+                if (httpCode == 200) {
+                    return "✅ " + label + ": " + getString(R.string.gateway_diag_llm_ok, model);
+                } else if (httpCode == 401 || httpCode == 403) {
+                    return "❌ " + label + ": " + getString(R.string.gateway_diag_llm_auth);
+                } else if (httpCode == 0) {
+                    return "❌ " + label + ": " + getString(R.string.gateway_diag_llm_network);
+                } else {
+                    return "❌ " + label + ": HTTP " + httpCode;
+                }
+            } catch (Exception e) {
+                return "❌ " + label + ": " + e.getMessage();
+            }
+        }
+
+        private String getProviderTestUrl(String provider) {
+            HermesConfigManager config = HermesConfigManager.getInstance();
+            String baseUrl = config.getEnvVar("OPENAI_BASE_URL");
+            switch (provider) {
+                case "openai":     return "https://api.openai.com/v1/models";
+                case "anthropic":  return "https://api.anthropic.com/v1/models";
+                case "google":     return "https://generativelanguage.googleapis.com/v1beta/models?key=";
+                case "deepseek":   return "https://api.deepseek.com/models";
+                case "openrouter": return "https://openrouter.ai/api/v1/models";
+                case "xai":        return "https://api.x.ai/v1/models";
+                case "alibaba":    return "https://dashscope.aliyuncs.com/compatible-mode/v1/models";
+                case "mistral":    return "https://api.mistral.ai/v1/models";
+                case "nvidia":     return "https://integrate.api.nvidia.com/v1/models";
+                case "ollama":     return baseUrl.isEmpty() ? "http://localhost:11434/api/tags" : baseUrl + "/api/tags";
+                case "custom":     return baseUrl.isEmpty() ? null : baseUrl + "/models";
+                default:           return null;
+            }
+        }
+
+        private String checkFeishuStatus(HermesConfigManager config) {
+            String label = getString(R.string.gateway_diag_im_feishu);
+            if (config.isFeishuConfigured()) {
+                return "✅ " + label + ": " + getString(R.string.gateway_diag_im_feishu_ok);
+            }
+            return "⚠️ " + label + ": " + getString(R.string.gateway_diag_im_feishu_no);
+        }
+
+        private String checkTelegramStatus(HermesConfigManager config, String binPath) {
+            String label = getString(R.string.gateway_diag_im_telegram);
+            String token = config.getEnvVar("TELEGRAM_BOT_TOKEN");
+            if (token.isEmpty()) {
+                return "⚠️ " + label + ": " + getString(R.string.gateway_diag_im_telegram_no);
+            }
+            try {
+                String curlPath = binPath + "/curl";
+                ProcessBuilder pb = new ProcessBuilder(curlPath, "-s", "-o", "/dev/null", "-w", "%{http_code}",
+                        "--connect-timeout", "10", "https://api.telegram.org/bot" + token + "/getMe");
+                pb.environment().put("PATH", binPath + ":/system/bin");
+                pb.redirectErrorStream(true);
+                Process p = pb.start();
+                java.io.BufferedReader reader = new java.io.BufferedReader(
+                        new java.io.InputStreamReader(p.getInputStream()));
+                String output = reader.readLine();
+                p.waitFor();
+                int code = 0;
+                try { code = Integer.parseInt(output != null ? output.trim() : "0"); } catch (NumberFormatException ignored) {}
+                if (code == 200) {
+                    return "✅ " + label + ": " + getString(R.string.gateway_diag_im_telegram_ok);
+                }
+                return "❌ " + label + ": " + getString(R.string.gateway_diag_im_telegram_fail);
+            } catch (Exception e) {
+                return "❌ " + label + ": " + e.getMessage();
+            }
+        }
+
+        private String checkDiscordStatus(HermesConfigManager config, String binPath) {
+            String label = getString(R.string.gateway_diag_im_discord);
+            String token = config.getEnvVar("DISCORD_BOT_TOKEN");
+            if (token.isEmpty()) {
+                return "⚠️ " + label + ": " + getString(R.string.gateway_diag_im_discord_no);
+            }
+            try {
+                String curlPath = binPath + "/curl";
+                ProcessBuilder pb = new ProcessBuilder(curlPath, "-s", "-o", "/dev/null", "-w", "%{http_code}",
+                        "--connect-timeout", "10", "-H", "Authorization: Bot " + token,
+                        "https://discord.com/api/v10/users/@me");
+                pb.environment().put("PATH", binPath + ":/system/bin");
+                pb.redirectErrorStream(true);
+                Process p = pb.start();
+                java.io.BufferedReader reader = new java.io.BufferedReader(
+                        new java.io.InputStreamReader(p.getInputStream()));
+                String output = reader.readLine();
+                p.waitFor();
+                int code = 0;
+                try { code = Integer.parseInt(output != null ? output.trim() : "0"); } catch (NumberFormatException ignored) {}
+                if (code == 200) {
+                    return "✅ " + label + ": " + getString(R.string.gateway_diag_im_discord_ok);
+                }
+                return "❌ " + label + ": " + getString(R.string.gateway_diag_im_discord_fail);
+            } catch (Exception e) {
+                return "❌ " + label + ": " + e.getMessage();
             }
         }
     }
