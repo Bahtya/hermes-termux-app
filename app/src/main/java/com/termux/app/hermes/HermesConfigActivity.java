@@ -382,13 +382,65 @@ public class HermesConfigActivity extends AppCompatActivity {
                         String latest = result[1];
                         if (updatePref != null) {
                             if (latest != null && !latest.equals(current)) {
-                                updatePref.setSummary(getString(R.string.hermes_update_available, latest, current));
+                                updatePref.setSummary(getString(R.string.gateway_update_available, latest, current));
+                                updatePref.setOnPreferenceClickListener(p -> {
+                                    performUpdate(updatePref, latest);
+                                    return true;
+                                });
                             } else {
-                                updatePref.setSummary(getString(R.string.hermes_up_to_date, current));
+                                updatePref.setSummary(getString(R.string.gateway_update_up_to_date, current));
+                                updatePref.setOnPreferenceClickListener(null);
                             }
                         }
                     }
                 });
+            }).start();
+        }
+
+        private void performUpdate(Preference updatePref, String targetVersion) {
+            if (updatePref != null) {
+                updatePref.setSummary(getString(R.string.gateway_update_downloading));
+            }
+            new Thread(() -> {
+                try {
+                    String binPath = TermuxConstants.TERMUX_BIN_PREFIX_DIR_PATH;
+                    ProcessBuilder pb = new ProcessBuilder(binPath + "/bash", "-c",
+                            "pip install --upgrade hermes-agent 2>&1 | tail -5");
+                    pb.environment().put("PATH", binPath + ":/system/bin");
+                    pb.environment().put("HOME", TermuxConstants.TERMUX_HOME_DIR_PATH);
+                    pb.redirectErrorStream(true);
+                    Process p = pb.start();
+                    p.waitFor();
+                    java.io.BufferedReader reader = new java.io.BufferedReader(
+                            new java.io.InputStreamReader(p.getInputStream()));
+                    StringBuilder output = new StringBuilder();
+                    String line;
+                    while ((line = reader.readLine()) != null) {
+                        output.append(line).append("\n");
+                    }
+                    boolean success = p.exitValue() == 0;
+                    if (getActivity() == null) return;
+                    requireActivity().runOnUiThread(() -> {
+                        if (success) {
+                            if (updatePref != null) {
+                                updatePref.setSummary(getString(R.string.gateway_update_installed, targetVersion));
+                            }
+                            Toast.makeText(requireContext(), getString(R.string.gateway_update_installed, targetVersion), Toast.LENGTH_LONG).show();
+                        } else {
+                            if (updatePref != null) {
+                                updatePref.setSummary(getString(R.string.gateway_update_install_failed));
+                            }
+                            Toast.makeText(requireContext(), R.string.gateway_update_install_failed, Toast.LENGTH_LONG).show();
+                        }
+                    });
+                } catch (Exception e) {
+                    if (getActivity() == null) return;
+                    requireActivity().runOnUiThread(() -> {
+                        if (updatePref != null) {
+                            updatePref.setSummary(getString(R.string.gateway_update_install_failed));
+                        }
+                    });
+                }
             }).start();
         }
 
@@ -419,10 +471,35 @@ public class HermesConfigActivity extends AppCompatActivity {
                 if (pipVersion != null) pipVersion = pipVersion.trim();
 
                 if (current == null || current.isEmpty()) current = "unknown";
-                return new String[]{pipVersion != null ? pipVersion : current, null};
+                String installedVersion = pipVersion != null ? pipVersion : current;
+
+                // Fetch latest version from GitHub releases
+                String latestVersion = fetchLatestGithubVersion(binPath);
+
+                return new String[]{installedVersion, latestVersion};
             } catch (Exception e) {
                 return null;
             }
+        }
+
+        private String fetchLatestGithubVersion(String binPath) {
+            try {
+                ProcessBuilder pb = new ProcessBuilder(binPath + "/bash", "-c",
+                        "pip index versions hermes-agent 2>/dev/null | head -1 | grep -oP '\\(.*?\\)' | head -1 | tr -d '()'");
+                pb.environment().put("PATH", binPath + ":/system/bin");
+                pb.environment().put("HOME", TermuxConstants.TERMUX_HOME_DIR_PATH);
+                pb.redirectErrorStream(true);
+                Process p = pb.start();
+                p.waitFor();
+                java.io.BufferedReader reader = new java.io.BufferedReader(
+                        new java.io.InputStreamReader(p.getInputStream()));
+                String version = reader.readLine();
+                if (version != null) {
+                    version = version.trim();
+                    if (!version.isEmpty()) return version;
+                }
+            } catch (Exception ignored) {}
+            return null;
         }
 
         private void showWhatsappSetupDialog() {
