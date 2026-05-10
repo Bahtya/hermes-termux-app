@@ -67,50 +67,56 @@ public class HermesGatewayStatus {
         }
     }
 
-    public static class ResourceInfo {
-        public final int memRssMb;
-        public final float cpuPercent;
-
-        public ResourceInfo(int memRssMb, float cpuPercent) {
-            this.memRssMb = memRssMb;
-            this.cpuPercent = cpuPercent;
-        }
+    public enum HealthStatus {
+        HEALTHY,
+        DEGRADED,
+        UNHEALTHY
     }
 
-    public interface ResourceCallback {
-        void onResult(ResourceInfo info);
+    public interface HealthCallback {
+        void onResult(HealthStatus status, long latencyMs, String error);
     }
 
-    public static void queryResourceUsageAsync(ResourceCallback callback) {
+    public static void checkHealthAsync(HealthCallback callback) {
         new Thread(() -> {
+            String bashPath = TermuxConstants.TERMUX_BIN_PREFIX_DIR_PATH + "/bash";
+            String curlPath = TermuxConstants.TERMUX_BIN_PREFIX_DIR_PATH + "/curl";
+            if (!new File(bashPath).exists() || !new File(curlPath).exists()) {
+                callback.onResult(HealthStatus.UNHEALTHY, 0, "bash or curl not available");
+                return;
+            }
+
             try {
-                String bashPath = TermuxConstants.TERMUX_BIN_PREFIX_DIR_PATH + "/bash";
-                ProcessBuilder pb = new ProcessBuilder(bashPath, "-c",
-                        "PID=$(pgrep -f 'hermes gateway' | head -1); "
-                        + "if [ -n \"$PID\" ]; then "
-                        + "  RSS=$(grep VmRSS /proc/$PID/status 2>/dev/null | awk '{print $2}'); "
-                        + "  echo \"${RSS:-0}\"; "
-                        + "fi");
+                long start = System.currentTimeMillis();
+                ProcessBuilder pb = new ProcessBuilder(curlPath, "-s", "-o", "/dev/null",
+                        "-w", "%{http_code}", "--connect-timeout", "5", "--max-time", "10",
+                        "http://127.0.0.1:8080/health");
                 pb.environment().put("PATH", TermuxConstants.TERMUX_BIN_PREFIX_DIR_PATH
                         + ":/system/bin:/system/xbin");
                 pb.redirectErrorStream(true);
 
                 Process p = pb.start();
                 BufferedReader reader = new BufferedReader(new InputStreamReader(p.getInputStream()));
-                String rssLine = reader.readLine();
+                String output = reader.readLine();
                 p.waitFor();
+                long latency = System.currentTimeMillis() - start;
 
-                int rssKb = 0;
+                int httpCode = 0;
                 try {
-                    rssKb = Integer.parseInt(rssLine != null ? rssLine.trim() : "0");
+                    httpCode = Integer.parseInt(output != null ? output.trim() : "0");
                 } catch (NumberFormatException ignored) {}
 
-                int rssMb = rssKb / 1024;
-                callback.onResult(new ResourceInfo(rssMb, 0));
+                if (httpCode == 200) {
+                    HealthStatus status = latency < 1000 ? HealthStatus.HEALTHY : HealthStatus.DEGRADED;
+                    callback.onResult(status, latency, null);
+                } else if (httpCode > 0) {
+                    callback.onResult(HealthStatus.UNHEALTHY, latency, "HTTP " + httpCode);
+                } else {
+                    callback.onResult(HealthStatus.UNHEALTHY, latency, "No response");
+                }
             } catch (Exception e) {
-                Logger.logError(LOG_TAG, "Failed to query resource usage: " + e.getMessage());
-                callback.onResult(new ResourceInfo(0, 0));
+                callback.onResult(HealthStatus.UNHEALTHY, 0, e.getMessage());
             }
-        }, "HermesResourceQuery").start();
+        }, "HermesHealthCheck").start();
     }
 }

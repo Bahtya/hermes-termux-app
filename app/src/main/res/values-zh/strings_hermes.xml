@@ -414,6 +414,9 @@ App ID 以"cli_"开头，约 10-20 个字符。App Secret 较长（30+ 字符）
     <string name="dashboard_gateway_title">网关</string>
     <string name="dashboard_gateway_running">运行中</string>
     <string name="dashboard_gateway_running_resource">运行中 — 内存 %1$d MB</string>
+    <string name="dashboard_gateway_healthy">健康（%1$dms）</string>
+    <string name="dashboard_gateway_degraded">响应慢（%1$.1fs）</string>
+    <string name="dashboard_gateway_unhealthy">异常 — 请查看日志</string>
     <string name="dashboard_gateway_stopped">已停止</string>
     <string name="dashboard_gateway_not_installed">未安装</string>
     <string name="dashboard_llm_title">AI 提供商</string>
