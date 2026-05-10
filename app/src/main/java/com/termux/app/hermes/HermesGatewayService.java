@@ -315,4 +315,19 @@ public class HermesGatewayService extends Service {
                 .putBoolean(PREF_AUTO_START, enabled)
                 .apply();
     }
+
+    public static void restartIfRunning(Context context) {
+        HermesGatewayStatus.checkAsync((status, detail) -> {
+            if (status == HermesGatewayStatus.Status.RUNNING) {
+                new Handler(Looper.getMainLooper()).postDelayed(() -> {
+                    context.startService(new Intent(context, HermesGatewayService.class)
+                            .setAction(ACTION_STOP));
+                    new Handler(Looper.getMainLooper()).postDelayed(() -> {
+                        context.startService(new Intent(context, HermesGatewayService.class)
+                                .setAction(ACTION_START));
+                    }, 1500);
+                }, 500);
+            }
+        });
+    }
 }

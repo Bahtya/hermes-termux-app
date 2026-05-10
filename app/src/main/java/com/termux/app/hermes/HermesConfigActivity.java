@@ -441,6 +441,7 @@ public class HermesConfigActivity extends AppCompatActivity {
                 apiKeyPref.setOnPreferenceChangeListener((p, newVal) -> {
                     mConfigManager.setApiKey(mConfigManager.getModelProvider(), (String) newVal);
                     p.setSummary(maskApiKey((String) newVal));
+                    restartGatewayIfRunning();
                     return true;
                 });
             }
@@ -463,6 +464,7 @@ public class HermesConfigActivity extends AppCompatActivity {
                         boolean needsUrl = "ollama".equals(provider) || "custom".equals(provider);
                         baseUrlPref.setVisible(needsUrl);
                     }
+                    restartGatewayIfRunning();
                     return true;
                 });
             }
@@ -471,6 +473,7 @@ public class HermesConfigActivity extends AppCompatActivity {
             if (modelPref != null) {
                 modelPref.setOnPreferenceChangeListener((p, newVal) -> {
                     mConfigManager.setModelName((String) newVal);
+                    restartGatewayIfRunning();
                     return true;
                 });
             }
@@ -479,6 +482,7 @@ public class HermesConfigActivity extends AppCompatActivity {
             if (baseUrlPref != null) {
                 baseUrlPref.setOnPreferenceChangeListener((p, newVal) -> {
                     mConfigManager.setEnvVar("OPENAI_BASE_URL", (String) newVal);
+                    restartGatewayIfRunning();
                     return true;
                 });
                 boolean needsUrl = "ollama".equals(currentProvider) || "custom".equals(currentProvider);
@@ -521,6 +525,11 @@ public class HermesConfigActivity extends AppCompatActivity {
         private String maskApiKey(String key) {
             if (key == null || key.length() < 8) return "****";
             return key.substring(0, 4) + "..." + key.substring(key.length() - 4);
+        }
+
+        private void restartGatewayIfRunning() {
+            HermesGatewayService.restartIfRunning(requireContext());
+            Toast.makeText(requireContext(), R.string.gateway_auto_restarted, Toast.LENGTH_SHORT).show();
         }
 
         @Override

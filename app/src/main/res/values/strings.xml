@@ -398,6 +398,7 @@
     <string name="gateway_started">Gateway starting…</string>
     <string name="gateway_stopped">Gateway stopped</string>
     <string name="gateway_restarted">Gateway restarting…</string>
+    <string name="gateway_auto_restarted">Gateway restarting to apply changes…</string>
     <string name="gateway_status_running">Running</string>
     <string name="gateway_status_stopped">Stopped</string>
     <string name="gateway_status_not_installed">Not installed</string>

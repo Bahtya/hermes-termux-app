@@ -641,6 +641,9 @@ public class FeishuSetupActivity extends AppCompatActivity {
         mConfigManager.setEnvVar("FEISHU_DOMAIN", mDomain);
         mConfigManager.setEnvVar("FEISHU_CONNECTION_MODE", mConnectionMode);
 
+        // Restart gateway if running to pick up new config
+        HermesGatewayService.restartIfRunning(this);
+
         TextView checkTv = new TextView(this);
         checkTv.setText("✅");
         checkTv.setTextSize(48);
