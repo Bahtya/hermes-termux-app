@@ -2670,7 +2670,7 @@ public class HermesConfigActivity extends AppCompatActivity {
                     + "provider=" + provider
                     + "&model=" + model
                     + "&temp=" + mConfigManager.getModelTemperature()
-                    + "&max_tokens=" + mConfigManager.getMaxTokens();
+                    + "&max_tokens=" + mConfigManager.getModelMaxTokens();
             if (!maskedKey.isEmpty()) qrData += "&key_hint=" + maskedKey;
 
             try {
