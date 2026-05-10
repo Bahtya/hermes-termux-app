@@ -95,6 +95,9 @@
 
     <!-- Dashboard -->
     <string name="dashboard_title">状态概览</string>
+    <string name="dashboard_version_title">Hermes 版本</string>
+    <string name="dashboard_version_format">v%1$s</string>
+    <string name="dashboard_version_not_installed">未安装</string>
     <string name="dashboard_gateway_title">网关</string>
     <string name="dashboard_gateway_running">运行中</string>
     <string name="dashboard_gateway_stopped">已停止</string>

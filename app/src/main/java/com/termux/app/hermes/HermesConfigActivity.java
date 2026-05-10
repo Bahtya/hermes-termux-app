@@ -62,6 +62,12 @@ public class HermesConfigActivity extends AppCompatActivity {
             setPreferencesFromResource(R.xml.hermes_preferences, rootKey);
             mConfigManager = HermesConfigManager.getInstance();
 
+            // --- Dashboard: Version ---
+            Preference versionPref = findPreference("hermes_dashboard_version");
+            if (versionPref != null) {
+                fetchAndDisplayVersion(versionPref);
+            }
+
             // --- Dashboard: Gateway status ---
             Preference dashGateway = findPreference("hermes_dashboard_gateway");
             if (dashGateway != null) {
@@ -239,6 +245,38 @@ public class HermesConfigActivity extends AppCompatActivity {
                     .addToBackStack(null)
                     .setTransition(FragmentTransaction.TRANSIT_FRAGMENT_OPEN)
                     .commit();
+        }
+
+        private void fetchAndDisplayVersion(Preference versionPref) {
+            new Thread(() -> {
+                String version = null;
+                try {
+                    String binPath = TermuxConstants.TERMUX_BIN_PREFIX_DIR_PATH;
+                    String hermesPath = binPath + "/hermes";
+                    if (new java.io.File(hermesPath).exists()) {
+                        ProcessBuilder pb = new ProcessBuilder(binPath + "/bash", "-c",
+                                hermesPath + " --version 2>/dev/null | head -1");
+                        pb.environment().put("PATH", binPath + ":/system/bin");
+                        pb.redirectErrorStream(true);
+                        Process p = pb.start();
+                        java.io.BufferedReader reader = new java.io.BufferedReader(
+                                new java.io.InputStreamReader(p.getInputStream()));
+                        version = reader.readLine();
+                        if (version != null) version = version.trim();
+                        p.waitFor();
+                    }
+                } catch (Exception ignored) {}
+
+                if (getActivity() == null) return;
+                String finalVersion = version;
+                getActivity().runOnUiThread(() -> {
+                    if (finalVersion != null && !finalVersion.isEmpty()) {
+                        versionPref.setSummary(getString(R.string.dashboard_version_format, finalVersion));
+                    } else {
+                        versionPref.setSummary(getString(R.string.dashboard_version_not_installed));
+                    }
+                });
+            }).start();
         }
 
         private void checkForUpdate(Preference updatePref) {
