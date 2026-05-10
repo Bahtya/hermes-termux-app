@@ -112,6 +112,34 @@
     <string name="gateway_status_stopped">已停止</string>
     <string name="gateway_status_not_installed">未安装</string>
 
+    <!-- Gateway Diagnostic -->
+    <string name="gateway_diagnostic_title">连接诊断</string>
+    <string name="gateway_diagnostic_summary">测试 LLM 和 IM 平台的连接</string>
+    <string name="gateway_diagnostic_running">正在运行诊断…</string>
+    <string name="gateway_diagnostic_title_dialog">连接诊断</string>
+    <string name="gateway_diag_hermes_binary">Hermes 程序</string>
+    <string name="gateway_diag_hermes_version">Hermes 版本：%1$s</string>
+    <string name="gateway_diag_hermes_not_found">未找到 Hermes 程序</string>
+    <string name="gateway_diag_llm_api">LLM API（%1$s）</string>
+    <string name="gateway_diag_llm_ok">已连接 — 模型 %1$s 可访问</string>
+    <string name="gateway_diag_llm_auth">认证失败 — 请检查 API 密钥</string>
+    <string name="gateway_diag_llm_network">网络错误 — 请检查网络连接</string>
+    <string name="gateway_diag_llm_no_key">未配置 API 密钥</string>
+    <string name="gateway_diag_im_feishu">飞书</string>
+    <string name="gateway_diag_im_feishu_ok">凭证已配置</string>
+    <string name="gateway_diag_im_feishu_no">未配置</string>
+    <string name="gateway_diag_im_telegram">Telegram</string>
+    <string name="gateway_diag_im_telegram_ok">机器人令牌有效</string>
+    <string name="gateway_diag_im_telegram_fail">机器人令牌无效</string>
+    <string name="gateway_diag_im_telegram_no">未配置</string>
+    <string name="gateway_diag_im_discord">Discord</string>
+    <string name="gateway_diag_im_discord_ok">机器人令牌有效</string>
+    <string name="gateway_diag_im_discord_fail">机器人令牌无效</string>
+    <string name="gateway_diag_im_discord_no">未配置</string>
+    <string name="gateway_diag_gateway_process">网关进程</string>
+    <string name="gateway_diag_gateway_running">运行中</string>
+    <string name="gateway_diag_gateway_stopped">未运行</string>
+
     <!-- Gateway Log -->
     <string name="gateway_log_title">网关日志</string>
     <string name="gateway_log_refresh">刷新</string>
