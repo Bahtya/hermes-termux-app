@@ -278,6 +278,14 @@ App ID 以"cli_"开头，约 10-20 个字符。App Secret 较长（30+ 字符）
     <string name="gateway_precheck_no_im_action_start">仍然启动</string>
     <string name="gateway_precheck_no_im_action_setup">配置消息平台</string>
     <string name="gateway_started">网关启动中…</string>
+    <string name="gateway_notif_perm_title">通知权限</string>
+    <string name="gateway_notif_perm_summary">允许通知以查看网关运行状态</string>
+    <string name="gateway_notif_perm_rationale_title">开启通知？</string>
+    <string name="gateway_notif_perm_rationale_message">Hermes 需要通知权限来显示网关运行状态和警报。如果没有此权限，您将无法看到网关是否在运行或是否崩溃。</string>
+    <string name="gateway_notif_perm_granted">已授权</string>
+    <string name="gateway_notif_perm_denied">权限被拒绝 — 网关可能在没有可见通知的情况下运行</string>
+    <string name="gateway_notif_perm_enable">开启</string>
+    <string name="gateway_notif_perm_skip">跳过</string>
     <string name="gateway_stopped">网关已停止</string>
     <string name="gateway_restarted">网关重启中…</string>
     <string name="gateway_auto_restart_toast">正在应用配置更改…</string>
