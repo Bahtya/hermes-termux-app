@@ -11,6 +11,17 @@
         android:selectable="true" />
 
     <PreferenceCategory android:title="@string/dashboard_title">
+
+        <Preference
+            android:key="hermes_setup_progress"
+            android:title="@string/setup_progress_title"
+            android:selectable="false" />
+
+        <Preference
+            android:key="hermes_setup_action"
+            android:title="@string/setup_action_continue"
+            android:summary="@string/setup_action_continue_summary" />
+
         <Preference
             android:key="hermes_dashboard_version"
             android:title="@string/dashboard_version_title"

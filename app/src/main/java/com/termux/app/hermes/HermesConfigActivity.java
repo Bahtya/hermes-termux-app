@@ -62,6 +62,9 @@ public class HermesConfigActivity extends AppCompatActivity {
             setPreferencesFromResource(R.xml.hermes_preferences, rootKey);
             mConfigManager = HermesConfigManager.getInstance();
 
+            // --- Setup progress tracker ---
+            updateSetupProgress();
+
             // --- Dashboard: Gateway status ---
             Preference dashGateway = findPreference("hermes_dashboard_gateway");
             if (dashGateway != null) {
@@ -194,6 +197,9 @@ public class HermesConfigActivity extends AppCompatActivity {
             if (key == null) return super.onPreferenceTreeClick(preference);
 
             switch (key) {
+                case "hermes_setup_action":
+                    handleSetupAction();
+                    return true;
                 case "hermes_llm_config":
                     showFragment(new LlmConfigFragment());
                     return true;
@@ -233,6 +239,119 @@ public class HermesConfigActivity extends AppCompatActivity {
                     return true;
             }
             return super.onPreferenceTreeClick(preference);
+        }
+
+        @Override
+        public void onResume() {
+            super.onResume();
+            updateSetupProgress();
+        }
+
+        private void updateSetupProgress() {
+            String provider = mConfigManager.getModelProvider();
+            String apiKey = mConfigManager.getApiKey(provider);
+            boolean hasProvider = provider != null && !provider.isEmpty();
+            boolean hasApiKey = apiKey != null && !apiKey.isEmpty();
+            boolean hasIm = mConfigManager.isFeishuConfigured()
+                    || !mConfigManager.getEnvVar("TELEGRAM_BOT_TOKEN").isEmpty()
+                    || !mConfigManager.getEnvVar("DISCORD_BOT_TOKEN").isEmpty();
+
+            int completed = 0;
+            int total = 4;
+            if (hasProvider) completed++;
+            if (hasApiKey) completed++;
+            if (hasIm) completed++;
+
+            Preference progressPref = findPreference("hermes_setup_progress");
+            Preference actionPref = findPreference("hermes_setup_action");
+            if (progressPref == null) return;
+
+            boolean[] steps = {hasProvider, hasApiKey, hasIm, false};
+            String[] labels = {
+                    getString(R.string.setup_progress_step_llm_provider),
+                    getString(R.string.setup_progress_step_api_key),
+                    getString(R.string.setup_progress_step_im),
+                    getString(R.string.setup_progress_step_gateway)
+            };
+
+            // Check gateway status asynchronously
+            HermesGatewayStatus.checkAsync((status, detail) -> {
+                if (getActivity() == null) return;
+                getActivity().runOnUiThread(() -> {
+                    boolean gatewayRunning = status == HermesGatewayStatus.Status.RUNNING;
+                    if (gatewayRunning) {
+                        steps[3] = true;
+                        int finalCompleted = completed + (gatewayRunning ? 1 : 0);
+
+                        StringBuilder sb = new StringBuilder();
+                        if (finalCompleted == total) {
+                            progressPref.setSummary(getString(R.string.setup_progress_all_done));
+                        } else {
+                            progressPref.setSummary(getString(R.string.setup_progress_steps, finalCompleted, total));
+                        }
+
+                        updateActionPreference(!hasProvider || !hasApiKey, !hasApiKey, !hasIm, !gatewayRunning,
+                                hasProvider, provider);
+                    }
+                });
+            });
+        }
+
+        private void updateActionPreference(boolean needsLlm, boolean needsApiKey, boolean needsIm,
+                                             boolean needsGateway, boolean hasProvider, String provider) {
+            Preference actionPref = findPreference("hermes_setup_action");
+            if (actionPref == null) return;
+
+            if (needsLlm) {
+                if (hasProvider && needsApiKey) {
+                    actionPref.setTitle(getString(R.string.setup_action_enter_api_key));
+                    actionPref.setSummary(getString(R.string.setup_action_enter_api_key_summary, provider));
+                } else {
+                    actionPref.setTitle(getString(R.string.setup_action_configure_llm));
+                    actionPref.setSummary(getString(R.string.setup_action_configure_llm_summary));
+                }
+                actionPref.setVisible(true);
+            } else if (needsIm) {
+                actionPref.setTitle(getString(R.string.setup_action_connect_im));
+                actionPref.setSummary(getString(R.string.setup_action_connect_im_summary));
+                actionPref.setVisible(true);
+            } else if (needsGateway) {
+                actionPref.setTitle(getString(R.string.setup_action_start_gateway));
+                actionPref.setSummary(getString(R.string.setup_action_start_gateway_summary));
+                actionPref.setVisible(true);
+            } else {
+                actionPref.setTitle(getString(R.string.setup_action_start_gateway));
+                actionPref.setSummary(getString(R.string.setup_progress_all_done));
+                actionPref.setVisible(false);
+            }
+        }
+
+        private void handleSetupAction() {
+            String provider = mConfigManager.getModelProvider();
+            String apiKey = mConfigManager.getApiKey(provider);
+            boolean hasProvider = provider != null && !provider.isEmpty();
+            boolean hasApiKey = apiKey != null && !apiKey.isEmpty();
+            boolean hasIm = mConfigManager.isFeishuConfigured()
+                    || !mConfigManager.getEnvVar("TELEGRAM_BOT_TOKEN").isEmpty()
+                    || !mConfigManager.getEnvVar("DISCORD_BOT_TOKEN").isEmpty();
+
+            if (!hasProvider || !hasApiKey) {
+                showFragment(new LlmConfigFragment());
+            } else if (!hasIm) {
+                startActivity(new Intent(requireContext(), FeishuSetupActivity.class));
+            } else {
+                HermesGatewayStatus.checkAsync((status, detail) -> {
+                    if (getActivity() == null) return;
+                    getActivity().runOnUiThread(() -> {
+                        if (status != HermesGatewayStatus.Status.RUNNING) {
+                            requireContext().startService(new Intent(requireContext(), HermesGatewayService.class)
+                                    .setAction(HermesGatewayService.ACTION_START));
+                            Toast.makeText(requireContext(), R.string.gateway_started, Toast.LENGTH_SHORT).show();
+                            updateSetupProgress();
+                        }
+                    });
+                });
+            }
         }
 
         private void showFragment(Fragment fragment) {

@@ -199,6 +199,25 @@
     <string name="gateway_log_share_empty">暂无日志内容可分享。</string>
     <string name="hermes_gateway_log_summary">查看网关日志以排查问题</string>
 
+    <!-- Setup Progress -->
+    <string name="setup_progress_title">设置进度</string>
+    <string name="setup_progress_all_done">全部完成！Hermes 已就绪。</string>
+    <string name="setup_progress_steps">已完成 %1$d / %2$d 项</string>
+    <string name="setup_progress_step_llm_provider">已选择 AI 提供商</string>
+    <string name="setup_progress_step_api_key">已配置 API 密钥</string>
+    <string name="setup_progress_step_im">已连接消息平台</string>
+    <string name="setup_progress_step_gateway">网关运行中</string>
+    <string name="setup_action_continue">继续设置</string>
+    <string name="setup_action_continue_summary">点击完成下一步</string>
+    <string name="setup_action_start_gateway">启动网关</string>
+    <string name="setup_action_start_gateway_summary">配置完成 — 立即启动网关</string>
+    <string name="setup_action_configure_llm">配置 AI 提供商</string>
+    <string name="setup_action_configure_llm_summary">先设置您的 AI 提供商和 API 密钥</string>
+    <string name="setup_action_connect_im">连接消息平台</string>
+    <string name="setup_action_connect_im_summary">至少连接一个消息平台</string>
+    <string name="setup_action_enter_api_key">输入 API 密钥</string>
+    <string name="setup_action_enter_api_key_summary">添加您的 %1$s API 密钥</string>
+
     <!-- Dashboard -->
     <string name="dashboard_title">状态概览</string>
     <string name="dashboard_version_title">Hermes 版本</string>
