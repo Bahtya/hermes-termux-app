@@ -115,6 +115,8 @@ android {
 
     lint {
         disable 'ProtectedPermissions'
+        // Upstream Termux code calls drawTextRun (API 23) with minSdk 21 — suppress
+        disable 'NewApi'
     }
 
     testOptions {
