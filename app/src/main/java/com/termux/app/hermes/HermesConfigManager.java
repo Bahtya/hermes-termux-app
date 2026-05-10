@@ -56,6 +56,9 @@ public class HermesConfigManager {
     private static final String KEY_MODEL_NAME = "model.name";
     private static final String KEY_MODEL_TEMPERATURE = "model.temperature";
     private static final String KEY_MODEL_MAX_TOKENS = "model.max_tokens";
+    private static final String KEY_MODEL_TOP_P = "model.top_p";
+    private static final String KEY_MODEL_FREQUENCY_PENALTY = "model.frequency_penalty";
+    private static final String KEY_MODEL_PRESENCE_PENALTY = "model.presence_penalty";
     private static final String KEY_SYSTEM_PROMPT = "model.system_prompt";
 
     // Feishu config.yaml keys (under feishu: section)
@@ -189,6 +192,9 @@ public class HermesConfigManager {
                 + "  name: gpt-4o\n"
                 + "  temperature: 0.7\n"
                 + "  max_tokens: 4096\n"
+                + "  top_p: 1.0\n"
+                + "  frequency_penalty: 0.0\n"
+                + "  presence_penalty: 0.0\n"
                 + "\n"
                 + "feishu:\n"
                 + "  app_id: \"\"\n"
@@ -606,6 +612,45 @@ public class HermesConfigManager {
 
     public void setModelMaxTokens(int maxTokens) {
         setYamlValue(KEY_MODEL_MAX_TOKENS, String.valueOf(maxTokens));
+    }
+
+    public float getModelTopP() {
+        String val = getYamlValue(KEY_MODEL_TOP_P, "1.0");
+        try {
+            return Float.parseFloat(val);
+        } catch (NumberFormatException e) {
+            return 1.0f;
+        }
+    }
+
+    public void setModelTopP(float topP) {
+        setYamlValue(KEY_MODEL_TOP_P, String.valueOf(topP));
+    }
+
+    public float getModelFrequencyPenalty() {
+        String val = getYamlValue(KEY_MODEL_FREQUENCY_PENALTY, "0.0");
+        try {
+            return Float.parseFloat(val);
+        } catch (NumberFormatException e) {
+            return 0.0f;
+        }
+    }
+
+    public void setModelFrequencyPenalty(float penalty) {
+        setYamlValue(KEY_MODEL_FREQUENCY_PENALTY, String.valueOf(penalty));
+    }
+
+    public float getModelPresencePenalty() {
+        String val = getYamlValue(KEY_MODEL_PRESENCE_PENALTY, "0.0");
+        try {
+            return Float.parseFloat(val);
+        } catch (NumberFormatException e) {
+            return 0.0f;
+        }
+    }
+
+    public void setModelPresencePenalty(float penalty) {
+        setYamlValue(KEY_MODEL_PRESENCE_PENALTY, String.valueOf(penalty));
     }
 
     public String getSystemPrompt() {
