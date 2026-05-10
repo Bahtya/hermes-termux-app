@@ -437,6 +437,23 @@
     <string name="gateway_session_empty">No session history yet.</string>
 
     <!-- Dashboard -->
+        <!-- Profile management -->
+    <string name="profile_category_title">Profiles</string>
+    <string name="profile_current_title">Active Profile</string>
+    <string name="profile_save_title">Save Current Profile</string>
+    <string name="profile_save_summary">Save current LLM settings as a named profile</string>
+    <string name="profile_switch_title">Switch Profile</string>
+    <string name="profile_switch_summary">Load a saved profile configuration</string>
+    <string name="profile_delete_title">Delete Profile</string>
+    <string name="profile_delete_summary">Remove a saved profile</string>
+    <string name="profile_name_hint">Profile name</string>
+    <string name="profile_saved">Profile "%s" saved</string>
+    <string name="profile_loaded">Profile "%s" loaded</string>
+    <string name="profile_deleted">Profile "%s" deleted</string>
+    <string name="profile_not_found">Profile not found</string>
+    <string name="profile_no_profiles">No saved profiles</string>
+    <string name="profile_active_default">Default (current settings)</string>
+    <string name="profile_active_format">%s (%s / %s)</string>
     <string name="dashboard_title">Status Overview</string>
     <string name="dashboard_gateway_title">Gateway</string>
     <string name="dashboard_gateway_running">Running</string>
