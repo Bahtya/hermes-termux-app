@@ -3,8 +3,6 @@ package com.termux.app.hermes;
 import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
-import android.text.Html;
-import android.text.SpannableString;
 import android.view.MenuItem;
 import android.widget.Toast;
 
@@ -73,22 +71,6 @@ public class HermesConfigActivity extends AppCompatActivity {
                         switch (status) {
                             case RUNNING:
                                 dashGateway.setSummary(getString(R.string.dashboard_gateway_running));
-                                HermesGatewayStatus.checkHealthAsync((healthStatus, latencyMs, error) -> {
-                                    if (getActivity() == null) return;
-                                    getActivity().runOnUiThread(() -> {
-                                        switch (healthStatus) {
-                                            case HEALTHY:
-                                                dashGateway.setSummary(getString(R.string.dashboard_gateway_healthy, latencyMs));
-                                                break;
-                                            case DEGRADED:
-                                                dashGateway.setSummary(getString(R.string.dashboard_gateway_degraded, latencyMs / 1000.0));
-                                                break;
-                                            case UNHEALTHY:
-                                                dashGateway.setSummary(getString(R.string.dashboard_gateway_unhealthy));
-                                                break;
-                                        }
-                                    });
-                                });
                                 break;
                             case NOT_INSTALLED:
                                 dashGateway.setSummary(getString(R.string.dashboard_gateway_not_installed));
@@ -167,21 +149,20 @@ public class HermesConfigActivity extends AppCompatActivity {
                 });
             }
 
-            // Show LLM config status with color-coded provider
+            // IM platform enable/disable toggles
+            setupImToggle("hermes_feishu_enabled", "feishu");
+            setupImToggle("hermes_telegram_enabled", "telegram");
+            setupImToggle("hermes_discord_enabled", "discord");
+
+            // Show LLM config status
             Preference llmPref = findPreference("hermes_llm_config");
             if (llmPref != null) {
                 String provider = mConfigManager.getModelProvider();
                 String apiKey = mConfigManager.getApiKey(provider);
                 boolean hasKey = apiKey != null && !apiKey.isEmpty();
-                if (hasKey) {
-                    String colorHex = LlmConfigFragment.getProviderColorHex(provider);
-                    SpannableString colored = new SpannableString(Html.fromHtml(
-                            getString(R.string.llm_provider_active,
-                                    "<font color='" + colorHex + "'>" + provider + "</font>")));
-                    llmPref.setSummary(colored);
-                } else {
-                    llmPref.setSummary(getString(R.string.llm_not_configured));
-                }
+                llmPref.setSummary(hasKey
+                        ? getString(R.string.llm_configured, provider)
+                        : getString(R.string.llm_not_configured));
             }
 
             // Show Feishu status
@@ -324,6 +305,17 @@ public class HermesConfigActivity extends AppCompatActivity {
             }
         }
 
+        private void setupImToggle(String prefKey, String platform) {
+            SwitchPreferenceCompat toggle = findPreference(prefKey);
+            if (toggle != null) {
+                toggle.setChecked(mConfigManager.isImPlatformEnabled(platform));
+                toggle.setOnPreferenceChangeListener((p, newVal) -> {
+                    mConfigManager.setImPlatformEnabled(platform, (Boolean) newVal);
+                    return true;
+                });
+            }
+        }
+
         private void showResetConfirmDialog() {
             new AlertDialog.Builder(requireContext())
                     .setTitle(R.string.hermes_reset_confirm_title)
@@ -463,29 +455,18 @@ public class HermesConfigActivity extends AppCompatActivity {
                     apiKeyPref.setSummary(maskApiKey(currentKey));
                 }
                 apiKeyPref.setOnPreferenceChangeListener((p, newVal) -> {
-                    String key = ((String) newVal).trim();
-                    // Validate key format
-                    String warning = validateApiKey(key, mConfigManager.getModelProvider());
-                    if (warning != null) {
-                        apiKeyPref.setSummary(warning);
-                    } else {
-                        apiKeyPref.setSummary(maskApiKey(key));
-                    }
-                    mConfigManager.setApiKey(mConfigManager.getModelProvider(), key);
+                    mConfigManager.setApiKey(mConfigManager.getModelProvider(), (String) newVal);
+                    p.setSummary(maskApiKey((String) newVal));
                     return true;
                 });
             }
 
             Preference providerPref = findPreference("llm_provider");
             if (providerPref != null) {
-                // Set initial color-coded summary
-                updateProviderSummary(providerPref, currentProvider);
-
                 providerPref.setOnPreferenceChangeListener((p, newVal) -> {
                     String provider = (String) newVal;
                     mConfigManager.setModelProvider(provider);
                     updateModelList(provider);
-                    updateProviderSummary(p, provider);
 
                     String key = mConfigManager.getApiKey(provider);
                     Preference akp = findPreference("llm_api_key");
@@ -558,37 +539,9 @@ public class HermesConfigActivity extends AppCompatActivity {
             return key.substring(0, 4) + "..." + key.substring(key.length() - 4);
         }
 
-        private void updateProviderSummary(Preference pref, String provider) {
-            String colorHex = getProviderColorHex(provider);
-            SpannableString colored = new SpannableString(Html.fromHtml(
-                    "<font color='" + colorHex + "'>" + provider + "</font>"));
-            pref.setSummary(colored);
-        }
-
-        static String getProviderColorHex(String provider) {
-            if (provider == null) return "#6b7280";
-            switch (provider) {
-                case "openai":     return "#10a37f";
-                case "anthropic":  return "#d97757";
-                case "google":     return "#4285f4";
-                case "deepseek":   return "#4d6bfe";
-                case "openrouter": return "#6d28d9";
-                case "xai":        return "#6b7280";
-                case "alibaba":    return "#ff6a00";
-                case "mistral":    return "#f97316";
-                case "nvidia":     return "#76b900";
-                case "ollama":     return "#6366f1";
-                default:           return "#6b7280";
-            }
-        }
-
         @Override
         public boolean onPreferenceTreeClick(@NonNull Preference preference) {
-            if ("llm_system_prompt_templates".equals(preference.getKey())) {
-            showTemplateDialog();
-            return true;
-        }
-        if ("llm_test_connection".equals(preference.getKey())) {
+            if ("llm_test_connection".equals(preference.getKey())) {
                 testConnection(preference);
                 return true;
             }
@@ -717,7 +670,7 @@ public class HermesConfigActivity extends AppCompatActivity {
 
             switch (key) {
                 case "gateway_start":
-                    showStartupValidation();
+                    runGatewayCommand("start");
                     return true;
                 case "gateway_stop":
                     runGatewayCommand("stop");
@@ -727,40 +680,6 @@ public class HermesConfigActivity extends AppCompatActivity {
                     return true;
             }
             return super.onPreferenceTreeClick(preference);
-        }
-
-        private void showStartupValidation() {
-            HermesConfigManager config = HermesConfigManager.getInstance();
-            java.util.List<String> warnings = new java.util.ArrayList<>();
-
-            String provider = config.getModelProvider();
-            String apiKey = config.getApiKey(provider);
-            if (apiKey == null || apiKey.isEmpty()) {
-                warnings.add(getString(R.string.validation_no_api_key, provider));
-            }
-            String model = config.getModelName();
-            if (model == null || model.isEmpty()) {
-                warnings.add(getString(R.string.validation_no_model));
-            }
-            if (!config.isAnyImConfigured()) {
-                warnings.add(getString(R.string.validation_no_im));
-            }
-
-            if (warnings.isEmpty()) {
-                runGatewayCommand("start");
-            } else {
-                StringBuilder msg = new StringBuilder();
-                for (String w : warnings) {
-                    msg.append("• ").append(w).append("\n");
-                }
-                msg.append("\n").append(getString(R.string.validation_start_anyway));
-                new AlertDialog.Builder(requireContext())
-                        .setTitle(R.string.validation_title)
-                        .setMessage(msg.toString())
-                        .setPositiveButton(R.string.validation_start, (d, w) -> runGatewayCommand("start"))
-                        .setNegativeButton(android.R.string.cancel, null)
-                        .show();
-            }
         }
 
         private void runGatewayCommand(String action) {

@@ -13,6 +13,8 @@
 
     <string name="hermes_llm_config_title">LLM 配置</string>
     <string name="hermes_llm_config_summary">设置 AI 提供商、API 密钥和模型</string>
+    <string name="hermes_feishu_toggle">启用飞书</string>
+    <string name="hermes_feishu_toggle_summary">网关运行时连接飞书</string>
     <string name="hermes_feishu_setup_title">飞书 / Lark 设置</string>
     <string name="hermes_feishu_setup_summary">一键配置飞书机器人</string>
     <string name="hermes_gateway_control_title">网关控制</string>
@@ -477,8 +479,12 @@ App ID 以"cli_"开头，约 10-20 个字符。App Secret 较长（30+ 字符）
     <string name="quickstart_gateway_running">网关运行中（%1$s）</string>
     <string name="quickstart_gateway_stopped">网关已停止，点击启动。</string>
 
+    <string name="hermes_telegram_toggle">启用 Telegram</string>
+    <string name="hermes_telegram_toggle_summary">网关运行时连接 Telegram</string>
     <string name="hermes_telegram_setup_title">Telegram 设置</string>
     <string name="hermes_telegram_setup_summary">连接您的 Telegram 机器人</string>
+    <string name="hermes_discord_toggle">启用 Discord</string>
+    <string name="hermes_discord_toggle_summary">网关运行时连接 Discord</string>
     <string name="hermes_discord_setup_title">Discord 设置</string>
     <string name="hermes_discord_setup_summary">连接您的 Discord 机器人</string>
     <string name="hermes_language_title">语言</string>
