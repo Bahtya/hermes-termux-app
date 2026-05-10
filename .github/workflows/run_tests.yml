@@ -8,17 +8,42 @@ on:
     branches:
       - main
 
+concurrency:
+  group: tests-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
   testing:
     runs-on: ubuntu-latest
+    timeout-minutes: 15
     steps:
     - name: Clone repository
       uses: actions/checkout@v6
+
     - name: Setup java 17
       uses: actions/setup-java@v5
       with:
-        distribution: 'temurin'
+        distribution: temurin
         java-version: '17'
+
+    - name: Cache Gradle packages
+      uses: actions/cache@v4
+      with:
+        path: |
+          ~/.gradle/caches
+          ~/.gradle/wrapper
+        key: gradle-${{ runner.os }}-${{ hashFiles('**/*.gradle*', '**/gradle-wrapper.properties') }}
+        restore-keys: |
+          gradle-${{ runner.os }}-
+
     - name: Execute tests
-      run: |
-        ./gradlew test
+      env:
+        TERMUX_PACKAGE_VARIANT: apt-android-7
+      run: ./gradlew downloadBootstraps test
+
+    - name: Upload test report
+      if: always()
+      uses: actions/upload-artifact@v6
+      with:
+        name: test-report
+        path: app/build/reports/tests/
