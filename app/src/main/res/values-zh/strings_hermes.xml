@@ -239,6 +239,31 @@
     <string name="hermes_not_installed_title">Hermes 未安装</string>
     <string name="hermes_not_installed_message">Hermes Agent 尚未安装在：\n%1$s\n\n请等待自动安装完成。</string>
 
+    <!-- Hermes Setup Wizard -->
+    <string name="hermes_setup_wizard_title">Hermes 设置向导</string>
+    <string name="hermes_setup_step_welcome">欢迎</string>
+    <string name="hermes_setup_step_llm">AI 配置</string>
+    <string name="hermes_setup_step_feishu">消息平台</string>
+    <string name="hermes_setup_step_start">启动网关</string>
+    <string name="hermes_setup_step_done">全部完成！</string>
+    <string name="hermes_setup_welcome_title">欢迎使用 Hermes！</string>
+    <string name="hermes_setup_welcome_text">Hermes 将 AI 助手连接到您的消息应用。本向导将帮助您通过几个简单步骤完成设置。\n\n您需要准备：\n• AI 提供商的 API 密钥（OpenAI、Anthropic 等）\n• 可选：消息平台账号（飞书、Telegram、Discord）</string>
+    <string name="hermes_setup_llm_title">配置 AI</string>
+    <string name="hermes_setup_llm_text">选择您的 AI 提供商并输入 API 密钥。这是 Hermes 正常工作所必需的。</string>
+    <string name="hermes_setup_api_key_hint">在此粘贴您的 API 密钥</string>
+    <string name="hermes_setup_feishu_title">连接飞书/Lark</string>
+    <string name="hermes_setup_feishu_text">您可以将 Hermes 连接到飞书/Lark，直接在消息中与 AI 助手对话。此步骤为可选 — 您可以稍后在 Hermes 设置中配置。</string>
+    <string name="hermes_setup_open_feishu_wizard">设置飞书/Lark</string>
+    <string name="hermes_setup_feishu_skip">您可以跳过此步骤，稍后在 Hermes 设置中配置飞书。</string>
+    <string name="hermes_setup_start_title">启动网关</string>
+    <string name="hermes_setup_start_text">即将完成！启动 Hermes 网关以开始从已连接的平台接收消息。</string>
+    <string name="hermes_setup_start_already_running">网关已在运行中！</string>
+    <string name="hermes_setup_start_success">网关启动成功！</string>
+    <string name="hermes_setup_start_failed">网关启动失败。您可以在设置中重试。</string>
+    <string name="hermes_setup_start_skip">您可以跳过此步骤，稍后在 Hermes 设置中启动网关。</string>
+    <string name="hermes_setup_done_title">设置完成！</string>
+    <string name="hermes_setup_done_text">Hermes 已准备就绪。您可以从 Hermes 设置或 Web UI 标签页启动网关。\n\n随时可以通过侧边栏中的 Hermes 图标修改您的设置。</string>
+
     <!-- Help & FAQ -->
     <string name="hermes_help_faq_title">帮助与常见问题</string>
     <string name="hermes_help_faq_summary">常见问题和故障排除</string>
