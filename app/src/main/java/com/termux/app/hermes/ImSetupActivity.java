@@ -343,8 +343,8 @@ public class ImSetupActivity extends AppCompatActivity {
             String body = output.toString().replace(lastLine, "").trim();
             if (httpCode == 200 && isTelegram()) {
                 // Extract bot username from response
-                if (body.contains(""username":"")) {
-                    int start = body.indexOf(""username":"") + 11;
+                if (body.contains("\"username\":\"")) {
+                    int start = body.indexOf("\"username\":\"") + 13;
                     int end = body.indexOf(""", start);
                     return new String[]{"200", "@" + body.substring(start, end)};
                 }
