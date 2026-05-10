@@ -37,6 +37,8 @@ import com.termux.shared.activity.media.AppCompatActivityUtils;
 import com.termux.app.hermes.HermesConfigActivity;
 import com.termux.app.hermes.HermesGatewayService;
 import com.termux.app.hermes.HermesSetupWizardActivity;
+import com.termux.app.hermes.HermesStatusOverlay;
+import com.termux.app.hermes.HermesStatusOverlay;
 import com.termux.shared.data.IntentUtils;
 import com.termux.shared.android.PermissionUtils;
 import com.termux.shared.data.DataUtils;
@@ -146,6 +148,11 @@ public final class TermuxActivity extends AppCompatActivity implements ServiceCo
      * The Hermes tab bar controller.
      */
     HermesTabBarController mHermesTabBarController;
+
+    /**
+     * The Hermes gateway status overlay shown on the terminal screen.
+     */
+    HermesStatusOverlay mHermesStatusOverlay;
 
     /**
      * The {@link TermuxActivity} broadcast receiver for various things like terminal style configuration changes.
@@ -260,6 +267,8 @@ public final class TermuxActivity extends AppCompatActivity implements ServiceCo
 
         setHermesSettingsButtonView();
 
+        setHermesStatusOverlay();
+
         setNewSessionButtonView();
 
         setToggleKeyboardView();
@@ -328,6 +337,10 @@ public final class TermuxActivity extends AppCompatActivity implements ServiceCo
         if (mTermuxTerminalViewClient != null)
             mTermuxTerminalViewClient.onResume();
 
+        // Start gateway status overlay monitoring
+        if (mHermesStatusOverlay != null)
+            mHermesStatusOverlay.startMonitoring();
+
         // Check if a crash happened on last run of the app or if a plugin crashed and show a
         // notification with the crash details if it did
         TermuxCrashUtils.notifyAppCrashFromCrashLogFile(this, LOG_TAG);
@@ -350,6 +363,10 @@ public final class TermuxActivity extends AppCompatActivity implements ServiceCo
 
         if (mTermuxTerminalViewClient != null)
             mTermuxTerminalViewClient.onStop();
+
+        // Stop gateway status overlay monitoring
+        if (mHermesStatusOverlay != null)
+            mHermesStatusOverlay.stopMonitoring();
 
         removeTermuxActivityRootViewGlobalLayoutListener();
 
@@ -611,6 +628,21 @@ public final class TermuxActivity extends AppCompatActivity implements ServiceCo
                 ActivityUtils.startActivity(this, new Intent(this, HermesConfigActivity.class));
             });
         }
+    }
+
+    private void setHermesStatusOverlay() {
+        mHermesStatusOverlay = new HermesStatusOverlay(this);
+
+        int size = Math.round(16 * getResources().getDisplayMetrics().density);
+        int margin = Math.round(8 * getResources().getDisplayMetrics().density);
+        RelativeLayout.LayoutParams params = new RelativeLayout.LayoutParams(size, size);
+        params.addRule(RelativeLayout.ALIGN_PARENT_TOP);
+        params.addRule(RelativeLayout.ALIGN_PARENT_END);
+        params.setMargins(margin, margin, margin, margin);
+
+        // Add overlay to the relative layout that holds the terminal and toolbar
+        ViewGroup rootLayout = findViewById(R.id.activity_termux_root_relative_layout);
+        rootLayout.addView(mHermesStatusOverlay, params);
     }
 
     private void setNewSessionButtonView() {
