@@ -1,5 +1,7 @@
 package com.termux.app.hermes;
 
+import android.content.ClipData;
+import android.content.ClipboardManager;
 import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
@@ -240,6 +242,9 @@ public class HermesConfigActivity extends AppCompatActivity {
                 case "hermes_gateway_log":
                     startActivity(new Intent(requireContext(), GatewayLogActivity.class));
                     return true;
+                case "hermes_share_diagnostics":
+                    shareDiagnostics();
+                    return true;
                 case "hermes_reset_config":
                     showResetConfirmDialog();
                     return true;
@@ -319,6 +324,71 @@ public class HermesConfigActivity extends AppCompatActivity {
             } catch (Exception e) {
                 return null;
             }
+        }
+
+        private void shareDiagnostics() {
+            HermesConfigManager config = HermesConfigManager.getInstance();
+            StringBuilder sb = new StringBuilder();
+            sb.append("=== Hermes Termux Diagnostic Info ===\n\n");
+
+            // App version
+            try {
+                String versionName = requireContext().getPackageManager()
+                        .getPackageInfo(requireContext().getPackageName(), 0).versionName;
+                sb.append("App Version: ").append(versionName).append("\n");
+            } catch (Exception e) {
+                sb.append("App Version: unknown\n");
+            }
+
+            // Gateway status
+            sb.append("Gateway: ");
+            if (HermesGatewayService.getUptime() > 0) {
+                sb.append("Running (uptime: ").append(HermesGatewayService.getFormattedUptime()).append(")\n");
+            } else {
+                sb.append("Stopped\n");
+            }
+
+            // LLM config
+            String provider = config.getModelProvider();
+            String model = config.getModelName();
+            String apiKey = config.getApiKey(provider);
+            String maskedKey = (apiKey != null && apiKey.length() >= 8)
+                    ? apiKey.substring(0, 4) + "..." + apiKey.substring(apiKey.length() - 4)
+                    : (apiKey != null && !apiKey.isEmpty() ? "****" : "(not set)");
+            sb.append("LLM Provider: ").append(provider).append("\n");
+            sb.append("Model: ").append(model).append("\n");
+            sb.append("API Key: ").append(maskedKey).append("\n");
+            sb.append("Base URL: ").append(config.getEnvVar("OPENAI_BASE_URL")).append("\n\n");
+
+            // IM platforms
+            sb.append("Feishu: ").append(config.isFeishuConfigured() ? "Configured" : "Not configured").append("\n");
+            String tgToken = config.getEnvVar("TELEGRAM_BOT_TOKEN");
+            sb.append("Telegram: ").append(tgToken.isEmpty() ? "Not configured" : "Configured (token: "
+                    + tgToken.substring(0, Math.min(4, tgToken.length())) + "...****)").append("\n");
+            String dcToken = config.getEnvVar("DISCORD_BOT_TOKEN");
+            sb.append("Discord: ").append(dcToken.isEmpty() ? "Not configured" : "Configured (token: "
+                    + dcToken.substring(0, Math.min(4, dcToken.length())) + "...****)").append("\n");
+
+            String content = sb.toString();
+
+            // Show dialog with share and copy options
+            new AlertDialog.Builder(requireContext())
+                    .setTitle(R.string.hermes_share_diag_title)
+                    .setMessage(content)
+                    .setPositiveButton("Share", (d, w) -> {
+                        Intent shareIntent = new Intent(Intent.ACTION_SEND);
+                        shareIntent.setType("text/plain");
+                        shareIntent.putExtra(Intent.EXTRA_TEXT, content);
+                        startActivity(Intent.createChooser(shareIntent, "Share Diagnostics"));
+                    })
+                    .setNeutralButton("Copy", (d, w) -> {
+                        ClipboardManager clipboard = (ClipboardManager) requireContext()
+                                .getSystemService(Context.CLIPBOARD_SERVICE);
+                        clipboard.setPrimaryClip(ClipData.newPlainText("Diagnostics", content));
+                        Toast.makeText(requireContext(), R.string.hermes_diag_copied, Toast.LENGTH_SHORT).show();
+                    })
+                    .setNegativeButton(android.R.string.cancel, null)
+                    .show();
         }
 
         private void showResetConfirmDialog() {
