@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="utf-8"?>
+<PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <PreferenceCategory android:title="@string/hermes_cat_general">
+
+        <Preference
+            android:key="hermes_llm_config"
+            android:title="@string/hermes_llm_config_title"
+            android:summary="@string/hermes_llm_config_summary"
+            android:icon="@drawable/ic_settings" />
+
+        <Preference
+            android:key="hermes_feishu_setup"
+            android:title="@string/hermes_feishu_setup_title"
+            android:summary="@string/hermes_feishu_setup_summary" />
+
+    </PreferenceCategory>
+
+    <PreferenceCategory android:title="@string/hermes_cat_gateway">
+
+        <Preference
+            android:key="hermes_gateway_control"
+            android:title="@string/hermes_gateway_control_title"
+            android:summary="@string/hermes_gateway_control_summary" />
+
+    </PreferenceCategory>
+
+    <PreferenceCategory android:title="@string/hermes_cat_advanced">
+
+        <Preference
+            android:key="hermes_reset_config"
+            android:title="@string/hermes_reset_title"
+            android:summary="@string/hermes_reset_summary" />
+
+    </PreferenceCategory>
+
+</PreferenceScreen>

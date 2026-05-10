@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="utf-8"?>
+<PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <ListPreference
+        android:key="llm_provider"
+        android:title="@string/llm_provider_title"
+        android:summary="@string/llm_provider_summary"
+        android:entries="@array/llm_provider_names"
+        android:entryValues="@array/llm_provider_values"
+        android:defaultValue="openai" />
+
+    <EditTextPreference
+        android:key="llm_api_key"
+        android:title="@string/llm_api_key_title"
+        android:summary="@string/llm_api_key_summary"
+        android:inputType="textPassword" />
+
+    <EditTextPreference
+        android:key="llm_model"
+        android:title="@string/llm_model_title"
+        android:summary="@string/llm_model_summary"
+        android:defaultValue="gpt-4o" />
+
+</PreferenceScreen>

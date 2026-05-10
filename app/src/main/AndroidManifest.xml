@@ -103,6 +103,20 @@
             android:theme="@style/Theme.TermuxApp.DayNight.NoActionBar" />
 
         <activity
+            android:name=".app.hermes.HermesConfigActivity"
+            android:exported="false"
+            android:label="@string/hermes_config_title"
+            android:parentActivityName=".app.activities.SettingsActivity"
+            android:theme="@style/Theme.TermuxApp.DayNight.DarkActionBar" />
+
+        <activity
+            android:name=".app.hermes.FeishuSetupActivity"
+            android:exported="false"
+            android:label="@string/feishu_setup_title"
+            android:parentActivityName=".app.hermes.HermesConfigActivity"
+            android:theme="@style/Theme.TermuxApp.DayNight.DarkActionBar" />
+
+        <activity
             android:name=".shared.activities.ReportActivity"
             android:theme="@style/Theme.MarkdownViewActivity.DayNight"
             android:documentLaunchMode="intoExisting" />
