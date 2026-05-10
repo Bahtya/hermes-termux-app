@@ -61,6 +61,8 @@
     <string name="gateway_status_running">运行中</string>
     <string name="gateway_status_stopped">已停止</string>
     <string name="gateway_status_not_installed">未安装</string>
+    <string name="gateway_auto_start_title">自动启动网关</string>
+    <string name="gateway_auto_start_summary">打开应用时自动启动 Hermes 网关</string>
 
     <!-- Status labels -->
     <string name="llm_configured">已配置（%1$s）</string>
@@ -68,8 +70,7 @@
     <string name="feishu_configured">已配置</string>
     <string name="feishu_not_configured">未配置</string>
 
-    <!-- Feishu Setup Activity -->
-    <string name="feishu_setup_title">飞书 / Lark 设置</string>
+    <!-- Feishu Setup - new strings not in strings_feishu.xml -->
     <string name="feishu_step_welcome">欢迎</string>
     <string name="feishu_step_domain">选择平台</string>
     <string name="feishu_step_create_app">创建应用</string>
@@ -77,26 +78,21 @@
     <string name="feishu_step_complete">完成</string>
     <string name="feishu_welcome_text">将 Hermes 连接到飞书/Lark，直接在消息中与 AI 助手对话。\n\n本向导将引导您创建飞书机器人并连接到 Hermes。</string>
     <string name="feishu_domain_label">选择您的平台：</string>
-    <string name="feishu_credentials_title">请输入开发者控制台中的应用凭证：</string>
 
     <!-- Feishu welcome step strings -->
-    <string name="feishu_welcome_title">连接飞书 / Lark</string>
     <string name="feishu_welcome_desc">Hermes 可以连接飞书或 Lark，让您直接在消息中与 AI 助手对话。本向导将引导您完成几个简单步骤的设置。</string>
     <string name="feishu_welcome_steps">您将进行以下操作：\n\n1. 选择平台（飞书或 Lark）\n2. 在开发者控制台创建机器人\n3. 输入应用凭证\n4. 测试连接\n\n⏱ 大约需要 3-5 分钟</string>
 
     <!-- Feishu step 2: Domain -->
     <string name="feishu_step2_title">选择平台</string>
     <string name="feishu_step2_desc">选择您使用的平台。飞书适用于中国用户，Lark 适用于国际用户。</string>
-    <string name="feishu_domain_feishu">飞书</string>
     <string name="feishu_domain_feishu_hint">适用于中国大陆用户</string>
-    <string name="feishu_domain_lark">Lark（国际版）</string>
     <string name="feishu_domain_lark_hint">适用于国际用户</string>
 
     <!-- Feishu step 3: Create App -->
     <string name="feishu_step3_title">创建机器人</string>
     <string name="feishu_step3_desc">按照以下步骤在飞书开发者控制台创建机器人应用。</string>
     <string name="feishu_create_app_tip">💡 提示：创建应用后，进入\"机器人\"部分并启用机器人能力。然后在凭证页面找到您的 App ID 和 App Secret。</string>
-    <string name="feishu_open_console">打开开发者控制台</string>
 
     <!-- Feishu step 4: Credentials -->
     <string name="feishu_step4_title">输入凭证</string>
@@ -106,15 +102,10 @@
     <string name="feishu_paste">粘贴</string>
     <string name="feishu_toggle_visibility">显示</string>
     <string name="feishu_paste_detected">检测到 App ID！点击填入：%1$s</string>
-    <string name="feishu_app_id_label">App ID</string>
-    <string name="feishu_app_secret_label">App Secret</string>
     <string name="feishu_app_id_format_hint">App ID 通常以 \"cli_\" 开头</string>
     <string name="feishu_credentials_short">凭证看起来太短 — 请仔细检查</string>
     <string name="feishu_credentials_ok">凭证看起来有效</string>
     <string name="feishu_credentials_required">App ID 和 App Secret 为必填项</string>
-    <string name="feishu_connection_mode">连接模式</string>
-    <string name="feishu_mode_websocket">WebSocket（推荐）</string>
-    <string name="feishu_mode_webhook">Webhook</string>
 
     <!-- Feishu step 5: Test -->
     <string name="feishu_step5_title">测试连接</string>
@@ -129,7 +120,6 @@
 
     <!-- Feishu step 6: Complete -->
     <string name="feishu_save_success">设置完成！</string>
-    <string name="feishu_complete_summary">平台：%1$s\nApp ID：%2$s…\n连接：%3$s</string>
     <string name="feishu_complete_next_steps">后续步骤：\n\n• 从设置中启动 Hermes 网关以开始接收消息\n• 在飞书中向您的机器人发送消息开始对话\n• 您可以随时从 Hermes 设置中修改这些设置</string>
 
     <!-- Feishu navigation -->
