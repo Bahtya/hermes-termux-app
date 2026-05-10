@@ -33,6 +33,8 @@ import com.termux.R;
 import com.termux.app.hermes.HermesTutorialOverlay;
 import com.termux.shared.termux.TermuxConstants;
 
+import androidx.core.content.ContextCompat;
+
 import java.io.File;
 import java.util.List;
 
