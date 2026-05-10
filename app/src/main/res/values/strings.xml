@@ -56,6 +56,7 @@
 
     <string name="tab_bash">Bash</string>
     <string name="tab_hermes">Hermes</string>
+    <string name="tab_web">Web UI</string>
     <string name="hermes_not_installed">Hermes CLI is not installed.\n\nPlace the hermes binary at:\n%1$s\nand make it executable:\nchmod +x %1$s</string>
 
     <string name="msg_enabling_terminal_toolbar">Enabling Terminal Toolbar</string>

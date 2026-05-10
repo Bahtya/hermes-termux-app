@@ -1,5 +1,6 @@
 package com.termux.app.terminal;
 
+import android.content.Intent;
 import android.content.SharedPreferences;
 import android.graphics.Color;
 import android.view.View;
@@ -9,6 +10,7 @@ import com.google.android.material.button.MaterialButton;
 import com.termux.R;
 import com.termux.app.TermuxActivity;
 import com.termux.app.TermuxService;
+import com.termux.app.hermes.HermesWebActivity;
 import com.termux.shared.termux.TermuxConstants;
 import com.termux.shared.termux.shell.command.runner.terminal.TermuxSession;
 import com.termux.shared.logger.Logger;
@@ -22,6 +24,7 @@ public class HermesTabBarController {
     private static final String PREF_ACTIVE_TAB = "hermes_active_tab";
     static final String TAB_BASH = "bash";
     static final String TAB_HERMES = "hermes";
+    static final String TAB_WEB = "web";
 
     private static final String HERMES_BIN_PATH =
         TermuxConstants.TERMUX_BIN_PREFIX_DIR_PATH + "/hermes";
@@ -30,6 +33,7 @@ public class HermesTabBarController {
     private final LinearLayout mTabBar;
     private final MaterialButton mTabBash;
     private final MaterialButton mTabHermes;
+    private final MaterialButton mTabWeb;
 
     private String mActiveTab = TAB_BASH;
     private TerminalSession mBashSession;
@@ -42,9 +46,11 @@ public class HermesTabBarController {
         mTabBar = activity.findViewById(R.id.tab_bar);
         mTabBash = activity.findViewById(R.id.tab_bash);
         mTabHermes = activity.findViewById(R.id.tab_hermes);
+        mTabWeb = activity.findViewById(R.id.tab_web);
 
         mTabBash.setOnClickListener(v -> switchToTab(TAB_BASH));
         mTabHermes.setOnClickListener(v -> switchToTab(TAB_HERMES));
+        mTabWeb.setOnClickListener(v -> openWebUI());
 
         mActiveTab = loadActiveTab();
         updateTabAppearance();
@@ -170,9 +176,15 @@ public class HermesTabBarController {
     }
 
     private void updateTabAppearance() {
-        boolean isBash = TAB_BASH.equals(mActiveTab);
-        mTabBash.setBackgroundColor(isBash ? 0x33FFFFFF : Color.TRANSPARENT);
-        mTabHermes.setBackgroundColor(!isBash ? 0x33FFFFFF : Color.TRANSPARENT);
+        mTabBash.setBackgroundColor(TAB_BASH.equals(mActiveTab) ? 0x33FFFFFF : Color.TRANSPARENT);
+        mTabHermes.setBackgroundColor(TAB_HERMES.equals(mActiveTab) ? 0x33FFFFFF : Color.TRANSPARENT);
+        mTabWeb.setBackgroundColor(TAB_WEB.equals(mActiveTab) ? 0x33FFFFFF : Color.TRANSPARENT);
+    }
+
+    private void openWebUI() {
+        mActiveTab = TAB_WEB;
+        updateTabAppearance();
+        mActivity.startActivity(new Intent(mActivity, HermesWebActivity.class));
     }
 
     private void saveActiveTab(String tab) {
