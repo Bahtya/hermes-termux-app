@@ -318,6 +318,8 @@
     </string-array>
 
     <!-- Model presets per provider -->
+    <string name="llm_model_custom">Custom (enter manually)</string>
+
     <string-array name="llm_models_openai">
         <item>gpt-4o</item>
         <item>gpt-4o-mini</item>
@@ -325,55 +327,69 @@
         <item>o1-mini</item>
         <item>o3-mini</item>
         <item>gpt-4-turbo</item>
+        <item>@string/llm_model_custom</item>
     </string-array>
     <string-array name="llm_models_anthropic">
         <item>claude-sonnet-4-6</item>
         <item>claude-opus-4-7</item>
         <item>claude-haiku-4-5</item>
+        <item>@string/llm_model_custom</item>
     </string-array>
     <string-array name="llm_models_google">
         <item>gemini-2.5-pro</item>
         <item>gemini-2.5-flash</item>
         <item>gemini-2.0-flash</item>
+        <item>@string/llm_model_custom</item>
     </string-array>
     <string-array name="llm_models_deepseek">
         <item>deepseek-chat</item>
         <item>deepseek-reasoner</item>
+        <item>@string/llm_model_custom</item>
     </string-array>
     <string-array name="llm_models_openrouter">
         <item>anthropic/claude-sonnet-4-6</item>
         <item>openai/gpt-4o</item>
         <item>google/gemini-2.5-pro</item>
         <item>meta-llama/llama-3.3-70b-instruct</item>
+        <item>@string/llm_model_custom</item>
     </string-array>
     <string-array name="llm_models_xai">
         <item>grok-3</item>
         <item>grok-3-mini</item>
+        <item>@string/llm_model_custom</item>
     </string-array>
     <string-array name="llm_models_alibaba">
         <item>qwen-max</item>
         <item>qwen-plus</item>
         <item>qwen-turbo</item>
+        <item>@string/llm_model_custom</item>
     </string-array>
     <string-array name="llm_models_mistral">
         <item>mistral-large-latest</item>
         <item>mistral-medium-latest</item>
         <item>codestral-latest</item>
+        <item>@string/llm_model_custom</item>
     </string-array>
     <string-array name="llm_models_nvidia">
         <item>meta/llama-3.3-70b-instruct</item>
         <item>google/gemma-2-27b-it</item>
+        <item>@string/llm_model_custom</item>
     </string-array>
     <string-array name="llm_models_ollama">
         <item>llama3</item>
         <item>qwen2.5</item>
         <item>deepseek-r1</item>
         <item>gemma2</item>
+        <item>@string/llm_model_custom</item>
     </string-array>
 
     <!-- LLM Base URL -->
     <string name="llm_base_url_title">Base URL</string>
     <string name="llm_base_url_summary">Custom endpoint URL (for Ollama or compatible APIs)</string>
+
+    <!-- Custom Model -->
+    <string name="llm_custom_model_title">Custom Model Name</string>
+    <string name="llm_custom_model_summary">Enter the model name to use</string>
 
     <!-- LLM Test Connection -->
     <string name="llm_test_connection_title">Test Connection</string>
