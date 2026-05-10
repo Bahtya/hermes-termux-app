@@ -119,6 +119,24 @@ public class HermesConfigActivity extends AppCompatActivity {
                         ? getString(R.string.feishu_configured)
                         : getString(R.string.feishu_not_configured));
             }
+
+            // Show Telegram status
+            Preference telegramPref = findPreference("hermes_telegram_setup");
+            if (telegramPref != null) {
+                boolean configured = !mConfigManager.getEnvVar("TELEGRAM_BOT_TOKEN").isEmpty();
+                telegramPref.setSummary(configured
+                        ? getString(R.string.telegram_configured)
+                        : getString(R.string.telegram_not_configured));
+            }
+
+            // Show Discord status
+            Preference discordPref = findPreference("hermes_discord_setup");
+            if (discordPref != null) {
+                boolean configured = !mConfigManager.getEnvVar("DISCORD_BOT_TOKEN").isEmpty();
+                discordPref.setSummary(configured
+                        ? getString(R.string.discord_configured)
+                        : getString(R.string.discord_not_configured));
+            }
         }
 
         @Override
@@ -132,6 +150,16 @@ public class HermesConfigActivity extends AppCompatActivity {
                     return true;
                 case "hermes_feishu_setup":
                     startActivity(new Intent(requireContext(), FeishuSetupActivity.class));
+                    return true;
+                case "hermes_telegram_setup":
+                    Intent tgIntent = new Intent(requireContext(), ImSetupActivity.class);
+                    tgIntent.putExtra(ImSetupActivity.EXTRA_PLATFORM, ImSetupActivity.PLATFORM_TELEGRAM);
+                    startActivity(tgIntent);
+                    return true;
+                case "hermes_discord_setup":
+                    Intent dcIntent = new Intent(requireContext(), ImSetupActivity.class);
+                    dcIntent.putExtra(ImSetupActivity.EXTRA_PLATFORM, ImSetupActivity.PLATFORM_DISCORD);
+                    startActivity(dcIntent);
                     return true;
                 case "hermes_gateway_control":
                     showFragment(new GatewayControlFragment());
