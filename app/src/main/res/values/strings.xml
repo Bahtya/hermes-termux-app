@@ -454,6 +454,21 @@
     <string name="profile_no_profiles">No saved profiles</string>
     <string name="profile_active_default">Default (current settings)</string>
     <string name="profile_active_format">%s (%s / %s)</string>
+        <!-- Config validation -->
+    <string name="validation_category_title">Configuration Health</string>
+    <string name="validation_api_key_title">API Key</string>
+    <string name="validation_api_key_ok">API key configured for %s</string>
+    <string name="validation_api_key_missing">No API key set — tap to configure</string>
+    <string name="validation_gateway_title">Gateway</string>
+    <string name="validation_gateway_running">Gateway is running (uptime: %s)</string>
+    <string name="validation_gateway_stopped">Gateway is not running — tap to start</string>
+    <string name="validation_gateway_not_installed">Hermes not installed — tap to install</string>
+    <string name="validation_im_title">IM Integration</string>
+    <string name="validation_im_ok">%s platform(s) configured</string>
+    <string name="validation_im_missing">No IM platform configured — tap to set up</string>
+    <string name="validation_system_prompt_title">System Prompt</string>
+    <string name="validation_system_prompt_ok">System prompt set (%d chars)</string>
+    <string name="validation_system_prompt_missing">No system prompt — tap to set one</string>
     <string name="dashboard_title">Status Overview</string>
     <string name="dashboard_gateway_title">Gateway</string>
     <string name="dashboard_gateway_running">Running</string>

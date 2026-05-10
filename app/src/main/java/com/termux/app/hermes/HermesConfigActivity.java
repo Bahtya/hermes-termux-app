@@ -127,6 +127,9 @@ public class HermesConfigActivity extends AppCompatActivity {
                 }
             }
 
+            // --- Config validation ---
+            updateValidationDisplay();
+
             // Show gateway status
             Preference gatewayPref = findPreference("hermes_gateway_control");
             if (gatewayPref != null) {
@@ -299,6 +302,18 @@ public class HermesConfigActivity extends AppCompatActivity {
                 case "tutorial_reset":
                     HermesTutorialOverlay.resetTutorial(requireContext());
                     Toast.makeText(requireContext(), R.string.tutorial_reset_summary, Toast.LENGTH_SHORT).show();
+                    return true;
+                case "validation_api_key":
+                    showFragment(new LlmConfigFragment());
+                    return true;
+                case "validation_gateway":
+                    showFragment(new GatewayControlFragment());
+                    return true;
+                case "validation_im":
+                    startActivity(new Intent(requireContext(), FeishuSetupActivity.class));
+                    return true;
+                case "validation_system_prompt":
+                    showFragment(new LlmConfigFragment());
                     return true;
             }
             return super.onPreferenceTreeClick(preference);
@@ -598,10 +613,72 @@ public class HermesConfigActivity extends AppCompatActivity {
             }
         }
 
+        private void updateValidationDisplay() {
+            // API key validation
+            Preference apiKeyVal = findPreference("validation_api_key");
+            if (apiKeyVal != null) {
+                String provider = mConfigManager.getModelProvider();
+                String apiKey = mConfigManager.getApiKey(provider);
+                if (apiKey != null && !apiKey.isEmpty()) {
+                    apiKeyVal.setSummary(getString(R.string.validation_api_key_ok, provider));
+                } else {
+                    apiKeyVal.setSummary(getString(R.string.validation_api_key_missing));
+                }
+            }
+
+            // Gateway validation
+            Preference gatewayVal = findPreference("validation_gateway");
+            if (gatewayVal != null) {
+                HermesGatewayStatus.checkAsync((status, detail) -> {
+                    if (getActivity() == null) return;
+                    getActivity().runOnUiThread(() -> {
+                        switch (status) {
+                            case RUNNING:
+                                String uptime = HermesGatewayService.getFormattedUptime();
+                                gatewayVal.setSummary(getString(R.string.validation_gateway_running, uptime));
+                                break;
+                            case NOT_INSTALLED:
+                                gatewayVal.setSummary(getString(R.string.validation_gateway_not_installed));
+                                break;
+                            default:
+                                gatewayVal.setSummary(getString(R.string.validation_gateway_stopped));
+                                break;
+                        }
+                    });
+                });
+            }
+
+            // IM validation
+            Preference imVal = findPreference("validation_im");
+            if (imVal != null) {
+                int imCount = 0;
+                if (mConfigManager.isFeishuConfigured()) imCount++;
+                if (!mConfigManager.getEnvVar("TELEGRAM_BOT_TOKEN").isEmpty()) imCount++;
+                if (!mConfigManager.getEnvVar("DISCORD_BOT_TOKEN").isEmpty()) imCount++;
+                if (imCount > 0) {
+                    imVal.setSummary(getString(R.string.validation_im_ok, String.valueOf(imCount)));
+                } else {
+                    imVal.setSummary(getString(R.string.validation_im_missing));
+                }
+            }
+
+            // System prompt validation
+            Preference promptVal = findPreference("validation_system_prompt");
+            if (promptVal != null) {
+                String prompt = mConfigManager.getSystemPrompt();
+                if (prompt != null && !prompt.isEmpty()) {
+                    promptVal.setSummary(getString(R.string.validation_system_prompt_ok, prompt.length()));
+                } else {
+                    promptVal.setSummary(getString(R.string.validation_system_prompt_missing));
+                }
+            }
+        }
+
         @Override
         public void onResume() {
             super.onResume();
             updateProfileDisplay();
+            updateValidationDisplay();
         }
 
         private void showSaveProfileDialog() {
