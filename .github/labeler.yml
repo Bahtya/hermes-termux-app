@@ -1,28 +1,29 @@
 # Auto-label PRs based on changed file paths
-hermes:
+area: hermes:
   - app/src/main/java/com/termux/app/hermes/**/*
   - app/src/main/res/**/strings_hermes.xml
   - app/src/main/res/xml/hermes_*.xml
 
-ui:
+area: ui:
   - app/src/main/res/layout/**/*
   - app/src/main/res/xml/**/*
 
-gateway:
+area: gateway:
   - app/src/main/java/com/termux/app/hermes/HermesGatewayService.java
   - app/src/main/java/com/termux/app/hermes/HermesGatewayStatus.java
   - app/src/main/java/com/termux/app/hermes/GatewayLogActivity.java
 
-llm:
+area: config:
   - app/src/main/java/com/termux/app/hermes/HermesConfigManager.java
+  - app/src/main/java/com/termux/app/hermes/HermesConfigActivity.java
 
-im:
+area: im:
   - app/src/main/java/com/termux/app/hermes/ImSetupActivity.java
   - app/src/main/java/com/termux/app/hermes/FeishuSetupActivity.java
 
-ci:
+area: ci:
   - .github/workflows/**/*
 
-i18n:
+area: i18n:
   - app/src/main/res/values-zh/**/*
   - app/src/main/res/values/strings.xml
