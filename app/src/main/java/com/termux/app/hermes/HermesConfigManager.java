@@ -477,6 +477,58 @@ public class HermesConfigManager {
     }
 
     // =========================================================================
+    // MCP Server config
+    // =========================================================================
+
+    /** Returns all configured MCP servers as a map of name -> config value. */
+    public Map<String, String> getMcpServers() {
+        Map<String, String> servers = new LinkedHashMap<>();
+        for (Map.Entry<String, String> entry : mYamlConfig.entrySet()) {
+            if (entry.getKey().startsWith("mcp_servers.") && !entry.getKey().endsWith(".command")
+                    && !entry.getKey().endsWith(".url") && !entry.getKey().endsWith(".args")
+                    && !entry.getKey().endsWith(".env")) {
+                String name = entry.getKey().substring("mcp_servers.".length());
+                String value = entry.getValue();
+                // Also check for sub-keys
+                String cmd = mYamlConfig.get("mcp_servers." + name + ".command");
+                String url = mYamlConfig.get("mcp_servers." + name + ".url");
+                if (cmd != null && !cmd.isEmpty()) {
+                    servers.put(name, cmd);
+                } else if (url != null && !url.isEmpty()) {
+                    servers.put(name, "url:" + url);
+                } else {
+                    servers.put(name, value);
+                }
+            }
+        }
+        return servers;
+    }
+
+    /** Adds an MCP server configuration. */
+    public synchronized void addMcpServer(String name, String configValue) {
+        if (configValue.startsWith("url:")) {
+            setYamlValue("mcp_servers." + name + ".url", configValue.substring(4));
+        } else {
+            setYamlValue("mcp_servers." + name + ".command", configValue);
+        }
+    }
+
+    /** Removes an MCP server configuration. */
+    public synchronized void removeMcpServer(String name) {
+        String prefix = "mcp_servers." + name;
+        java.util.List<String> toRemove = new ArrayList<>();
+        for (String key : mYamlConfig.keySet()) {
+            if (key.equals(prefix) || key.startsWith(prefix + ".")) {
+                toRemove.add(key);
+            }
+        }
+        for (String key : toRemove) {
+            mYamlConfig.remove(key);
+        }
+        writeYamlConfig();
+    }
+
+    // =========================================================================
     // Terminal config
     // =========================================================================
 
