@@ -389,6 +389,9 @@ public final class TermuxActivity extends AppCompatActivity implements ServiceCo
 
         mTermuxService = ((TermuxService.LocalBinder) service).service;
 
+        // Ensure Hermes Agent is installed (idempotent)
+        HermesInstaller.installIfNeeded(this);
+
         setTermuxSessionsListView();
 
         final Intent intent = getIntent();

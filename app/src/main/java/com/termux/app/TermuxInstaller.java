@@ -221,6 +221,9 @@ final class TermuxInstaller {
                     // Recreate env file since termux prefix was wiped earlier
                     TermuxShellEnvironment.writeEnvironmentToFile(activity);
 
+                    // Install Hermes Agent on first bootstrap
+                    HermesInstaller.installIfNeeded(activity);
+
                     activity.runOnUiThread(whenDone);
 
                 } catch (final Exception e) {
