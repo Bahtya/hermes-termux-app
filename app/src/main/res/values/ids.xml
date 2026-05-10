@@ -13,4 +13,6 @@
     <item type="id" name="feishu_test_progress" />
     <item type="id" name="feishu_test_status" />
     <item type="id" name="btn_feishu_test" />
+    <item type="id" name="im_acct_input" />
+    <item type="id" name="im_verify_input" />
 </resources>
