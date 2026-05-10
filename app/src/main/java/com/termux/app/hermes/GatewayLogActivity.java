@@ -50,6 +50,8 @@ public class GatewayLogActivity extends AppCompatActivity {
         if (actionBar != null) {
             actionBar.setDisplayHomeAsUpEnabled(true);
             actionBar.setTitle(R.string.gateway_log_title);
+            String level = HermesConfigManager.getInstance().getLogLevel();
+            actionBar.setSubtitle(getString(R.string.log_level_title) + ": " + level);
         }
 
         // Search bar

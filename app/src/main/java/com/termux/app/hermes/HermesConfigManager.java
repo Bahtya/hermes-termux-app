@@ -59,6 +59,9 @@ public class HermesConfigManager {
     private static final String KEY_FEISHU_ALLOWED_USERS = "feishu.allowed_users";
     private static final String KEY_FEISHU_HOME_CHANNEL = "feishu.home_channel";
 
+    // Logging config.yaml keys
+    private static final String KEY_LOGGING_LEVEL = "logging.level";
+
     // ---- .env key constants ----
     private static final String ENV_OPENAI_API_KEY = "OPENAI_API_KEY";
     private static final String ENV_ANTHROPIC_API_KEY = "ANTHROPIC_API_KEY";
@@ -295,6 +298,7 @@ public class HermesConfigManager {
         // Always include these sections in this order.
         sections.put("terminal", new LinkedHashMap<>());
         sections.put("model", new LinkedHashMap<>());
+        sections.put("logging", new LinkedHashMap<>());
         sections.put("feishu", new LinkedHashMap<>());
 
         for (Map.Entry<String, String> entry : mYamlConfig.entrySet()) {
@@ -692,6 +696,20 @@ public class HermesConfigManager {
 
     public void setFeishuHomeChannel(String channel) {
         setYamlValue(KEY_FEISHU_HOME_CHANNEL, channel);
+    }
+
+    // =========================================================================
+    // Logging config
+    // =========================================================================
+
+    /** Returns the configured log level: "quiet", "normal", or "debug". Default is "normal". */
+    public String getLogLevel() {
+        return getYamlValue(KEY_LOGGING_LEVEL, "normal");
+    }
+
+    /** Sets the log level and persists config.yaml. */
+    public void setLogLevel(String level) {
+        setYamlValue(KEY_LOGGING_LEVEL, level != null ? level : "normal");
     }
 
     // =========================================================================
