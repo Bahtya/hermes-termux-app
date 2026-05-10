@@ -645,5 +645,10 @@
         <item>normal</item>
         <item>debug</item>
     </string-array>
+    <!-- API Key UX -->
+    <string name="llm_paste_key_title">Paste from Clipboard</string>
+    <string name="llm_paste_key_summary">Paste API key from clipboard</string>
+    <string name="llm_paste_key_success">API key pasted from clipboard</string>
+    <string name="llm_paste_key_empty">Clipboard is empty or does not contain a key</string>
 
 </resources>

@@ -14,6 +14,11 @@
         android:title="@string/llm_api_key_title"
         android:summary="@string/llm_api_key_summary" />
 
+    <Preference
+        android:key="llm_paste_api_key"
+        android:title="@string/llm_paste_key_title"
+        android:summary="@string/llm_paste_key_summary" />
+
     <ListPreference
         android:key="llm_model"
         android:title="@string/llm_model_title"

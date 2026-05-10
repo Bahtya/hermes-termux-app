@@ -308,4 +308,9 @@
     <string name="log_level_quiet">安静（仅错误）</string>
     <string name="log_level_normal">正常</string>
     <string name="log_level_debug">调试（详细）</string>
+    <!-- API Key UX -->
+    <string name="llm_paste_key_title">从剪贴板粘贴</string>
+    <string name="llm_paste_key_summary">从剪贴板粘贴 API 密钥</string>
+    <string name="llm_paste_key_success">API 密钥已从剪贴板粘贴</string>
+    <string name="llm_paste_key_empty">剪贴板为空或不包含密钥</string>
 </resources>
