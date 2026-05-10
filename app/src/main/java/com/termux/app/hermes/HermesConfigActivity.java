@@ -1,11 +1,11 @@
 package com.termux.app.hermes;
 
+import android.Manifest;
 import android.content.Context;
 import android.content.Intent;
-import android.net.Uri;
+import android.content.pm.PackageManager;
+import android.os.Build;
 import android.os.Bundle;
-import android.os.PowerManager;
-import android.provider.Settings;
 import android.view.MenuItem;
 import android.widget.Toast;
 
@@ -13,6 +13,8 @@ import androidx.annotation.NonNull;
 import androidx.appcompat.app.ActionBar;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.app.ActivityCompat;
+import androidx.core.content.ContextCompat;
 import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentTransaction;
 import androidx.preference.ListPreference;
@@ -24,55 +26,10 @@ import com.termux.R;
 import com.termux.shared.termux.TermuxConstants;
 
 import java.io.File;
-import java.util.HashMap;
-import java.util.Map;
 
 public class HermesConfigActivity extends AppCompatActivity {
 
-    interface GatewayStartCallback {
-        void onProceed();
-    }
-
-    static void validateAndStartGateway(androidx.fragment.app.Fragment fragment, GatewayStartCallback callback) {
-        HermesConfigManager config = HermesConfigManager.getInstance();
-        String provider = config.getModelProvider();
-        String apiKey = config.getApiKey(provider);
-        boolean hasLLM = apiKey != null && !apiKey.isEmpty();
-        boolean hasIM = config.isFeishuConfigured()
-                || !config.getEnvVar("TELEGRAM_BOT_TOKEN").isEmpty()
-                || !config.getEnvVar("DISCORD_BOT_TOKEN").isEmpty();
-
-        if (!hasLLM) {
-            new AlertDialog.Builder(fragment.requireContext())
-                    .setTitle(R.string.gateway_precheck_no_llm_title)
-                    .setMessage(R.string.gateway_precheck_no_llm_message)
-                    .setPositiveButton(R.string.gateway_precheck_no_llm_action, (d, w) -> {
-                        fragment.requireActivity().getSupportFragmentManager()
-                                .beginTransaction()
-                                .replace(R.id.hermes_config_content, new LlmConfigFragment())
-                                .addToBackStack(null)
-                                .setTransition(FragmentTransaction.TRANSIT_FRAGMENT_OPEN)
-                                .commit();
-                    })
-                    .setNegativeButton(android.R.string.cancel, null)
-                    .show();
-            return;
-        }
-
-        if (!hasIM) {
-            new AlertDialog.Builder(fragment.requireContext())
-                    .setTitle(R.string.gateway_precheck_no_im_title)
-                    .setMessage(R.string.gateway_precheck_no_im_message)
-                    .setPositiveButton(R.string.gateway_precheck_no_im_action_start, (d, w) -> callback.onProceed())
-                    .setNeutralButton(R.string.gateway_precheck_no_im_action_setup, (d, w) -> {
-                        // just close — user can navigate to IM setup from main screen
-                    })
-                    .show();
-            return;
-        }
-
-        callback.onProceed();
-    }
+    private static final int REQUEST_NOTIFICATION_PERMISSION = 1001;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -103,154 +60,39 @@ public class HermesConfigActivity extends AppCompatActivity {
         return super.onOptionsItemSelected(item);
     }
 
+    static boolean ensureNotificationPermission(android.app.Activity activity) {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            if (ContextCompat.checkSelfPermission(activity, Manifest.permission.POST_NOTIFICATIONS)
+                    != PackageManager.PERMISSION_GRANTED) {
+                ActivityCompat.requestPermissions(activity,
+                        new String[]{Manifest.permission.POST_NOTIFICATIONS},
+                        REQUEST_NOTIFICATION_PERMISSION);
+                return false;
+            }
+        }
+        return true;
+    }
+
+    @Override
+    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
+        if (requestCode == REQUEST_NOTIFICATION_PERMISSION) {
+            if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                Toast.makeText(this, R.string.notification_permission_granted, Toast.LENGTH_SHORT).show();
+            } else {
+                Toast.makeText(this, R.string.notification_permission_denied, Toast.LENGTH_LONG).show();
+            }
+        }
+    }
+
     public static class HermesConfigFragment extends PreferenceFragmentCompat {
 
         private HermesConfigManager mConfigManager;
 
         @Override
-        public void onResume() {
-            super.onResume();
-            refreshDashboard();
-        }
-
-        private void refreshDashboard() {
-            if (mConfigManager == null) return;
-
-            // Refresh gateway status
-            Preference dashGateway = findPreference("hermes_dashboard_gateway");
-            if (dashGateway != null) {
-                HermesGatewayStatus.checkAsync((status, detail) -> {
-                    if (getActivity() == null) return;
-                    getActivity().runOnUiThread(() -> {
-                        switch (status) {
-                            case RUNNING:
-                                dashGateway.setSummary(getString(R.string.dashboard_gateway_running));
-                                break;
-                            case NOT_INSTALLED:
-                                dashGateway.setSummary(getString(R.string.dashboard_gateway_not_installed));
-                                break;
-                            default:
-                                dashGateway.setSummary(getString(R.string.dashboard_gateway_stopped));
-                                break;
-                        }
-                    });
-                });
-            }
-
-            // Refresh LLM status
-            Preference dashLlm = findPreference("hermes_dashboard_llm");
-            if (dashLlm != null) {
-                String provider = mConfigManager.getModelProvider();
-                String apiKey = mConfigManager.getApiKey(provider);
-                if (apiKey != null && !apiKey.isEmpty()) {
-                    dashLlm.setSummary(getString(R.string.dashboard_llm_configured,
-                            provider, mConfigManager.getModelName()));
-                } else {
-                    dashLlm.setSummary(getString(R.string.dashboard_llm_not_configured));
-                }
-            }
-
-            // Refresh IM status
-            Preference dashIm = findPreference("hermes_dashboard_im");
-            if (dashIm != null) {
-                java.util.List<String> platforms = new java.util.ArrayList<>();
-                if (mConfigManager.isFeishuConfigured()) platforms.add("Feishu");
-                if (!mConfigManager.getEnvVar("TELEGRAM_BOT_TOKEN").isEmpty()) platforms.add("Telegram");
-                if (!mConfigManager.getEnvVar("DISCORD_BOT_TOKEN").isEmpty()) platforms.add("Discord");
-                if (platforms.isEmpty()) {
-                    dashIm.setSummary(getString(R.string.dashboard_im_none));
-                } else {
-                    dashIm.setSummary(getString(R.string.dashboard_im_list,
-                            android.text.TextUtils.join(", ", platforms)));
-                }
-            }
-
-            // Refresh LLM config status
-            Preference llmPref = findPreference("hermes_llm_config");
-            if (llmPref != null) {
-                String provider = mConfigManager.getModelProvider();
-                String apiKey = mConfigManager.getApiKey(provider);
-                boolean hasKey = apiKey != null && !apiKey.isEmpty();
-                llmPref.setSummary(hasKey
-                        ? getString(R.string.llm_configured, provider)
-                        : getString(R.string.llm_not_configured));
-            }
-
-            // Refresh Feishu status
-            Preference feishuPref = findPreference("hermes_feishu_setup");
-            if (feishuPref != null) {
-                boolean configured = mConfigManager.isFeishuConfigured();
-                feishuPref.setSummary(configured
-                        ? getString(R.string.feishu_configured)
-                        : getString(R.string.feishu_not_configured));
-            }
-
-            // Refresh Telegram status
-            Preference telegramPref = findPreference("hermes_telegram_setup");
-            if (telegramPref != null) {
-                boolean configured = !mConfigManager.getEnvVar("TELEGRAM_BOT_TOKEN").isEmpty();
-                telegramPref.setSummary(configured
-                        ? getString(R.string.telegram_configured)
-                        : getString(R.string.telegram_not_configured));
-            }
-
-            // Refresh Discord status
-            Preference discordPref = findPreference("hermes_discord_setup");
-            if (discordPref != null) {
-                boolean configured = !mConfigManager.getEnvVar("DISCORD_BOT_TOKEN").isEmpty();
-                discordPref.setSummary(configured
-                        ? getString(R.string.discord_configured)
-                        : getString(R.string.discord_not_configured));
-            }
-        }
-
-        @Override
         public void onCreatePreferences(Bundle savedInstanceState, String rootKey) {
             setPreferencesFromResource(R.xml.hermes_preferences, rootKey);
             mConfigManager = HermesConfigManager.getInstance();
-            refreshDashboard();
-        }
-
-        @Override
-        public void onResume() {
-            super.onResume();
-            refreshDashboard();
-        }
-
-        private void refreshDashboard() {
-            if (mConfigManager == null) return;
-            mConfigManager.loadConfig();
-
-            // --- Dashboard: Version ---
-            Preference versionPref = findPreference("hermes_dashboard_version");
-            if (versionPref != null) {
-                fetchAndDisplayVersion(versionPref);
-            }
-
-            // --- Quick-start tile ---
-            Preference quickstartPref = findPreference("hermes_quickstart");
-            if (quickstartPref != null) {
-                HermesGatewayStatus.checkAsync((status, detail) -> {
-                    if (getActivity() == null) return;
-                    getActivity().runOnUiThread(() -> {
-                        switch (status) {
-                            case RUNNING:
-                                String uptime = HermesGatewayService.getFormattedUptime();
-                                quickstartPref.setTitle(getString(R.string.quickstart_stop));
-                                quickstartPref.setSummary(getString(R.string.quickstart_running, uptime));
-                                break;
-                            case NOT_INSTALLED:
-                                quickstartPref.setTitle(getString(R.string.quickstart_not_installed));
-                                quickstartPref.setSummary("");
-                                break;
-                            default:
-                                quickstartPref.setTitle(getString(R.string.quickstart_start));
-                                quickstartPref.setSummary(getString(R.string.quickstart_stopped));
-                                break;
-                        }
-                    });
-                });
-            }
 
             // --- Dashboard: Gateway status ---
             Preference dashGateway = findPreference("hermes_dashboard_gateway");
@@ -260,14 +102,7 @@ public class HermesConfigActivity extends AppCompatActivity {
                     getActivity().runOnUiThread(() -> {
                         switch (status) {
                             case RUNNING:
-                                long startTime = HermesGatewayService.getStartTime();
-                                if (startTime > 0) {
-                                    long uptimeMs = System.currentTimeMillis() - startTime;
-                                    dashGateway.setSummary(getString(R.string.dashboard_gateway_running)
-                                            + " — " + formatUptime(uptimeMs));
-                                } else {
-                                    dashGateway.setSummary(getString(R.string.dashboard_gateway_running));
-                                }
+                                dashGateway.setSummary(getString(R.string.dashboard_gateway_running));
                                 break;
                             case NOT_INSTALLED:
                                 dashGateway.setSummary(getString(R.string.dashboard_gateway_not_installed));
@@ -308,26 +143,6 @@ public class HermesConfigActivity extends AppCompatActivity {
                 }
             }
 
-            // --- Dashboard: Hermes Agent version ---
-            Preference dashVersion = findPreference("hermes_dashboard_version");
-            if (dashVersion != null) {
-                Preference finalDashVersion = dashVersion;
-                new Thread(() -> {
-                    String version = getHermesVersion();
-                    if (getActivity() != null) {
-                        getActivity().runOnUiThread(() -> {
-                            if (version != null) {
-                                finalDashVersion.setSummary(
-                                        getString(R.string.dashboard_version_format, version));
-                            } else {
-                                finalDashVersion.setSummary(
-                                        getString(R.string.dashboard_version_not_installed));
-                            }
-                        });
-                    }
-                }).start();
-            }
-
             // Show gateway status
             Preference gatewayPref = findPreference("hermes_gateway_control");
             if (gatewayPref != null) {
@@ -358,48 +173,18 @@ public class HermesConfigActivity extends AppCompatActivity {
                     boolean enabled = (Boolean) newVal;
                     HermesGatewayService.setAutoStartEnabled(requireContext(), enabled);
                     if (enabled) {
-                        validateAndStartGateway(this, () ->
+                        if (ensureNotificationPermission(requireActivity())) {
                             requireContext().startService(
                                     new Intent(requireContext(), HermesGatewayService.class)
-                                            .setAction(HermesGatewayService.ACTION_START)));
+                                            .setAction(HermesGatewayService.ACTION_START));
+                        }
                     }
                     return true;
                 });
-            }
-
-            // Battery optimization status
-            Preference batteryPref = findPreference("hermes_battery_optimization");
-            if (batteryPref != null) {
-                PowerManager pm = (PowerManager) requireContext().getSystemService(Context.POWER_SERVICE);
-                boolean isWhitelisted = pm != null && pm.isIgnoringBatteryOptimizations(requireContext().getPackageName());
-                batteryPref.setSummary(isWhitelisted
-                        ? getString(R.string.battery_optimization_summary_on)
-                        : getString(R.string.battery_optimization_summary_off));
             }
 
             // Show LLM config status
             Preference llmPref = findPreference("hermes_llm_config");
-
-            // Language switcher
-            ListPreference langPref = findPreference("hermes_language");
-            if (langPref != null) {
-                langPref.setOnPreferenceChangeListener((p, newVal) -> {
-                    String lang = (String) newVal;
-                    android.content.res.Configuration config = getResources().getConfiguration();
-                    android.content.res.Resources resources = getResources();
-                    java.util.Locale locale;
-                    switch (lang) {
-                        case "en": locale = java.util.Locale.ENGLISH; break;
-                        case "zh": locale = java.util.Locale.SIMPLIFIED_CHINESE; break;
-                        default: locale = resources.getConfiguration().getLocales().get(0); break;
-                    }
-                    config.setLocale(locale);
-                    resources.updateConfiguration(config, resources.getDisplayMetrics());
-                    // Restart activity to apply
-                    requireActivity().recreate();
-                    return true;
-                });
-            }
             if (llmPref != null) {
                 String provider = mConfigManager.getModelProvider();
                 String apiKey = mConfigManager.getApiKey(provider);
@@ -435,16 +220,6 @@ public class HermesConfigActivity extends AppCompatActivity {
                         ? getString(R.string.discord_configured)
                         : getString(R.string.discord_not_configured));
             }
-
-            // Log level preference
-            ListPreference logLevelPref = findPreference("hermes_log_level");
-            if (logLevelPref != null) {
-                logLevelPref.setValue(mConfigManager.getLogLevel());
-                logLevelPref.setOnPreferenceChangeListener((p, newVal) -> {
-                    mConfigManager.setLogLevel((String) newVal);
-                    return true;
-                });
-            }
         }
 
         @Override
@@ -453,24 +228,8 @@ public class HermesConfigActivity extends AppCompatActivity {
             if (key == null) return super.onPreferenceTreeClick(preference);
 
             switch (key) {
-                case "hermes_quickstart":
-                    HermesGatewayStatus.checkAsync((status, detail) -> {
-                        if (status == HermesGatewayStatus.Status.RUNNING) {
-                            requireContext().startService(new Intent(requireContext(), HermesGatewayService.class)
-                                    .setAction(HermesGatewayService.ACTION_STOP));
-                            Toast.makeText(requireContext(), R.string.gateway_stopped, Toast.LENGTH_SHORT).show();
-                        } else if (status != HermesGatewayStatus.Status.NOT_INSTALLED) {
-                            requireContext().startService(new Intent(requireContext(), HermesGatewayService.class)
-                                    .setAction(HermesGatewayService.ACTION_START));
-                            Toast.makeText(requireContext(), R.string.gateway_started, Toast.LENGTH_SHORT).show();
-                        }
-                    });
-                    return true;
                 case "hermes_llm_config":
                     showFragment(new LlmConfigFragment());
-                    return true;
-                case "hermes_battery_optimization":
-                    showBatteryOptimizationDialog();
                     return true;
                 case "hermes_feishu_setup":
                     startActivity(new Intent(requireContext(), FeishuSetupActivity.class));
@@ -488,17 +247,11 @@ public class HermesConfigActivity extends AppCompatActivity {
                 case "hermes_gateway_control":
                     showFragment(new GatewayControlFragment());
                     return true;
-                case "hermes_help":
-                    startActivity(new Intent(requireContext(), HermesHelpActivity.class));
-                    return true;
                 case "hermes_check_update":
                     checkForUpdate(preference);
                     return true;
                 case "hermes_gateway_log":
                     startActivity(new Intent(requireContext(), GatewayLogActivity.class));
-                    return true;
-                case "hermes_config_summary":
-                    showConfigSummary();
                     return true;
                 case "hermes_reset_config":
                     showResetConfirmDialog();
@@ -509,67 +262,8 @@ public class HermesConfigActivity extends AppCompatActivity {
                 case "hermes_import_config":
                     showImportConfirmDialog();
                     return true;
-                case "hermes_help_gateway":
-                    new AlertDialog.Builder(requireContext())
-                            .setTitle(R.string.help_gateway_title)
-                            .setMessage(R.string.help_gateway_message)
-                            .setPositiveButton(R.string.help_ok, null)
-                            .show();
-                    return true;
-                case "hermes_help_llm":
-                    new AlertDialog.Builder(requireContext())
-                            .setTitle(R.string.help_llm_title)
-                            .setMessage(R.string.help_llm_message)
-                            .setPositiveButton(R.string.help_ok, null)
-                            .show();
-                    return true;
-                case "hermes_help_im":
-                    new AlertDialog.Builder(requireContext())
-                            .setTitle(R.string.help_im_title)
-                            .setMessage(R.string.help_im_message)
-                            .setPositiveButton(R.string.help_ok, null)
-                            .show();
-                    return true;
             }
             return super.onPreferenceTreeClick(preference);
-        }
-
-        @Override
-        public void onResume() {
-            super.onResume();
-            // Refresh battery optimization status when returning from settings
-            Preference batteryPref = findPreference("hermes_battery_optimization");
-            if (batteryPref != null) {
-                PowerManager pm = (PowerManager) requireContext().getSystemService(Context.POWER_SERVICE);
-                boolean isWhitelisted = pm != null && pm.isIgnoringBatteryOptimizations(requireContext().getPackageName());
-                batteryPref.setSummary(isWhitelisted
-                        ? getString(R.string.battery_optimization_summary_on)
-                        : getString(R.string.battery_optimization_summary_off));
-            }
-        }
-
-        private void showBatteryOptimizationDialog() {
-            PowerManager pm = (PowerManager) requireContext().getSystemService(Context.POWER_SERVICE);
-            if (pm != null && pm.isIgnoringBatteryOptimizations(requireContext().getPackageName())) {
-                Toast.makeText(requireContext(), R.string.battery_optimization_summary_on, Toast.LENGTH_SHORT).show();
-                return;
-            }
-
-            new AlertDialog.Builder(requireContext())
-                    .setTitle(R.string.battery_optimization_prompt_title)
-                    .setMessage(R.string.battery_optimization_prompt_message)
-                    .setPositiveButton(R.string.battery_optimization_open_settings, (d, w) -> {
-                        try {
-                            Intent intent = new Intent(Settings.ACTION_REQUEST_IGNORE_BATTERY_OPTIMIZATIONS);
-                            intent.setData(Uri.parse("package:" + requireContext().getPackageName()));
-                            startActivity(intent);
-                        } catch (Exception e) {
-                            Intent fallback = new Intent(Settings.ACTION_IGNORE_BATTERY_OPTIMIZATION_SETTINGS);
-                            startActivity(fallback);
-                        }
-                    })
-                    .setNegativeButton(R.string.battery_optimization_skip, null)
-                    .show();
         }
 
         private void showFragment(Fragment fragment) {
@@ -579,38 +273,6 @@ public class HermesConfigActivity extends AppCompatActivity {
                     .addToBackStack(null)
                     .setTransition(FragmentTransaction.TRANSIT_FRAGMENT_OPEN)
                     .commit();
-        }
-
-        private void fetchAndDisplayVersion(Preference versionPref) {
-            new Thread(() -> {
-                String version = null;
-                try {
-                    String binPath = TermuxConstants.TERMUX_BIN_PREFIX_DIR_PATH;
-                    String hermesPath = binPath + "/hermes";
-                    if (new java.io.File(hermesPath).exists()) {
-                        ProcessBuilder pb = new ProcessBuilder(binPath + "/bash", "-c",
-                                hermesPath + " --version 2>/dev/null | head -1");
-                        pb.environment().put("PATH", binPath + ":/system/bin");
-                        pb.redirectErrorStream(true);
-                        Process p = pb.start();
-                        java.io.BufferedReader reader = new java.io.BufferedReader(
-                                new java.io.InputStreamReader(p.getInputStream()));
-                        version = reader.readLine();
-                        if (version != null) version = version.trim();
-                        p.waitFor();
-                    }
-                } catch (Exception ignored) {}
-
-                if (getActivity() == null) return;
-                String finalVersion = version;
-                getActivity().runOnUiThread(() -> {
-                    if (finalVersion != null && !finalVersion.isEmpty()) {
-                        versionPref.setSummary(getString(R.string.dashboard_version_format, finalVersion));
-                    } else {
-                        versionPref.setSummary(getString(R.string.dashboard_version_not_installed));
-                    }
-                });
-            }).start();
         }
 
         private void checkForUpdate(Preference updatePref) {
@@ -670,66 +332,6 @@ public class HermesConfigActivity extends AppCompatActivity {
             } catch (Exception e) {
                 return null;
             }
-        }
-
-        private void showConfigSummary() {
-            HermesConfigManager cfg = mConfigManager;
-            String provider = cfg.getModelProvider();
-            String apiKey = cfg.getApiKey(provider);
-            String model = cfg.getModelName();
-            String persona = cfg.getSelectedPersona();
-
-            StringBuilder sb = new StringBuilder();
-            sb.append(getString(R.string.config_summary_section_llm)).append("\n");
-            sb.append("  Provider: ").append(provider).append("\n");
-            sb.append("  Model: ").append(model).append("\n");
-            sb.append("  API Key: ");
-            sb.append(apiKey != null && !apiKey.isEmpty()
-                    ? maskApiKey(apiKey) : getString(R.string.config_summary_key_not_set));
-            sb.append("\n");
-
-            String baseUrl = cfg.getEnvVar("OPENAI_BASE_URL");
-            if (!baseUrl.isEmpty()) {
-                sb.append("  Base URL: ").append(baseUrl).append("\n");
-            }
-
-            sb.append("\n").append(getString(R.string.config_summary_section_im)).append("\n");
-            if (cfg.isFeishuConfigured()) {
-                sb.append("  Feishu/Lark: ").append(getString(R.string.config_summary_key_set)).append("\n");
-            }
-            if (!cfg.getEnvVar("TELEGRAM_BOT_TOKEN").isEmpty()) {
-                sb.append("  Telegram: ").append(getString(R.string.config_summary_key_set)).append("\n");
-            }
-            if (!cfg.getEnvVar("DISCORD_BOT_TOKEN").isEmpty()) {
-                sb.append("  Discord: ").append(getString(R.string.config_summary_key_set)).append("\n");
-            }
-            boolean anyIm = cfg.isFeishuConfigured()
-                    || !cfg.getEnvVar("TELEGRAM_BOT_TOKEN").isEmpty()
-                    || !cfg.getEnvVar("DISCORD_BOT_TOKEN").isEmpty();
-            if (!anyIm) {
-                sb.append("  ").append(getString(R.string.config_summary_key_not_set)).append("\n");
-            }
-
-            if (!persona.isEmpty()) {
-                sb.append("\n").append(getString(R.string.config_summary_section_persona)).append("\n");
-                sb.append("  ").append(persona.substring(0, 1).toUpperCase())
-                        .append(persona.substring(1)).append("\n");
-            }
-
-            String summary = sb.toString();
-
-            new AlertDialog.Builder(requireContext())
-                    .setTitle(R.string.config_summary_title)
-                    .setMessage(summary)
-                    .setPositiveButton(R.string.config_summary_share, (d, w) -> {
-                        Intent shareIntent = new Intent(Intent.ACTION_SEND);
-                        shareIntent.setType("text/plain");
-                        shareIntent.putExtra(Intent.EXTRA_TEXT, summary);
-                        startActivity(Intent.createChooser(shareIntent,
-                                getString(R.string.config_summary_title)));
-                    })
-                    .setNegativeButton(android.R.string.ok, null)
-                    .show();
         }
 
         private void showResetConfirmDialog() {
@@ -819,19 +421,6 @@ public class HermesConfigActivity extends AppCompatActivity {
             }
         }
 
-        private String formatUptime(long uptimeMs) {
-            long seconds = uptimeMs / 1000;
-            long hours = seconds / 3600;
-            long minutes = (seconds % 3600) / 60;
-            if (hours > 0) {
-                return getString(R.string.uptime_hours_minutes, hours, minutes);
-            } else if (minutes > 0) {
-                return getString(R.string.uptime_minutes, minutes);
-            } else {
-                return getString(R.string.uptime_just_started);
-            }
-        }
-
         private String escapeJson(String value) {
             if (value == null) return "null";
             return "\"" + value
@@ -863,33 +452,6 @@ public class HermesConfigActivity extends AppCompatActivity {
             }
             return sb.toString();
         }
-
-        private String getHermesVersion() {
-            try {
-                String binPath = TermuxConstants.TERMUX_BIN_PREFIX_DIR_PATH;
-                String hermesPath = binPath + "/hermes";
-                if (!new java.io.File(hermesPath).exists()) return null;
-
-                ProcessBuilder pb = new ProcessBuilder(hermesPath, "--version");
-                pb.environment().put("PATH", binPath + ":/system/bin");
-                pb.redirectErrorStream(true);
-                Process p = pb.start();
-                java.io.BufferedReader reader = new java.io.BufferedReader(
-                        new java.io.InputStreamReader(p.getInputStream()));
-                String line = reader.readLine();
-                p.waitFor();
-                reader.close();
-
-                if (line != null) {
-                    String trimmed = line.trim();
-                    if (trimmed.startsWith("hermes ")) return trimmed.substring(7).trim();
-                    return trimmed;
-                }
-                return null;
-            } catch (Exception e) {
-                return null;
-            }
-        }
     }
 
     public static class LlmConfigFragment extends PreferenceFragmentCompat {
@@ -904,16 +466,6 @@ public class HermesConfigActivity extends AppCompatActivity {
             String currentProvider = mConfigManager.getModelProvider();
             updateModelList(currentProvider);
 
-            // --- Preset handling ---
-            ListPreference presetPref = findPreference("llm_preset");
-            if (presetPref != null) {
-                presetPref.setOnPreferenceChangeListener((p, newVal) -> {
-                    String preset = (String) newVal;
-                    applyPreset(preset);
-                    return true;
-                });
-            }
-
             Preference apiKeyPref = findPreference("llm_api_key");
             if (apiKeyPref != null) {
                 String currentKey = mConfigManager.getApiKey(currentProvider);
@@ -923,7 +475,6 @@ public class HermesConfigActivity extends AppCompatActivity {
                 apiKeyPref.setOnPreferenceChangeListener((p, newVal) -> {
                     mConfigManager.setApiKey(mConfigManager.getModelProvider(), (String) newVal);
                     p.setSummary(maskApiKey((String) newVal));
-                    HermesConfigManager.restartGatewayIfRunning(requireContext());
                     return true;
                 });
             }
@@ -946,7 +497,6 @@ public class HermesConfigActivity extends AppCompatActivity {
                         boolean needsUrl = "ollama".equals(provider) || "custom".equals(provider);
                         baseUrlPref.setVisible(needsUrl);
                     }
-                    HermesConfigManager.restartGatewayIfRunning(requireContext());
                     return true;
                 });
             }
@@ -954,30 +504,7 @@ public class HermesConfigActivity extends AppCompatActivity {
             Preference modelPref = findPreference("llm_model");
             if (modelPref != null) {
                 modelPref.setOnPreferenceChangeListener((p, newVal) -> {
-                    String model = (String) newVal;
-                    boolean isCustom = getString(R.string.llm_model_custom).equals(model);
-                    Preference customModelPref = findPreference("llm_custom_model");
-                    if (isCustom) {
-                        if (customModelPref != null) customModelPref.setVisible(true);
-                    } else {
-                        mConfigManager.setModelName(model);
-                        if (customModelPref != null) customModelPref.setVisible(false);
-                    }
-                    return true;
-                });
-            }
-
-            Preference customModelPref = findPreference("llm_custom_model");
-            if (customModelPref != null) {
-                String currentModel = mConfigManager.getModelName();
-                boolean modelInList = isModelInPresetList(currentProvider, currentModel);
-                if (!modelInList && !currentModel.isEmpty() && !"unknown".equals(currentModel)) {
-                    customModelPref.setText(currentModel);
-                    customModelPref.setVisible(true);
-                }
-                customModelPref.setOnPreferenceChangeListener((p, newVal) -> {
                     mConfigManager.setModelName((String) newVal);
-                    HermesConfigManager.restartGatewayIfRunning(requireContext());
                     return true;
                 });
             }
@@ -986,122 +513,10 @@ public class HermesConfigActivity extends AppCompatActivity {
             if (baseUrlPref != null) {
                 baseUrlPref.setOnPreferenceChangeListener((p, newVal) -> {
                     mConfigManager.setEnvVar("OPENAI_BASE_URL", (String) newVal);
-                    HermesConfigManager.restartGatewayIfRunning(requireContext());
                     return true;
                 });
                 boolean needsUrl = "ollama".equals(currentProvider) || "custom".equals(currentProvider);
                 baseUrlPref.setVisible(needsUrl);
-            }
-
-            // Temperature parameter
-            Preference tempPref = findPreference("llm_temperature");
-            if (tempPref != null) {
-                float currentTemp = mConfigManager.getModelTemperature();
-                tempPref.setSummary(getString(R.string.llm_temperature_summary) + "  Current: " + currentTemp);
-                tempPref.setOnPreferenceChangeListener((p, newVal) -> {
-                    try {
-                        float val = Float.parseFloat((String) newVal);
-                        if (val < 0f || val > 2f) {
-                            Toast.makeText(requireContext(), R.string.llm_temperature_invalid, Toast.LENGTH_SHORT).show();
-                            return false;
-                        }
-                        mConfigManager.setModelTemperature(val);
-                        p.setSummary(getString(R.string.llm_temperature_summary) + "  Current: " + val);
-                    } catch (NumberFormatException e) {
-                        Toast.makeText(requireContext(), R.string.llm_temperature_invalid, Toast.LENGTH_SHORT).show();
-                        return false;
-                    }
-                    return true;
-                });
-            }
-
-            // Max tokens parameter
-            Preference maxTokensPref = findPreference("llm_max_tokens");
-            if (maxTokensPref != null) {
-                int currentMax = mConfigManager.getModelMaxTokens();
-                maxTokensPref.setSummary(getString(R.string.llm_max_tokens_summary) + "  Current: " + currentMax);
-                maxTokensPref.setOnPreferenceChangeListener((p, newVal) -> {
-                    try {
-                        int val = Integer.parseInt((String) newVal);
-                        if (val < 256 || val > 32768) {
-                            Toast.makeText(requireContext(), R.string.llm_max_tokens_invalid, Toast.LENGTH_SHORT).show();
-                            return false;
-                        }
-                        mConfigManager.setModelMaxTokens(val);
-                        p.setSummary(getString(R.string.llm_max_tokens_summary) + "  Current: " + val);
-                    } catch (NumberFormatException e) {
-                        Toast.makeText(requireContext(), R.string.llm_max_tokens_invalid, Toast.LENGTH_SHORT).show();
-                        return false;
-                    }
-                    return true;
-                });
-            }
-        }
-
-        private static final Map<String, String> MODEL_COSTS = new HashMap<>();
-        static {
-            MODEL_COSTS.put("gpt-4o", "$0.008/1K tokens");
-            MODEL_COSTS.put("gpt-4o-mini", "$0.0002/1K tokens");
-            MODEL_COSTS.put("gpt-4-turbo", "$0.015/1K tokens");
-            MODEL_COSTS.put("gpt-4", "$0.04/1K tokens");
-            MODEL_COSTS.put("gpt-3.5-turbo", "$0.0006/1K tokens");
-            MODEL_COSTS.put("claude-sonnet-4-6", "$0.006/1K tokens");
-            MODEL_COSTS.put("claude-opus-4-7", "$0.04/1K tokens");
-            MODEL_COSTS.put("claude-haiku-4-5", "$0.001/1K tokens");
-            MODEL_COSTS.put("gemini-2.0-flash", "$0.0002/1K tokens");
-            MODEL_COSTS.put("gemini-2.5-pro", "$0.003/1K tokens");
-            MODEL_COSTS.put("deepseek-chat", "$0.0002/1K tokens");
-            MODEL_COSTS.put("deepseek-reasoner", "$0.001/1K tokens");
-            MODEL_COSTS.put("llama-4-maverick", "$0.0002/1K tokens");
-            MODEL_COSTS.put("grok-3", "$0.005/1K tokens");
-            MODEL_COSTS.put("grok-3-mini", "$0.0004/1K tokens");
-            MODEL_COSTS.put("qwen-max", "$0.005/1K tokens");
-            MODEL_COSTS.put("qwen-plus", "$0.001/1K tokens");
-            MODEL_COSTS.put("mistral-large", "$0.006/1K tokens");
-            MODEL_COSTS.put("mistral-small", "$0.0003/1K tokens");
-        }
-
-        private void updateCostEstimate() {
-            Preference costPref = findPreference("llm_cost_estimate");
-            if (costPref == null) return;
-            String provider = mConfigManager.getModelProvider();
-            String model = mConfigManager.getModelName();
-
-            if ("ollama".equals(provider)) {
-                costPref.setSummary(getString(R.string.llm_cost_free));
-                return;
-            }
-
-            String cost = MODEL_COSTS.get(model);
-            if (cost != null) {
-                costPref.setSummary(getString(R.string.llm_cost_summary, cost));
-            } else {
-                costPref.setSummary(getString(R.string.llm_cost_unknown));
-            }
-        }
-
-        private void applyPreset(String preset) {
-            switch (preset) {
-                case "creative":
-                    mConfigManager.setModelTemperature(0.9f);
-                    mConfigManager.setModelMaxTokens(8192);
-                    break;
-                case "balanced":
-                    mConfigManager.setModelTemperature(0.7f);
-                    mConfigManager.setModelMaxTokens(4096);
-                    break;
-                case "precise":
-                    mConfigManager.setModelTemperature(0.3f);
-                    mConfigManager.setModelMaxTokens(2048);
-                    break;
-                case "code":
-                    mConfigManager.setModelTemperature(0.2f);
-                    mConfigManager.setModelMaxTokens(8192);
-                    break;
-                case "custom":
-                default:
-                    // Do nothing — user configures manually
-                    break;
             }
         }
 
@@ -1114,30 +529,11 @@ public class HermesConfigActivity extends AppCompatActivity {
                 CharSequence[] models = getResources().getTextArray(arrayResId);
                 modelPref.setEntries(models);
                 modelPref.setEntryValues(models);
-                // Set to first preset (skip custom option)
-                for (CharSequence m : models) {
-                    if (!getString(R.string.llm_model_custom).equals(m.toString())) {
-                        modelPref.setValue(m.toString());
-                        mConfigManager.setModelName(m.toString());
-                        break;
-                    }
+                if (models.length > 0) {
+                    modelPref.setValue(models[0].toString());
+                    mConfigManager.setModelName(models[0].toString());
                 }
             }
-            Preference customModelPref = findPreference("llm_custom_model");
-            if (customModelPref != null) customModelPref.setVisible(false);
-        }
-
-        private boolean isModelInPresetList(String provider, String modelName) {
-            int arrayResId = getModelArrayResId(provider);
-            if (arrayResId == 0) return false;
-            CharSequence[] models = getResources().getTextArray(arrayResId);
-            String customLabel = getString(R.string.llm_model_custom);
-            for (CharSequence m : models) {
-                if (m.toString().equals(modelName) && !m.toString().equals(customLabel)) {
-                    return true;
-                }
-            }
-            return false;
         }
 
         private int getModelArrayResId(String provider) {
@@ -1163,42 +559,11 @@ public class HermesConfigActivity extends AppCompatActivity {
 
         @Override
         public boolean onPreferenceTreeClick(@NonNull Preference preference) {
-            String key = preference.getKey();
-            if ("llm_test_connection".equals(key)) {
+            if ("llm_test_connection".equals(preference.getKey())) {
                 testConnection(preference);
                 return true;
             }
-            if ("llm_paste_api_key".equals(key)) {
-                pasteApiKeyFromClipboard();
-                return true;
-            }
             return super.onPreferenceTreeClick(preference);
-        }
-
-        private void pasteApiKeyFromClipboard() {
-            android.content.ClipboardManager clipboard =
-                    (android.content.ClipboardManager) requireContext()
-                            .getSystemService(Context.CLIPBOARD_SERVICE);
-            if (clipboard == null || !clipboard.hasPrimaryClip()) {
-                Toast.makeText(requireContext(), R.string.llm_paste_key_empty,
-                        Toast.LENGTH_SHORT).show();
-                return;
-            }
-            CharSequence clipText = clipboard.getPrimaryClip().getItemAt(0).getText();
-            if (clipText == null || clipText.toString().trim().isEmpty()) {
-                Toast.makeText(requireContext(), R.string.llm_paste_key_empty,
-                        Toast.LENGTH_SHORT).show();
-                return;
-            }
-            String key = clipText.toString().trim();
-            mConfigManager.setApiKey(mConfigManager.getModelProvider(), key);
-
-            Preference apiKeyPref = findPreference("llm_api_key");
-            if (apiKeyPref != null) {
-                apiKeyPref.setSummary(maskApiKey(key));
-            }
-            Toast.makeText(requireContext(), R.string.llm_paste_key_success,
-                    Toast.LENGTH_SHORT).show();
         }
 
         private void testConnection(Preference testPref) {
@@ -1323,16 +688,13 @@ public class HermesConfigActivity extends AppCompatActivity {
 
             switch (key) {
                 case "gateway_start":
-                    validateAndStartGateway(this, () -> runGatewayCommand("start"));
+                    runGatewayCommand("start");
                     return true;
                 case "gateway_stop":
                     runGatewayCommand("stop");
                     return true;
                 case "gateway_restart":
-                    validateAndStartGateway(this, () -> runGatewayCommand("restart"));
-                    return true;
-                case "gateway_diagnostic":
-                    runDiagnostic();
+                    runGatewayCommand("restart");
                     return true;
             }
             return super.onPreferenceTreeClick(preference);
@@ -1342,7 +704,10 @@ public class HermesConfigActivity extends AppCompatActivity {
             Context ctx = requireContext();
             switch (action) {
                 case "start":
-                    showStartValidation(ctx);
+                    if (!ensureNotificationPermission(requireActivity())) return;
+                    ctx.startService(new Intent(ctx, HermesGatewayService.class)
+                            .setAction(HermesGatewayService.ACTION_START));
+                    Toast.makeText(ctx, R.string.gateway_started, Toast.LENGTH_SHORT).show();
                     break;
                 case "stop":
                     ctx.startService(new Intent(ctx, HermesGatewayService.class)
@@ -1350,6 +715,7 @@ public class HermesConfigActivity extends AppCompatActivity {
                     Toast.makeText(ctx, R.string.gateway_stopped, Toast.LENGTH_SHORT).show();
                     break;
                 case "restart":
+                    if (!ensureNotificationPermission(requireActivity())) return;
                     ctx.startService(new Intent(ctx, HermesGatewayService.class)
                             .setAction(HermesGatewayService.ACTION_STOP));
                     new android.os.Handler(android.os.Looper.getMainLooper()).postDelayed(() -> {
@@ -1359,270 +725,6 @@ public class HermesConfigActivity extends AppCompatActivity {
                     Toast.makeText(ctx, R.string.gateway_restarted, Toast.LENGTH_SHORT).show();
                     break;
             }
-        private void runDiagnostic() {
-            Preference diagPref = findPreference("gateway_diagnostic");
-            if (diagPref != null) {
-                diagPref.setSummary(getString(R.string.gateway_diagnostic_running));
-            }
-
-            new Thread(() -> {
-                StringBuilder report = new StringBuilder();
-                HermesConfigManager config = HermesConfigManager.getInstance();
-                String binPath = TermuxConstants.TERMUX_BIN_PREFIX_DIR_PATH;
-
-                // 1. Check Hermes binary
-                String hermesPath = binPath + "/hermes";
-                if (new java.io.File(hermesPath).exists()) {
-                    String version = getHermesVersion(binPath, hermesPath);
-                    report.append("✅ ").append(getString(R.string.gateway_diag_hermes_binary))
-                            .append(": ").append(getString(R.string.gateway_diag_hermes_version, version)).append("\n");
-                } else {
-                    report.append("❌ ").append(getString(R.string.gateway_diag_hermes_binary))
-                            .append(": ").append(getString(R.string.gateway_diag_hermes_not_found)).append("\n");
-                }
-
-                // 2. Check LLM API
-                String provider = config.getModelProvider();
-                String apiKey = config.getApiKey(provider);
-                report.append(checkLlmConnectivity(provider, apiKey, config.getModelName(), binPath)).append("\n");
-
-                // 3. Check IM platforms
-                report.append(checkFeishuStatus(config)).append("\n");
-                report.append(checkTelegramStatus(config, binPath)).append("\n");
-                report.append(checkDiscordStatus(config, binPath)).append("\n");
-
-                // 4. Check gateway process
-                HermesGatewayStatus.checkAsync((status, detail) -> {
-                    if (getActivity() == null) return;
-                    getActivity().runOnUiThread(() -> {
-                        if (status == HermesGatewayStatus.Status.RUNNING) {
-                            report.append("✅ ").append(getString(R.string.gateway_diag_gateway_process))
-                                    .append(": ").append(getString(R.string.gateway_diag_gateway_running));
-                        } else {
-                            report.append("⚠️ ").append(getString(R.string.gateway_diag_gateway_process))
-                                    .append(": ").append(getString(R.string.gateway_diag_gateway_stopped));
-                        }
-
-                        String result = report.toString();
-                        if (diagPref != null) {
-                            diagPref.setSummary(getString(R.string.gateway_diagnostic_summary));
-                        }
-                        new AlertDialog.Builder(requireContext())
-                                .setTitle(R.string.gateway_diagnostic_title_dialog)
-                                .setMessage(result)
-                                .setPositiveButton(android.R.string.ok, null)
-                                .show();
-                    });
-                });
-            }).start();
-        }
-
-        private String getHermesVersion(String binPath, String hermesPath) {
-            try {
-                ProcessBuilder pb = new ProcessBuilder(binPath + "/bash", "-c",
-                        hermesPath + " --version 2>/dev/null | head -1");
-                pb.environment().put("PATH", binPath + ":/system/bin");
-                pb.redirectErrorStream(true);
-                Process p = pb.start();
-                java.io.BufferedReader reader = new java.io.BufferedReader(
-                        new java.io.InputStreamReader(p.getInputStream()));
-                String line = reader.readLine();
-                p.waitFor();
-                return (line != null) ? line.trim() : "unknown";
-            } catch (Exception e) {
-                return "unknown";
-            }
-        }
-
-        private String checkLlmConnectivity(String provider, String apiKey, String model, String binPath) {
-            String label = getString(R.string.gateway_diag_llm_api, provider);
-            if (apiKey == null || apiKey.isEmpty()) {
-                if ("ollama".equals(provider)) {
-                    return "✅ " + label + ": " + getString(R.string.llm_test_success_no_key, provider);
-                }
-                return "⚠️ " + label + ": " + getString(R.string.gateway_diag_llm_no_key);
-            }
-            try {
-                String curlPath = binPath + "/curl";
-                if (!new java.io.File(curlPath).exists()) {
-                    return "⚠️ " + label + ": curl not available";
-                }
-                String url = getProviderTestUrl(provider);
-                if (url == null) {
-                    return "⚠️ " + label + ": unknown provider";
-                }
-
-                ProcessBuilder pb;
-                if ("ollama".equals(provider)) {
-                    pb = new ProcessBuilder(curlPath, "-s", "-o", "/dev/null", "-w", "%{http_code}",
-                            "--connect-timeout", "5", url);
-                } else if ("google".equals(provider)) {
-                    pb = new ProcessBuilder(curlPath, "-s", "-o", "/dev/null", "-w", "%{http_code}",
-                            "--connect-timeout", "10", url + apiKey);
-                } else {
-                    pb = new ProcessBuilder(curlPath, "-s", "-o", "/dev/null", "-w", "%{http_code}",
-                            "--connect-timeout", "10", "-H", "Authorization: Bearer " + apiKey, url);
-                }
-                pb.environment().put("PATH", binPath + ":/system/bin");
-                pb.redirectErrorStream(true);
-
-                Process p = pb.start();
-                java.io.BufferedReader reader = new java.io.BufferedReader(
-                        new java.io.InputStreamReader(p.getInputStream()));
-                String output = reader.readLine();
-                p.waitFor();
-
-                int httpCode = 0;
-                try { httpCode = Integer.parseInt(output != null ? output.trim() : "0"); } catch (NumberFormatException ignored) {}
-
-                if (httpCode == 200) {
-                    return "✅ " + label + ": " + getString(R.string.gateway_diag_llm_ok, model);
-                } else if (httpCode == 401 || httpCode == 403) {
-                    return "❌ " + label + ": " + getString(R.string.gateway_diag_llm_auth);
-                } else if (httpCode == 0) {
-                    return "❌ " + label + ": " + getString(R.string.gateway_diag_llm_network);
-                } else {
-                    return "❌ " + label + ": HTTP " + httpCode;
-                }
-            } catch (Exception e) {
-                return "❌ " + label + ": " + e.getMessage();
-            }
-        }
-
-        private String getProviderTestUrl(String provider) {
-            HermesConfigManager config = HermesConfigManager.getInstance();
-            String baseUrl = config.getEnvVar("OPENAI_BASE_URL");
-            switch (provider) {
-                case "openai":     return "https://api.openai.com/v1/models";
-                case "anthropic":  return "https://api.anthropic.com/v1/models";
-                case "google":     return "https://generativelanguage.googleapis.com/v1beta/models?key=";
-                case "deepseek":   return "https://api.deepseek.com/models";
-                case "openrouter": return "https://openrouter.ai/api/v1/models";
-                case "xai":        return "https://api.x.ai/v1/models";
-                case "alibaba":    return "https://dashscope.aliyuncs.com/compatible-mode/v1/models";
-                case "mistral":    return "https://api.mistral.ai/v1/models";
-                case "nvidia":     return "https://integrate.api.nvidia.com/v1/models";
-                case "ollama":     return baseUrl.isEmpty() ? "http://localhost:11434/api/tags" : baseUrl + "/api/tags";
-                case "custom":     return baseUrl.isEmpty() ? null : baseUrl + "/models";
-                default:           return null;
-            }
-        }
-
-        private String checkFeishuStatus(HermesConfigManager config) {
-            String label = getString(R.string.gateway_diag_im_feishu);
-            if (config.isFeishuConfigured()) {
-                return "✅ " + label + ": " + getString(R.string.gateway_diag_im_feishu_ok);
-            }
-            return "⚠️ " + label + ": " + getString(R.string.gateway_diag_im_feishu_no);
-        }
-
-        private String checkTelegramStatus(HermesConfigManager config, String binPath) {
-            String label = getString(R.string.gateway_diag_im_telegram);
-            String token = config.getEnvVar("TELEGRAM_BOT_TOKEN");
-            if (token.isEmpty()) {
-                return "⚠️ " + label + ": " + getString(R.string.gateway_diag_im_telegram_no);
-            }
-            try {
-                String curlPath = binPath + "/curl";
-                ProcessBuilder pb = new ProcessBuilder(curlPath, "-s", "-o", "/dev/null", "-w", "%{http_code}",
-                        "--connect-timeout", "10", "https://api.telegram.org/bot" + token + "/getMe");
-                pb.environment().put("PATH", binPath + ":/system/bin");
-                pb.redirectErrorStream(true);
-                Process p = pb.start();
-                java.io.BufferedReader reader = new java.io.BufferedReader(
-                        new java.io.InputStreamReader(p.getInputStream()));
-                String output = reader.readLine();
-                p.waitFor();
-                int code = 0;
-                try { code = Integer.parseInt(output != null ? output.trim() : "0"); } catch (NumberFormatException ignored) {}
-                if (code == 200) {
-                    return "✅ " + label + ": " + getString(R.string.gateway_diag_im_telegram_ok);
-                }
-                return "❌ " + label + ": " + getString(R.string.gateway_diag_im_telegram_fail);
-            } catch (Exception e) {
-                return "❌ " + label + ": " + e.getMessage();
-            }
-        }
-
-        private String checkDiscordStatus(HermesConfigManager config, String binPath) {
-            String label = getString(R.string.gateway_diag_im_discord);
-            String token = config.getEnvVar("DISCORD_BOT_TOKEN");
-            if (token.isEmpty()) {
-                return "⚠️ " + label + ": " + getString(R.string.gateway_diag_im_discord_no);
-            }
-            try {
-                String curlPath = binPath + "/curl";
-                ProcessBuilder pb = new ProcessBuilder(curlPath, "-s", "-o", "/dev/null", "-w", "%{http_code}",
-                        "--connect-timeout", "10", "-H", "Authorization: Bot " + token,
-                        "https://discord.com/api/v10/users/@me");
-                pb.environment().put("PATH", binPath + ":/system/bin");
-                pb.redirectErrorStream(true);
-                Process p = pb.start();
-                java.io.BufferedReader reader = new java.io.BufferedReader(
-                        new java.io.InputStreamReader(p.getInputStream()));
-                String output = reader.readLine();
-                p.waitFor();
-                int code = 0;
-                try { code = Integer.parseInt(output != null ? output.trim() : "0"); } catch (NumberFormatException ignored) {}
-                if (code == 200) {
-                    return "✅ " + label + ": " + getString(R.string.gateway_diag_im_discord_ok);
-                }
-                return "❌ " + label + ": " + getString(R.string.gateway_diag_im_discord_fail);
-            } catch (Exception e) {
-                return "❌ " + label + ": " + e.getMessage();
-            }
-        }
-
-        private void showStartValidation(Context ctx) {
-            HermesConfigManager config = HermesConfigManager.getInstance();
-            java.util.List<String> warnings = new java.util.ArrayList<>();
-            java.util.List<String> ready = new java.util.ArrayList<>();
-
-            // Check LLM config
-            String provider = config.getModelProvider();
-            String apiKey = config.getApiKey(provider);
-            String model = config.getModelName();
-
-            if (provider.isEmpty()) {
-                warnings.add(getString(R.string.validation_no_provider));
-            } else if ("ollama".equals(provider)) {
-                ready.add(getString(R.string.validation_llm_ok_ollama));
-            } else if (apiKey.isEmpty()) {
-                warnings.add(getString(R.string.validation_no_api_key, provider));
-            } else {
-                ready.add(getString(R.string.validation_llm_ok, provider, model));
-            }
-
-            // Check IM platforms
-            boolean hasIm = false;
-            if (config.isFeishuConfigured()) { hasIm = true; ready.add(getString(R.string.validation_feishu_ok)); }
-            if (!config.getEnvVar("TELEGRAM_BOT_TOKEN").isEmpty()) { hasIm = true; ready.add(getString(R.string.validation_telegram_ok)); }
-            if (!config.getEnvVar("DISCORD_BOT_TOKEN").isEmpty()) { hasIm = true; ready.add(getString(R.string.validation_discord_ok)); }
-            if (!hasIm) {
-                warnings.add(getString(R.string.validation_no_im));
-            }
-
-            // Build message
-            StringBuilder msg = new StringBuilder();
-            if (!ready.isEmpty()) {
-                msg.append(getString(R.string.validation_ready_header)).append("\n");
-                for (String r : ready) msg.append("  • ").append(r).append("\n");
-            }
-            if (!warnings.isEmpty()) {
-                msg.append("\n").append(getString(R.string.validation_warnings_header)).append("\n");
-                for (String w : warnings) msg.append("  ⚠ ").append(w).append("\n");
-            }
-
-            new AlertDialog.Builder(ctx)
-                    .setTitle(R.string.validation_start_title)
-                    .setMessage(msg.toString().trim())
-                    .setPositiveButton(android.R.string.ok, (d, w) -> {
-                        ctx.startService(new Intent(ctx, HermesGatewayService.class)
-                                .setAction(HermesGatewayService.ACTION_START));
-                        Toast.makeText(ctx, R.string.gateway_started, Toast.LENGTH_SHORT).show();
-                    })
-                    .setNegativeButton(android.R.string.cancel, null)
-                    .show();
         }
     }
 }

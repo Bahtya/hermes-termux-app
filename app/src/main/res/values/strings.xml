@@ -774,5 +774,8 @@
     <string name="uptime_hours_minutes">%1$dh %2$dm</string>
     <string name="uptime_minutes">%1$dm</string>
     <string name="uptime_just_started">Just started</string>
+    <!-- Notification Permission -->
+    <string name="notification_permission_granted">Notifications enabled for gateway status</string>
+    <string name="notification_permission_denied">Notifications permission denied. Gateway status may not be visible in the notification bar.</string>
 
 </resources>

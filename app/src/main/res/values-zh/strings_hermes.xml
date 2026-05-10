@@ -425,4 +425,7 @@
     <string name="uptime_hours_minutes">%1$d小时%2$d分钟</string>
     <string name="uptime_minutes">%1$d分钟</string>
     <string name="uptime_just_started">刚刚启动</string>
+    <!-- Notification Permission -->
+    <string name="notification_permission_granted">已启用网关状态通知</string>
+    <string name="notification_permission_denied">通知权限被拒绝。网关状态可能不会显示在通知栏中。</string>
 </resources>
