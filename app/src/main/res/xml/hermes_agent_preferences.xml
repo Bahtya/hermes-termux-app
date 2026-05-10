@@ -90,4 +90,36 @@
             android:defaultValue="3" />
     </PreferenceCategory>
 
+    <PreferenceCategory android:title="Tool Management">
+        <SwitchPreferenceCompat
+            android:key="agent_tool_terminal"
+            android:title="Terminal Commands"
+            android:summary="Allow agent to execute terminal commands"
+            android:defaultValue="true" />
+
+        <SwitchPreferenceCompat
+            android:key="agent_tool_web_search"
+            android:title="Web Search"
+            android:summary="Allow agent to search the web"
+            android:defaultValue="true" />
+
+        <SwitchPreferenceCompat
+            android:key="agent_tool_file_ops"
+            android:title="File Operations"
+            android:summary="Allow agent to read and write files"
+            android:defaultValue="true" />
+
+        <SwitchPreferenceCompat
+            android:key="agent_tool_browser"
+            android:title="Browser"
+            android:summary="Allow agent to browse websites"
+            android:defaultValue="true" />
+
+        <SwitchPreferenceCompat
+            android:key="agent_tool_code_exec"
+            android:title="Code Execution"
+            android:summary="Allow agent to execute code snippets"
+            android:defaultValue="true" />
+    </PreferenceCategory>
+
 </PreferenceScreen>
