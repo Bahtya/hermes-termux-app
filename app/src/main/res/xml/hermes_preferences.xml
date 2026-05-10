@@ -9,6 +9,20 @@
         android:title="@string/hermes_not_installed_banner_title"
         android:summary="@string/hermes_not_installed_banner_summary"
         android:selectable="true" />
+    <PreferenceCategory android:title="@string/setup_progress_title">
+        <Preference
+            android:key="setup_step_llm"
+            android:title="@string/setup_progress_step_llm"
+            android:selectable="true" />
+        <Preference
+            android:key="setup_step_im"
+            android:title="@string/setup_progress_step_im"
+            android:selectable="true" />
+        <Preference
+            android:key="setup_step_gateway"
+            android:title="@string/setup_progress_step_gateway"
+            android:selectable="true" />
+    </PreferenceCategory>
 
     <PreferenceCategory android:title="@string/dashboard_title">
 
