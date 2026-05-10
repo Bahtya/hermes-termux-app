@@ -1097,4 +1097,16 @@
     <string name="whatsapp_configured">WhatsApp Business configured</string>
     <string name="whatsapp_not_configured">Not configured</string>
 
+
+    <!-- Gateway auto-update -->
+    <string name="gateway_update_title">Gateway Update</string>
+    <string name="gateway_update_checking">Checking for updates…</string>
+    <string name="gateway_update_available">Update available: %1$s (current: %2$s)</string>
+    <string name="gateway_update_up_to_date">Up to date (v%1$s)</string>
+    <string name="gateway_update_failed">Failed to check for updates</string>
+    <string name="gateway_update_downloading">Downloading update…</string>
+    <string name="gateway_update_installed">Updated to v%1$s. Restart gateway to apply.</string>
+    <string name="gateway_update_install_failed">Update failed. Try manually.</string>
+    <string name="gateway_update_install">Install Update</string>
+
 </resources>
