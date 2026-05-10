@@ -14,15 +14,47 @@ jobs:
     steps:
       - name: Checkout repository
         uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+
+      - name: Generate changelog
+        id: changelog
+        run: |
+          TAG_NAME="${GITHUB_REF#refs/tags/}"
+          PREVIOUS_TAG=$(git describe --tags --abbrev=0 HEAD^ 2>/dev/null || echo "")
+          if [ -n "$PREVIOUS_TAG" ]; then
+            CHANGES=$(git log "${PREVIOUS_TAG}..HEAD" --pretty=format:"- %s (%h)" --no-merges)
+          else
+            CHANGES=$(git log --pretty=format:"- %s (%h)" --no-merges -20)
+          fi
+          echo "changes<<EOF" >> $GITHUB_OUTPUT
+          echo "$CHANGES" >> $GITHUB_OUTPUT
+          echo "EOF" >> $GITHUB_OUTPUT
 
       - name: Create draft GitHub Release
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           TAG_NAME="${GITHUB_REF#refs/tags/}"
+          cat > release_notes.md <<RELEASE_EOF
+          ## What's Changed
+
+          ${{ steps.changelog.outputs.changes }}
+
+          ---
+
+          **Full Changelog**: https://github.com/${{ github.repository }}/compare/${PREVIOUS_TAG}...${TAG_NAME}
+
+          ### Installation
+          1. Download the APK for your device (apt-android-7 for Android 7+, apt-android-5 for Android 5+)
+          2. Enable "Install from unknown sources" in your device settings
+          3. Install the APK
+          4. Open the app and follow the setup wizard
+          RELEASE_EOF
+
           gh release create "$TAG_NAME" \
-            --generate-notes \
-            --title "$TAG_NAME" \
+            --notes-file release_notes.md \
+            --title "Hermes Termux ${TAG_NAME#v}" \
             --draft
 
   build-and-upload:
@@ -42,6 +74,16 @@ jobs:
         with:
           distribution: temurin
           java-version: '17'
+
+      - name: Cache Gradle packages
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.gradle/caches
+            ~/.gradle/wrapper
+          key: gradle-${{ runner.os }}-${{ hashFiles('**/*.gradle*', '**/gradle-wrapper.properties') }}
+          restore-keys: |
+            gradle-${{ runner.os }}-
 
       - name: Build release APK
         shell: bash
