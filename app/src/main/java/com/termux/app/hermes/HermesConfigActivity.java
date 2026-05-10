@@ -305,9 +305,7 @@ public class HermesConfigActivity extends AppCompatActivity {
                     startActivity(new Intent(requireContext(), FeishuSetupActivity.class));
                     return true;
                 case "hermes_telegram_setup":
-                    Intent tgIntent = new Intent(requireContext(), ImSetupActivity.class);
-                    tgIntent.putExtra(ImSetupActivity.EXTRA_PLATFORM, ImSetupActivity.PLATFORM_TELEGRAM);
-                    startActivity(tgIntent);
+                    startActivity(new Intent(requireContext(), TelegramSetupActivity.class));
                     return true;
                 case "hermes_discord_setup":
                     startActivity(new Intent(requireContext(), DiscordSetupActivity.class));
