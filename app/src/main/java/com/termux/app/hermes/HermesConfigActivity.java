@@ -2670,8 +2670,8 @@ public class HermesConfigActivity extends AppCompatActivity {
                     + "provider=" + provider
                     + "&model=" + model
                     + "&temp=" + mConfigManager.getModelTemperature()
-                    + "&max_tokens=" + mConfigManager.getModelMaxTokens();
-            if (!maskedKey.isEmpty()) qrData += "&key_hint=" + maskedKey;
+                    + "&max_tokens=" + mConfigManager.getModelMaxTokens()
+                    + (maskedKey.isEmpty() ? "" : "&key_hint=" + maskedKey);
 
             try {
                 com.google.zxing.qrcode.QRCodeWriter writer = new com.google.zxing.qrcode.QRCodeWriter();
