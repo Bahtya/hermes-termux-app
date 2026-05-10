@@ -90,4 +90,16 @@
 
     </PreferenceCategory>
 
+
+    <PreferenceCategory android:title="@string/llm_category_share">
+        <Preference
+            android:key="config_export"
+            android:title="@string/config_export_title"
+            android:summary="@string/config_export_summary" />
+        <Preference
+            android:key="config_import"
+            android:title="@string/config_import_title"
+            android:summary="@string/config_import_summary" />
+    </PreferenceCategory>
+
 </PreferenceScreen>
