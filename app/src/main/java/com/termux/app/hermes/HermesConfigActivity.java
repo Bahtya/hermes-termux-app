@@ -219,6 +219,9 @@ public class HermesConfigActivity extends AppCompatActivity {
                 case "hermes_gateway_log":
                     startActivity(new Intent(requireContext(), GatewayLogActivity.class));
                     return true;
+                case "hermes_config_summary":
+                    showConfigSummary();
+                    return true;
                 case "hermes_reset_config":
                     showResetConfirmDialog();
                     return true;
@@ -298,6 +301,66 @@ public class HermesConfigActivity extends AppCompatActivity {
             } catch (Exception e) {
                 return null;
             }
+        }
+
+        private void showConfigSummary() {
+            HermesConfigManager cfg = mConfigManager;
+            String provider = cfg.getModelProvider();
+            String apiKey = cfg.getApiKey(provider);
+            String model = cfg.getModelName();
+            String persona = cfg.getSelectedPersona();
+
+            StringBuilder sb = new StringBuilder();
+            sb.append(getString(R.string.config_summary_section_llm)).append("\n");
+            sb.append("  Provider: ").append(provider).append("\n");
+            sb.append("  Model: ").append(model).append("\n");
+            sb.append("  API Key: ");
+            sb.append(apiKey != null && !apiKey.isEmpty()
+                    ? maskApiKey(apiKey) : getString(R.string.config_summary_key_not_set));
+            sb.append("\n");
+
+            String baseUrl = cfg.getEnvVar("OPENAI_BASE_URL");
+            if (!baseUrl.isEmpty()) {
+                sb.append("  Base URL: ").append(baseUrl).append("\n");
+            }
+
+            sb.append("\n").append(getString(R.string.config_summary_section_im)).append("\n");
+            if (cfg.isFeishuConfigured()) {
+                sb.append("  Feishu/Lark: ").append(getString(R.string.config_summary_key_set)).append("\n");
+            }
+            if (!cfg.getEnvVar("TELEGRAM_BOT_TOKEN").isEmpty()) {
+                sb.append("  Telegram: ").append(getString(R.string.config_summary_key_set)).append("\n");
+            }
+            if (!cfg.getEnvVar("DISCORD_BOT_TOKEN").isEmpty()) {
+                sb.append("  Discord: ").append(getString(R.string.config_summary_key_set)).append("\n");
+            }
+            boolean anyIm = cfg.isFeishuConfigured()
+                    || !cfg.getEnvVar("TELEGRAM_BOT_TOKEN").isEmpty()
+                    || !cfg.getEnvVar("DISCORD_BOT_TOKEN").isEmpty();
+            if (!anyIm) {
+                sb.append("  ").append(getString(R.string.config_summary_key_not_set)).append("\n");
+            }
+
+            if (!persona.isEmpty()) {
+                sb.append("\n").append(getString(R.string.config_summary_section_persona)).append("\n");
+                sb.append("  ").append(persona.substring(0, 1).toUpperCase())
+                        .append(persona.substring(1)).append("\n");
+            }
+
+            String summary = sb.toString();
+
+            new AlertDialog.Builder(requireContext())
+                    .setTitle(R.string.config_summary_title)
+                    .setMessage(summary)
+                    .setPositiveButton(R.string.config_summary_share, (d, w) -> {
+                        Intent shareIntent = new Intent(Intent.ACTION_SEND);
+                        shareIntent.setType("text/plain");
+                        shareIntent.putExtra(Intent.EXTRA_TEXT, summary);
+                        startActivity(Intent.createChooser(shareIntent,
+                                getString(R.string.config_summary_title)));
+                    })
+                    .setNegativeButton(android.R.string.ok, null)
+                    .show();
         }
 
         private void showResetConfirmDialog() {
