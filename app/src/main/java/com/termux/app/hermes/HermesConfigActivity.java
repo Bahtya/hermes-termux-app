@@ -8,7 +8,12 @@ import android.os.Bundle;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.AdapterView;
+import android.widget.ArrayAdapter;
+import android.widget.EditText;
+import android.widget.LinearLayout;
 import android.widget.ScrollView;
+import android.widget.Spinner;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -283,6 +288,9 @@ public class HermesConfigActivity extends AppCompatActivity {
                 case "hermes_agent_settings":
                     showFragment(new AgentSettingsFragment());
                     return true;
+                case "hermes_mcp_settings":
+                    showMcpServersDialog();
+                    return true;
                 case "hermes_conversation_history":
                     startActivity(new Intent(requireContext(), HermesConversationActivity.class));
                     return true;
@@ -402,6 +410,139 @@ public class HermesConfigActivity extends AppCompatActivity {
             } catch (Exception e) {
                 return null;
             }
+        }
+
+        private void showMcpServersDialog() {
+            ScrollView scrollView = new ScrollView(requireContext());
+            LinearLayout layout = new LinearLayout(requireContext());
+            layout.setOrientation(LinearLayout.VERTICAL);
+            int pad = dp(16);
+            layout.setPadding(pad, pad, pad, pad);
+
+            java.util.Map<String, String> servers = mConfigManager.getMcpServers();
+            if (servers.isEmpty()) {
+                TextView empty = new TextView(requireContext());
+                empty.setText(R.string.mcp_no_servers);
+                empty.setPadding(0, dp(8), 0, dp(8));
+                layout.addView(empty);
+            } else {
+                for (java.util.Map.Entry<String, String> entry : servers.entrySet()) {
+                    LinearLayout row = new LinearLayout(requireContext());
+                    row.setOrientation(LinearLayout.HORIZONTAL);
+                    row.setPadding(0, dp(4), 0, dp(4));
+
+                    TextView label = new TextView(requireContext());
+                    label.setText(entry.getKey() + "\n" + entry.getValue());
+                    label.setTextSize(13);
+                    LinearLayout.LayoutParams labelParams = new LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 1f);
+                    label.setLayoutParams(labelParams);
+                    row.addView(label);
+
+                    TextView removeBtn = new TextView(requireContext());
+                    removeBtn.setText(R.string.mcp_server_remove);
+                    removeBtn.setTextColor(0xFFD32F2F);
+                    removeBtn.setTextSize(13);
+                    removeBtn.setPadding(dp(12), 0, 0, 0);
+                    String serverName = entry.getKey();
+                    removeBtn.setOnClickListener(v -> {
+                        mConfigManager.removeMcpServer(serverName);
+                        Toast.makeText(requireContext(), R.string.mcp_server_removed, Toast.LENGTH_SHORT).show();
+                        // Refresh dialog
+                    });
+                    row.addView(removeBtn);
+                    layout.addView(row);
+                }
+            }
+
+            com.google.android.material.button.MaterialButton addBtn =
+                    new com.google.android.material.button.MaterialButton(requireContext());
+            addBtn.setText(R.string.mcp_add_server);
+            addBtn.setAllCaps(false);
+            addBtn.setCornerRadius(dp(20));
+            LinearLayout.LayoutParams addParams = new LinearLayout.LayoutParams(
+                    LinearLayout.LayoutParams.WRAP_CONTENT, LinearLayout.LayoutParams.WRAP_CONTENT);
+            addParams.topMargin = dp(16);
+            addParams.gravity = android.view.Gravity.CENTER_HORIZONTAL;
+            addBtn.setLayoutParams(addParams);
+            addBtn.setOnClickListener(v -> showAddMcpServerDialog());
+            layout.addView(addBtn);
+
+            scrollView.addView(layout);
+
+            new AlertDialog.Builder(requireContext())
+                    .setTitle(R.string.mcp_settings_title)
+                    .setView(scrollView)
+                    .setPositiveButton(android.R.string.ok, null)
+                    .show();
+        }
+
+        private void showAddMcpServerDialog() {
+            LinearLayout layout = new LinearLayout(requireContext());
+            layout.setOrientation(LinearLayout.VERTICAL);
+            int pad = dp(16);
+            layout.setPadding(pad, pad, pad, pad);
+
+            EditText nameInput = new EditText(requireContext());
+            nameInput.setHint(R.string.mcp_server_name);
+            nameInput.setSingleLine(true);
+            layout.addView(nameInput);
+
+            Spinner typeSpinner = new Spinner(requireContext());
+            ArrayAdapter<String> typeAdapter = new ArrayAdapter<>(requireContext(),
+                    android.R.layout.simple_spinner_dropdown_item,
+                    getResources().getStringArray(R.array.mcp_server_type_names));
+            typeSpinner.setAdapter(typeAdapter);
+            LinearLayout.LayoutParams spinnerParams = new LinearLayout.LayoutParams(
+                    LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT);
+            spinnerParams.topMargin = dp(8);
+            typeSpinner.setLayoutParams(spinnerParams);
+            layout.addView(typeSpinner);
+
+            EditText commandInput = new EditText(requireContext());
+            commandInput.setHint(R.string.mcp_server_command_hint);
+            commandInput.setSingleLine(true);
+            LinearLayout.LayoutParams cmdParams = new LinearLayout.LayoutParams(
+                    LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT);
+            cmdParams.topMargin = dp(8);
+            commandInput.setLayoutParams(cmdParams);
+            layout.addView(commandInput);
+
+            typeSpinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+                @Override
+                public void onItemSelected(AdapterView<?> parent, View view, int pos, long id) {
+                    String[] values = getResources().getStringArray(R.array.mcp_server_type_values);
+                    if ("url".equals(values[pos])) {
+                        commandInput.setHint(R.string.mcp_server_url_hint);
+                    } else {
+                        commandInput.setHint(R.string.mcp_server_command_hint);
+                    }
+                }
+                @Override
+                public void onNothingSelected(AdapterView<?> parent) {}
+            });
+
+            new AlertDialog.Builder(requireContext())
+                    .setTitle(R.string.mcp_add_server)
+                    .setView(layout)
+                    .setPositiveButton(android.R.string.ok, (d, w) -> {
+                        String name = nameInput.getText().toString().trim();
+                        String cmd = commandInput.getText().toString().trim();
+                        if (name.isEmpty()) {
+                            Toast.makeText(requireContext(), R.string.mcp_server_save_error, Toast.LENGTH_SHORT).show();
+                            return;
+                        }
+                        String[] values = getResources().getStringArray(R.array.mcp_server_type_values);
+                        String type = values[typeSpinner.getSelectedItemPosition()];
+                        String configValue = type.equals("url") ? "url:" + cmd : cmd;
+                        mConfigManager.addMcpServer(name, configValue);
+                        Toast.makeText(requireContext(), R.string.mcp_server_added, Toast.LENGTH_SHORT).show();
+                    })
+                    .setNegativeButton(android.R.string.cancel, null)
+                    .show();
+        }
+
+        private int dp(int value) {
+            return (int) (value * getResources().getDisplayMetrics().density);
         }
 
         private void showFaqDialog() {

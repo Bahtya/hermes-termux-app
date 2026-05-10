@@ -1034,4 +1034,32 @@
     <string name="discord_invite_link">https://discord.com/api/oauth2/authorize?client_id=YOUR_CLIENT_ID&amp;permissions=274877975552&amp;scope=bot</string>
     <string name="discord_invite_copy">Copy Invite Link</string>
 
+
+    <!-- MCP Server Configuration -->
+    <string name="mcp_settings_title">MCP Servers</string>
+    <string name="mcp_settings_summary">Configure Model Context Protocol servers for extended tools</string>
+    <string name="mcp_no_servers">No MCP servers configured</string>
+    <string name="mcp_add_server">Add MCP Server</string>
+    <string name="mcp_server_name">Server Name</string>
+    <string name="mcp_server_command">Command</string>
+    <string name="mcp_server_command_hint">e.g. npx -y @modelcontextprotocol/server-memory</string>
+    <string name="mcp_server_url">Server URL</string>
+    <string name="mcp_server_url_hint">e.g. http://localhost:3001</string>
+    <string name="mcp_server_type">Type</string>
+    <string name="mcp_server_remove">Remove</string>
+    <string name="mcp_server_edit">Edit</string>
+    <string name="mcp_server_added">MCP server added</string>
+    <string name="mcp_server_removed">MCP server removed</string>
+    <string name="mcp_server_save_error">Please enter a server name</string>
+
+
+    <string-array name="mcp_server_type_names">
+        <item>Command (stdio)</item>
+        <item>HTTP URL</item>
+    </string-array>
+    <string-array name="mcp_server_type_values">
+        <item>command</item>
+        <item>url</item>
+    </string-array>
+
 </resources>
