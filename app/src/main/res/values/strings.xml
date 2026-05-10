@@ -561,4 +561,14 @@
     <string name="hermes_setup_done_title">You\'re all set!</string>
     <string name="hermes_setup_done_text">Hermes is ready to go. You can start the gateway from the Hermes Settings or use the Web UI tab.\n\nTo change your settings at any time, tap the Hermes icon in the sidebar.</string>
 
+    <!-- Config Summary -->
+    <string name="config_summary_title">Config Summary</string>
+    <string name="config_summary_summary">View and share your current configuration</string>
+    <string name="config_summary_share">Share</string>
+    <string name="config_summary_section_llm">AI Provider</string>
+    <string name="config_summary_section_im">Messaging</string>
+    <string name="config_summary_section_persona">Persona</string>
+    <string name="config_summary_key_set">Set</string>
+    <string name="config_summary_key_not_set">Not set</string>
+
 </resources>
