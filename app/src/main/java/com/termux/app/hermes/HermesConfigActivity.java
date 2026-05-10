@@ -1703,10 +1703,10 @@ public class HermesConfigActivity extends AppCompatActivity {
             // Context compression
             SwitchPreferenceCompat compressionPref = findPreference("agent_compression_enabled");
             if (compressionPref != null) {
-                String val = mConfigManager.getEnvVar("HERMES_ENABLE_COMPRESSION");
+                String val = mConfigManager.getYamlValue("compression.enabled", "true");
                 compressionPref.setChecked(!"false".equals(val));
                 compressionPref.setOnPreferenceChangeListener((p, newVal) -> {
-                    mConfigManager.setEnvVar("HERMES_ENABLE_COMPRESSION", (Boolean) newVal ? "true" : "false");
+                    mConfigManager.setYamlValue("compression.enabled", (Boolean) newVal ? "true" : "false");
                     return true;
                 });
             }
@@ -1714,10 +1714,10 @@ public class HermesConfigActivity extends AppCompatActivity {
             // Compression threshold
             EditTextPreference thresholdPref = findPreference("agent_compression_threshold");
             if (thresholdPref != null) {
-                String threshold = mConfigManager.getEnvVar("COMPRESSION_THRESHOLD");
+                String threshold = mConfigManager.getYamlValue("compression.threshold", "");
                 if (!threshold.isEmpty()) thresholdPref.setText(threshold);
                 thresholdPref.setOnPreferenceChangeListener((p, newVal) -> {
-                    mConfigManager.setEnvVar("COMPRESSION_THRESHOLD", (String) newVal);
+                    mConfigManager.setYamlValue("compression.threshold", (String) newVal);
                     return true;
                 });
             }
@@ -1725,10 +1725,10 @@ public class HermesConfigActivity extends AppCompatActivity {
             // Context length
             EditTextPreference contextLenPref = findPreference("agent_context_length");
             if (contextLenPref != null) {
-                String ctxLen = mConfigManager.getEnvVar("CONTEXT_LENGTH");
+                String ctxLen = mConfigManager.getYamlValue("context_length", "");
                 if (!ctxLen.isEmpty()) contextLenPref.setText(ctxLen);
                 contextLenPref.setOnPreferenceChangeListener((p, newVal) -> {
-                    mConfigManager.setEnvVar("CONTEXT_LENGTH", (String) newVal);
+                    mConfigManager.setYamlValue("context_length", (String) newVal);
                     return true;
                 });
             }
@@ -1736,10 +1736,10 @@ public class HermesConfigActivity extends AppCompatActivity {
             // Max turns
             EditTextPreference maxTurnsPref = findPreference("agent_max_turns");
             if (maxTurnsPref != null) {
-                String maxTurns = mConfigManager.getEnvVar("AGENT_MAX_TURNS");
+                String maxTurns = mConfigManager.getYamlValue("agent.max_turns", "");
                 if (!maxTurns.isEmpty()) maxTurnsPref.setText(maxTurns);
                 maxTurnsPref.setOnPreferenceChangeListener((p, newVal) -> {
-                    mConfigManager.setEnvVar("AGENT_MAX_TURNS", (String) newVal);
+                    mConfigManager.setYamlValue("agent.max_turns", (String) newVal);
                     return true;
                 });
             }
@@ -1747,10 +1747,10 @@ public class HermesConfigActivity extends AppCompatActivity {
             // Gateway timeout
             EditTextPreference timeoutPref = findPreference("agent_gateway_timeout");
             if (timeoutPref != null) {
-                String timeout = mConfigManager.getEnvVar("AGENT_GATEWAY_TIMEOUT");
+                String timeout = mConfigManager.getYamlValue("agent.gateway_timeout", "");
                 if (!timeout.isEmpty()) timeoutPref.setText(timeout);
                 timeoutPref.setOnPreferenceChangeListener((p, newVal) -> {
-                    mConfigManager.setEnvVar("AGENT_GATEWAY_TIMEOUT", (String) newVal);
+                    mConfigManager.setYamlValue("agent.gateway_timeout", (String) newVal);
                     return true;
                 });
             }
@@ -1758,10 +1758,10 @@ public class HermesConfigActivity extends AppCompatActivity {
             // Verbose
             SwitchPreferenceCompat verbosePref = findPreference("agent_verbose");
             if (verbosePref != null) {
-                String val = mConfigManager.getEnvVar("AGENT_VERBOSE");
+                String val = mConfigManager.getYamlValue("agent.verbose", "false");
                 verbosePref.setChecked("true".equals(val));
                 verbosePref.setOnPreferenceChangeListener((p, newVal) -> {
-                    mConfigManager.setEnvVar("AGENT_VERBOSE", (Boolean) newVal ? "true" : "false");
+                    mConfigManager.setYamlValue("agent.verbose", (Boolean) newVal ? "true" : "false");
                     return true;
                 });
             }
@@ -1769,10 +1769,10 @@ public class HermesConfigActivity extends AppCompatActivity {
             // Memory enabled
             SwitchPreferenceCompat memoryPref = findPreference("agent_memory_enabled");
             if (memoryPref != null) {
-                String val = mConfigManager.getEnvVar("MEMORY_ENABLED");
+                String val = mConfigManager.getYamlValue("memory.memory_enabled", "true");
                 memoryPref.setChecked(!"false".equals(val));
                 memoryPref.setOnPreferenceChangeListener((p, newVal) -> {
-                    mConfigManager.setEnvVar("MEMORY_ENABLED", (Boolean) newVal ? "true" : "false");
+                    mConfigManager.setYamlValue("memory.memory_enabled", (Boolean) newVal ? "true" : "false");
                     return true;
                 });
             }
@@ -1780,10 +1780,10 @@ public class HermesConfigActivity extends AppCompatActivity {
             // User profile
             SwitchPreferenceCompat profilePref = findPreference("agent_user_profile_enabled");
             if (profilePref != null) {
-                String val = mConfigManager.getEnvVar("USER_PROFILE_ENABLED");
+                String val = mConfigManager.getYamlValue("memory.user_profile_enabled", "true");
                 profilePref.setChecked(!"false".equals(val));
                 profilePref.setOnPreferenceChangeListener((p, newVal) -> {
-                    mConfigManager.setEnvVar("USER_PROFILE_ENABLED", (Boolean) newVal ? "true" : "false");
+                    mConfigManager.setYamlValue("memory.user_profile_enabled", (Boolean) newVal ? "true" : "false");
                     return true;
                 });
             }
@@ -1791,10 +1791,10 @@ public class HermesConfigActivity extends AppCompatActivity {
             // Memory char limit
             EditTextPreference memLimitPref = findPreference("agent_memory_char_limit");
             if (memLimitPref != null) {
-                String limit = mConfigManager.getEnvVar("MEMORY_CHAR_LIMIT");
+                String limit = mConfigManager.getYamlValue("memory.memory_char_limit", "");
                 if (!limit.isEmpty()) memLimitPref.setText(limit);
                 memLimitPref.setOnPreferenceChangeListener((p, newVal) -> {
-                    mConfigManager.setEnvVar("MEMORY_CHAR_LIMIT", (String) newVal);
+                    mConfigManager.setYamlValue("memory.memory_char_limit", (String) newVal);
                     return true;
                 });
             }
@@ -1802,10 +1802,10 @@ public class HermesConfigActivity extends AppCompatActivity {
             // Session reset mode
             ListPreference resetModePref = findPreference("agent_session_reset_mode");
             if (resetModePref != null) {
-                String mode = mConfigManager.getEnvVar("SESSION_RESET_MODE");
-                if (!mode.isEmpty()) resetModePref.setValue(mode);
+                String mode = mConfigManager.getYamlValue("session_reset.mode", "none");
+                resetModePref.setValue(mode);
                 resetModePref.setOnPreferenceChangeListener((p, newVal) -> {
-                    mConfigManager.setEnvVar("SESSION_RESET_MODE", (String) newVal);
+                    mConfigManager.setYamlValue("session_reset.mode", (String) newVal);
                     return true;
                 });
             }
@@ -1813,10 +1813,10 @@ public class HermesConfigActivity extends AppCompatActivity {
             // Session idle minutes
             EditTextPreference idlePref = findPreference("agent_session_idle_minutes");
             if (idlePref != null) {
-                String idle = mConfigManager.getEnvVar("SESSION_IDLE_MINUTES");
+                String idle = mConfigManager.getYamlValue("session_reset.idle_minutes", "");
                 if (!idle.isEmpty()) idlePref.setText(idle);
                 idlePref.setOnPreferenceChangeListener((p, newVal) -> {
-                    mConfigManager.setEnvVar("SESSION_IDLE_MINUTES", (String) newVal);
+                    mConfigManager.setYamlValue("session_reset.idle_minutes", (String) newVal);
                     return true;
                 });
             }
@@ -1824,10 +1824,10 @@ public class HermesConfigActivity extends AppCompatActivity {
             // Session reset hour
             EditTextPreference hourPref = findPreference("agent_session_reset_hour");
             if (hourPref != null) {
-                String hour = mConfigManager.getEnvVar("SESSION_RESET_HOUR");
+                String hour = mConfigManager.getYamlValue("session_reset.at_hour", "");
                 if (!hour.isEmpty()) hourPref.setText(hour);
                 hourPref.setOnPreferenceChangeListener((p, newVal) -> {
-                    mConfigManager.setEnvVar("SESSION_RESET_HOUR", (String) newVal);
+                    mConfigManager.setYamlValue("session_reset.at_hour", (String) newVal);
                     return true;
                 });
             }
