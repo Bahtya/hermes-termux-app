@@ -7,6 +7,16 @@
         app:fragment="com.termux.app.fragments.settings.TermuxPreferencesFragment"/>
 
     <Preference
+        app:key="hermes_config"
+        app:title="@string/hermes_config_title"
+        app:summary="@string/hermes_llm_config_summary"
+        app:icon="@drawable/ic_settings">
+        <intent
+            android:targetPackage="com.hermes.termux"
+            android:targetClass="com.termux.app.hermes.HermesConfigActivity" />
+    </Preference>
+
+    <Preference
         app:key="termux_api"
         app:title="@string/termux_api_preferences_title"
         app:summary="@string/termux_api_preferences_summary"
