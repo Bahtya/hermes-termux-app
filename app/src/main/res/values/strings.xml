@@ -391,6 +391,16 @@
     <string name="gateway_start_summary">Start the Hermes messaging gateway</string>
     <string name="gateway_auto_start_title">Auto-start Gateway</string>
     <string name="gateway_auto_start_summary">Start Hermes gateway automatically when app opens</string>
+
+    <!-- Battery Optimization -->
+    <string name="battery_optimization_title">Battery Optimization</string>
+    <string name="battery_optimization_summary_off">Tap to whitelist app — prevents gateway from being killed</string>
+    <string name="battery_optimization_summary_on">App is whitelisted — gateway will run reliably</string>
+    <string name="battery_optimization_prompt_title">Keep Gateway Running</string>
+    <string name="battery_optimization_prompt_message">Your device may kill the Hermes gateway to save battery. Whitelist this app from battery optimization to ensure the gateway stays running reliably.\n\nThis only affects Hermes — it won\'t significantly impact your battery life.</string>
+    <string name="battery_optimization_open_settings">Open Settings</string>
+    <string name="battery_optimization_skip">Skip</string>
+
     <string name="gateway_stop_title">Stop Gateway</string>
     <string name="gateway_stop_summary">Stop the running gateway</string>
     <string name="gateway_restart_title">Restart Gateway</string>

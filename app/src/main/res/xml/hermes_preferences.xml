@@ -54,6 +54,11 @@
             android:title="@string/hermes_gateway_control_title"
             android:summary="@string/hermes_gateway_control_summary" />
 
+        <Preference
+            android:key="hermes_battery_optimization"
+            android:title="@string/battery_optimization_title"
+            android:summary="@string/battery_optimization_summary_off" />
+
     </PreferenceCategory>
 
     <PreferenceCategory android:title="@string/hermes_cat_advanced">
