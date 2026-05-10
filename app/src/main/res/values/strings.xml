@@ -704,7 +704,16 @@
     <string name="hermes_setup_start_skip">You can skip this step and start the gateway later from Hermes Settings.</string>
     <string name="hermes_setup_done_title">You\'re all set!</string>
     <string name="hermes_setup_done_text">Hermes is ready to go. You can start the gateway from the Hermes Settings or use the Web UI tab.\n\nTo change your settings at any time, tap the Hermes icon in the sidebar.</string>
-
+    <string name="hermes_setup_im_title">Connect Messaging</string>
+    <string name="hermes_setup_im_text">You can connect Hermes to your messaging platforms. This step is optional — you can set it up later from Settings.</string>
+    <string name="hermes_setup_open_whatsapp_wizard">Setup WhatsApp</string>
+    <string name="hermes_setup_summary_ai">AI: %s</string>
+    <string name="hermes_setup_summary_ai_not_configured">AI: Not configured</string>
+    <string name="hermes_setup_summary_platform_configured">%s: Configured</string>
+    <string name="hermes_setup_summary_platform_not_configured">%s: Not configured</string>
+    <string name="hermes_setup_summary_gateway_running">Gateway: Running</string>
+    <string name="hermes_setup_summary_gateway_not_started">Gateway: Not started</string>
+    <string name="hermes_setup_step_indicator">Step %1$d of %2$d</string>
 
     <string name="llm_quick_switch_provider_label">Provider</string>
     <string name="llm_quick_switch_model_label">Model</string>

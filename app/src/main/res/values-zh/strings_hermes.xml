@@ -275,6 +275,16 @@
     <string name="hermes_setup_start_skip">您可以跳过此步骤，稍后在 Hermes 设置中启动网关。</string>
     <string name="hermes_setup_done_title">设置完成！</string>
     <string name="hermes_setup_done_text">Hermes 已准备就绪。您可以从 Hermes 设置或 Web UI 标签页启动网关。\n\n随时可以通过侧边栏中的 Hermes 图标修改您的设置。</string>
+    <string name="hermes_setup_im_title">连接消息平台</string>
+    <string name="hermes_setup_im_text">您可以将 Hermes 连接到消息平台。此步骤为可选 — 您可以稍后在设置中配置。</string>
+    <string name="hermes_setup_open_whatsapp_wizard">设置 WhatsApp</string>
+    <string name="hermes_setup_summary_ai">AI: %s</string>
+    <string name="hermes_setup_summary_ai_not_configured">AI: 未配置</string>
+    <string name="hermes_setup_summary_platform_configured">%s: 已配置</string>
+    <string name="hermes_setup_summary_platform_not_configured">%s: 未配置</string>
+    <string name="hermes_setup_summary_gateway_running">网关: 运行中</string>
+    <string name="hermes_setup_summary_gateway_not_started">网关: 未启动</string>
+    <string name="hermes_setup_step_indicator">第 %1$d 步，共 %2$d 步</string>
 
     <!-- Help & FAQ -->
     <string name="hermes_help_faq_title">帮助与常见问题</string>
