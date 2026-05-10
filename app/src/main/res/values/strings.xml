@@ -583,4 +583,22 @@
     <string name="hermes_setup_done_title">You\'re all set!</string>
     <string name="hermes_setup_done_text">Hermes is ready to go. You can start the gateway from the Hermes Settings or use the Web UI tab.\n\nTo change your settings at any time, tap the Hermes icon in the sidebar.</string>
 
+
+    <string name="llm_quick_switch_provider_label">Provider</string>
+    <string name="llm_quick_switch_model_label">Model</string>
+
+    <string-array name="llm_preset_names">
+        <item>Balanced</item>
+        <item>Creative</item>
+        <item>Precise</item>
+        <item>Code</item>
+        <item>Custom</item>
+    </string-array>
+    <string-array name="llm_preset_values">
+        <item>balanced</item>
+        <item>creative</item>
+        <item>precise</item>
+        <item>code</item>
+        <item>custom</item>
+    </string-array>
 </resources>
