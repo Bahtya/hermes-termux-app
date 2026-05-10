@@ -37,9 +37,11 @@ public class HermesGatewayService extends Service {
     public static final String ACTION_STOP = "com.hermes.termux.GATEWAY_STOP";
     public static final String ACTION_CHECK = "com.hermes.termux.GATEWAY_CHECK";
     public static final String ACTION_RESTART = "com.hermes.termux.GATEWAY_RESTART";
+    public static final String ACTION_DISABLE_RECOVERY = "com.hermes.termux.DISABLE_RECOVERY";
     public static final String PREF_AUTO_START = "hermes_auto_start_gateway";
     private static final String PREF_RESTART_COUNT = "gateway_restart_count";
     private static final String PREF_LAST_CRASH_TIME = "gateway_last_crash_time";
+    private static final String PREF_DISABLE_RECOVERY = "gateway_disable_recovery";
     private static final long STABLE_UPTIME_MS = 60_000;
 
     private final Handler mHandler = new Handler(Looper.getMainLooper());
@@ -61,7 +63,7 @@ public class HermesGatewayService extends Service {
         public void run() {
             if (mRunning) {
                 boolean alive = mGatewayProcess != null && mGatewayProcess.isAlive();
-                if (!alive && mRestartAttempts < MAX_RESTARTS) {
+                if (!alive && mRestartAttempts < MAX_RESTARTS && !isRecoveryDisabled(HermesGatewayService.this)) {
                     Log.w(TAG, "Gateway process died, restarting (attempt " + (mRestartAttempts + 1) + ")");
                     showCrashNotification(mRestartAttempts + 1);
                     startGatewayProcess();
@@ -99,6 +101,12 @@ public class HermesGatewayService extends Service {
             if (ACTION_STOP.equals(action)) {
                 stopGateway();
                 return START_NOT_STICKY;
+            }
+            if (ACTION_DISABLE_RECOVERY.equals(action)) {
+                setRecoveryDisabled(this, true);
+                updateNotification("Auto-recovery disabled");
+                cancelErrorNotification();
+                return START_STICKY;
             }
             if (ACTION_RESTART.equals(action)) {
                 clearRestartState();
@@ -250,11 +258,19 @@ public class HermesGatewayService extends Service {
     }
 
     private void showCrashNotification(int attempt) {
+        Intent disableIntent = new Intent(this, HermesGatewayService.class);
+        disableIntent.setAction(ACTION_DISABLE_RECOVERY);
+        PendingIntent disablePi = PendingIntent.getService(this, 3, disableIntent,
+                PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE);
+
         Notification notification = new NotificationCompat.Builder(this, ERROR_CHANNEL_ID)
-                .setContentTitle("Hermes Gateway Restarted")
-                .setContentText("Gateway crashed and was restarted (attempt " + attempt + "/" + MAX_RESTARTS + ")")
+                .setContentTitle(getString(R.string.gateway_crash_title))
+                .setContentText(getString(R.string.gateway_crash_message, attempt, MAX_RESTARTS))
+                .setStyle(new NotificationCompat.BigTextStyle()
+                        .bigText(getString(R.string.gateway_crash_detail, attempt, MAX_RESTARTS)))
                 .setSmallIcon(R.drawable.ic_hermes)
                 .setAutoCancel(true)
+                .addAction(0, getString(R.string.gateway_crash_disable), disablePi)
                 .setPriority(NotificationCompat.PRIORITY_DEFAULT)
                 .build();
         NotificationManager nm = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
@@ -268,8 +284,8 @@ public class HermesGatewayService extends Service {
                 PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE);
 
         Notification notification = new NotificationCompat.Builder(this, ERROR_CHANNEL_ID)
-                .setContentTitle("Hermes Gateway Stopped")
-                .setContentText("Gateway crashed " + MAX_RESTARTS + " times and could not recover")
+                .setContentTitle(getString(R.string.gateway_stopped_crash_title))
+                .setContentText(getString(R.string.gateway_stopped_crash_message, MAX_RESTARTS))
                 .setSmallIcon(R.drawable.ic_hermes)
                 .setAutoCancel(false)
                 .setOngoing(true)
@@ -317,6 +333,23 @@ public class HermesGatewayService extends Service {
     @Override
     public IBinder onBind(Intent intent) {
         return null;
+    }
+
+    public static boolean isRecoveryDisabled(Context context) {
+        return context.getSharedPreferences("hermes_gateway", Context.MODE_PRIVATE)
+                .getBoolean(PREF_DISABLE_RECOVERY, false);
+    }
+
+    public static void setRecoveryDisabled(Context context, boolean disabled) {
+        context.getSharedPreferences("hermes_gateway", Context.MODE_PRIVATE)
+                .edit()
+                .putBoolean(PREF_DISABLE_RECOVERY, disabled)
+                .apply();
+    }
+
+    public static int getRestartCount(Context context) {
+        return context.getSharedPreferences("hermes_gateway", Context.MODE_PRIVATE)
+                .getInt(PREF_RESTART_COUNT, 0);
     }
 
     public static boolean isAutoStartEnabled(Context context) {
