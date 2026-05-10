@@ -222,6 +222,18 @@
     <string name="hermes_telegram_setup_summary">Connect your Telegram bot</string>
     <string name="hermes_discord_setup_title">Discord Setup</string>
     <string name="hermes_discord_setup_summary">Connect your Discord bot</string>
+    <string name="hermes_language_title">Language</string>
+    <string name="hermes_language_summary">Change app language (restarts activity)</string>
+    <string-array name="hermes_language_names">
+        <item>System Default</item>
+        <item>English</item>
+        <item>简体中文</item>
+    </string-array>
+    <string-array name="hermes_language_values">
+        <item>default</item>
+        <item>en</item>
+        <item>zh</item>
+    </string-array>
     <string name="hermes_gateway_control_title">Gateway Control</string>
     <string name="hermes_gateway_control_summary">Start, stop, or restart the Hermes gateway</string>
     <string name="hermes_reset_title">Reset Configuration</string>

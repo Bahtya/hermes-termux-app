@@ -22,6 +22,14 @@
 
     <PreferenceCategory android:title="@string/hermes_cat_general">
 
+        <ListPreference
+            android:key="hermes_language"
+            android:title="@string/hermes_language_title"
+            android:summary="@string/hermes_language_summary"
+            android:entries="@array/hermes_language_names"
+            android:entryValues="@array/hermes_language_values"
+            android:defaultValue="default" />
+
         <Preference
             android:key="hermes_llm_config"
             android:title="@string/hermes_llm_config_title"
