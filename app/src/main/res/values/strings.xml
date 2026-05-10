@@ -742,6 +742,12 @@
     <string name="llm_temperature_summary">Controls randomness (0.0 - 2.0, default 0.7)</string>
     <string name="llm_max_tokens_title">Max Tokens</string>
     <string name="llm_max_tokens_summary">Maximum response length (default 4096)</string>
+    <string name="llm_top_p_title">Top P</string>
+    <string name="llm_top_p_summary">Nucleus sampling threshold (0.0–1.0, default 1.0)</string>
+    <string name="llm_frequency_penalty_title">Frequency Penalty</string>
+    <string name="llm_frequency_penalty_summary">Penalize repeated tokens (-2.0 to 2.0, default 0)</string>
+    <string name="llm_presence_penalty_title">Presence Penalty</string>
+    <string name="llm_presence_penalty_summary">Encourage new topics (-2.0 to 2.0, default 0)</string>
     <string name="llm_templates_title">System Prompt Templates</string>
     <string name="llm_templates_summary">Choose a preset persona template</string>
     <string name="llm_paste_key_title">Paste API Key</string>
