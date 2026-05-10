@@ -35,6 +35,7 @@ import com.termux.shared.activities.ReportActivity;
 import com.termux.shared.activity.ActivityUtils;
 import com.termux.shared.activity.media.AppCompatActivityUtils;
 import com.termux.app.hermes.HermesConfigActivity;
+import com.termux.app.hermes.HermesGatewayService;
 import com.termux.app.hermes.HermesSetupWizardActivity;
 import com.termux.shared.data.IntentUtils;
 import com.termux.shared.android.PermissionUtils;
@@ -407,6 +408,12 @@ public final class TermuxActivity extends AppCompatActivity implements ServiceCo
         // Show setup wizard on first launch
         if (!HermesSetupWizardActivity.isWizardCompleted(this)) {
             startActivity(new Intent(this, HermesSetupWizardActivity.class));
+        }
+
+        // Auto-start gateway if enabled
+        if (HermesGatewayService.isAutoStartEnabled(this)) {
+            startService(new Intent(this, HermesGatewayService.class)
+                    .setAction(HermesGatewayService.ACTION_START));
         }
 
         setTermuxSessionsListView();
