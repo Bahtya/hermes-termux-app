@@ -395,6 +395,15 @@
     <string name="gateway_stop_summary">Stop the running gateway</string>
     <string name="gateway_restart_title">Restart Gateway</string>
     <string name="gateway_restart_summary">Restart the gateway process</string>
+
+    <!-- Gateway Pre-check -->
+    <string name="gateway_precheck_no_llm_title">AI provider not configured</string>
+    <string name="gateway_precheck_no_llm_message">You need to configure an AI provider and API key before starting the gateway.\n\nPlease set up your LLM provider first.</string>
+    <string name="gateway_precheck_no_llm_action">Configure AI</string>
+    <string name="gateway_precheck_no_im_title">No messaging platform configured</string>
+    <string name="gateway_precheck_no_im_message">No messaging platform is set up yet. The gateway will start but won\'t receive messages from any platform.\n\nYou can configure messaging later from Settings.</string>
+    <string name="gateway_precheck_no_im_action_start">Start anyway</string>
+    <string name="gateway_precheck_no_im_action_setup">Set up messaging</string>
     <string name="gateway_started">Gateway starting…</string>
     <string name="gateway_stopped">Gateway stopped</string>
     <string name="gateway_restarted">Gateway restarting…</string>

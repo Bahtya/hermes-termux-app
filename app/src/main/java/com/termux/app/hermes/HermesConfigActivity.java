@@ -27,6 +27,51 @@ import java.io.File;
 
 public class HermesConfigActivity extends AppCompatActivity {
 
+    interface GatewayStartCallback {
+        void onProceed();
+    }
+
+    static void validateAndStartGateway(androidx.fragment.app.Fragment fragment, GatewayStartCallback callback) {
+        HermesConfigManager config = HermesConfigManager.getInstance();
+        String provider = config.getModelProvider();
+        String apiKey = config.getApiKey(provider);
+        boolean hasLLM = apiKey != null && !apiKey.isEmpty();
+        boolean hasIM = config.isFeishuConfigured()
+                || !config.getEnvVar("TELEGRAM_BOT_TOKEN").isEmpty()
+                || !config.getEnvVar("DISCORD_BOT_TOKEN").isEmpty();
+
+        if (!hasLLM) {
+            new AlertDialog.Builder(fragment.requireContext())
+                    .setTitle(R.string.gateway_precheck_no_llm_title)
+                    .setMessage(R.string.gateway_precheck_no_llm_message)
+                    .setPositiveButton(R.string.gateway_precheck_no_llm_action, (d, w) -> {
+                        fragment.requireActivity().getSupportFragmentManager()
+                                .beginTransaction()
+                                .replace(R.id.hermes_config_content, new LlmConfigFragment())
+                                .addToBackStack(null)
+                                .setTransition(FragmentTransaction.TRANSIT_FRAGMENT_OPEN)
+                                .commit();
+                    })
+                    .setNegativeButton(android.R.string.cancel, null)
+                    .show();
+            return;
+        }
+
+        if (!hasIM) {
+            new AlertDialog.Builder(fragment.requireContext())
+                    .setTitle(R.string.gateway_precheck_no_im_title)
+                    .setMessage(R.string.gateway_precheck_no_im_message)
+                    .setPositiveButton(R.string.gateway_precheck_no_im_action_start, (d, w) -> callback.onProceed())
+                    .setNeutralButton(R.string.gateway_precheck_no_im_action_setup, (d, w) -> {
+                        // just close — user can navigate to IM setup from main screen
+                    })
+                    .show();
+            return;
+        }
+
+        callback.onProceed();
+    }
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -162,9 +207,10 @@ public class HermesConfigActivity extends AppCompatActivity {
                     boolean enabled = (Boolean) newVal;
                     HermesGatewayService.setAutoStartEnabled(requireContext(), enabled);
                     if (enabled) {
-                        requireContext().startService(
-                                new Intent(requireContext(), HermesGatewayService.class)
-                                        .setAction(HermesGatewayService.ACTION_START));
+                        validateAndStartGateway(this, () ->
+                            requireContext().startService(
+                                    new Intent(requireContext(), HermesGatewayService.class)
+                                            .setAction(HermesGatewayService.ACTION_START)));
                     }
                     return true;
                 });
@@ -913,13 +959,13 @@ public class HermesConfigActivity extends AppCompatActivity {
 
             switch (key) {
                 case "gateway_start":
-                    runGatewayCommand("start");
+                    validateAndStartGateway(this, () -> runGatewayCommand("start"));
                     return true;
                 case "gateway_stop":
                     runGatewayCommand("stop");
                     return true;
                 case "gateway_restart":
-                    runGatewayCommand("restart");
+                    validateAndStartGateway(this, () -> runGatewayCommand("restart"));
                     return true;
             }
             return super.onPreferenceTreeClick(preference);
