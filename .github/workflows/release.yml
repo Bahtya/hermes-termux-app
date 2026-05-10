@@ -4,23 +4,46 @@ on:
   push:
     tags:
       - 'v*'
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: 'Release tag (e.g. v1.2.0)'
+        required: true
+        type: string
 
 permissions:
   contents: write
 
+concurrency:
+  group: release-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
   create-release:
     runs-on: ubuntu-latest
+    timeout-minutes: 10
+    outputs:
+      tag_name: ${{ steps.tag.outputs.name }}
     steps:
       - name: Checkout repository
         uses: actions/checkout@v6
         with:
           fetch-depth: 0
 
+      - name: Determine tag
+        id: tag
+        run: |
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+            TAG="${{ inputs.tag }}"
+          else
+            TAG="${GITHUB_REF#refs/tags/}"
+          fi
+          echo "name=$TAG" >> $GITHUB_OUTPUT
+
       - name: Generate changelog
         id: changelog
         run: |
-          TAG_NAME="${GITHUB_REF#refs/tags/}"
+          TAG_NAME="${{ steps.tag.outputs.name }}"
           PREVIOUS_TAG=$(git describe --tags --abbrev=0 HEAD^ 2>/dev/null || echo "")
           if [ -n "$PREVIOUS_TAG" ]; then
             CHANGES=$(git log "${PREVIOUS_TAG}..HEAD" --pretty=format:"- %s (%h)" --no-merges)
@@ -35,7 +58,8 @@ jobs:
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          TAG_NAME="${GITHUB_REF#refs/tags/}"
+          TAG_NAME="${{ steps.tag.outputs.name }}"
+          PREVIOUS_TAG=$(git describe --tags --abbrev=0 HEAD^ 2>/dev/null || echo "")
           cat > release_notes.md <<RELEASE_EOF
           ## What's Changed
 
@@ -57,9 +81,17 @@ jobs:
             --title "Hermes Termux ${TAG_NAME#v}" \
             --draft
 
+      - name: Summary
+        run: |
+          echo "### Release Created :rocket:" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "- **Tag**: \`${{ steps.tag.outputs.name }}\`" >> $GITHUB_STEP_SUMMARY
+          echo "- **Status**: Draft (pending APK builds)" >> $GITHUB_STEP_SUMMARY
+
   build-and-upload:
     needs: create-release
     runs-on: ubuntu-latest
+    timeout-minutes: 30
     strategy:
       fail-fast: false
       matrix:
@@ -91,7 +123,7 @@ jobs:
           TERMUX_PACKAGE_VARIANT: ${{ matrix.package_variant }}
           TERMUX_SPLIT_APKS_FOR_RELEASE_BUILDS: "1"
         run: |
-          TAG_NAME="${GITHUB_REF#refs/tags/}"
+          TAG_NAME="${{ needs.create-release.outputs.tag_name }}"
           APK_DIR_PATH="./app/build/outputs/apk/release"
           APK_VERSION_TAG="$TAG_NAME+${{ matrix.package_variant }}-github-release"
           APK_BASENAME_PREFIX="hermes-termux-app_$APK_VERSION_TAG"
@@ -110,12 +142,19 @@ jobs:
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          TAG_NAME="${GITHUB_REF#refs/tags/}"
+          TAG_NAME="${{ needs.create-release.outputs.tag_name }}"
           gh release upload "$TAG_NAME" ${{ env.APK_DIR_PATH }}/*.apk ${{ env.APK_DIR_PATH }}/*_sha256sums
+
+      - name: Summary
+        if: always()
+        run: |
+          echo "### Build ${{ matrix.package_variant }} ${{ job.status == 'success' && '✅' || '❌' }}" >> $GITHUB_STEP_SUMMARY
+          echo "- **Variant**: \`${{ matrix.package_variant }}\`" >> $GITHUB_STEP_SUMMARY
 
   publish-release:
     needs: build-and-upload
     runs-on: ubuntu-latest
+    timeout-minutes: 5
     steps:
       - name: Checkout repository
         uses: actions/checkout@v6
@@ -124,5 +163,12 @@ jobs:
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          TAG_NAME="${GITHUB_REF#refs/tags/}"
+          TAG_NAME="${{ needs.create-release.outputs.tag_name }}"
           gh release edit "$TAG_NAME" --draft=false
+
+      - name: Summary
+        run: |
+          echo "### Release Published :tada:" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "- **Tag**: \`${{ needs.create-release.outputs.tag_name }}\`" >> $GITHUB_STEP_SUMMARY
+          echo "- **URL**: https://github.com/${{ github.repository }}/releases/tag/${{ needs.create-release.outputs.tag_name }}" >> $GITHUB_STEP_SUMMARY
