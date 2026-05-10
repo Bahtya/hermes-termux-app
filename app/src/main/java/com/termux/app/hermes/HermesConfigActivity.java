@@ -587,6 +587,28 @@ public class HermesConfigActivity extends AppCompatActivity {
             Preference modelPref = findPreference("llm_model");
             if (modelPref != null) {
                 modelPref.setOnPreferenceChangeListener((p, newVal) -> {
+                    String model = (String) newVal;
+                    boolean isCustom = getString(R.string.llm_model_custom).equals(model);
+                    Preference customModelPref = findPreference("llm_custom_model");
+                    if (isCustom) {
+                        if (customModelPref != null) customModelPref.setVisible(true);
+                    } else {
+                        mConfigManager.setModelName(model);
+                        if (customModelPref != null) customModelPref.setVisible(false);
+                    }
+                    return true;
+                });
+            }
+
+            Preference customModelPref = findPreference("llm_custom_model");
+            if (customModelPref != null) {
+                String currentModel = mConfigManager.getModelName();
+                boolean modelInList = isModelInPresetList(currentProvider, currentModel);
+                if (!modelInList && !currentModel.isEmpty() && !"unknown".equals(currentModel)) {
+                    customModelPref.setText(currentModel);
+                    customModelPref.setVisible(true);
+                }
+                customModelPref.setOnPreferenceChangeListener((p, newVal) -> {
                     mConfigManager.setModelName((String) newVal);
                     return true;
                 });
@@ -612,11 +634,30 @@ public class HermesConfigActivity extends AppCompatActivity {
                 CharSequence[] models = getResources().getTextArray(arrayResId);
                 modelPref.setEntries(models);
                 modelPref.setEntryValues(models);
-                if (models.length > 0) {
-                    modelPref.setValue(models[0].toString());
-                    mConfigManager.setModelName(models[0].toString());
+                // Set to first preset (skip custom option)
+                for (CharSequence m : models) {
+                    if (!getString(R.string.llm_model_custom).equals(m.toString())) {
+                        modelPref.setValue(m.toString());
+                        mConfigManager.setModelName(m.toString());
+                        break;
+                    }
                 }
             }
+            Preference customModelPref = findPreference("llm_custom_model");
+            if (customModelPref != null) customModelPref.setVisible(false);
+        }
+
+        private boolean isModelInPresetList(String provider, String modelName) {
+            int arrayResId = getModelArrayResId(provider);
+            if (arrayResId == 0) return false;
+            CharSequence[] models = getResources().getTextArray(arrayResId);
+            String customLabel = getString(R.string.llm_model_custom);
+            for (CharSequence m : models) {
+                if (m.toString().equals(modelName) && !m.toString().equals(customLabel)) {
+                    return true;
+                }
+            }
+            return false;
         }
 
         private int getModelArrayResId(String provider) {
