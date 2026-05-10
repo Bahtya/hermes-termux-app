@@ -48,7 +48,9 @@ public class HermesGatewayService extends Service {
     private boolean mRunning = false;
     private int mRestartAttempts = 0;
     private static final int MAX_RESTARTS = 3;
+    private static final int TOTAL_STARTUP_STEPS = 5;
     private long mProcessStartTime = 0;
+    private int mStartupStep = 0;
 
     // Static reference for uptime queries from activities
     private static volatile HermesGatewayService sInstance;
@@ -126,12 +128,26 @@ public class HermesGatewayService extends Service {
             return;
         }
 
+        // Step 1: Loading configuration
+        mStartupStep = 1;
+        startForeground(NOTIFICATION_ID, buildProgressNotification(1, TOTAL_STARTUP_STEPS,
+                getString(R.string.gateway_step_loading_config)));
+
         HermesConfigManager config = HermesConfigManager.getInstance();
         String logDir = home + "/.hermes/logs";
         new File(logDir).mkdirs();
 
         mExecutor.execute(() -> {
             try {
+                // Step 2: Connecting to LLM provider
+                updateStartupProgress(2, getString(R.string.gateway_step_connecting_llm));
+
+                // Step 3: Initializing IM adapters
+                updateStartupProgress(3, getString(R.string.gateway_step_init_im));
+
+                // Step 4: Starting gateway
+                updateStartupProgress(4, getString(R.string.gateway_step_starting));
+
                 ProcessBuilder pb = new ProcessBuilder(
                         binPath + "/bash", "-c",
                         hermesPath + " gateway run >> " + logDir + "/gateway.log 2>&1"
@@ -155,14 +171,17 @@ public class HermesGatewayService extends Service {
                 }
 
                 cancelErrorNotification();
-                Notification notification = buildNotification("Hermes Gateway running");
+
+                // Step 5: Gateway running
+                Notification notification = buildNotification(getString(R.string.gateway_step_running));
                 startForeground(NOTIFICATION_ID, notification);
+                mStartupStep = TOTAL_STARTUP_STEPS;
 
                 mHandler.postDelayed(mHealthCheck, 30_000);
                 Log.i(TAG, "Gateway process started");
             } catch (Exception e) {
                 Log.e(TAG, "Failed to start gateway", e);
-                updateNotification("Gateway error: " + e.getMessage());
+                updateNotification(getString(R.string.gateway_step_failed));
             }
         });
     }
@@ -190,6 +209,37 @@ public class HermesGatewayService extends Service {
 
         stopForeground(STOP_FOREGROUND_REMOVE);
         stopSelf();
+    }
+
+    private void updateStartupProgress(int step, String message) {
+        mStartupStep = step;
+        Notification notification = buildProgressNotification(step, TOTAL_STARTUP_STEPS, message);
+        NotificationManager nm = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
+        if (nm != null) {
+            nm.notify(NOTIFICATION_ID, notification);
+        }
+    }
+
+    private Notification buildProgressNotification(int currentStep, int totalSteps, String message) {
+        Intent openIntent = new Intent(this, TermuxActivity.class);
+        PendingIntent pi = PendingIntent.getActivity(this, 0, openIntent,
+                PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE);
+
+        Intent stopIntent = new Intent(this, HermesGatewayService.class);
+        stopIntent.setAction(ACTION_STOP);
+        PendingIntent stopPi = PendingIntent.getService(this, 1, stopIntent,
+                PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE);
+
+        boolean indeterminate = (currentStep >= totalSteps);
+        return new NotificationCompat.Builder(this, CHANNEL_ID)
+                .setContentTitle("Hermes Gateway (" + currentStep + "/" + totalSteps + ")")
+                .setContentText(message)
+                .setSmallIcon(R.drawable.ic_hermes)
+                .setContentIntent(pi)
+                .addAction(0, "Stop", stopPi)
+                .setOngoing(true)
+                .setProgress(totalSteps, currentStep, indeterminate)
+                .build();
     }
 
     private void updateNotification(String text) {
