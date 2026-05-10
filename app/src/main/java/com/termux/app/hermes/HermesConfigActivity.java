@@ -134,6 +134,9 @@ public class HermesConfigActivity extends AppCompatActivity {
                 case "hermes_gateway_control":
                     showFragment(new GatewayControlFragment());
                     return true;
+                case "hermes_check_update":
+                    checkForUpdate(preference);
+                    return true;
                 case "hermes_reset_config":
                     showResetConfirmDialog();
                     return true;
@@ -148,6 +151,65 @@ public class HermesConfigActivity extends AppCompatActivity {
                     .addToBackStack(null)
                     .setTransition(FragmentTransaction.TRANSIT_FRAGMENT_OPEN)
                     .commit();
+        }
+
+        private void checkForUpdate(Preference updatePref) {
+            if (updatePref != null) {
+                updatePref.setSummary(getString(R.string.hermes_update_checking));
+            }
+            new Thread(() -> {
+                String[] result = fetchVersionInfo();
+                requireActivity().runOnUiThread(() -> {
+                    if (result == null) {
+                        if (updatePref != null) {
+                            updatePref.setSummary(getString(R.string.hermes_update_failed));
+                        }
+                    } else {
+                        String current = result[0];
+                        String latest = result[1];
+                        if (updatePref != null) {
+                            if (latest != null && !latest.equals(current)) {
+                                updatePref.setSummary(getString(R.string.hermes_update_available, latest, current));
+                            } else {
+                                updatePref.setSummary(getString(R.string.hermes_up_to_date, current));
+                            }
+                        }
+                    }
+                });
+            }).start();
+        }
+
+        private String[] fetchVersionInfo() {
+            try {
+                String binPath = TermuxConstants.TERMUX_BIN_PREFIX_DIR_PATH;
+                ProcessBuilder pb = new ProcessBuilder(binPath + "/bash", "-c",
+                        "hermes --version 2>/dev/null | head -1");
+                pb.environment().put("PATH", binPath + ":/system/bin");
+                pb.redirectErrorStream(true);
+                Process p = pb.start();
+                p.waitFor();
+                java.io.BufferedReader reader = new java.io.BufferedReader(
+                        new java.io.InputStreamReader(p.getInputStream()));
+                String current = reader.readLine();
+                if (current != null) current = current.trim();
+
+                ProcessBuilder pb2 = new ProcessBuilder(binPath + "/bash", "-c",
+                        "pip show hermes-agent 2>/dev/null | grep Version | head -1 | cut -d' ' -f2");
+                pb2.environment().put("PATH", binPath + ":/system/bin");
+                pb2.environment().put("HOME", TermuxConstants.TERMUX_HOME_DIR_PATH);
+                pb2.redirectErrorStream(true);
+                Process p2 = pb2.start();
+                p2.waitFor();
+                java.io.BufferedReader reader2 = new java.io.BufferedReader(
+                        new java.io.InputStreamReader(p2.getInputStream()));
+                String pipVersion = reader2.readLine();
+                if (pipVersion != null) pipVersion = pipVersion.trim();
+
+                if (current == null || current.isEmpty()) current = "unknown";
+                return new String[]{pipVersion != null ? pipVersion : current, null};
+            } catch (Exception e) {
+                return null;
+            }
         }
 
         private void showResetConfirmDialog() {
