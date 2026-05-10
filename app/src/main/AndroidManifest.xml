@@ -235,6 +235,15 @@
         </receiver>
 
         <receiver
+            android:name=".app.hermes.HermesBootReceiver"
+            android:enabled="true"
+            android:exported="false">
+            <intent-filter>
+                <action android:name="android.intent.action.BOOT_COMPLETED" />
+            </intent-filter>
+        </receiver>
+
+        <receiver
             android:name=".shared.activities.ReportActivity$ReportActivityBroadcastReceiver"
             android:exported="false" />
 
