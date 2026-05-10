@@ -368,6 +368,9 @@ App ID 以"cli_"开头，约 10-20 个字符。App Secret 较长（30+ 字符）
     <string name="gateway_log_share">分享</string>
     <string name="gateway_log_share_title">分享网关日志</string>
     <string name="gateway_log_share_empty">暂无日志内容可分享。</string>
+    <string name="gateway_log_export">导出</string>
+    <string name="gateway_log_export_success">日志已导出到 %1$s</string>
+    <string name="gateway_log_export_failed">导出失败：%1$s</string>
     <string name="hermes_gateway_log_summary">查看网关日志以排查问题</string>
     <string name="hermes_share_diag_title">分享诊断信息</string>
     <string name="hermes_share_diag_summary">分享配置摘要（API 密钥已隐藏）用于故障排除</string>
