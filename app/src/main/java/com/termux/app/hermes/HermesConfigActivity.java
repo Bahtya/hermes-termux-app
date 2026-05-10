@@ -455,8 +455,15 @@ public class HermesConfigActivity extends AppCompatActivity {
                     apiKeyPref.setSummary(maskApiKey(currentKey));
                 }
                 apiKeyPref.setOnPreferenceChangeListener((p, newVal) -> {
-                    mConfigManager.setApiKey(mConfigManager.getModelProvider(), (String) newVal);
-                    p.setSummary(maskApiKey((String) newVal));
+                    String key = ((String) newVal).trim();
+                    // Validate key format
+                    String warning = validateApiKey(key, mConfigManager.getModelProvider());
+                    if (warning != null) {
+                        apiKeyPref.setSummary(warning);
+                    } else {
+                        apiKeyPref.setSummary(maskApiKey(key));
+                    }
+                    mConfigManager.setApiKey(mConfigManager.getModelProvider(), key);
                     return true;
                 });
             }
