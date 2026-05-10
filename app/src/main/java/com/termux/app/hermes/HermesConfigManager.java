@@ -1181,4 +1181,171 @@ public class HermesConfigManager {
         }
     }
 
+    /** Exports all config to a JSON string suitable for backup. */
+    public String exportConfig() {
+        loadConfig();
+        StringBuilder sb = new StringBuilder();
+        sb.append("{\n");
+
+        // YAML config
+        sb.append("  \"yaml\": {\n");
+        boolean first = true;
+        for (Map.Entry<String, String> entry : mYamlConfig.entrySet()) {
+            if (!first) sb.append(",\n");
+            sb.append("    \"").append(entry.getKey()).append("\": \"");
+            sb.append(escapeJson(entry.getValue())).append("\"");
+            first = false;
+        }
+        sb.append("\n  },\n");
+
+        // Env vars
+        sb.append("  \"env\": {\n");
+        first = true;
+        for (Map.Entry<String, String> entry : mEnvVars.entrySet()) {
+            if (!first) sb.append(",\n");
+            sb.append("    \"").append(entry.getKey()).append("\": \"");
+            sb.append(escapeJson(entry.getValue())).append("\"");
+            first = false;
+        }
+        sb.append("\n  }\n");
+
+        sb.append("}");
+        return sb.toString();
+    }
+
+    /** Exports config with sensitive values masked. */
+    public String exportConfigMasked() {
+        loadConfig();
+        String[] sensitiveKeys = {
+                "API_KEY", "SECRET", "TOKEN", "PASSWORD",
+                "ANTHROPIC_API_KEY", "OPENAI_API_KEY", "GOOGLE_API_KEY",
+                "DEEPSEEK_API_KEY", "OPENROUTER_API_KEY", "XAI_API_KEY",
+                "DASHSCOPE_API_KEY", "MISTRAL_API_KEY", "NVIDIA_API_KEY",
+                "FEISHU_APP_SECRET", "TELEGRAM_BOT_TOKEN", "DISCORD_BOT_TOKEN",
+                "WHATSAPP_ACCESS_TOKEN"
+        };
+
+        StringBuilder sb = new StringBuilder();
+        sb.append("{\n");
+
+        sb.append("  \"yaml\": {\n");
+        boolean first = true;
+        for (Map.Entry<String, String> entry : mYamlConfig.entrySet()) {
+            if (!first) sb.append(",\n");
+            String value = entry.getValue();
+            for (String key : sensitiveKeys) {
+                if (entry.getKey().toUpperCase().contains(key)) {
+                    value = maskSensitive(value);
+                    break;
+                }
+            }
+            sb.append("    \"").append(entry.getKey()).append("\": \"");
+            sb.append(escapeJson(value)).append("\"");
+            first = false;
+        }
+        sb.append("\n  },\n");
+
+        sb.append("  \"env\": {\n");
+        first = true;
+        for (Map.Entry<String, String> entry : mEnvVars.entrySet()) {
+            if (!first) sb.append(",\n");
+            String value = entry.getValue();
+            for (String key : sensitiveKeys) {
+                if (entry.getKey().toUpperCase().contains(key)) {
+                    value = maskSensitive(value);
+                    break;
+                }
+            }
+            sb.append("    \"").append(entry.getKey()).append("\": \"");
+            sb.append(escapeJson(value)).append("\"");
+            first = false;
+        }
+        sb.append("\n  }\n");
+
+        sb.append("}");
+        return sb.toString();
+    }
+
+    /** Imports config from a JSON string, overwriting existing config. */
+    public boolean importConfig(String json) {
+        try {
+            // Parse yaml section
+            String yamlSection = extractSection(json, "yaml");
+            String envSection = extractSection(json, "env");
+
+            if (yamlSection != null) {
+                Map<String, String> yamlMap = parseJsonEntries(yamlSection);
+                for (Map.Entry<String, String> entry : yamlMap.entrySet()) {
+                    mYamlConfig.put(entry.getKey(), entry.getValue());
+                }
+                writeYamlConfig();
+            }
+
+            if (envSection != null) {
+                Map<String, String> envMap = parseJsonEntries(envSection);
+                for (Map.Entry<String, String> entry : envMap.entrySet()) {
+                    mEnvVars.put(entry.getKey(), entry.getValue());
+                }
+                writeEnvFile();
+            }
+
+            return true;
+        } catch (Exception e) {
+            Logger.logError(LOG_TAG, "Failed to import config: " + e.getMessage());
+            return false;
+        }
+    }
+
+    private String escapeJson(String s) {
+        if (s == null) return "";
+        return s.replace("\\", "\\\\").replace("\"", "\\\"")
+                .replace("\n", "\\n").replace("\r", "\\r").replace("\t", "\\t");
+    }
+
+    private String maskSensitive(String value) {
+        if (value == null || value.isEmpty()) return "";
+        if (value.length() <= 8) return "****";
+        return value.substring(0, 4) + "****" + value.substring(value.length() - 4);
+    }
+
+    private String extractSection(String json, String sectionName) {
+        String marker = "\"" + sectionName + "\": {";
+        int start = json.indexOf(marker);
+        if (start < 0) return null;
+        start += marker.length();
+        int depth = 1;
+        int end = start;
+        while (end < json.length() && depth > 0) {
+            char c = json.charAt(end);
+            if (c == '{') depth++;
+            else if (c == '}') depth--;
+            end++;
+        }
+        return json.substring(start, end - 1);
+    }
+
+    private Map<String, String> parseJsonEntries(String section) {
+        Map<String, String> map = new LinkedHashMap<>();
+        String[] lines = section.split("\n");
+        for (String line : lines) {
+            line = line.trim();
+            if (line.startsWith("\"")) {
+                int colonIdx = line.indexOf("\":");
+                if (colonIdx > 0) {
+                    String key = line.substring(1, colonIdx);
+                    String value = line.substring(colonIdx + 2).trim();
+                    // Remove surrounding quotes and trailing comma
+                    if (value.startsWith("\"")) value = value.substring(1);
+                    if (value.endsWith("\"")) value = value.substring(0, value.length() - 1);
+                    else if (value.endsWith("\",")) value = value.substring(0, value.length() - 2);
+                    // Unescape
+                    value = value.replace("\\n", "\n").replace("\\r", "\r")
+                            .replace("\\t", "\t").replace("\\\"", "\"")
+                            .replace("\\\\", "\\");
+                    map.put(key, value);
+                }
+            }
+        }
+        return map;
+    }
 }
