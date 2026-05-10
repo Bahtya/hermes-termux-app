@@ -71,10 +71,20 @@ public class HermesConfigActivity extends AppCompatActivity {
                         switch (status) {
                             case RUNNING:
                                 dashGateway.setSummary(getString(R.string.dashboard_gateway_running));
-                                HermesGatewayStatus.queryResourceUsageAsync(info -> {
+                                HermesGatewayStatus.checkHealthAsync((healthStatus, latencyMs, error) -> {
                                     if (getActivity() == null) return;
                                     getActivity().runOnUiThread(() -> {
-                                        dashGateway.setSummary(getString(R.string.dashboard_gateway_running_resource, info.memRssMb));
+                                        switch (healthStatus) {
+                                            case HEALTHY:
+                                                dashGateway.setSummary(getString(R.string.dashboard_gateway_healthy, latencyMs));
+                                                break;
+                                            case DEGRADED:
+                                                dashGateway.setSummary(getString(R.string.dashboard_gateway_degraded, latencyMs / 1000.0));
+                                                break;
+                                            case UNHEALTHY:
+                                                dashGateway.setSummary(getString(R.string.dashboard_gateway_unhealthy));
+                                                break;
+                                        }
                                     });
                                 });
                                 break;
@@ -245,63 +255,6 @@ public class HermesConfigActivity extends AppCompatActivity {
                     .addToBackStack(null)
                     .setTransition(FragmentTransaction.TRANSIT_FRAGMENT_OPEN)
                     .commit();
-        }
-
-        private void showQuickSetupDialog() {
-            String[] presets = {
-                    getString(R.string.quick_setup_chatgpt_feishu),
-                    getString(R.string.quick_setup_claude_telegram),
-                    getString(R.string.quick_setup_deepseek_discord),
-                    getString(R.string.quick_setup_ollama),
-                    getString(R.string.quick_setup_custom)
-            };
-            new AlertDialog.Builder(requireContext())
-                    .setTitle(R.string.quick_setup_dialog_title)
-                    .setItems(presets, (dialog, which) -> applyPreset(which))
-                    .setNegativeButton(android.R.string.cancel, null)
-                    .show();
-        }
-
-        private void applyPreset(int which) {
-            switch (which) {
-                case 0: // ChatGPT + Feishu
-                    mConfigManager.setModelProvider("openai");
-                    mConfigManager.setModelName("gpt-4o");
-                    startActivity(new Intent(requireContext(), FeishuSetupActivity.class));
-                    Toast.makeText(requireContext(),
-                            getString(R.string.quick_setup_applied, getString(R.string.quick_setup_chatgpt_feishu)),
-                            Toast.LENGTH_LONG).show();
-                    break;
-                case 1: // Claude + Telegram
-                    mConfigManager.setModelProvider("anthropic");
-                    mConfigManager.setModelName("claude-sonnet-4-6");
-                    Intent tgIntent = new Intent(requireContext(), ImSetupActivity.class);
-                    tgIntent.putExtra(ImSetupActivity.EXTRA_PLATFORM, ImSetupActivity.PLATFORM_TELEGRAM);
-                    startActivity(tgIntent);
-                    Toast.makeText(requireContext(),
-                            getString(R.string.quick_setup_applied, getString(R.string.quick_setup_claude_telegram)),
-                            Toast.LENGTH_LONG).show();
-                    break;
-                case 2: // DeepSeek + Discord
-                    mConfigManager.setModelProvider("deepseek");
-                    mConfigManager.setModelName("deepseek-chat");
-                    Intent dcIntent = new Intent(requireContext(), ImSetupActivity.class);
-                    dcIntent.putExtra(ImSetupActivity.EXTRA_PLATFORM, ImSetupActivity.PLATFORM_DISCORD);
-                    startActivity(dcIntent);
-                    Toast.makeText(requireContext(),
-                            getString(R.string.quick_setup_applied, getString(R.string.quick_setup_deepseek_discord)),
-                            Toast.LENGTH_LONG).show();
-                    break;
-                case 3: // Ollama (local)
-                    mConfigManager.setModelProvider("ollama");
-                    mConfigManager.setModelName("llama3");
-                    Toast.makeText(requireContext(),
-                            R.string.quick_setup_applied_ollama, Toast.LENGTH_LONG).show();
-                    break;
-                case 4: // Custom
-                    showFragment(new LlmConfigFragment());
-                    break;
-            }
         }
 
         private void checkForUpdate(Preference updatePref) {
