@@ -862,16 +862,48 @@ public class FeishuSetupActivity extends AppCompatActivity {
     }
 
     private boolean performTest() {
+        String binPath = com.termux.shared.termux.TermuxConstants.TERMUX_BIN_PREFIX_DIR_PATH;
+        String curlPath = binPath + "/curl";
+
+        String baseUrl;
+        if ("lark".equals(mDomain)) {
+            baseUrl = "https://open.larksuite.com/open-apis";
+        } else {
+            baseUrl = "https://open.feishu.cn/open-apis";
+        }
+
         try {
-            ProcessBuilder pb = new ProcessBuilder("hermes", "gateway", "check",
-                    "--feishu-app-id", mAppId,
-                    "--feishu-domain", mDomain);
+            // Step 1: Get tenant access token
+            ProcessBuilder pb = new ProcessBuilder(curlPath, "-s", "-X", "POST",
+                    baseUrl + "/auth/v3/tenant_access_token/internal",
+                    "-H", "Content-Type: application/json",
+                    "-d", "{\"app_id\":\"" + mAppId + "\",\"app_secret\":\"" + mAppSecret + "\"}",
+                    "--connect-timeout", "10", "--max-time", "15");
+            pb.environment().put("PATH", binPath + ":/system/bin");
             pb.redirectErrorStream(true);
+
             Process p = pb.start();
-            int exitCode = p.waitFor();
-            return exitCode == 0;
+            java.io.BufferedReader reader = new java.io.BufferedReader(
+                    new java.io.InputStreamReader(p.getInputStream()));
+            StringBuilder output = new StringBuilder();
+            String line;
+            while ((line = reader.readLine()) != null) {
+                output.append(line);
+            }
+            p.waitFor();
+
+            String response = output.toString();
+            // Check for successful response with token
+            if (response.contains("\"tenant_access_token\"")) {
+                return true;
+            }
+            // Check for specific errors
+            if (response.contains("\"code\":10014") || response.contains("\"code\":10015")) {
+                return false;
+            }
+            // If curl fails or response is unexpected, fall back to format check
+            return mAppId.startsWith("cli_") && mAppSecret.length() >= 16;
         } catch (Exception e) {
-            // Gateway check not available, just validate format
             return mAppId.startsWith("cli_") && mAppSecret.length() >= 16;
         }
     }
