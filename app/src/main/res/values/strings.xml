@@ -325,6 +325,9 @@ App ID starts with "cli_" and is about 10–20 characters. App Secret is longer 
     <string name="hermes_update_success">Updated to %1$s</string>
     <string name="hermes_update_error">Update failed: %1$s</string>
     <string name="hermes_version_label">Hermes Agent version</string>
+    <string name="hermes_share_diag_title">Share Diagnostic Info</string>
+    <string name="hermes_share_diag_summary">Share config summary (API keys masked) for troubleshooting</string>
+    <string name="hermes_diag_copied">Diagnostic info copied to clipboard</string>
 
     <!-- LLM Preferences -->
     <string name="llm_preset_title">Quick Preset</string>
