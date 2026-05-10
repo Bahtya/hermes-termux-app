@@ -331,6 +331,13 @@ App ID 以"cli_"开头，约 10-20 个字符。App Secret 较长（30+ 字符）
     <string name="validation_feishu_ok">飞书已连接</string>
     <string name="validation_telegram_ok">Telegram 已连接</string>
     <string name="validation_discord_ok">Discord 已连接</string>
+    <string name="battery_opt_title">电池优化</string>
+    <string name="battery_opt_summary">将本应用加入白名单，以保持网关在后台运行</string>
+    <string name="battery_opt_prompt_title">关闭电池优化？</string>
+    <string name="battery_opt_prompt_message">为了让 Hermes 网关稳定运行，请关闭本应用的电池优化。这可以防止 Android 系统杀死网关进程。</string>
+    <string name="battery_opt_prompt_positive">关闭优化</string>
+    <string name="battery_opt_prompt_negative">跳过</string>
+    <string name="battery_opt_already_whitelisted">已加入白名单</string>
 
     <!-- Gateway Log -->
     <string name="gateway_log_title">网关日志</string>
