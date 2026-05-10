@@ -85,7 +85,15 @@
         <item>自定义（OpenAI 兼容）</item>
     </string-array>
 
-    <!-- Gateway Control -->
+    <!-- Gateway Recovery Notifications -->
+    <string name="gateway_crash_title">网关已重启</string>
+    <string name="gateway_crash_message">崩溃恢复第 %1$d/%2$d 次</string>
+    <string name="gateway_crash_detail">网关进程崩溃并已自动重启。这是第 %1$d 次尝试（共 %2$d 次）。如果持续崩溃，请查看网关日志了解错误详情。</string>
+    <string name="gateway_crash_disable">禁用自动恢复</string>
+    <string name="gateway_stopped_crash_title">网关已停止</string>
+    <string name="gateway_stopped_crash_message">已崩溃 %1$d 次 — 无法恢复</string>
+
+        <!-- Gateway Control -->
     <string name="gateway_start_title">启动网关</string>
     <string name="gateway_start_summary">启动 Hermes 消息网关</string>
 
