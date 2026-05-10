@@ -43,6 +43,15 @@
     <string name="llm_base_url_title">API 地址</string>
     <string name="llm_base_url_summary">自定义 API 地址（用于 Ollama 或兼容 API）</string>
 
+    <!-- LLM Model Parameters -->
+    <string name="llm_params_category_title">模型参数</string>
+    <string name="llm_temperature_title">温度</string>
+    <string name="llm_temperature_summary">控制随机性（0.0 = 专注，2.0 = 创意）。默认：0.7</string>
+    <string name="llm_max_tokens_title">最大令牌数</string>
+    <string name="llm_max_tokens_summary">最大响应长度。默认：4096</string>
+    <string name="llm_temperature_invalid">温度值必须在 0.0 到 2.0 之间</string>
+    <string name="llm_max_tokens_invalid">最大令牌数必须在 256 到 32768 之间</string>
+
     <!-- LLM Test Connection -->
     <string name="llm_test_connection_title">测试连接</string>
     <string name="llm_test_connection_summary">验证 API 密钥和模型是否正常工作</string>

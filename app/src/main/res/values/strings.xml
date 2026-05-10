@@ -16,14 +16,10 @@
     <string name="application_name">&TERMUX_APP_NAME;</string>
     <string name="shared_user_label">&TERMUX_APP_NAME; user</string>
 
-
-
     <!-- Termux RUN_COMMAND permission -->
     <string name="permission_run_command_label">Run commands in &TERMUX_APP_NAME; environment</string>
     <string name="permission_run_command_description">execute arbitrary commands within &TERMUX_APP_NAME;
         environment and access files</string>
-
-
 
     <!-- Termux Bootstrap Packages Installation -->
     <string name="bootstrap_installer_body">Installing bootstrap packages…</string>
@@ -38,8 +34,6 @@
         portable/external/removable sd card on your device.
         \nBootstrap binaries compiled for &TERMUX_APP_NAME; have hardcoded $PREFIX path and cannot be installed
         under any path other than:\n%1$s.</string>
-
-
 
     <!-- Terminal Sidebar and Shortcuts -->
     <string name="action_new_session">New session</string>
@@ -61,8 +55,6 @@
 
     <string name="msg_enabling_terminal_toolbar">Enabling Terminal Toolbar</string>
     <string name="msg_disabling_terminal_toolbar">Disabling Terminal Toolbar</string>
-
-
 
     <!-- Terminal Popup -->
     <string name="action_select_url">Select URL</string>
@@ -99,14 +91,10 @@
     <string name="error_styling_not_installed">The &TERMUX_STYLING_APP_NAME; Plugin App is not installed.</string>
     <string name="action_styling_install">Install</string>
 
-
-
     <!-- Termux Notifications -->
     <string name="notification_action_exit">Exit</string>
     <string name="notification_action_wake_lock">Acquire wakelock</string>
     <string name="notification_action_wake_unlock">Release wakelock</string>
-
-
 
     <!-- TermuxService -->
     <string name="error_display_over_other_apps_permission_not_granted_to_start_terminal">&TERMUX_APP_NAME; requires
@@ -117,28 +105,20 @@
     <string name="error_termux_service_unsupported_execution_command_shell_create_mode">Unsupported execution command shell create mode to TermuxService: `%1$s`</string>
     <string name="error_termux_service_execution_command_shell_name_unset">Shell name not set but `%1$s` shell create mode passed</string>
 
-
-
     <!-- Termux RunCommandService -->
     <string name="error_run_command_service_invalid_intent_action">Invalid intent action to RunCommandService: `%1$s`</string>
     <string name="error_run_command_service_invalid_execution_command_runner">Invalid execution command runner to RunCommandService: `%1$s`</string>
     <string name="error_run_command_service_mandatory_extra_missing">Mandatory extra missing to RunCommandService: \"%1$s\"</string>
     <string name="error_run_command_service_api_help">Visit %1$s for more info on RUN_COMMAND Intent usage.</string>
 
-
-
     <!-- Termux File Receiver -->
     <string name="title_file_received">Save file in ~/downloads/</string>
     <string name="action_file_received_edit">Edit</string>
     <string name="action_file_received_open_directory">Open directory</string>
 
-
-
     <!-- Miscellaneous -->
     <string name="error_termux_service_start_failed_general">Failed to start TermuxService. Check logcat for exception message.</string>
     <string name="error_termux_service_start_failed_bg">Failed to start TermuxService while app is in background due to android bg restrictions.</string>
-
-
 
     <!-- Termux Settings -->
     <string name="title_activity_termux_settings">&TERMUX_APP_NAME; Settings</string>
@@ -173,7 +153,6 @@
                 <string name="termux_crash_report_notifications_enabled_off">Disable notifications for crash reports.</string>
                 <string name="termux_crash_report_notifications_enabled_on">Show notifications for crash reports. (Default)</string>
 
-
         <!-- Terminal IO Preferences -->
         <string name="termux_terminal_io_preferences_title">Terminal I/O</string>
         <string name="termux_terminal_io_preferences_summary">Preferences for terminal I/O</string>
@@ -193,7 +172,6 @@
                 <string name="termux_soft_keyboard_enabled_only_if_no_hardware_on">Soft keyboard will be enabled only if
                     no hardware keyboard is connected.</string>
 
-
         <!-- Terminal View Preferences -->
         <string name="termux_terminal_view_preferences_title">Terminal View</string>
         <string name="termux_terminal_view_preferences_summary">Preferences for terminal view</string>
@@ -208,39 +186,27 @@
                     It should be enabled to try to fix the issue where soft keyboard covers part of extra keys/terminal view.
                     If it causes screen flickering on your devices, then disable it. (Default)</string>
 
-
-
     <!-- Termux:API App Preferences -->
     <string name="termux_api_preferences_title">&TERMUX_API_APP_NAME;</string>
     <string name="termux_api_preferences_summary">Preferences for &TERMUX_API_APP_NAME; app</string>
-
-
 
     <!-- Termux:Float App Preferences -->
     <string name="termux_float_preferences_title">&TERMUX_FLOAT_APP_NAME;</string>
     <string name="termux_float_preferences_summary">Preferences for &TERMUX_FLOAT_APP_NAME; app</string>
 
-
-
     <!-- Termux:Tasker App Preferences -->
     <string name="termux_tasker_preferences_title">&TERMUX_TASKER_APP_NAME;</string>
     <string name="termux_tasker_preferences_summary">Preferences for &TERMUX_TASKER_APP_NAME; app</string>
 
-
-
     <!-- Termux:Widget App Preferences -->
     <string name="termux_widget_preferences_title">&TERMUX_WIDGET_APP_NAME;</string>
     <string name="termux_widget_preferences_summary">Preferences for &TERMUX_WIDGET_APP_NAME; app</string>
-
-
 
     <!-- About Preference -->
     <string name="about_preference_title">About</string>
 
     <!-- Donate Preference -->
     <string name="donate_preference_title">Donate</string>
-
-
 
     <!-- Hermes Configuration -->
     <string name="hermes_config_title">Hermes Settings</string>
@@ -390,6 +356,14 @@
     <!-- Custom Model -->
     <string name="llm_custom_model_title">Custom Model Name</string>
     <string name="llm_custom_model_summary">Enter the model name to use</string>
+    <!-- LLM Model Parameters -->
+    <string name="llm_params_category_title">Model Parameters</string>
+    <string name="llm_temperature_title">Temperature</string>
+    <string name="llm_temperature_summary">Controls randomness (0.0 = focused, 2.0 = creative). Default: 0.7</string>
+    <string name="llm_max_tokens_title">Max Tokens</string>
+    <string name="llm_max_tokens_summary">Maximum response length. Default: 4096</string>
+    <string name="llm_temperature_invalid">Temperature must be between 0.0 and 2.0</string>
+    <string name="llm_max_tokens_invalid">Max tokens must be between 256 and 32768</string>
 
     <!-- LLM Test Connection -->
     <string name="llm_test_connection_title">Test Connection</string>
