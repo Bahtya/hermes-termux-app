@@ -2687,12 +2687,33 @@ public class HermesConfigActivity extends AppCompatActivity {
                 });
             }
 
+            // Rate limiting configuration
+            EditTextPreference rateUserPref = findPreference("rate_limit_user_per_min");
+            if (rateUserPref != null) {
+                int limit = mConfigManager.getRateLimitUserPerMinute();
+                rateUserPref.setText(String.valueOf(limit));
+                rateUserPref.setOnPreferenceChangeListener((p, newVal) -> {
+                    try { mConfigManager.setRateLimitUserPerMinute(Integer.parseInt((String) newVal)); } catch (NumberFormatException ignored) {}
+                    return true;
+                });
+            }
+
             EditTextPreference voiceLangPref = findPreference("voice_language");
             if (voiceLangPref != null) {
                 String lang = mConfigManager.getVoiceLanguage();
                 if (!lang.isEmpty()) voiceLangPref.setText(lang);
                 voiceLangPref.setOnPreferenceChangeListener((p, newVal) -> {
                     mConfigManager.setVoiceLanguage((String) newVal);
+                    return true;
+                });
+            }
+
+            EditTextPreference rateGlobalPref = findPreference("rate_limit_global_per_min");
+            if (rateGlobalPref != null) {
+                int limit = mConfigManager.getRateLimitGlobalPerMinute();
+                rateGlobalPref.setText(String.valueOf(limit));
+                rateGlobalPref.setOnPreferenceChangeListener((p, newVal) -> {
+                    try { mConfigManager.setRateLimitGlobalPerMinute(Integer.parseInt((String) newVal)); } catch (NumberFormatException ignored) {}
                     return true;
                 });
             }
@@ -2707,12 +2728,42 @@ public class HermesConfigActivity extends AppCompatActivity {
                 });
             }
 
+            EditTextPreference rateCooldownPref = findPreference("rate_limit_cooldown");
+            if (rateCooldownPref != null) {
+                int cooldown = mConfigManager.getRateLimitCooldown();
+                rateCooldownPref.setText(String.valueOf(cooldown));
+                rateCooldownPref.setOnPreferenceChangeListener((p, newVal) -> {
+                    try { mConfigManager.setRateLimitCooldown(Integer.parseInt((String) newVal)); } catch (NumberFormatException ignored) {}
+                    return true;
+                });
+            }
+
             EditTextPreference voiceEndpointPref = findPreference("voice_custom_endpoint");
             if (voiceEndpointPref != null) {
                 String endpoint = mConfigManager.getVoiceCustomEndpoint();
                 if (!endpoint.isEmpty()) voiceEndpointPref.setText(endpoint);
                 voiceEndpointPref.setOnPreferenceChangeListener((p, newVal) -> {
                     mConfigManager.setVoiceCustomEndpoint((String) newVal);
+                    return true;
+                });
+            }
+
+            EditTextPreference rateConcPref = findPreference("rate_limit_concurrent");
+            if (rateConcPref != null) {
+                int concurrent = mConfigManager.getRateLimitConcurrent();
+                rateConcPref.setText(String.valueOf(concurrent));
+                rateConcPref.setOnPreferenceChangeListener((p, newVal) -> {
+                    try { mConfigManager.setRateLimitConcurrent(Integer.parseInt((String) newVal)); } catch (NumberFormatException ignored) {}
+                    return true;
+                });
+            }
+
+            ListPreference rateQueuePref = findPreference("rate_limit_queue_mode");
+            if (rateQueuePref != null) {
+                String mode = mConfigManager.getRateLimitQueueMode();
+                rateQueuePref.setValue(mode);
+                rateQueuePref.setOnPreferenceChangeListener((p, newVal) -> {
+                    mConfigManager.setRateLimitQueueMode((String) newVal);
                     return true;
                 });
             }
