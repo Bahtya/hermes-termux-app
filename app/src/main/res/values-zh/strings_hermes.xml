@@ -86,11 +86,15 @@
     <!-- Gateway Log -->
     <string name="gateway_log_title">网关日志</string>
     <string name="gateway_log_refresh">刷新</string>
-    <string name="gateway_log_clear">清除日志</string>
+    <string name="gateway_log_clear">清除</string>
     <string name="gateway_log_empty">暂无日志记录。</string>
     <string name="gateway_log_clear_confirm_title">清除日志？</string>
     <string name="gateway_log_clear_confirm_message">这将删除所有网关日志记录。</string>
     <string name="gateway_log_cleared">日志已清除</string>
+    <string name="gateway_log_search_hint">搜索日志…</string>
+    <string name="gateway_log_share">分享</string>
+    <string name="gateway_log_copy">复制</string>
+    <string name="gateway_log_copied">日志已复制到剪贴板</string>
     <string name="hermes_gateway_log_summary">查看网关日志以排查问题</string>
 
     <!-- Dashboard -->
