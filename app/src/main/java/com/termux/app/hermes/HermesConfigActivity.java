@@ -272,6 +272,9 @@ public class HermesConfigActivity extends AppCompatActivity {
                 case "hermes_gateway_diagnostic":
                     startActivity(new Intent(requireContext(), HermesDiagnosticActivity.class));
                     return true;
+                case "hermes_conversation_history":
+                    startActivity(new Intent(requireContext(), HermesConversationActivity.class));
+                    return true;
                 case "hermes_reset_config":
                     showResetConfirmDialog();
                     return true;
