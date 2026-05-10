@@ -96,6 +96,14 @@
     <string name="gateway_status_stopped">已停止</string>
     <string name="gateway_status_not_installed">未安装</string>
 
+    <!-- Gateway Startup Steps -->
+    <string name="gateway_step_loading_config">正在加载配置…</string>
+    <string name="gateway_step_connecting_llm">正在连接 AI 提供商…</string>
+    <string name="gateway_step_init_im">正在初始化消息平台…</string>
+    <string name="gateway_step_starting">正在启动网关…</string>
+    <string name="gateway_step_running">网关已启动</string>
+    <string name="gateway_step_failed">网关启动失败</string>
+
     <!-- Gateway Log -->
     <string name="gateway_log_title">网关日志</string>
     <string name="gateway_log_refresh">刷新</string>

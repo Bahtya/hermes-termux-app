@@ -402,6 +402,14 @@
     <string name="gateway_status_stopped">Stopped</string>
     <string name="gateway_status_not_installed">Not installed</string>
 
+    <!-- Gateway Startup Steps -->
+    <string name="gateway_step_loading_config">Loading configuration…</string>
+    <string name="gateway_step_connecting_llm">Connecting to AI provider…</string>
+    <string name="gateway_step_init_im">Initializing messaging platforms…</string>
+    <string name="gateway_step_starting">Starting gateway…</string>
+    <string name="gateway_step_running">Gateway running</string>
+    <string name="gateway_step_failed">Gateway failed to start</string>
+
     <!-- Gateway Log -->
     <string name="gateway_log_title">Gateway Log</string>
     <string name="gateway_log_refresh">Refresh</string>
