@@ -222,6 +222,12 @@ public class HermesConfigActivity extends AppCompatActivity {
                 case "hermes_reset_config":
                     showResetConfirmDialog();
                     return true;
+                case "hermes_export_config":
+                    exportConfig();
+                    return true;
+                case "hermes_import_config":
+                    showImportConfirmDialog();
+                    return true;
             }
             return super.onPreferenceTreeClick(preference);
         }
@@ -304,6 +310,113 @@ public class HermesConfigActivity extends AppCompatActivity {
                     })
                     .setNegativeButton(android.R.string.cancel, null)
                     .show();
+        }
+
+        private void exportConfig() {
+            new Thread(() -> {
+                try {
+                    String yaml = readFile(HermesConfigManager.CONFIG_YAML_PATH);
+                    String env = readFile(HermesConfigManager.ENV_FILE_PATH);
+                    String json = "{\"config_yaml\":" + escapeJson(yaml)
+                            + ",\"env\":" + escapeJson(env)
+                            + ",\"export_time\":\"" + new java.text.SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss", java.util.Locale.US).format(new java.util.Date()) + "\"}";
+
+                    String exportPath = TermuxConstants.TERMUX_HOME_DIR_PATH + "/hermes-config-backup.json";
+                    writeStringToFile(exportPath, json);
+                    requireActivity().runOnUiThread(() ->
+                            Toast.makeText(requireContext(), getString(R.string.hermes_export_success) + "\n" + exportPath, Toast.LENGTH_LONG).show());
+                } catch (Exception e) {
+                    requireActivity().runOnUiThread(() ->
+                            Toast.makeText(requireContext(), getString(R.string.hermes_export_failed, e.getMessage()), Toast.LENGTH_LONG).show());
+                }
+            }).start();
+        }
+
+        private void showImportConfirmDialog() {
+            new AlertDialog.Builder(requireContext())
+                    .setTitle(R.string.hermes_import_confirm_title)
+                    .setMessage(R.string.hermes_import_confirm_message)
+                    .setPositiveButton(android.R.string.ok, (d, w) -> importConfig())
+                    .setNegativeButton(android.R.string.cancel, null)
+                    .show();
+        }
+
+        private void importConfig() {
+            new Thread(() -> {
+                try {
+                    String importPath = TermuxConstants.TERMUX_HOME_DIR_PATH + "/hermes-config-backup.json";
+                    String json = readFile(importPath);
+                    if (json == null || json.isEmpty()) {
+                        requireActivity().runOnUiThread(() ->
+                                Toast.makeText(requireContext(), getString(R.string.hermes_import_failed, "Backup file not found"), Toast.LENGTH_LONG).show());
+                        return;
+                    }
+
+                    String yaml = extractJsonField(json, "config_yaml");
+                    String env = extractJsonField(json, "env");
+
+                    if (yaml != null) writeStringToFile(HermesConfigManager.CONFIG_YAML_PATH, yaml);
+                    if (env != null) writeStringToFile(HermesConfigManager.ENV_FILE_PATH, env);
+
+                    HermesConfigManager.reinitialize();
+                    requireActivity().runOnUiThread(() -> {
+                        Toast.makeText(requireContext(), R.string.hermes_import_success, Toast.LENGTH_SHORT).show();
+                        requireActivity().recreate();
+                    });
+                } catch (Exception e) {
+                    requireActivity().runOnUiThread(() ->
+                            Toast.makeText(requireContext(), getString(R.string.hermes_import_failed, e.getMessage()), Toast.LENGTH_LONG).show());
+                }
+            }).start();
+        }
+
+        private String readFile(String path) {
+            try (java.io.BufferedReader reader = new java.io.BufferedReader(new java.io.FileReader(path))) {
+                StringBuilder sb = new StringBuilder();
+                String line;
+                while ((line = reader.readLine()) != null) sb.append(line).append("\n");
+                return sb.toString();
+            } catch (Exception e) {
+                return null;
+            }
+        }
+
+        private void writeStringToFile(String path, String content) throws Exception {
+            try (java.io.BufferedWriter writer = new java.io.BufferedWriter(new java.io.FileWriter(path))) {
+                writer.write(content);
+            }
+        }
+
+        private String escapeJson(String value) {
+            if (value == null) return "null";
+            return "\"" + value
+                    .replace("\\", "\\\\")
+                    .replace("\"", "\\\"")
+                    .replace("\n", "\\n")
+                    .replace("\t", "\\t")
+                    + "\"";
+        }
+
+        private String extractJsonField(String json, String field) {
+            String key = "\"" + field + "\":\"";
+            int start = json.indexOf(key);
+            if (start < 0) return null;
+            start += key.length();
+            StringBuilder sb = new StringBuilder();
+            for (int i = start; i < json.length(); i++) {
+                char c = json.charAt(i);
+                if (c == '\\' && i + 1 < json.length()) {
+                    char next = json.charAt(i + 1);
+                    if (next == 'n') { sb.append('\n'); i++; continue; }
+                    if (next == 't') { sb.append('\t'); i++; continue; }
+                    if (next == '"') { sb.append('"'); i++; continue; }
+                    if (next == '\\') { sb.append('\\'); i++; continue; }
+                } else if (c == '"') {
+                    return sb.toString();
+                }
+                sb.append(c);
+            }
+            return sb.toString();
         }
     }
 
