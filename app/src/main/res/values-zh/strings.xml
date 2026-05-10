@@ -177,12 +177,6 @@
     <string name="config_export_fail">导出失败: %1$s</string>
 
     <!-- Unsaved Changes -->
-    <string name="config_unsaved_title">未保存的更改</string>
-    <string name="config_unsaved_message">你有未保存的更改。是否保存？</string>
-    <string name="config_unsaved_save">保存</string>
-    <string name="config_unsaved_discard">放弃</string>
-    <string name="config_unsaved_cancel">取消</string>
-    <string name="config_changes_saved">更改已保存</string>
 
     <!-- Model Routing -->
     <string name="llm_category_routing">模型路由</string>
@@ -240,29 +234,8 @@
     <string name="logging_max_files_summary">保留的轮转日志文件数量（默认 5）</string>
 
     <!-- Dashboard -->
-    <string name="dashboard_title">状态概览</string>
-    <string name="dashboard_gateway_title">网关</string>
-    <string name="dashboard_gateway_running">运行中</string>
-    <string name="dashboard_gateway_stopped">已停止</string>
-    <string name="dashboard_gateway_not_installed">未安装</string>
-    <string name="dashboard_llm_title">AI 提供商</string>
-    <string name="dashboard_llm_configured">%1$s / %2$s</string>
-    <string name="dashboard_llm_not_configured">未配置</string>
-    <string name="dashboard_im_title">消息平台</string>
-    <string name="dashboard_im_none">未配置消息平台</string>
-    <string name="dashboard_im_list">已连接: %1$s</string>
 
     <!-- LLM Config -->
-    <string name="llm_configured">已配置 (%1$s)</string>
-    <string name="llm_not_configured">未配置</string>
-    <string name="llm_provider_title">AI 提供商</string>
-    <string name="llm_provider_summary">选择你的 LLM 提供商</string>
-    <string name="llm_api_key_title">API 密钥</string>
-    <string name="llm_api_key_summary">输入提供商 API 密钥</string>
-    <string name="llm_model_title">模型</string>
-    <string name="llm_model_summary">使用的模型名称（如 gpt-4o、claude-sonnet-4-6）</string>
-    <string name="llm_base_url_title">基础 URL</string>
-    <string name="llm_base_url_summary">自定义端点 URL（用于 Ollama 或兼容 API）</string>
     <string name="llm_temperature_title">温度</string>
     <string name="llm_temperature_summary">控制随机性 (0.0 - 2.0，默认 0.7)</string>
     <string name="llm_max_tokens_title">最大 Token 数</string>
@@ -273,13 +246,6 @@
     <string name="llm_persona_template_summary">选择预设人设</string>
     <string name="llm_preset_title">配置预设</string>
     <string name="llm_preset_summary">快速设置常用场景</string>
-    <string name="llm_test_connection_title">测试连接</string>
-    <string name="llm_test_connection_summary">验证 API 密钥和模型是否正常工作</string>
-    <string name="llm_test_running">正在测试连接…</string>
-    <string name="llm_test_success">连接成功！模型 %1$s 可达。</string>
-    <string name="llm_test_fail_auth">认证失败 — 请检查 API 密钥。</string>
-    <string name="llm_test_fail_network">网络错误 — 请检查网络连接。</string>
-    <string name="llm_test_no_key">请先输入 API 密钥。</string>
 
     <!-- LLM Categories -->
     <string name="llm_category_provider">提供商</string>
@@ -292,50 +258,21 @@
     <string name="llm_params_category_title">参数</string>
 
     <!-- Feishu -->
-    <string name="feishu_configured">已配置</string>
-    <string name="feishu_not_configured">未配置</string>
     <string name="feishu_setup_title">飞书 / Lark 设置</string>
 
     <!-- Telegram -->
-    <string name="telegram_configured">已配置</string>
-    <string name="telegram_not_configured">未配置</string>
-    <string name="telegram_setup_title">Telegram 设置</string>
 
     <!-- Discord -->
-    <string name="discord_configured">已配置</string>
-    <string name="discord_not_configured">未配置</string>
-    <string name="discord_setup_title">Discord 设置</string>
 
     <!-- Gateway Status -->
-    <string name="gateway_status_running">运行中</string>
-    <string name="gateway_status_stopped">已停止</string>
-    <string name="gateway_status_not_installed">未安装</string>
-    <string name="gateway_started">网关启动中…</string>
-    <string name="gateway_stopped">网关已停止</string>
-    <string name="gateway_restarted">网关重启中…</string>
 
     <!-- Hermes Config -->
-    <string name="hermes_config_title">Hermes 设置</string>
-    <string name="hermes_reset_title">重置配置</string>
-    <string name="hermes_reset_summary">将所有 Hermes 设置恢复为默认值</string>
-    <string name="hermes_reset_confirm_title">重置 Hermes 配置？</string>
-    <string name="hermes_reset_confirm_message">这将删除你的 Hermes 配置文件。API 密钥和设置将丢失。</string>
-    <string name="hermes_reset_done">配置已重置为默认值</string>
 
     <!-- Gateway Control -->
-    <string name="hermes_gateway_control_title">网关控制</string>
-    <string name="hermes_gateway_control_summary">启动、停止或重启 Hermes 网关</string>
-    <string name="gateway_start_title">启动网关</string>
-    <string name="gateway_stop_title">停止网关</string>
-    <string name="gateway_restart_title">重启网关</string>
 
     <!-- Gateway Log -->
-    <string name="gateway_log_title">网关日志</string>
-    <string name="hermes_gateway_log_summary">查看网关日志以排查问题</string>
 
     <!-- Hermes Help -->
-    <string name="hermes_help_faq_title">帮助与常见问题</string>
-    <string name="hermes_help_faq_summary">常见问题和故障排除</string>
 
     <!-- Session Arrays -->
     <string-array name="agent_session_reset_names">
