@@ -5,6 +5,10 @@
         android:key="hermes_quickstart"
         android:title="@string/quickstart_start"
         android:summary="@string/quickstart_stopped" />
+        android:key="hermes_not_installed_banner"
+        android:title="@string/hermes_not_installed_banner_title"
+        android:summary="@string/hermes_not_installed_banner_summary"
+        android:selectable="true" />
 
     <PreferenceCategory android:title="@string/dashboard_title">
         <Preference
