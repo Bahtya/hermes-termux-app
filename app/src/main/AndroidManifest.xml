@@ -149,6 +149,13 @@
             android:parentActivityName=".app.hermes.HermesConfigActivity"
             android:theme="@style/Theme.TermuxApp.DayNight.DarkActionBar" />
 
+        <activity
+            android:name="com.termux.app.hermes.HermesHelpActivity"
+            android:exported="false"
+            android:label="@string/help_title"
+            android:parentActivityName=".app.hermes.HermesConfigActivity"
+            android:theme="@style/Theme.TermuxApp.DayNight.DarkActionBar" />
+
         <service
             android:name="com.termux.app.hermes.HermesGatewayService"
             android:exported="false"
