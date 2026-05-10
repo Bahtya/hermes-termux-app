@@ -745,6 +745,4 @@
         <item>weekly</item>
         <item>monthly</item>
     </string-array>
-    <string name="install_title">Hermes Installation</string>
-    <string name="help_title">Hermes Help</string>
 </resources>
