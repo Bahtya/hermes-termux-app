@@ -836,6 +836,15 @@
     <string name="llm_export_qr_summary">Share config as QR code</string>
     <string name="llm_import_qr_title">Import via QR</string>
     <string name="llm_import_qr_summary">Scan QR code to import config</string>
+    <string name="llm_qr_export_info">Provider: %1$s / Model: %2$s\nAPI key is not included in QR code for security.</string>
+    <string name="llm_qr_copy">Copy as Text</string>
+    <string name="llm_qr_copied">Config copied to clipboard</string>
+    <string name="llm_qr_error">QR generation failed: %s</string>
+    <string name="llm_qr_paste_hint">Paste hermes-llm:// config string</string>
+    <string name="llm_qr_import_instructions">Paste the config string from another device\'s QR export.</string>
+    <string name="llm_qr_import_apply">Apply Config</string>
+    <string name="llm_qr_invalid">Invalid config string format</string>
+    <string name="llm_qr_imported">Config imported successfully! Remember to set your API key.</string>
     <string name="llm_persona_template_title">Persona Template</string>
     <string name="llm_persona_template_summary">Choose a preset persona</string>
     <string name="llm_system_prompt_title">System Prompt</string>

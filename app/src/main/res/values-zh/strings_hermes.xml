@@ -77,6 +77,17 @@
     <string name="llm_cost_estimate_format">~%s（输入/输出）</string>
     <string name="llm_cost_estimate_unknown">此模型的定价信息不可用</string>
 
+    <!-- LLM QR Share -->
+    <string name="llm_qr_export_info">提供商：%1$s / 模型：%2$s\n出于安全考虑，二维码中不包含 API 密钥。</string>
+    <string name="llm_qr_copy">复制为文本</string>
+    <string name="llm_qr_copied">配置已复制到剪贴板</string>
+    <string name="llm_qr_error">二维码生成失败：%s</string>
+    <string name="llm_qr_paste_hint">粘贴 hermes-llm:// 配置字符串</string>
+    <string name="llm_qr_import_instructions">粘贴从其他设备二维码导出的配置字符串。</string>
+    <string name="llm_qr_import_apply">应用配置</string>
+    <string name="llm_qr_invalid">配置字符串格式无效</string>
+    <string name="llm_qr_imported">配置导入成功！请记得设置 API 密钥。</string>
+
     <!-- LLM Provider Arrays -->
     <string-array name="llm_provider_names">
         <item>OpenAI</item>
