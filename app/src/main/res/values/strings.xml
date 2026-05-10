@@ -970,4 +970,55 @@
         <item>3</item>
         <item>4</item>
     </string-array>
+
+    <!-- Agent Settings -->
+    <string name="agent_settings_title">Agent Settings</string>
+    <string name="agent_settings_summary">Configure agent behavior, memory, and session management</string>
+
+    <string name="agent_category_context">Context Management</string>
+    <string name="agent_compression_title">Context Compression</string>
+    <string name="agent_compression_summary">Auto-compress conversation context to save tokens</string>
+    <string name="agent_compression_threshold_title">Compression Threshold</string>
+    <string name="agent_compression_threshold_summary">Trigger compression when context exceeds this ratio (0.1–0.9)</string>
+    <string name="agent_context_length_title">Context Length</string>
+    <string name="agent_context_length_summary">Maximum context window size in tokens</string>
+
+    <string name="agent_category_behavior">Agent Behavior</string>
+    <string name="agent_max_turns_title">Max Turns</string>
+    <string name="agent_max_turns_summary">Maximum tool-calling iterations per conversation</string>
+    <string name="agent_gateway_timeout_title">Inactivity Timeout (seconds)</string>
+    <string name="agent_gateway_timeout_summary">Seconds of inactivity before gateway times out</string>
+    <string name="agent_verbose_title">Verbose Logging</string>
+    <string name="agent_verbose_summary">Enable detailed agent logging for debugging</string>
+
+    <string name="agent_category_memory">Memory</string>
+    <string name="agent_memory_title">Agent Memory</string>
+    <string name="agent_memory_summary">Let the agent store personal notes across sessions</string>
+    <string name="agent_user_profile_title">User Profile</string>
+    <string name="agent_user_profile_summary">Let the agent build a profile of your preferences</string>
+    <string name="agent_memory_limit_title">Memory Character Limit</string>
+    <string name="agent_memory_limit_summary">Maximum characters for agent notes</string>
+
+    <string name="agent_category_session">Session Management</string>
+    <string name="agent_session_reset_title">Session Reset Mode</string>
+    <string name="agent_session_reset_summary">When to automatically reset conversation sessions</string>
+    <string name="agent_session_idle_title">Idle Timeout (minutes)</string>
+    <string name="agent_session_idle_summary">Reset session after this many minutes of inactivity</string>
+    <string name="agent_session_reset_hour_title">Daily Reset Hour</string>
+    <string name="agent_session_reset_hour_summary">Hour of day (0–23) to reset sessions</string>
+
+
+    <string-array name="agent_session_reset_names">
+        <item>Never</item>
+        <item>When idle</item>
+        <item>Daily at set hour</item>
+        <item>Both (idle + daily)</item>
+    </string-array>
+    <string-array name="agent_session_reset_values">
+        <item>none</item>
+        <item>idle</item>
+        <item>daily</item>
+        <item>both</item>
+    </string-array>
+
 </resources>

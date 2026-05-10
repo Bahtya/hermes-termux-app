@@ -1,0 +1,93 @@
+<?xml version="1.0" encoding="utf-8"?>
+<PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <PreferenceCategory android:title="@string/agent_category_context">
+        <SwitchPreferenceCompat
+            android:key="agent_compression_enabled"
+            android:title="@string/agent_compression_title"
+            android:summary="@string/agent_compression_summary"
+            android:defaultValue="true" />
+
+        <EditTextPreference
+            android:key="agent_compression_threshold"
+            android:title="@string/agent_compression_threshold_title"
+            android:summary="@string/agent_compression_threshold_summary"
+            android:inputType="numberDecimal"
+            android:defaultValue="0.5" />
+
+        <EditTextPreference
+            android:key="agent_context_length"
+            android:title="@string/agent_context_length_title"
+            android:summary="@string/agent_context_length_summary"
+            android:inputType="number"
+            android:defaultValue="128000" />
+    </PreferenceCategory>
+
+    <PreferenceCategory android:title="@string/agent_category_behavior">
+        <EditTextPreference
+            android:key="agent_max_turns"
+            android:title="@string/agent_max_turns_title"
+            android:summary="@string/agent_max_turns_summary"
+            android:inputType="number"
+            android:defaultValue="30" />
+
+        <EditTextPreference
+            android:key="agent_gateway_timeout"
+            android:title="@string/agent_gateway_timeout_title"
+            android:summary="@string/agent_gateway_timeout_summary"
+            android:inputType="number"
+            android:defaultValue="300" />
+
+        <SwitchPreferenceCompat
+            android:key="agent_verbose"
+            android:title="@string/agent_verbose_title"
+            android:summary="@string/agent_verbose_summary"
+            android:defaultValue="false" />
+    </PreferenceCategory>
+
+    <PreferenceCategory android:title="@string/agent_category_memory">
+        <SwitchPreferenceCompat
+            android:key="agent_memory_enabled"
+            android:title="@string/agent_memory_title"
+            android:summary="@string/agent_memory_summary"
+            android:defaultValue="true" />
+
+        <SwitchPreferenceCompat
+            android:key="agent_user_profile_enabled"
+            android:title="@string/agent_user_profile_title"
+            android:summary="@string/agent_user_profile_summary"
+            android:defaultValue="true" />
+
+        <EditTextPreference
+            android:key="agent_memory_char_limit"
+            android:title="@string/agent_memory_limit_title"
+            android:summary="@string/agent_memory_limit_summary"
+            android:inputType="number"
+            android:defaultValue="2000" />
+    </PreferenceCategory>
+
+    <PreferenceCategory android:title="@string/agent_category_session">
+        <ListPreference
+            android:key="agent_session_reset_mode"
+            android:title="@string/agent_session_reset_title"
+            android:summary="@string/agent_session_reset_summary"
+            android:entries="@array/agent_session_reset_names"
+            android:entryValues="@array/agent_session_reset_values"
+            android:defaultValue="none" />
+
+        <EditTextPreference
+            android:key="agent_session_idle_minutes"
+            android:title="@string/agent_session_idle_title"
+            android:summary="@string/agent_session_idle_summary"
+            android:inputType="number"
+            android:defaultValue="60" />
+
+        <EditTextPreference
+            android:key="agent_session_reset_hour"
+            android:title="@string/agent_session_reset_hour_title"
+            android:summary="@string/agent_session_reset_hour_summary"
+            android:inputType="number"
+            android:defaultValue="3" />
+    </PreferenceCategory>
+
+</PreferenceScreen>
