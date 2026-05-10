@@ -532,6 +532,12 @@
     <string name="help_im_title">What are Messaging Platforms?</string>
     <string name="help_im_message">Messaging platforms like Feishu, Telegram, and Discord are where you chat with your Hermes AI assistant. Configure at least one platform to start chatting.\n\nEach platform needs its own bot token from the respective service.</string>
     <string name="help_ok">Got it</string>
+    <!-- Quick-start tile -->
+    <string name="quickstart_start_gateway">Start Gateway</string>
+    <string name="quickstart_stop_gateway">Stop Gateway</string>
+    <string name="quickstart_gateway_not_installed">Hermes Agent is not installed. Please wait for auto-installation.</string>
+    <string name="quickstart_gateway_running">Gateway is running (%1$s)</string>
+    <string name="quickstart_gateway_stopped">Gateway is stopped. Tap to start.</string>
 
     <!-- Telegram Setup -->
     <string name="telegram_setup_title">Telegram Bot Setup</string>
@@ -563,7 +569,12 @@
     <string name="discord_test_success">Bot token is valid! Your Discord bot is ready.</string>
     <string name="discord_test_fail">Invalid bot token — please check and try again.</string>
     <string name="discord_complete_title">Discord Setup Complete!</string>
-    <string name="discord_complete_next_steps">Next steps:\n\n• Invite your bot to your Discord server\n• Start the Hermes Gateway from Settings\n• Send a message to your bot on Discord\n• You can change settings anytime from Hermes Settings</string>
+        <string name="im_test_no_token">Please enter a bot token first.</string>
+    <string name="im_test_running">Testing connection…</string>
+    <string name="im_test_retry">Retry</string>
+    <string name="im_test_detail_success">Bot: %1$s</string>
+    <string name="im_test_detail_fail">HTTP %1$s: %2$s</string>
+<string name="discord_complete_next_steps">Next steps:\n\n• Invite your bot to your Discord server\n• Start the Hermes Gateway from Settings\n• Send a message to your bot on Discord\n• You can change settings anytime from Hermes Settings</string>
 
     <!-- Feishu Setup -->
     <string name="feishu_setup_title">Feishu / Lark Setup</string>
