@@ -130,6 +130,9 @@ public class HermesConfigActivity extends AppCompatActivity {
             // --- Config validation ---
             updateValidationDisplay();
 
+            // --- Usage stats ---
+            updateUsageStats();
+
             // Show gateway status
             Preference gatewayPref = findPreference("hermes_gateway_control");
             if (gatewayPref != null) {
@@ -682,6 +685,51 @@ public class HermesConfigActivity extends AppCompatActivity {
             super.onResume();
             updateProfileDisplay();
             updateValidationDisplay();
+            updateUsageStats();
+        }
+
+        private void updateUsageStats() {
+            Preference uptimePref = findPreference("usage_total_uptime");
+            Preference sessionsPref = findPreference("usage_sessions");
+            Preference costPref = findPreference("usage_estimated_cost");
+
+            int sessionCount = mConfigManager.getSessionCount(requireContext());
+            long totalMs = mConfigManager.getTotalUptimeMs(requireContext());
+
+            if (uptimePref != null) {
+                String uptime = HermesGatewayService.formatDuration(totalMs);
+                if (sessionCount > 0) {
+                    uptimePref.setSummary(getString(R.string.usage_uptime_format, sessionCount, uptime));
+                } else {
+                    uptimePref.setSummary(getString(R.string.usage_no_data));
+                }
+            }
+
+            if (sessionsPref != null) {
+                sessionsPref.setSummary(sessionCount > 0
+                        ? getString(R.string.usage_uptime_format, sessionCount, HermesGatewayService.formatDuration(totalMs))
+                        : getString(R.string.usage_no_data));
+            }
+
+            if (costPref != null) {
+                String provider = mConfigManager.getModelProvider();
+                String costEst = getEstimatedCost(provider, totalMs);
+                costPref.setSummary(getString(R.string.usage_cost_estimate, costEst, provider));
+            }
+        }
+
+        private String getEstimatedCost(String provider, long uptimeMs) {
+            // Rough estimate: ~100 messages/hour at ~500 tokens each
+            long hours = uptimeMs / 3_600_000;
+            long messages = hours * 100;
+            switch (provider) {
+                case "openai": return "$" + String.format("%.2f", messages * 0.001);
+                case "anthropic": return "$" + String.format("%.2f", messages * 0.0015);
+                case "google": return "$" + String.format("%.2f", messages * 0.0005);
+                case "deepseek": return "$" + String.format("%.2f", messages * 0.0001);
+                case "ollama": return "$0.00 (local)";
+                default: return "$" + String.format("%.2f", messages * 0.001);
+            }
         }
 
         private void showSaveProfileDialog() {
