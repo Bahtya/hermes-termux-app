@@ -264,6 +264,11 @@
     <string name="hermes_up_to_date">Hermes Agent is up to date (%1$s)</string>
     <string name="hermes_update_checking">Checking for updates…</string>
     <string name="hermes_update_failed">Failed to check for updates</string>
+    <string name="hermes_update_now_title">Update Hermes Agent</string>
+    <string name="hermes_update_now_summary">Tap to install the latest version</string>
+    <string name="hermes_update_running">Updating Hermes Agent…</string>
+    <string name="hermes_update_success">Updated to %1$s</string>
+    <string name="hermes_update_error">Update failed: %1$s</string>
     <string name="hermes_version_label">Hermes Agent version</string>
 
     <!-- LLM Preferences -->
