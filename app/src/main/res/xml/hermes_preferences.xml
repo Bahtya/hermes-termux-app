@@ -41,11 +41,22 @@
             android:selectable="true" />
     </PreferenceCategory>
 
-    <PreferenceCategory android:title="@string/hermes_cat_general">
+    <PreferenceCategory android:title="@string/usage_category_title">
         <Preference
-            android:key="hermes_templates"
-            android:title="@string/template_menu_title"
-            android:summary="@string/template_menu_summary" />
+            android:key="usage_total_uptime"
+            android:title="@string/usage_total_uptime_title"
+            android:selectable="false" />
+        <Preference
+            android:key="usage_sessions"
+            android:title="@string/usage_sessions_title"
+            android:selectable="false" />
+        <Preference
+            android:key="usage_estimated_cost"
+            android:title="@string/usage_estimated_cost_title"
+            android:selectable="false" />
+    </PreferenceCategory>
+
+    <PreferenceCategory android:title="@string/profile_category_title">
         <Preference
             android:key="hermes_profile_current"
             android:title="@string/profile_current_title"
@@ -62,6 +73,13 @@
             android:key="hermes_profile_delete"
             android:title="@string/profile_delete_title"
             android:summary="@string/profile_delete_summary" />
+    </PreferenceCategory>
+
+    <PreferenceCategory android:title="@string/hermes_cat_general">
+        <Preference
+            android:key="hermes_templates"
+            android:title="@string/template_menu_title"
+            android:summary="@string/template_menu_summary" />
 
         <Preference
             android:key="hermes_llm_config"

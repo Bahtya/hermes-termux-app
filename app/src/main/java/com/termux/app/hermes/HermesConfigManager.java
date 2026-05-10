@@ -910,6 +910,34 @@ public class HermesConfigManager {
         context.getSharedPreferences(SESSION_PREFS_NAME, Context.MODE_PRIVATE).edit().clear().apply();
     }
 
+    /** Returns total uptime across all sessions in milliseconds. */
+    public long getTotalUptimeMs(Context context) {
+        long total = 0;
+        for (Session s : getSessionHistory(context)) {
+            total += s.duration;
+        }
+        // Add current session if running
+        if (HermesGatewayService.isRunning()) {
+            String uptimeStr = HermesGatewayService.getFormattedUptime();
+            if (!uptimeStr.isEmpty()) {
+                // Parse current uptime from the formatted string (approximate)
+                total += System.currentTimeMillis() - getPendingStartTime(context);
+            }
+        }
+        return total;
+    }
+
+    private long getPendingStartTime(Context context) {
+        SharedPreferences prefs = context.getSharedPreferences(SESSION_PREFS_NAME, Context.MODE_PRIVATE);
+        return prefs.getLong("pending_start_time", 0);
+    }
+
+    /** Returns number of completed sessions. */
+    public int getSessionCount(Context context) {
+        SharedPreferences prefs = context.getSharedPreferences(SESSION_PREFS_NAME, Context.MODE_PRIVATE);
+        return prefs.getInt(KEY_SESSION_COUNT, 0);
+    }
+
     public static void restartGatewayIfRunning(Context context) {
         HermesGatewayStatus.checkAsync((status, detail) -> {
             if (status == HermesGatewayStatus.Status.RUNNING) {

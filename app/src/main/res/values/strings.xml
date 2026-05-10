@@ -438,6 +438,14 @@
 
     <!-- Dashboard -->
         <!-- Profile management -->
+        <!-- Usage analytics -->
+    <string name="usage_category_title">Usage Stats</string>
+    <string name="usage_total_uptime_title">Total Uptime</string>
+    <string name="usage_sessions_title">Sessions</string>
+    <string name="usage_estimated_cost_title">Est. API Cost</string>
+    <string name="usage_uptime_format">%d sessions · Total: %s</string>
+    <string name="usage_cost_estimate">~%s based on %s provider pricing</string>
+    <string name="usage_no_data">No usage data yet</string>
     <string name="profile_category_title">Profiles</string>
     <string name="profile_current_title">Active Profile</string>
     <string name="profile_save_title">Save Current Profile</string>
