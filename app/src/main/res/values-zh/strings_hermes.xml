@@ -139,6 +139,18 @@
     <string name="gateway_diag_gateway_process">网关进程</string>
     <string name="gateway_diag_gateway_running">运行中</string>
     <string name="gateway_diag_gateway_stopped">未运行</string>
+    <!-- Gateway Start Validation -->
+    <string name="validation_start_title">启动网关？</string>
+    <string name="validation_ready_header">就绪：</string>
+    <string name="validation_warnings_header">警告：</string>
+    <string name="validation_no_provider">未选择 AI 提供商</string>
+    <string name="validation_no_api_key">%1$s 的 API 密钥未设置</string>
+    <string name="validation_llm_ok">%1$s / %2$s</string>
+    <string name="validation_llm_ok_ollama">Ollama（本地）</string>
+    <string name="validation_no_im">未配置消息平台</string>
+    <string name="validation_feishu_ok">飞书已连接</string>
+    <string name="validation_telegram_ok">Telegram 已连接</string>
+    <string name="validation_discord_ok">Discord 已连接</string>
 
     <!-- Gateway Log -->
     <string name="gateway_log_title">网关日志</string>

@@ -1039,9 +1039,7 @@ public class HermesConfigActivity extends AppCompatActivity {
             Context ctx = requireContext();
             switch (action) {
                 case "start":
-                    ctx.startService(new Intent(ctx, HermesGatewayService.class)
-                            .setAction(HermesGatewayService.ACTION_START));
-                    Toast.makeText(ctx, R.string.gateway_started, Toast.LENGTH_SHORT).show();
+                    showStartValidation(ctx);
                     break;
                 case "stop":
                     ctx.startService(new Intent(ctx, HermesGatewayService.class)
@@ -1270,6 +1268,58 @@ public class HermesConfigActivity extends AppCompatActivity {
             } catch (Exception e) {
                 return "❌ " + label + ": " + e.getMessage();
             }
+        }
+
+        private void showStartValidation(Context ctx) {
+            HermesConfigManager config = HermesConfigManager.getInstance();
+            java.util.List<String> warnings = new java.util.ArrayList<>();
+            java.util.List<String> ready = new java.util.ArrayList<>();
+
+            // Check LLM config
+            String provider = config.getModelProvider();
+            String apiKey = config.getApiKey(provider);
+            String model = config.getModelName();
+
+            if (provider.isEmpty()) {
+                warnings.add(getString(R.string.validation_no_provider));
+            } else if ("ollama".equals(provider)) {
+                ready.add(getString(R.string.validation_llm_ok_ollama));
+            } else if (apiKey.isEmpty()) {
+                warnings.add(getString(R.string.validation_no_api_key, provider));
+            } else {
+                ready.add(getString(R.string.validation_llm_ok, provider, model));
+            }
+
+            // Check IM platforms
+            boolean hasIm = false;
+            if (config.isFeishuConfigured()) { hasIm = true; ready.add(getString(R.string.validation_feishu_ok)); }
+            if (!config.getEnvVar("TELEGRAM_BOT_TOKEN").isEmpty()) { hasIm = true; ready.add(getString(R.string.validation_telegram_ok)); }
+            if (!config.getEnvVar("DISCORD_BOT_TOKEN").isEmpty()) { hasIm = true; ready.add(getString(R.string.validation_discord_ok)); }
+            if (!hasIm) {
+                warnings.add(getString(R.string.validation_no_im));
+            }
+
+            // Build message
+            StringBuilder msg = new StringBuilder();
+            if (!ready.isEmpty()) {
+                msg.append(getString(R.string.validation_ready_header)).append("\n");
+                for (String r : ready) msg.append("  • ").append(r).append("\n");
+            }
+            if (!warnings.isEmpty()) {
+                msg.append("\n").append(getString(R.string.validation_warnings_header)).append("\n");
+                for (String w : warnings) msg.append("  ⚠ ").append(w).append("\n");
+            }
+
+            new AlertDialog.Builder(ctx)
+                    .setTitle(R.string.validation_start_title)
+                    .setMessage(msg.toString().trim())
+                    .setPositiveButton(android.R.string.ok, (d, w) -> {
+                        ctx.startService(new Intent(ctx, HermesGatewayService.class)
+                                .setAction(HermesGatewayService.ACTION_START));
+                        Toast.makeText(ctx, R.string.gateway_started, Toast.LENGTH_SHORT).show();
+                    })
+                    .setNegativeButton(android.R.string.cancel, null)
+                    .show();
         }
     }
 }
