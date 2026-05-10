@@ -402,7 +402,18 @@
     <string name="gateway_log_cleared">Log cleared</string>
     <string name="hermes_gateway_log_summary">View gateway log for troubleshooting</string>
 
-    <!-- Status indicators -->
+    <!-- Dashboard -->
+    <string name="dashboard_title">Status Overview</string>
+    <string name="dashboard_gateway_title">Gateway</string>
+    <string name="dashboard_gateway_running">Running</string>
+    <string name="dashboard_gateway_stopped">Stopped</string>
+    <string name="dashboard_gateway_not_installed">Not installed</string>
+    <string name="dashboard_llm_title">AI Provider</string>
+    <string name="dashboard_llm_configured">%1$s / %2$s</string>
+    <string name="dashboard_llm_not_configured">Not configured</string>
+    <string name="dashboard_im_title">Messaging</string>
+    <string name="dashboard_im_none">No messaging configured</string>
+    <string name="dashboard_im_list">Active: %1$s</string>
     <string name="llm_configured">Configured (%1$s)</string>
     <string name="llm_not_configured">Not configured</string>
     <string name="feishu_configured">Configured</string>
