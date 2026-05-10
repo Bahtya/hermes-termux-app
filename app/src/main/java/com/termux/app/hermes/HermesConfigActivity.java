@@ -457,6 +457,8 @@ public class HermesConfigActivity extends AppCompatActivity {
                 apiKeyPref.setOnPreferenceChangeListener((p, newVal) -> {
                     mConfigManager.setApiKey(mConfigManager.getModelProvider(), (String) newVal);
                     p.setSummary(maskApiKey((String) newVal));
+                    invalidateTestCache();
+                    updateTestConnectionSummary();
                     return true;
                 });
             }
@@ -548,6 +550,39 @@ public class HermesConfigActivity extends AppCompatActivity {
             return super.onPreferenceTreeClick(preference);
         }
 
+        private void cacheTestResult(boolean passed) {
+            requireContext().getSharedPreferences(PREFS_LLM_TEST, Context.MODE_PRIVATE)
+                    .edit()
+                    .putString(KEY_TEST_STATUS, passed ? "pass" : "fail")
+                    .putLong(KEY_TEST_TIME, System.currentTimeMillis())
+                    .putString(KEY_TEST_PROVIDER, mConfigManager.getModelProvider())
+                    .putString(KEY_TEST_MODEL, mConfigManager.getModelName())
+                    .apply();
+        }
+
+        private void invalidateTestCache() {
+            requireContext().getSharedPreferences(PREFS_LLM_TEST, Context.MODE_PRIVATE)
+                    .edit().clear().apply();
+        }
+
+        private void updateTestConnectionSummary() {
+            Preference testPref = findPreference("llm_test_connection");
+            if (testPref == null) return;
+            android.content.SharedPreferences prefs = requireContext().getSharedPreferences(PREFS_LLM_TEST, Context.MODE_PRIVATE);
+            String status = prefs.getString(KEY_TEST_STATUS, null);
+            if (status == null) {
+                testPref.setSummary(getString(R.string.llm_test_never_run));
+                return;
+            }
+            long time = prefs.getLong(KEY_TEST_TIME, 0);
+            CharSequence timeStr = android.text.format.DateUtils.getRelativeTimeSpanString(time);
+            if ("pass".equals(status)) {
+                testPref.setSummary(getString(R.string.llm_test_last_pass, timeStr));
+            } else {
+                testPref.setSummary(getString(R.string.llm_test_last_fail, timeStr));
+            }
+        }
+
         private void testConnection(Preference testPref) {
             String provider = mConfigManager.getModelProvider();
             String apiKey = mConfigManager.getApiKey(provider);
@@ -567,17 +602,21 @@ public class HermesConfigActivity extends AppCompatActivity {
                 String[] result = performConnectionTest(provider, finalApiKey, model);
                 requireActivity().runOnUiThread(() -> {
                     if (result[0].equals("success")) {
+                        cacheTestResult(true);
                         if ("ollama".equals(provider)) {
                             testPref.setSummary(getString(R.string.llm_test_success_no_key, provider));
                         } else {
                             testPref.setSummary(getString(R.string.llm_test_success, model));
                         }
-                    } else if (result[0].equals("auth")) {
-                        testPref.setSummary(getString(R.string.llm_test_fail_auth));
-                    } else if (result[0].equals("network")) {
-                        testPref.setSummary(getString(R.string.llm_test_fail_network));
                     } else {
-                        testPref.setSummary(getString(R.string.llm_test_fail_generic, result[1]));
+                        cacheTestResult(false);
+                        if (result[0].equals("auth")) {
+                            testPref.setSummary(getString(R.string.llm_test_fail_auth));
+                        } else if (result[0].equals("network")) {
+                            testPref.setSummary(getString(R.string.llm_test_fail_network));
+                        } else {
+                            testPref.setSummary(getString(R.string.llm_test_fail_generic, result[1]));
+                        }
                     }
                 });
             }).start();
