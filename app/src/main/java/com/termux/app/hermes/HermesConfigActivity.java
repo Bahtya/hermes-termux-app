@@ -1868,30 +1868,31 @@ public class HermesConfigActivity extends AppCompatActivity {
         }
 
         private void showOllamaSetupGuide() {
+            float density = getResources().getDisplayMetrics().density;
             ScrollView scrollView = new ScrollView(requireContext());
             LinearLayout layout = new LinearLayout(requireContext());
             layout.setOrientation(LinearLayout.VERTICAL);
-            int pad = dp(16);
+            int pad = (int) (16 * density);
             layout.setPadding(pad, pad, pad, pad);
 
             TextView title = new TextView(requireContext());
             title.setText("Ollama Setup Guide");
             title.setTextSize(20);
             title.setTypeface(null, android.graphics.Typeface.BOLD);
-            title.setPadding(0, 0, 0, dp(12));
+            title.setPadding(0, 0, 0, (int) (12 * density));
             layout.addView(title);
 
             TextView intro = new TextView(requireContext());
             intro.setText("Ollama runs AI models locally on your device. No API key needed, completely free and private.");
             intro.setTextSize(14);
-            intro.setPadding(0, 0, 0, dp(12));
+            intro.setPadding(0, 0, 0, (int) (12 * density));
             layout.addView(intro);
 
             TextView stepsTitle = new TextView(requireContext());
             stepsTitle.setText("Installation Steps");
             stepsTitle.setTextSize(16);
             stepsTitle.setTypeface(null, android.graphics.Typeface.BOLD);
-            stepsTitle.setPadding(0, dp(8), 0, dp(8));
+            stepsTitle.setPadding(0, (int) (8 * density), 0, (int) (8 * density));
             layout.addView(stepsTitle);
 
             String[] steps = {
@@ -1906,14 +1907,14 @@ public class HermesConfigActivity extends AppCompatActivity {
                 TextView stepView = new TextView(requireContext());
                 stepView.setText(step);
                 stepView.setTextSize(13);
-                stepView.setPadding(dp(8), dp(4), 0, dp(4));
+                stepView.setPadding((int) (8 * density), (int) (4 * density), 0, (int) (4 * density));
                 layout.addView(stepView);
             }
 
             TextView popularModels = new TextView(requireContext());
             popularModels.setText("\nPopular Models:\n• llama3 - Best general purpose (4.7GB)\n• mistral - Fast and capable (4.1GB)\n• codellama - Code generation\n• phi3 - Small and fast (2.3GB)\n• gemma2 - Google's open model");
             popularModels.setTextSize(13);
-            popularModels.setPadding(0, dp(8), 0, dp(8));
+            popularModels.setPadding(0, (int) (8 * density), 0, (int) (8 * density));
             layout.addView(popularModels);
 
             scrollView.addView(layout);
