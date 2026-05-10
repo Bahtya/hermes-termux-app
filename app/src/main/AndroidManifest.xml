@@ -212,6 +212,14 @@
             android:name=".shared.activities.ReportActivity$ReportActivityBroadcastReceiver"
             android:exported="false" />
 
+        <receiver
+            android:name=".app.HermesInstaller$RetryReceiver"
+            android:exported="false">
+            <intent-filter>
+                <action android:name="com.hermes.termux.RETRY_INSTALL" />
+            </intent-filter>
+        </receiver>
+
 
         <service
             android:name=".app.TermuxService"
