@@ -42,6 +42,10 @@
     <string name="llm_model_summary">要使用的模型名称（例如 gpt-4o、claude-sonnet-4-6）</string>
     <string name="llm_base_url_title">API 地址</string>
     <string name="llm_base_url_summary">自定义 API 地址（用于 Ollama 或兼容 API）</string>
+    <string name="llm_cost_title">预估费用</string>
+    <string name="llm_cost_summary">约 %1$s</string>
+    <string name="llm_cost_free">免费 — 本地运行</string>
+    <string name="llm_cost_unknown">费用因提供商而异</string>
 
     <!-- LLM Model Parameters -->
     <string name="llm_params_category_title">模型参数</string>
@@ -62,6 +66,9 @@
     <string name="llm_test_fail_network">网络错误 — 请检查网络连接。</string>
     <string name="llm_test_fail_generic">测试失败：%1$s</string>
     <string name="llm_test_no_key">请先输入 API 密钥。</string>
+    <string name="llm_test_last_pass">上次测试：通过（%1$s）</string>
+    <string name="llm_test_last_fail">上次测试：失败（%1$s）— 点击重试</string>
+    <string name="llm_test_never_run">尚未测试</string>
 
     <!-- LLM Provider Arrays -->
     <string-array name="llm_provider_names">

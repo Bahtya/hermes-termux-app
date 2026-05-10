@@ -27,6 +27,11 @@
         android:entryValues="@array/llm_models_openai"
         android:defaultValue="gpt-4o" />
 
+    <Preference
+        android:key="llm_cost_estimate"
+        android:title="@string/llm_cost_title"
+        android:selectable="false" />
+
     <EditTextPreference
         android:key="llm_custom_model"
         android:title="@string/llm_custom_model_title"
