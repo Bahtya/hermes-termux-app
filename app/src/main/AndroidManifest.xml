@@ -157,6 +157,27 @@
             android:parentActivityName=".app.hermes.HermesConfigActivity"
             android:theme="@style/Theme.TermuxApp.DayNight.DarkActionBar" />
 
+        <activity
+            android:name="com.termux.app.hermes.HermesDiagnosticActivity"
+            android:exported="false"
+            android:label="@string/gateway_diagnostic_title"
+            android:parentActivityName=".app.hermes.HermesConfigActivity"
+            android:theme="@style/Theme.TermuxApp.DayNight.DarkActionBar" />
+
+        <activity
+            android:name="com.termux.app.hermes.HermesTemplateActivity"
+            android:exported="false"
+            android:label="@string/template_menu_title"
+            android:parentActivityName=".app.hermes.HermesConfigActivity"
+            android:theme="@style/Theme.TermuxApp.DayNight.DarkActionBar" />
+
+        <activity
+            android:name="com.termux.app.hermes.HermesConversationActivity"
+            android:exported="false"
+            android:label="@string/conversation_title"
+            android:parentActivityName=".app.hermes.HermesConfigActivity"
+            android:theme="@style/Theme.TermuxApp.DayNight.DarkActionBar" />
+
         <service
             android:name="com.termux.app.hermes.HermesGatewayService"
             android:exported="false"
