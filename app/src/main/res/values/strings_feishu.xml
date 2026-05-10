@@ -12,6 +12,7 @@
     <string name="feishu_app_secret_hint">App Secret</string>
     <string name="feishu_credentials_error_empty">Please enter both App ID and App Secret</string>
     <string name="feishu_credentials_error_invalid_id">App ID should start with \"cli_\"</string>
+    <string name="feishu_credentials_title">Enter Credentials</string>
     <string name="feishu_configure_title">Configure Connection</string>
     <string name="feishu_mode_websocket_desc">Maintains a persistent connection. Best for real-time messaging. Works behind NAT/firewalls.</string>
     <string name="feishu_mode_webhook_desc">Requires a publicly accessible URL. Hermes will POST events to your endpoint.</string>
