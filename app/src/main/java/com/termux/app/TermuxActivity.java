@@ -34,6 +34,8 @@ import com.termux.app.terminal.io.TermuxTerminalExtraKeys;
 import com.termux.shared.activities.ReportActivity;
 import com.termux.shared.activity.ActivityUtils;
 import com.termux.shared.activity.media.AppCompatActivityUtils;
+import com.termux.app.hermes.HermesConfigActivity;
+import com.termux.app.hermes.HermesSetupWizardActivity;
 import com.termux.shared.data.IntentUtils;
 import com.termux.shared.android.PermissionUtils;
 import com.termux.shared.data.DataUtils;
@@ -255,6 +257,8 @@ public final class TermuxActivity extends AppCompatActivity implements ServiceCo
 
         setSettingsButtonView();
 
+        setHermesSettingsButtonView();
+
         setNewSessionButtonView();
 
         setToggleKeyboardView();
@@ -399,6 +403,11 @@ public final class TermuxActivity extends AppCompatActivity implements ServiceCo
 
         // Ensure Hermes Agent is installed (idempotent)
         HermesInstaller.installIfNeeded(this);
+
+        // Show setup wizard on first launch
+        if (!HermesSetupWizardActivity.isWizardCompleted(this)) {
+            startActivity(new Intent(this, HermesSetupWizardActivity.class));
+        }
 
         setTermuxSessionsListView();
 
@@ -585,6 +594,15 @@ public final class TermuxActivity extends AppCompatActivity implements ServiceCo
         settingsButton.setOnClickListener(v -> {
             ActivityUtils.startActivity(this, new Intent(this, SettingsActivity.class));
         });
+    }
+
+    private void setHermesSettingsButtonView() {
+        ImageButton hermesSettingsButton = findViewById(R.id.hermes_settings_button);
+        if (hermesSettingsButton != null) {
+            hermesSettingsButton.setOnClickListener(v -> {
+                ActivityUtils.startActivity(this, new Intent(this, HermesConfigActivity.class));
+            });
+        }
     }
 
     private void setNewSessionButtonView() {
