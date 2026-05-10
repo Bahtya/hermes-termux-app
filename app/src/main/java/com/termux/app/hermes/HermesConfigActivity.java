@@ -24,6 +24,8 @@ import com.termux.R;
 import com.termux.shared.termux.TermuxConstants;
 
 import java.io.File;
+import java.util.HashMap;
+import java.util.Map;
 
 public class HermesConfigActivity extends AppCompatActivity {
 
@@ -926,6 +928,48 @@ public class HermesConfigActivity extends AppCompatActivity {
                     }
                     return true;
                 });
+            }
+        }
+
+        private static final Map<String, String> MODEL_COSTS = new HashMap<>();
+        static {
+            MODEL_COSTS.put("gpt-4o", "$0.008/1K tokens");
+            MODEL_COSTS.put("gpt-4o-mini", "$0.0002/1K tokens");
+            MODEL_COSTS.put("gpt-4-turbo", "$0.015/1K tokens");
+            MODEL_COSTS.put("gpt-4", "$0.04/1K tokens");
+            MODEL_COSTS.put("gpt-3.5-turbo", "$0.0006/1K tokens");
+            MODEL_COSTS.put("claude-sonnet-4-6", "$0.006/1K tokens");
+            MODEL_COSTS.put("claude-opus-4-7", "$0.04/1K tokens");
+            MODEL_COSTS.put("claude-haiku-4-5", "$0.001/1K tokens");
+            MODEL_COSTS.put("gemini-2.0-flash", "$0.0002/1K tokens");
+            MODEL_COSTS.put("gemini-2.5-pro", "$0.003/1K tokens");
+            MODEL_COSTS.put("deepseek-chat", "$0.0002/1K tokens");
+            MODEL_COSTS.put("deepseek-reasoner", "$0.001/1K tokens");
+            MODEL_COSTS.put("llama-4-maverick", "$0.0002/1K tokens");
+            MODEL_COSTS.put("grok-3", "$0.005/1K tokens");
+            MODEL_COSTS.put("grok-3-mini", "$0.0004/1K tokens");
+            MODEL_COSTS.put("qwen-max", "$0.005/1K tokens");
+            MODEL_COSTS.put("qwen-plus", "$0.001/1K tokens");
+            MODEL_COSTS.put("mistral-large", "$0.006/1K tokens");
+            MODEL_COSTS.put("mistral-small", "$0.0003/1K tokens");
+        }
+
+        private void updateCostEstimate() {
+            Preference costPref = findPreference("llm_cost_estimate");
+            if (costPref == null) return;
+            String provider = mConfigManager.getModelProvider();
+            String model = mConfigManager.getModelName();
+
+            if ("ollama".equals(provider)) {
+                costPref.setSummary(getString(R.string.llm_cost_free));
+                return;
+            }
+
+            String cost = MODEL_COSTS.get(model);
+            if (cost != null) {
+                costPref.setSummary(getString(R.string.llm_cost_summary, cost));
+            } else {
+                costPref.setSummary(getString(R.string.llm_cost_unknown));
             }
         }
 
