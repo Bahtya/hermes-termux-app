@@ -576,4 +576,64 @@
     <string name="hermes_setup_done_title">You\'re all set!</string>
     <string name="hermes_setup_done_text">Hermes is ready to go. You can start the gateway from the Hermes Settings or use the Web UI tab.\n\nTo change your settings at any time, tap the Hermes icon in the sidebar.</string>
 
+    <string name="install_title">Hermes Installation</string>
+    <string name="help_title">Hermes Help</string>
+    <string name="llm_category_provider">Provider</string>
+    <string name="llm_category_auth">Authentication</string>
+    <string name="llm_category_endpoint">Endpoint</string>
+    <string name="llm_category_model">Model</string>
+    <string name="llm_category_test">Test</string>
+    <string name="llm_category_share">Share Config</string>
+    <string name="llm_category_persona">Persona</string>
+    <string name="llm_preset_title">Configuration Preset</string>
+    <string name="llm_preset_summary">Quick setup for common use cases</string>
+    <string name="llm_provider_info_title">Provider Info</string>
+    <string name="llm_cost_title">Estimated Cost</string>
+    <string name="llm_custom_model_title">Custom Model Name</string>
+    <string name="llm_custom_model_summary">Enter the model name to use</string>
+    <string name="llm_params_category_title">Parameters</string>
+    <string name="llm_temperature_title">Temperature</string>
+    <string name="llm_temperature_summary">Controls randomness (0.0 - 2.0, default 0.7)</string>
+    <string name="llm_max_tokens_title">Max Tokens</string>
+    <string name="llm_max_tokens_summary">Maximum response length (default 4096)</string>
+    <string name="llm_templates_title">System Prompt Templates</string>
+    <string name="llm_templates_summary">Choose a preset persona template</string>
+    <string name="llm_paste_key_title">Paste API Key</string>
+    <string name="llm_paste_key_summary">Paste from clipboard</string>
+    <string name="llm_api_key_hint_openai">OpenAI keys start with sk-</string>
+    <string name="llm_base_url_hint_default">Leave empty for default provider URL</string>
+    <string name="llm_export_qr_title">Export via QR</string>
+    <string name="llm_export_qr_summary">Share config as QR code</string>
+    <string name="llm_import_qr_title">Import via QR</string>
+    <string name="llm_import_qr_summary">Scan QR code to import config</string>
+    <string name="llm_persona_template_title">Persona Template</string>
+    <string name="llm_persona_template_summary">Choose a preset persona</string>
+    <string name="llm_system_prompt_title">System Prompt</string>
+    <string name="llm_system_prompt_summary">Custom system prompt for the AI assistant</string>
+    <string name="llm_get_api_key_title">Get API Key</string>
+    <string name="llm_get_api_key_summary">Open provider dashboard to get or manage your API key</string>
+    <string name="llm_docs_title">Provider Documentation</string>
+    <string name="llm_docs_summary">View setup guides and pricing</string>
+    <string name="llm_quick_switch_provider_label">Provider</string>
+    <string name="llm_quick_switch_model_label">Model</string>
+    <string name="hermes_help_faq_title">Help &amp; FAQ</string>
+    <string name="hermes_help_faq_summary">Common questions and troubleshooting</string>
+    <string name="gateway_diagnostic_title">Gateway Diagnostic</string>
+    <string name="gateway_diagnostic_summary">Run connectivity diagnostic</string>
+    <string name="gateway_notif_perm_title">Notification Permission</string>
+    <string name="gateway_notif_perm_summary">Grant notification permission for gateway service</string>
+    <string-array name="llm_preset_names">
+        <item>Balanced</item>
+        <item>Creative</item>
+        <item>Precise</item>
+        <item>Code</item>
+        <item>Custom</item>
+    </string-array>
+    <string-array name="llm_preset_values">
+        <item>balanced</item>
+        <item>creative</item>
+        <item>precise</item>
+        <item>code</item>
+        <item>custom</item>
+    </string-array>
 </resources>
