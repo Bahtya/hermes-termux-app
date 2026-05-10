@@ -274,4 +274,13 @@
     <string name="llm_get_api_key_summary">打开提供商控制台获取或管理 API 密钥</string>
     <string name="llm_docs_title">提供商文档</string>
     <string name="llm_docs_summary">查看设置指南和价格信息</string>
+
+    <!-- IM Test Message -->
+    <string name="im_test_message_title">发送测试消息</string>
+    <string name="im_test_message_summary">通过网关发送测试消息以验证连接</string>
+    <string name="im_test_message_sending">正在发送测试消息…</string>
+    <string name="im_test_message_success">测试消息发送成功！</string>
+    <string name="im_test_message_fail">发送测试消息失败：%1$s</string>
+    <string name="im_test_message_no_gateway">请先启动网关以发送测试消息。</string>
+    <string name="im_test_message_button">发送测试消息</string>
 </resources>
