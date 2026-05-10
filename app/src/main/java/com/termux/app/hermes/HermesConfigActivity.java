@@ -61,7 +61,17 @@ public class HermesConfigActivity extends AppCompatActivity {
         public void onCreatePreferences(Bundle savedInstanceState, String rootKey) {
             setPreferencesFromResource(R.xml.hermes_preferences, rootKey);
             mConfigManager = HermesConfigManager.getInstance();
+            refreshDashboard();
+            setupListeners();
+        }
 
+        @Override
+        public void onResume() {
+            super.onResume();
+            refreshDashboard();
+        }
+
+        private void refreshDashboard() {
             // --- Dashboard: Gateway status ---
             Preference dashGateway = findPreference("hermes_dashboard_gateway");
             if (dashGateway != null) {
@@ -111,7 +121,7 @@ public class HermesConfigActivity extends AppCompatActivity {
                 }
             }
 
-            // Show gateway status
+            // Show gateway status on control row
             Preference gatewayPref = findPreference("hermes_gateway_control");
             if (gatewayPref != null) {
                 HermesGatewayStatus.checkAsync((status, detail) -> {
@@ -131,21 +141,6 @@ public class HermesConfigActivity extends AppCompatActivity {
                         }
                         gatewayPref.setSummary(summary);
                     });
-                });
-            }
-
-            // Auto-start gateway toggle
-            SwitchPreferenceCompat autoStartPref = findPreference("hermes_auto_start_gateway");
-            if (autoStartPref != null) {
-                autoStartPref.setOnPreferenceChangeListener((p, newVal) -> {
-                    boolean enabled = (Boolean) newVal;
-                    HermesGatewayService.setAutoStartEnabled(requireContext(), enabled);
-                    if (enabled) {
-                        requireContext().startService(
-                                new Intent(requireContext(), HermesGatewayService.class)
-                                        .setAction(HermesGatewayService.ACTION_START));
-                    }
-                    return true;
                 });
             }
 
@@ -185,6 +180,22 @@ public class HermesConfigActivity extends AppCompatActivity {
                 discordPref.setSummary(configured
                         ? getString(R.string.discord_configured)
                         : getString(R.string.discord_not_configured));
+            }
+        }
+
+        private void setupListeners() {
+            SwitchPreferenceCompat autoStartPref = findPreference("hermes_auto_start_gateway");
+            if (autoStartPref != null) {
+                autoStartPref.setOnPreferenceChangeListener((p, newVal) -> {
+                    boolean enabled = (Boolean) newVal;
+                    HermesGatewayService.setAutoStartEnabled(requireContext(), enabled);
+                    if (enabled) {
+                        requireContext().startService(
+                                new Intent(requireContext(), HermesGatewayService.class)
+                                        .setAction(HermesGatewayService.ACTION_START));
+                    }
+                    return true;
+                });
             }
         }
 
