@@ -116,6 +116,27 @@
             android:summary="@string/llm_max_tokens_summary"
             android:inputType="number"
             android:defaultValue="4096" />
+
+        <EditTextPreference
+            android:key="llm_top_p"
+            android:title="@string/llm_top_p_title"
+            android:summary="@string/llm_top_p_summary"
+            android:inputType="numberDecimal"
+            android:defaultValue="1.0" />
+
+        <EditTextPreference
+            android:key="llm_frequency_penalty"
+            android:title="@string/llm_frequency_penalty_title"
+            android:summary="@string/llm_frequency_penalty_summary"
+            android:inputType="numberDecimal|numberSigned"
+            android:defaultValue="0.0" />
+
+        <EditTextPreference
+            android:key="llm_presence_penalty"
+            android:title="@string/llm_presence_penalty_title"
+            android:summary="@string/llm_presence_penalty_summary"
+            android:inputType="numberDecimal|numberSigned"
+            android:defaultValue="0.0" />
     </PreferenceCategory>
 
     <PreferenceCategory
