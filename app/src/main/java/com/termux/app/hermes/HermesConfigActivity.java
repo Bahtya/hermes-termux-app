@@ -71,6 +71,12 @@ public class HermesConfigActivity extends AppCompatActivity {
                         switch (status) {
                             case RUNNING:
                                 dashGateway.setSummary(getString(R.string.dashboard_gateway_running));
+                                HermesGatewayStatus.queryResourceUsageAsync(info -> {
+                                    if (getActivity() == null) return;
+                                    getActivity().runOnUiThread(() -> {
+                                        dashGateway.setSummary(getString(R.string.dashboard_gateway_running_resource, info.memRssMb));
+                                    });
+                                });
                                 break;
                             case NOT_INSTALLED:
                                 dashGateway.setSummary(getString(R.string.dashboard_gateway_not_installed));

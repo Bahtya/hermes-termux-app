@@ -413,6 +413,7 @@ App ID 以"cli_"开头，约 10-20 个字符。App Secret 较长（30+ 字符）
     <string name="setup_progress_summary">已完成 %1$d / %2$d 步</string>
     <string name="dashboard_gateway_title">网关</string>
     <string name="dashboard_gateway_running">运行中</string>
+    <string name="dashboard_gateway_running_resource">运行中 — 内存 %1$d MB</string>
     <string name="dashboard_gateway_stopped">已停止</string>
     <string name="dashboard_gateway_not_installed">未安装</string>
     <string name="dashboard_llm_title">AI 提供商</string>
