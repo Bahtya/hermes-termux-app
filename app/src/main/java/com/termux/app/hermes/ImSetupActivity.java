@@ -211,6 +211,7 @@ public class ImSetupActivity extends AppCompatActivity {
             if (usersInput != null) {
                 mConfigManager.setEnvVar(usersKey, usersInput.getText().toString().trim());
             }
+            HermesConfigManager.restartGatewayIfRunning(this);
         }
 
         LinearLayout.LayoutParams wrap = new LinearLayout.LayoutParams(
