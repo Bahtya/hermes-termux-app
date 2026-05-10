@@ -750,6 +750,30 @@ public class HermesConfigManager {
         return !getFeishuAppId().isEmpty() && !getFeishuAppSecret().isEmpty();
     }
 
+    /** Returns true if a Telegram bot token is configured in .env. */
+    public boolean isTelegramConfigured() {
+        return !getEnvVar("TELEGRAM_BOT_TOKEN").isEmpty();
+    }
+
+    /** Returns true if a Discord bot token is configured in .env. */
+    public boolean isDiscordConfigured() {
+        return !getEnvVar("DISCORD_BOT_TOKEN").isEmpty();
+    }
+
+    /** Returns true if at least one IM platform is configured. */
+    public boolean isAnyImConfigured() {
+        return isFeishuConfigured() || isTelegramConfigured() || isDiscordConfigured();
+    }
+
+    /** Returns a comma-separated list of configured IM platform names. */
+    public String getConfiguredImPlatforms() {
+        java.util.List<String> platforms = new java.util.ArrayList<>();
+        if (isFeishuConfigured()) platforms.add("Feishu");
+        if (isTelegramConfigured()) platforms.add("Telegram");
+        if (isDiscordConfigured()) platforms.add("Discord");
+        return android.text.TextUtils.join(", ", platforms);
+    }
+
     // =========================================================================
     // Raw env var access
     // =========================================================================
