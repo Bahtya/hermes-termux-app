@@ -111,6 +111,21 @@ public class HermesConfigActivity extends AppCompatActivity {
                 }
             }
 
+            // --- Dashboard: Version ---
+            Preference dashVersion = findPreference("hermes_dashboard_version");
+            if (dashVersion != null) {
+                dashVersion.setSummary(getString(R.string.gateway_status_not_installed));
+                new Thread(() -> {
+                    String version = fetchHermesVersion();
+                    if (getActivity() == null) return;
+                    getActivity().runOnUiThread(() -> {
+                        if (dashVersion != null) {
+                            dashVersion.setSummary(version != null ? version : getString(R.string.gateway_status_not_installed));
+                        }
+                    });
+                }).start();
+            }
+
             // Show gateway status
             Preference gatewayPref = findPreference("hermes_gateway_control");
             if (gatewayPref != null) {
@@ -239,6 +254,42 @@ public class HermesConfigActivity extends AppCompatActivity {
                     .addToBackStack(null)
                     .setTransition(FragmentTransaction.TRANSIT_FRAGMENT_OPEN)
                     .commit();
+        }
+
+        private static String fetchHermesVersion() {
+            try {
+                String binPath = TermuxConstants.TERMUX_BIN_PREFIX_DIR_PATH;
+                String bashPath = binPath + "/bash";
+                if (!new File(bashPath).exists()) return null;
+
+                ProcessBuilder pb = new ProcessBuilder(bashPath, "-c",
+                        "pip show hermes-agent 2>/dev/null | grep Version | head -1 | cut -d' ' -f2");
+                pb.environment().put("PATH", binPath + ":/system/bin");
+                pb.environment().put("HOME", TermuxConstants.TERMUX_HOME_DIR_PATH);
+                pb.redirectErrorStream(true);
+                Process p = pb.start();
+                p.waitFor();
+                java.io.BufferedReader reader = new java.io.BufferedReader(
+                        new java.io.InputStreamReader(p.getInputStream()));
+                String version = reader.readLine();
+                if (version != null) version = version.trim();
+                if (version != null && !version.isEmpty()) return version;
+
+                // Fallback: try hermes --version
+                ProcessBuilder pb2 = new ProcessBuilder(bashPath, "-c",
+                        "hermes --version 2>/dev/null | head -1");
+                pb2.environment().put("PATH", binPath + ":/system/bin");
+                pb2.redirectErrorStream(true);
+                Process p2 = pb2.start();
+                p2.waitFor();
+                java.io.BufferedReader reader2 = new java.io.BufferedReader(
+                        new java.io.InputStreamReader(p2.getInputStream()));
+                String cliVersion = reader2.readLine();
+                if (cliVersion != null) cliVersion = cliVersion.trim();
+                return (cliVersion != null && !cliVersion.isEmpty()) ? cliVersion : null;
+            } catch (Exception e) {
+                return null;
+            }
         }
 
         private void checkForUpdate(Preference updatePref) {

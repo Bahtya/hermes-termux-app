@@ -7,6 +7,10 @@
             android:title="@string/dashboard_gateway_title"
             android:selectable="false" />
         <Preference
+            android:key="hermes_dashboard_version"
+            android:title="@string/hermes_version_label"
+            android:selectable="false" />
+        <Preference
             android:key="hermes_dashboard_llm"
             android:title="@string/dashboard_llm_title"
             android:selectable="false" />
