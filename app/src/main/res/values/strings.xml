@@ -768,4 +768,22 @@
     <string name="config_import_confirm_message">This will overwrite your current settings. Continue?</string>
     <string name="config_import_success">Configuration imported successfully</string>
     <string name="config_import_fail">Import failed: %1$s</string>
+
+    <!-- Enhanced Feishu wizard -->
+    <string name="feishu_deep_link_title">Quick Setup Link</string>
+    <string name="feishu_deep_link_summary">Open Feishu developer console directly</string>
+    <string name="feishu_open_dev_console">Open Developer Console</string>
+    <string name="feishu_open_dev_console_url">https://open.feishu.cn/app</string>
+    <string name="feishu_qr_tip_title">Tip: Scan with your phone camera</string>
+    <string name="feishu_qr_tip_desc">Point your phone camera at the QR code on the Feishu developer console to quickly copy your App ID and Secret.</string>
+    <string name="feishu_auto_detect_title">Auto-Detected Credentials</string>
+    <string name="feishu_auto_detect_desc">Credentials detected from QR code. Please verify they are correct.</string>
+    <string name="feishu_welcome_new_title">Welcome to Feishu Setup</string>
+    <string name="feishu_welcome_new_desc">This wizard will guide you through connecting your Feishu bot to Hermes. You will need:
+
+• A Feishu/Lark account
+• Access to the Developer Console
+• Your App ID and App Secret</string>
+    <string name="feishu_credentials_help">Enter your App ID and App Secret from the Feishu Developer Console.</string>
+    <string name="feishu_app_id_prefix">App IDs start with "cli_"</string>
 </resources>
