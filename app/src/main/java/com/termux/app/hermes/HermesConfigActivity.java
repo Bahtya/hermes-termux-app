@@ -1746,9 +1746,13 @@ public class HermesConfigActivity extends AppCompatActivity {
             if (modelPref != null) {
                 modelPref.setOnPreferenceChangeListener((p, newVal) -> {
                     mConfigManager.setModelName((String) newVal);
+                    updateCostEstimate((String) newVal);
                     mHasUnsavedChanges = true;
                     return true;
                 });
+                // Show initial cost estimate
+                String currentModel = mConfigManager.getModelName();
+                if (!currentModel.isEmpty()) updateCostEstimate(currentModel);
             }
 
             Preference baseUrlPref = findPreference("llm_base_url");
@@ -2587,6 +2591,60 @@ public class HermesConfigActivity extends AppCompatActivity {
                 case "ollama":     return baseUrl.isEmpty() ? "http://localhost:11434/api/generate" : baseUrl + "/api/generate";
                 case "custom":     return baseUrl.isEmpty() ? null : baseUrl + "/chat/completions";
                 default:           return null;
+            }
+        }
+
+        private void updateCostEstimate(String model) {
+            Preference costPref = findPreference("llm_cost_estimate");
+            if (costPref == null) return;
+
+            String provider = mConfigManager.getModelProvider();
+            if ("ollama".equals(provider)) {
+                costPref.setSummary(getString(R.string.llm_cost_free));
+                costPref.setVisible(true);
+                return;
+            }
+            if ("custom".equals(provider)) {
+                costPref.setVisible(false);
+                return;
+            }
+
+            String cost = getModelCostEstimate(model);
+            if (cost != null) {
+                costPref.setSummary(getString(R.string.llm_cost_estimate_format, cost));
+                costPref.setVisible(true);
+            } else {
+                costPref.setSummary(getString(R.string.llm_cost_estimate_unknown));
+                costPref.setVisible(true);
+            }
+        }
+
+        private String getModelCostEstimate(String model) {
+            if (model == null) return null;
+            switch (model) {
+                // OpenAI
+                case "gpt-4o": return "$2.50 / $10.00 per 1M tokens";
+                case "gpt-4o-mini": return "$0.15 / $0.60 per 1M tokens";
+                case "o1": return "$15.00 / $60.00 per 1M tokens";
+                case "o1-mini": return "$3.00 / $12.00 per 1M tokens";
+                case "o3-mini": return "$1.10 / $4.40 per 1M tokens";
+                // Anthropic
+                case "claude-sonnet-4-6": return "$3.00 / $15.00 per 1M tokens";
+                case "claude-opus-4-7": return "$15.00 / $75.00 per 1M tokens";
+                case "claude-haiku-4-5": return "$0.80 / $4.00 per 1M tokens";
+                // Google
+                case "gemini-2.5-pro": return "$1.25 / $10.00 per 1M tokens";
+                case "gemini-2.5-flash": return "$0.15 / $0.60 per 1M tokens";
+                // DeepSeek
+                case "deepseek-chat": return "$0.14 / $0.28 per 1M tokens";
+                case "deepseek-reasoner": return "$0.55 / $2.19 per 1M tokens";
+                // xAI
+                case "grok-3": return "$3.00 / $15.00 per 1M tokens";
+                case "grok-3-mini": return "$0.35 / $0.50 per 1M tokens";
+                // Mistral
+                case "mistral-large-latest": return "$2.00 / $6.00 per 1M tokens";
+                case "mistral-small-latest": return "$0.10 / $0.30 per 1M tokens";
+                default: return null;
             }
         }
     }
