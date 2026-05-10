@@ -336,6 +336,14 @@ App ID starts with "cli_" and is about 10–20 characters. App Secret is longer 
     <string name="llm_provider_summary">Select your LLM provider</string>
     <string name="llm_api_key_title">API Key</string>
     <string name="llm_api_key_summary">Enter your provider API key</string>
+    <string name="llm_api_key_hint_openai">OpenAI keys start with sk-</string>
+    <string name="llm_api_key_hint_anthropic">Anthropic keys start with sk-ant-</string>
+    <string name="llm_api_key_hint_google">Google AI keys are ~39 characters</string>
+    <string name="llm_api_key_hint_deepseek">DeepSeek keys start with sk-</string>
+    <string name="llm_api_key_hint_generic">Enter your API key for this provider</string>
+    <string name="llm_api_key_too_short">Key seems too short — please double-check</string>
+    <string name="llm_api_key_has_spaces">Key contains spaces — they will be removed automatically</string>
+    <string name="llm_api_key_no_key_needed">No API key needed for local models</string>
     <string name="llm_model_title">Model</string>
     <string name="llm_model_summary">Model name to use (e.g. gpt-4o, claude-sonnet-4-6)</string>
 
@@ -572,6 +580,9 @@ App ID starts with "cli_" and is about 10–20 characters. App Secret is longer 
     <string name="llm_qr_import_failed">Failed to read QR code: %1$s</string>
     <string name="llm_qr_no_scanner">No QR scanner app found. Please install a barcode scanner.</string>
     <string name="llm_qr_invalid_data">Invalid configuration data in QR code</string>
+    <string name="llm_test_last_pass">Last test: Passed (%1$s)</string>
+    <string name="llm_test_last_fail">Last test: Failed (%1$s) — Tap to retry</string>
+    <string name="llm_test_never_run">Not tested yet</string>
 
     <!-- Gateway Control -->
     <string name="gateway_start_title">Start Gateway</string>

@@ -94,6 +94,14 @@ App ID 以"cli_"开头，约 10-20 个字符。App Secret 较长（30+ 字符）
     <string name="llm_provider_summary">选择您的 LLM 提供商</string>
     <string name="llm_api_key_title">API 密钥</string>
     <string name="llm_api_key_summary">输入提供商 API 密钥</string>
+    <string name="llm_api_key_hint_openai">OpenAI 密钥以 sk- 开头</string>
+    <string name="llm_api_key_hint_anthropic">Anthropic 密钥以 sk-ant- 开头</string>
+    <string name="llm_api_key_hint_google">Google AI 密钥约 39 个字符</string>
+    <string name="llm_api_key_hint_deepseek">DeepSeek 密钥以 sk- 开头</string>
+    <string name="llm_api_key_hint_generic">输入此提供商的 API 密钥</string>
+    <string name="llm_api_key_too_short">密钥似乎太短 — 请仔细检查</string>
+    <string name="llm_api_key_has_spaces">密钥包含空格 — 将自动去除</string>
+    <string name="llm_api_key_no_key_needed">本地模型不需要 API 密钥</string>
     <string name="llm_model_title">模型</string>
     <string name="llm_model_summary">要使用的模型名称（例如 gpt-4o、claude-sonnet-4-6）</string>
     <string name="llm_base_url_title">API 地址</string>
