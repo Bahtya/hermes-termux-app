@@ -162,6 +162,31 @@
             android:summary="@string/llm_templates_summary" />
     </PreferenceCategory>
 
+    <PreferenceCategory
+        android:key="llm_category_routing"
+        android:title="@string/llm_category_routing">
+        <ListPreference
+            android:key="llm_routing_mode"
+            android:title="@string/llm_routing_mode_title"
+            android:summary="@string/llm_routing_mode_summary"
+            android:entries="@array/llm_routing_mode_names"
+            android:entryValues="@array/llm_routing_mode_values"
+            android:defaultValue="off" />
+
+        <EditTextPreference
+            android:key="llm_routing_fast_model"
+            android:title="@string/llm_routing_fast_model_title"
+            android:summary="@string/llm_routing_fast_model_summary"
+            android:inputType="textVisiblePassword" />
+
+        <EditTextPreference
+            android:key="llm_routing_threshold"
+            android:title="@string/llm_routing_threshold_title"
+            android:summary="@string/llm_routing_threshold_summary"
+            android:inputType="numberDecimal"
+            android:defaultValue="0.5" />
+    </PreferenceCategory>
+
     <PreferenceCategory android:title="@string/llm_category_test">
         <Preference
             android:key="llm_test_connection"

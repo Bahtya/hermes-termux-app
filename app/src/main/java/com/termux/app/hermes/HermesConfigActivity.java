@@ -1642,6 +1642,46 @@ public class HermesConfigActivity extends AppCompatActivity {
                     return true;
                 });
             }
+
+            // Model routing mode
+            ListPreference routingModePref = findPreference("llm_routing_mode");
+            if (routingModePref != null) {
+                String mode = mConfigManager.getModelRoutingMode();
+                routingModePref.setValue(mode);
+                updateRoutingVisibility(mode);
+                routingModePref.setOnPreferenceChangeListener((p, newVal) -> {
+                    mConfigManager.setModelRoutingMode((String) newVal);
+                    updateRoutingVisibility((String) newVal);
+                    mHasUnsavedChanges = true;
+                    return true;
+                });
+            }
+
+            // Routing fast model
+            EditTextPreference fastModelPref = findPreference("llm_routing_fast_model");
+            if (fastModelPref != null) {
+                String fastModel = mConfigManager.getModelRoutingFastModel();
+                if (!fastModel.isEmpty()) fastModelPref.setText(fastModel);
+                fastModelPref.setOnPreferenceChangeListener((p, newVal) -> {
+                    mConfigManager.setModelRoutingFastModel((String) newVal);
+                    mHasUnsavedChanges = true;
+                    return true;
+                });
+            }
+
+            // Routing threshold
+            EditTextPreference thresholdPref = findPreference("llm_routing_threshold");
+            if (thresholdPref != null) {
+                float threshold = mConfigManager.getModelRoutingThreshold();
+                thresholdPref.setText(String.valueOf(threshold));
+                thresholdPref.setOnPreferenceChangeListener((p, newVal) -> {
+                    try {
+                        mConfigManager.setModelRoutingThreshold(Float.parseFloat((String) newVal));
+                    } catch (NumberFormatException ignored) {}
+                    mHasUnsavedChanges = true;
+                    return true;
+                });
+            }
         }
 
         @Override
@@ -1953,6 +1993,14 @@ public class HermesConfigActivity extends AppCompatActivity {
             }
             return super.onPreferenceTreeClick(preference);
         }
+
+        private void updateRoutingVisibility(String mode) {
+                Preference fastModelPref = findPreference("llm_routing_fast_model");
+                Preference thresholdPref = findPreference("llm_routing_threshold");
+                boolean visible = !"off".equals(mode);
+                if (fastModelPref != null) fastModelPref.setVisible(visible);
+                if (thresholdPref != null) thresholdPref.setVisible(visible);
+            }
 
         private void openProviderUrl(String url) {
             if (url == null) return;
@@ -2585,6 +2633,47 @@ public class HermesConfigActivity extends AppCompatActivity {
                         return true;
                     });
                 }
+            }
+
+            // Browser tool configuration
+            EditTextPreference browserTimeoutPref = findPreference("browser_inactivity_timeout");
+            if (browserTimeoutPref != null) {
+                String timeout = mConfigManager.getYamlValue("browser.inactivity_timeout", "");
+                if (!timeout.isEmpty()) browserTimeoutPref.setText(timeout);
+                browserTimeoutPref.setOnPreferenceChangeListener((p, newVal) -> {
+                    mConfigManager.setYamlValue("browser.inactivity_timeout", (String) newVal);
+                    return true;
+                });
+            }
+
+            EditTextPreference browserUaPref = findPreference("browser_user_agent");
+            if (browserUaPref != null) {
+                String ua = mConfigManager.getYamlValue("browser.user_agent", "");
+                if (!ua.isEmpty()) browserUaPref.setText(ua);
+                browserUaPref.setOnPreferenceChangeListener((p, newVal) -> {
+                    mConfigManager.setYamlValue("browser.user_agent", (String) newVal);
+                    return true;
+                });
+            }
+
+            SwitchPreferenceCompat browserHeadlessPref = findPreference("browser_headless");
+            if (browserHeadlessPref != null) {
+                String val = mConfigManager.getYamlValue("browser.headless", "true");
+                browserHeadlessPref.setChecked(!"false".equals(val));
+                browserHeadlessPref.setOnPreferenceChangeListener((p, newVal) -> {
+                    mConfigManager.setYamlValue("browser.headless", (Boolean) newVal ? "true" : "false");
+                    return true;
+                });
+            }
+
+            EditTextPreference browserMaxTabsPref = findPreference("browser_max_tabs");
+            if (browserMaxTabsPref != null) {
+                String maxTabs = mConfigManager.getYamlValue("browser.max_tabs", "");
+                if (!maxTabs.isEmpty()) browserMaxTabsPref.setText(maxTabs);
+                browserMaxTabsPref.setOnPreferenceChangeListener((p, newVal) -> {
+                    mConfigManager.setYamlValue("browser.max_tabs", (String) newVal);
+                    return true;
+                });
             }
         }
     }
