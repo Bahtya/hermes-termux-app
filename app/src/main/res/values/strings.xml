@@ -395,6 +395,10 @@
     <string name="gateway_start_summary">Start the Hermes messaging gateway</string>
     <string name="gateway_auto_start_title">Auto-start Gateway</string>
     <string name="gateway_auto_start_summary">Start Hermes gateway automatically when app opens</string>
+    <string name="gateway_command_timeout_title">LLM response timeout</string>
+    <string name="gateway_command_timeout_summary">Seconds to wait for AI response before timing out (default 120)</string>
+    <string name="gateway_restart_delay_title">Crash restart delay</string>
+    <string name="gateway_restart_delay_summary">Seconds to wait before auto-restarting after crash (default 30)</string>
     <string name="gateway_auto_restart_title">Auto-restart on crash</string>
     <string name="gateway_auto_restart_summary">Automatically restart gateway if it crashes</string>
     <string name="gateway_max_restarts_title">Max restart attempts</string>
@@ -913,8 +917,6 @@
     <string name="gateway_stats_running">Uptime: %s</string>
     <string name="gateway_stats_stopped">Gateway is not running</string>
     <string name="gateway_auto_restart_category">Auto-Recovery</string>
-    <string name="gateway_restart_delay_title">Restart Delay</string>
-    <string name="gateway_restart_delay_summary">Seconds to wait before attempting restart</string>
 
     <string-array name="gateway_restart_count_names">
         <item>1 attempt</item>

@@ -127,6 +127,20 @@
             android:title="@string/hermes_gateway_control_title"
             android:summary="@string/hermes_gateway_control_summary" />
 
+        <EditTextPreference
+            android:key="hermes_command_timeout"
+            android:title="@string/gateway_command_timeout_title"
+            android:summary="@string/gateway_command_timeout_summary"
+            android:inputType="number"
+            android:defaultValue="120" />
+
+        <EditTextPreference
+            android:key="hermes_restart_delay"
+            android:title="@string/gateway_restart_delay_title"
+            android:summary="@string/gateway_restart_delay_summary"
+            android:inputType="number"
+            android:defaultValue="30" />
+
         <SwitchPreferenceCompat
             android:key="hermes_gateway_auto_restart"
             android:title="@string/gateway_auto_restart_title"
