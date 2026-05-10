@@ -136,7 +136,14 @@ public class HermesConfigActivity extends AppCompatActivity {
                     getActivity().runOnUiThread(() -> {
                         switch (status) {
                             case RUNNING:
-                                dashGateway.setSummary(getString(R.string.dashboard_gateway_running));
+                                long startTime = HermesGatewayService.getStartTime();
+                                if (startTime > 0) {
+                                    long uptimeMs = System.currentTimeMillis() - startTime;
+                                    dashGateway.setSummary(getString(R.string.dashboard_gateway_running)
+                                            + " — " + formatUptime(uptimeMs));
+                                } else {
+                                    dashGateway.setSummary(getString(R.string.dashboard_gateway_running));
+                                }
                                 break;
                             case NOT_INSTALLED:
                                 dashGateway.setSummary(getString(R.string.dashboard_gateway_not_installed));
@@ -610,6 +617,19 @@ public class HermesConfigActivity extends AppCompatActivity {
         private void writeStringToFile(String path, String content) throws Exception {
             try (java.io.BufferedWriter writer = new java.io.BufferedWriter(new java.io.FileWriter(path))) {
                 writer.write(content);
+            }
+        }
+
+        private String formatUptime(long uptimeMs) {
+            long seconds = uptimeMs / 1000;
+            long hours = seconds / 3600;
+            long minutes = (seconds % 3600) / 60;
+            if (hours > 0) {
+                return getString(R.string.uptime_hours_minutes, hours, minutes);
+            } else if (minutes > 0) {
+                return getString(R.string.uptime_minutes, minutes);
+            } else {
+                return getString(R.string.uptime_just_started);
             }
         }
 
