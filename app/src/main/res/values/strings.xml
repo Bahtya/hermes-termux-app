@@ -1239,4 +1239,28 @@
         <item>reject</item>
     </string-array>
 
+    <!-- Logging Configuration -->
+    <string name="logging_category_title">Logging</string>
+    <string name="logging_level_title">Log Level</string>
+    <string name="logging_level_summary">Minimum log level to record (default INFO)</string>
+    <string name="logging_to_file_title">Log to File</string>
+    <string name="logging_to_file_summary">Write agent logs to a file for later review</string>
+    <string name="logging_max_file_size_title">Max Log File Size (MB)</string>
+    <string name="logging_max_file_size_summary">Rotate log file when it exceeds this size (default 10MB)</string>
+    <string name="logging_max_files_title">Max Log Files</string>
+    <string name="logging_max_files_summary">Number of rotated log files to keep (default 5)</string>
+
+    <string-array name="logging_level_names">
+        <item>Debug (verbose)</item>
+        <item>Info (normal)</item>
+        <item>Warning (important only)</item>
+        <item>Error (critical only)</item>
+    </string-array>
+    <string-array name="logging_level_values">
+        <item>DEBUG</item>
+        <item>INFO</item>
+        <item>WARNING</item>
+        <item>ERROR</item>
+    </string-array>
+
 </resources>
