@@ -807,6 +807,16 @@ public class HermesConfigActivity extends AppCompatActivity {
             String currentProvider = mConfigManager.getModelProvider();
             updateModelList(currentProvider);
 
+            // --- Preset handling ---
+            ListPreference presetPref = findPreference("llm_preset");
+            if (presetPref != null) {
+                presetPref.setOnPreferenceChangeListener((p, newVal) -> {
+                    String preset = (String) newVal;
+                    applyPreset(preset);
+                    return true;
+                });
+            }
+
             Preference apiKeyPref = findPreference("llm_api_key");
             if (apiKeyPref != null) {
                 String currentKey = mConfigManager.getApiKey(currentProvider);
@@ -970,6 +980,31 @@ public class HermesConfigActivity extends AppCompatActivity {
                 costPref.setSummary(getString(R.string.llm_cost_summary, cost));
             } else {
                 costPref.setSummary(getString(R.string.llm_cost_unknown));
+            }
+        }
+
+        private void applyPreset(String preset) {
+            switch (preset) {
+                case "creative":
+                    mConfigManager.setModelTemperature(0.9f);
+                    mConfigManager.setModelMaxTokens(8192);
+                    break;
+                case "balanced":
+                    mConfigManager.setModelTemperature(0.7f);
+                    mConfigManager.setModelMaxTokens(4096);
+                    break;
+                case "precise":
+                    mConfigManager.setModelTemperature(0.3f);
+                    mConfigManager.setModelMaxTokens(2048);
+                    break;
+                case "code":
+                    mConfigManager.setModelTemperature(0.2f);
+                    mConfigManager.setModelMaxTokens(8192);
+                    break;
+                case "custom":
+                default:
+                    // Do nothing — user configures manually
+                    break;
             }
         }
 

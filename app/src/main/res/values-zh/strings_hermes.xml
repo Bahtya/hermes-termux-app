@@ -34,6 +34,8 @@
     <string name="hermes_import_failed">导入失败：%1$s</string>
 
     <!-- LLM Preferences -->
+    <string name="llm_preset_title">快捷预设</string>
+    <string name="llm_preset_summary">选择预设以获得最佳参数设置</string>
     <string name="llm_provider_title">AI 提供商</string>
     <string name="llm_provider_summary">选择您的 LLM 提供商</string>
     <string name="llm_api_key_title">API 密钥</string>
@@ -55,6 +57,15 @@
     <string name="llm_max_tokens_summary">最大响应长度。默认：4096</string>
     <string name="llm_temperature_invalid">温度值必须在 0.0 到 2.0 之间</string>
     <string name="llm_max_tokens_invalid">最大令牌数必须在 256 到 32768 之间</string>
+
+    <!-- LLM Preset Arrays -->
+    <string-array name="llm_preset_names">
+        <item>创意写作</item>
+        <item>均衡（默认）</item>
+        <item>精确 / 事实</item>
+        <item>代码助手</item>
+        <item>自定义</item>
+    </string-array>
 
     <!-- LLM Test Connection -->
     <string name="llm_test_connection_title">测试连接</string>
