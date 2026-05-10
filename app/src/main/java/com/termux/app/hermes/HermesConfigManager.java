@@ -59,6 +59,7 @@ public class HermesConfigManager {
     private static final String KEY_MODEL_TOP_P = "model.top_p";
     private static final String KEY_MODEL_FREQUENCY_PENALTY = "model.frequency_penalty";
     private static final String KEY_MODEL_PRESENCE_PENALTY = "model.presence_penalty";
+    private static final String KEY_MODEL_COMMAND_TIMEOUT = "model.command_timeout";
     private static final String KEY_SYSTEM_PROMPT = "model.system_prompt";
 
     // Feishu config.yaml keys (under feishu: section)
@@ -651,6 +652,19 @@ public class HermesConfigManager {
 
     public void setModelPresencePenalty(float penalty) {
         setYamlValue(KEY_MODEL_PRESENCE_PENALTY, String.valueOf(penalty));
+    }
+
+    public int getModelCommandTimeout() {
+        String val = getYamlValue(KEY_MODEL_COMMAND_TIMEOUT, "120");
+        try {
+            return Integer.parseInt(val);
+        } catch (NumberFormatException e) {
+            return 120;
+        }
+    }
+
+    public void setModelCommandTimeout(int timeout) {
+        setYamlValue(KEY_MODEL_COMMAND_TIMEOUT, String.valueOf(timeout));
     }
 
     public String getSystemPrompt() {

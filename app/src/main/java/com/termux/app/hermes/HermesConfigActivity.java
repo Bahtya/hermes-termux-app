@@ -179,6 +179,17 @@ public class HermesConfigActivity extends AppCompatActivity {
                 });
             }
 
+            // Command timeout
+            Preference cmdTimeoutPref = findPreference("hermes_command_timeout");
+            if (cmdTimeoutPref != null) {
+                cmdTimeoutPref.setOnPreferenceChangeListener((p, newVal) -> {
+                    try {
+                        mConfigManager.setModelCommandTimeout(Integer.parseInt((String) newVal));
+                    } catch (NumberFormatException ignored) {}
+                    return true;
+                });
+            }
+
             // Gateway auto-restart toggle
             SwitchPreferenceCompat autoRestartPref = findPreference("hermes_gateway_auto_restart");
             if (autoRestartPref != null) {
@@ -196,6 +207,17 @@ public class HermesConfigActivity extends AppCompatActivity {
                         int val = Integer.parseInt((String) newVal);
                         mConfigManager.setEnvVar("GATEWAY_MAX_RESTARTS", String.valueOf(val));
                     } catch (NumberFormatException ignored) {}
+                    return true;
+                });
+            }
+
+            // Restart delay
+            Preference restartDelayPref = findPreference("hermes_restart_delay");
+            if (restartDelayPref != null) {
+                restartDelayPref.setOnPreferenceChangeListener((p, newVal) -> {
+                    try {
+                        mConfigManager.setEnvVar("GATEWAY_RESTART_DELAY", (String) newVal);
+                    } catch (Exception ignored) {}
                     return true;
                 });
             }
