@@ -62,6 +62,55 @@ public class HermesConfigActivity extends AppCompatActivity {
             setPreferencesFromResource(R.xml.hermes_preferences, rootKey);
             mConfigManager = HermesConfigManager.getInstance();
 
+            // --- Dashboard: Gateway status ---
+            Preference dashGateway = findPreference("hermes_dashboard_gateway");
+            if (dashGateway != null) {
+                HermesGatewayStatus.checkAsync((status, detail) -> {
+                    if (getActivity() == null) return;
+                    getActivity().runOnUiThread(() -> {
+                        switch (status) {
+                            case RUNNING:
+                                dashGateway.setSummary(getString(R.string.dashboard_gateway_running));
+                                break;
+                            case NOT_INSTALLED:
+                                dashGateway.setSummary(getString(R.string.dashboard_gateway_not_installed));
+                                break;
+                            default:
+                                dashGateway.setSummary(getString(R.string.dashboard_gateway_stopped));
+                                break;
+                        }
+                    });
+                });
+            }
+
+            // --- Dashboard: LLM status ---
+            Preference dashLlm = findPreference("hermes_dashboard_llm");
+            if (dashLlm != null) {
+                String provider = mConfigManager.getModelProvider();
+                String apiKey = mConfigManager.getApiKey(provider);
+                if (apiKey != null && !apiKey.isEmpty()) {
+                    dashLlm.setSummary(getString(R.string.dashboard_llm_configured,
+                            provider, mConfigManager.getModelName()));
+                } else {
+                    dashLlm.setSummary(getString(R.string.dashboard_llm_not_configured));
+                }
+            }
+
+            // --- Dashboard: IM status ---
+            Preference dashIm = findPreference("hermes_dashboard_im");
+            if (dashIm != null) {
+                java.util.List<String> platforms = new java.util.ArrayList<>();
+                if (mConfigManager.isFeishuConfigured()) platforms.add("Feishu");
+                if (!mConfigManager.getEnvVar("TELEGRAM_BOT_TOKEN").isEmpty()) platforms.add("Telegram");
+                if (!mConfigManager.getEnvVar("DISCORD_BOT_TOKEN").isEmpty()) platforms.add("Discord");
+                if (platforms.isEmpty()) {
+                    dashIm.setSummary(getString(R.string.dashboard_im_none));
+                } else {
+                    dashIm.setSummary(getString(R.string.dashboard_im_list,
+                            android.text.TextUtils.join(", ", platforms)));
+                }
+            }
+
             // Show gateway status
             Preference gatewayPref = findPreference("hermes_gateway_control");
             if (gatewayPref != null) {
