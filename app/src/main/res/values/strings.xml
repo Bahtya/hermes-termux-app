@@ -377,6 +377,16 @@
     <string name="gateway_status_stopped">Stopped</string>
     <string name="gateway_status_not_installed">Not installed</string>
 
+    <!-- Gateway Log -->
+    <string name="gateway_log_title">Gateway Log</string>
+    <string name="gateway_log_refresh">Refresh</string>
+    <string name="gateway_log_clear">Clear Log</string>
+    <string name="gateway_log_empty">No log entries yet.</string>
+    <string name="gateway_log_clear_confirm_title">Clear Log?</string>
+    <string name="gateway_log_clear_confirm_message">This will delete all gateway log entries.</string>
+    <string name="gateway_log_cleared">Log cleared</string>
+    <string name="hermes_gateway_log_summary">View gateway log for troubleshooting</string>
+
     <!-- Status indicators -->
     <string name="llm_configured">Configured (%1$s)</string>
     <string name="llm_not_configured">Not configured</string>

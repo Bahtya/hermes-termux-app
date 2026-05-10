@@ -137,6 +137,9 @@ public class HermesConfigActivity extends AppCompatActivity {
                 case "hermes_check_update":
                     checkForUpdate(preference);
                     return true;
+                case "hermes_gateway_log":
+                    startActivity(new Intent(requireContext(), GatewayLogActivity.class));
+                    return true;
                 case "hermes_reset_config":
                     showResetConfirmDialog();
                     return true;
