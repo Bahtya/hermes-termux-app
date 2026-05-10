@@ -56,13 +56,28 @@ public class HermesConfigActivity extends AppCompatActivity {
     public static class HermesConfigFragment extends PreferenceFragmentCompat {
 
         private HermesConfigManager mConfigManager;
+        private final android.os.Handler mUptimeHandler = new android.os.Handler(android.os.Looper.getMainLooper());
+        private boolean mGatewayRunning = false;
+
+        private final Runnable mUptimeUpdater = new Runnable() {
+            @Override
+            public void run() {
+                if (!mGatewayRunning || getActivity() == null) return;
+                Preference dashGateway = findPreference("hermes_dashboard_gateway");
+                if (dashGateway != null && mGatewayRunning) {
+                    String uptime = HermesGatewayService.getFormattedUptime();
+                    dashGateway.setSummary(getString(R.string.dashboard_gateway_running) + " — " + uptime);
+                }
+                mUptimeHandler.postDelayed(this, 10_000);
+            }
+        };
 
         @Override
         public void onCreatePreferences(Bundle savedInstanceState, String rootKey) {
             setPreferencesFromResource(R.xml.hermes_preferences, rootKey);
             mConfigManager = HermesConfigManager.getInstance();
 
-            // --- Dashboard: Gateway status ---
+            // --- Dashboard: Gateway status with uptime ---
             Preference dashGateway = findPreference("hermes_dashboard_gateway");
             if (dashGateway != null) {
                 HermesGatewayStatus.checkAsync((status, detail) -> {
@@ -70,12 +85,18 @@ public class HermesConfigActivity extends AppCompatActivity {
                     getActivity().runOnUiThread(() -> {
                         switch (status) {
                             case RUNNING:
-                                dashGateway.setSummary(getString(R.string.dashboard_gateway_running));
+                                mGatewayRunning = true;
+                                String uptime = HermesGatewayService.getFormattedUptime();
+                                dashGateway.setSummary(getString(R.string.dashboard_gateway_running) + " — " + uptime);
+                                mUptimeHandler.removeCallbacks(mUptimeUpdater);
+                                mUptimeHandler.postDelayed(mUptimeUpdater, 10_000);
                                 break;
                             case NOT_INSTALLED:
+                                mGatewayRunning = false;
                                 dashGateway.setSummary(getString(R.string.dashboard_gateway_not_installed));
                                 break;
                             default:
+                                mGatewayRunning = false;
                                 dashGateway.setSummary(getString(R.string.dashboard_gateway_stopped));
                                 break;
                         }
@@ -417,6 +438,12 @@ public class HermesConfigActivity extends AppCompatActivity {
                 sb.append(c);
             }
             return sb.toString();
+        }
+
+        @Override
+        public void onDestroy() {
+            super.onDestroy();
+            mUptimeHandler.removeCallbacks(mUptimeUpdater);
         }
     }
 
