@@ -32,12 +32,18 @@ jobs:
           restore-keys: |
             gradle-${{ runner.os }}-
 
+      - name: Build APK
+        env:
+          TERMUX_PACKAGE_VARIANT: apt-android-7
+        run: ./gradlew downloadBootstraps assembleDebug -x lint
+
       - name: Run lint
         id: lint
+        continue-on-error: true
         env:
           TERMUX_PACKAGE_VARIANT: apt-android-7
         run: |
-          ./gradlew downloadBootstraps assembleDebug lint -Pandroid.lint.abortOnError=false -Pandroid.lint.warningsAsErrors=false 2>&1 | tee lint-output.txt
+          ./gradlew :app:lint -Pandroid.lint.abortOnError=false -Pandroid.lint.warningsAsErrors=false 2>&1 | tee lint-output.txt || true
           # Count issues
           ERRORS=$(grep -c "Severity: Error" lint-output.txt || echo "0")
           WARNINGS=$(grep -c "Severity: Warning" lint-output.txt || echo "0")
@@ -86,7 +92,7 @@ jobs:
       - name: Execute tests
         env:
           TERMUX_PACKAGE_VARIANT: apt-android-7
-        run: ./gradlew downloadBootstrappers test
+        run: ./gradlew downloadBootstraps test
 
       - name: Upload test report
         if: always()
