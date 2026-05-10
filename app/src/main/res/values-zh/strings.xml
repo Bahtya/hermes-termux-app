@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
+    <!-- Agent Settings -->
     <string name="agent_category_behavior">Agent 行为</string>
     <string name="agent_category_context">上下文管理</string>
     <string name="agent_category_memory">记忆系统</string>
@@ -12,67 +13,40 @@
     <string name="agent_session_reset_title">会话重置模式</string>
     <string name="agent_settings_summary">配置 Agent 行为、记忆和会话管理</string>
     <string name="agent_settings_title">Agent 设置</string>
-    <string name="dashboard_gateway_not_installed">Hermes 未安装</string>
-    <string name="dashboard_gateway_running">网关运行中</string>
-    <string name="dashboard_gateway_stopped">网关已停止</string>
-    <string name="dashboard_gateway_title">网关状态</string>
-    <string name="dashboard_im_list">已连接: %s</string>
-    <string name="dashboard_im_none">未配置任何 IM 平台</string>
-    <string name="dashboard_im_title">IM 状态</string>
-    <string name="dashboard_llm_configured">已配置: %s / %s</string>
-    <string name="dashboard_llm_not_configured">未配置 - 点击设置</string>
-    <string name="dashboard_llm_title">LLM 状态</string>
-    <string name="dashboard_title">仪表盘</string>
+
+    <!-- Error Recovery -->
     <string name="error_recovery_all_ok">所有系统正常运行</string>
     <string name="error_recovery_checking">正在检查系统状态…</string>
     <string name="error_recovery_multiple_issues">发现多个问题 - 点击查看第一个</string>
     <string name="error_recovery_title">系统健康</string>
+
+    <!-- Gateway Auto Start -->
     <string name="gateway_auto_start_summary">设备启动时自动运行 Hermes 网关</string>
     <string name="gateway_auto_start_title">开机自启动网关</string>
+
+    <!-- Gateway Diagnostic -->
     <string name="gateway_diagnostic_summary">测试网络和 API 连接</string>
     <string name="gateway_diagnostic_title">连接诊断</string>
-    <string name="gateway_log_title">网关日志</string>
-    <string name="gateway_restart_title">重启网关</string>
-    <string name="gateway_start_title">启动网关</string>
-    <string name="gateway_status_not_installed">Hermes 未安装</string>
-    <string name="gateway_status_running">网关运行中</string>
-    <string name="gateway_status_stopped">网关已停止</string>
-    <string name="gateway_stop_title">停止网关</string>
+
+    <!-- Gateway Update -->
     <string name="gateway_update_available">有新版本: %s (当前: %s)</string>
     <string name="gateway_update_checking">正在检查更新…</string>
     <string name="gateway_update_downloading">正在下载更新…</string>
     <string name="gateway_update_install_failed">更新失败，请手动更新。</string>
     <string name="gateway_update_installed">已更新到 v%s，请重启网关。</string>
     <string name="gateway_update_up_to_date">已是最新版本 (v%s)</string>
-    <string name="hermes_cat_advanced">高级</string>
-    <string name="hermes_cat_gateway">网关</string>
-    <string name="hermes_cat_general">通用</string>
+
+    <!-- Check Update -->
     <string name="hermes_check_update_summary">检查 Hermes Agent 新版本</string>
     <string name="hermes_check_update_title">检查更新</string>
-    <string name="hermes_config_title">Hermes 设置</string>
-    <string name="hermes_discord_setup_summary">配置 Discord 机器人</string>
-    <string name="hermes_discord_setup_title">Discord 设置</string>
-    <string name="hermes_export_summary">导出当前配置到文件</string>
-    <string name="hermes_export_title">导出配置</string>
-    <string name="hermes_feishu_setup_summary">一键配置飞书机器人</string>
-    <string name="hermes_feishu_setup_title">飞书 / Lark 设置</string>
-    <string name="hermes_gateway_control_summary">启动、停止和重启网关</string>
-    <string name="hermes_gateway_control_title">网关控制</string>
-    <string name="hermes_gateway_log_summary">查看网关运行日志</string>
-    <string name="hermes_help_faq_summary">查看使用帮助和常见问题解答</string>
-    <string name="hermes_help_faq_title">帮助和常见问题</string>
-    <string name="hermes_import_summary">从文件导入配置</string>
-    <string name="hermes_import_title">导入配置</string>
-    <string name="hermes_llm_config_summary">设置 AI 提供商、API 密钥和模型</string>
-    <string name="hermes_llm_config_title">LLM 配置</string>
-    <string name="hermes_reset_summary">恢复所有设置到默认值</string>
-    <string name="hermes_reset_title">重置配置</string>
-    <string name="hermes_telegram_setup_summary">配置 Telegram 机器人</string>
-    <string name="hermes_telegram_setup_title">Telegram 设置</string>
+
+    <!-- MCP Server -->
     <string name="mcp_add_server">添加 MCP 服务器</string>
     <string name="mcp_no_servers">未配置 MCP 服务器</string>
     <string name="mcp_settings_summary">配置 Model Context Protocol 服务器扩展工具</string>
     <string name="mcp_settings_title">MCP 服务器</string>
+
+    <!-- Profiles -->
     <string name="profile_category_title">配置方案</string>
     <string name="profile_current_title">当前方案</string>
     <string name="profile_delete_summary">删除已保存的配置方案</string>
@@ -81,22 +55,30 @@
     <string name="profile_save_title">保存当前方案</string>
     <string name="profile_switch_summary">在已保存的方案之间切换</string>
     <string name="profile_switch_title">切换方案</string>
-    <string name="tab_hermes">Hermes</string>
-    <string name="tab_web">Web UI</string>
+
+    <!-- Templates -->
     <string name="template_menu_summary">选择预设场景快速配置</string>
     <string name="template_menu_title">使用模板</string>
+
+    <!-- Tutorial -->
     <string name="tutorial_reset_summary">重新显示应用引导教程</string>
     <string name="tutorial_reset_title">重置新手引导</string>
+
+    <!-- Usage -->
     <string name="usage_category_title">使用统计</string>
     <string name="usage_estimated_cost_title">预估 API 费用</string>
     <string name="usage_no_data">暂无使用数据</string>
     <string name="usage_sessions_title">会话数</string>
     <string name="usage_total_uptime_title">总运行时间</string>
+
+    <!-- Validation -->
     <string name="validation_api_key_title">API 密钥</string>
     <string name="validation_category_title">配置健康检查</string>
     <string name="validation_gateway_title">网关状态</string>
     <string name="validation_im_title">IM 平台</string>
     <string name="validation_system_prompt_title">系统提示词</string>
+
+    <!-- WhatsApp -->
     <string name="whatsapp_configured">WhatsApp Business 已配置</string>
     <string name="whatsapp_not_configured">未配置</string>
     <string name="whatsapp_setup_summary">配置 WhatsApp Business API</string>
