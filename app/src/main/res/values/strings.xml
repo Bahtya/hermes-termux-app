@@ -399,6 +399,14 @@
     <string name="gateway_command_timeout_summary">Seconds to wait for AI response before timing out (default 120)</string>
     <string name="gateway_restart_delay_title">Crash restart delay</string>
     <string name="gateway_restart_delay_summary">Seconds to wait before auto-restarting after crash (default 30)</string>
+    <string name="gateway_auto_restart_title">Auto-restart on crash</string>
+    <string name="gateway_auto_restart_summary">Automatically restart gateway if it crashes</string>
+    <string name="gateway_max_restarts_title">Max restart attempts</string>
+    <string name="gateway_max_restarts_summary">Maximum crash restart attempts before giving up (default 3)</string>
+    <string name="gateway_notif_sound_title">Notification sound</string>
+    <string name="gateway_notif_sound_summary">Play sound on gateway status changes</string>
+    <string name="gateway_notif_vibrate_title">Notification vibration</string>
+    <string name="gateway_notif_vibrate_summary">Vibrate on gateway crash alerts</string>
     <string name="gateway_stop_title">Stop Gateway</string>
     <string name="gateway_stop_summary">Stop the running gateway</string>
     <string name="gateway_restart_title">Restart Gateway</string>
@@ -909,10 +917,6 @@
     <string name="gateway_stats_running">Uptime: %s</string>
     <string name="gateway_stats_stopped">Gateway is not running</string>
     <string name="gateway_auto_restart_category">Auto-Recovery</string>
-    <string name="gateway_auto_restart_title">Auto-Restart on Failure</string>
-    <string name="gateway_auto_restart_summary">Automatically restart gateway when it crashes</string>
-    <string name="gateway_max_restarts_title">Max Restart Attempts</string>
-    <string name="gateway_max_restarts_summary">Maximum consecutive restart attempts before giving up</string>
 
     <string-array name="gateway_restart_count_names">
         <item>1 attempt</item>
@@ -957,10 +961,6 @@
     <string name="gateway_notif_category">Notification Settings</string>
     <string name="gateway_notif_importance_title">Notification Level</string>
     <string name="gateway_notif_importance_summary">Control how gateway notifications appear</string>
-    <string name="gateway_notif_sound_title">Notification Sound</string>
-    <string name="gateway_notif_sound_summary">Play sound for gateway status changes</string>
-    <string name="gateway_notif_vibrate_title">Vibration</string>
-    <string name="gateway_notif_vibrate_summary">Vibrate for gateway status changes</string>
     <string name="gateway_quiet_hours_title">Quiet Hours</string>
     <string name="gateway_quiet_hours_summary">Suppress non-critical notifications during specified hours</string>
     <string name="gateway_quiet_hours_start">Start Time</string>

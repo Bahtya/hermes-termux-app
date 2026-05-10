@@ -141,6 +141,31 @@
             android:inputType="number"
             android:defaultValue="30" />
 
+        <SwitchPreferenceCompat
+            android:key="hermes_gateway_auto_restart"
+            android:title="@string/gateway_auto_restart_title"
+            android:summary="@string/gateway_auto_restart_summary"
+            android:defaultValue="true" />
+
+        <EditTextPreference
+            android:key="hermes_gateway_max_restarts"
+            android:title="@string/gateway_max_restarts_title"
+            android:summary="@string/gateway_max_restarts_summary"
+            android:inputType="number"
+            android:defaultValue="3" />
+
+        <SwitchPreferenceCompat
+            android:key="hermes_gateway_notif_sound"
+            android:title="@string/gateway_notif_sound_title"
+            android:summary="@string/gateway_notif_sound_summary"
+            android:defaultValue="true" />
+
+        <SwitchPreferenceCompat
+            android:key="hermes_gateway_notif_vibrate"
+            android:title="@string/gateway_notif_vibrate_title"
+            android:summary="@string/gateway_notif_vibrate_summary"
+            android:defaultValue="false" />
+
     </PreferenceCategory>
 
     <PreferenceCategory android:title="@string/hermes_cat_advanced">
