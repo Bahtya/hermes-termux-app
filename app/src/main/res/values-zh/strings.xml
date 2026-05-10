@@ -83,4 +83,73 @@
     <string name="whatsapp_not_configured">未配置</string>
     <string name="whatsapp_setup_summary">配置 WhatsApp Business API</string>
     <string name="whatsapp_setup_title">WhatsApp Business 设置</string>
+    <string name="whatsapp_setup_intro_desc">Hermes 将连接 WhatsApp Business API，让你的 AI 助手可以回复 WhatsApp 消息。你需要来自 Meta 开发者门户的手机号码 ID 和访问令牌。</string>
+    <string name="whatsapp_credentials_title">输入 WhatsApp 凭证</string>
+    <string name="whatsapp_phone_required">手机号码 ID 为必填项</string>
+    <string name="whatsapp_complete_summary">已连接令牌: %s</string>
+
+    <!-- Discord -->
+    <string name="discord_intents_title">必需的机器人意图</string>
+    <string name="discord_intents_desc">为让 Hermes 读取消息，你必须在 Discord 开发者门户中启用这些特权网关意图:</string>
+    <string name="discord_intent_message_content">消息内容意图（必需）</string>
+    <string name="discord_intent_server_members">服务器成员意图（推荐）</string>
+    <string name="discord_intent_presence">在线状态意图（可选）</string>
+    <string name="discord_open_developer_portal">打开开发者门户</string>
+    <string name="discord_invite_title">邀请机器人到服务器</string>
+    <string name="discord_invite_desc">使用此链接将你的机器人邀请到 Discord 服务器。</string>
+    <string name="discord_invite_copy">复制邀请链接</string>
+
+    <!-- Telegram -->
+
+    <!-- Generation Parameters -->
+    <string name="llm_top_p_title">Top P (核采样)</string>
+    <string name="llm_top_p_summary">控制采样范围 (0.0-1.0)</string>
+    <string name="llm_frequency_penalty_title">频率惩罚</string>
+    <string name="llm_frequency_penalty_summary">降低重复用词 (-2.0 到 2.0)</string>
+    <string name="llm_presence_penalty_title">存在惩罚</string>
+    <string name="llm_presence_penalty_summary">鼓励使用新话题 (-2.0 到 2.0)</string>
+
+    <!-- Gateway Startup Settings -->
+    <string name="gateway_command_timeout_title">命令超时（秒）</string>
+    <string name="gateway_command_timeout_summary">Agent 执行命令的最大等待时间</string>
+    <string name="gateway_restart_delay_title">重启延迟（秒）</string>
+    <string name="gateway_restart_delay_summary">网关崩溃后等待多久再重启</string>
+
+    <!-- Notification Settings -->
+    <string name="gateway_notif_category">通知设置</string>
+    <string name="gateway_notif_importance_title">通知级别</string>
+    <string name="gateway_notif_importance_summary">控制网关通知的显示方式</string>
+
+    <!-- Health Check -->
+    <string name="health_check_title">配置健康检查</string>
+    <string name="health_check_ready">所有配置就绪，可以启动网关</string>
+    <string name="health_check_issues">发现 %d 个问题需要配置</string>
+    <string name="health_check_checking">正在检查配置状态…</string>
+
+    <!-- Gateway Auto-Recovery -->
+    <string name="gateway_auto_restart_category">自动恢复</string>
+    <string name="gateway_auto_restart_title">自动重启</string>
+    <string name="gateway_auto_restart_summary">网关崩溃时自动重启</string>
+    <string name="gateway_max_restarts_title">最大重启次数</string>
+    <string name="gateway_max_restarts_summary">自动重启的最大尝试次数</string>
+    <string name="gateway_notif_sound_title">通知声音</string>
+    <string name="gateway_notif_sound_summary">网关状态变化时播放声音</string>
+    <string name="gateway_notif_vibrate_title">振动</string>
+    <string name="gateway_notif_vibrate_summary">网关状态变化时振动</string>
+
+    <!-- Gateway Auto-Update -->
+    <string name="gateway_update_title">网关更新</string>
+    <string name="gateway_update_failed">检查更新失败</string>
+    <string name="gateway_update_install">安装更新</string>
+
+    <!-- Config Export/Import -->
+    <string name="config_export_title">导出配置</string>
+    <string name="config_export_summary">将所有设置保存为备份文件</string>
+    <string name="config_export_with_secrets">包含 API 密钥和令牌</string>
+    <string name="config_export_masked">导出时隐藏密钥（更安全）</string>
+    <string name="config_import_title">导入配置</string>
+    <string name="config_import_summary">从备份文件加载设置</string>
+    <string name="config_import_confirm_title">确认导入配置？</string>
+    <string name="config_import_confirm_message">这将覆盖当前设置。是否继续？</string>
+    <string name="config_import_success">配置导入成功</string>
 </resources>
