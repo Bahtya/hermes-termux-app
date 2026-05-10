@@ -840,11 +840,42 @@ public class HermesConfigActivity extends AppCompatActivity {
 
         @Override
         public boolean onPreferenceTreeClick(@NonNull Preference preference) {
-            if ("llm_test_connection".equals(preference.getKey())) {
+            String key = preference.getKey();
+            if ("llm_test_connection".equals(key)) {
                 testConnection(preference);
                 return true;
             }
+            if ("llm_paste_api_key".equals(key)) {
+                pasteApiKeyFromClipboard();
+                return true;
+            }
             return super.onPreferenceTreeClick(preference);
+        }
+
+        private void pasteApiKeyFromClipboard() {
+            android.content.ClipboardManager clipboard =
+                    (android.content.ClipboardManager) requireContext()
+                            .getSystemService(Context.CLIPBOARD_SERVICE);
+            if (clipboard == null || !clipboard.hasPrimaryClip()) {
+                Toast.makeText(requireContext(), R.string.llm_paste_key_empty,
+                        Toast.LENGTH_SHORT).show();
+                return;
+            }
+            CharSequence clipText = clipboard.getPrimaryClip().getItemAt(0).getText();
+            if (clipText == null || clipText.toString().trim().isEmpty()) {
+                Toast.makeText(requireContext(), R.string.llm_paste_key_empty,
+                        Toast.LENGTH_SHORT).show();
+                return;
+            }
+            String key = clipText.toString().trim();
+            mConfigManager.setApiKey(mConfigManager.getModelProvider(), key);
+
+            Preference apiKeyPref = findPreference("llm_api_key");
+            if (apiKeyPref != null) {
+                apiKeyPref.setSummary(maskApiKey(key));
+            }
+            Toast.makeText(requireContext(), R.string.llm_paste_key_success,
+                    Toast.LENGTH_SHORT).show();
         }
 
         private void testConnection(Preference testPref) {
