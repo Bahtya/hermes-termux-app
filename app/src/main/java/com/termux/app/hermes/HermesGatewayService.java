@@ -31,10 +31,10 @@ public class HermesGatewayService extends Service {
     private static final String TAG = "HermesGateway";
     private static final int NOTIFICATION_ID = 2001;
     private static final String CHANNEL_ID = "hermes_gateway_channel";
-    static final String ACTION_START = "com.hermes.termux.GATEWAY_START";
-    static final String ACTION_STOP = "com.hermes.termux.GATEWAY_STOP";
-    static final String ACTION_CHECK = "com.hermes.termux.GATEWAY_CHECK";
-    static final String PREF_AUTO_START = "hermes_auto_start_gateway";
+    public static final String ACTION_START = "com.hermes.termux.GATEWAY_START";
+    public static final String ACTION_STOP = "com.hermes.termux.GATEWAY_STOP";
+    public static final String ACTION_CHECK = "com.hermes.termux.GATEWAY_CHECK";
+    public static final String PREF_AUTO_START = "hermes_auto_start_gateway";
 
     private final Handler mHandler = new Handler(Looper.getMainLooper());
     private final ExecutorService mExecutor = Executors.newSingleThreadExecutor();
