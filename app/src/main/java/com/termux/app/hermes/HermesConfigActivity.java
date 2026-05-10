@@ -108,6 +108,103 @@ public class HermesConfigActivity extends AppCompatActivity {
         private HermesConfigManager mConfigManager;
 
         @Override
+        public void onResume() {
+            super.onResume();
+            refreshDashboard();
+        }
+
+        private void refreshDashboard() {
+            if (mConfigManager == null) return;
+
+            // Refresh gateway status
+            Preference dashGateway = findPreference("hermes_dashboard_gateway");
+            if (dashGateway != null) {
+                HermesGatewayStatus.checkAsync((status, detail) -> {
+                    if (getActivity() == null) return;
+                    getActivity().runOnUiThread(() -> {
+                        switch (status) {
+                            case RUNNING:
+                                dashGateway.setSummary(getString(R.string.dashboard_gateway_running));
+                                break;
+                            case NOT_INSTALLED:
+                                dashGateway.setSummary(getString(R.string.dashboard_gateway_not_installed));
+                                break;
+                            default:
+                                dashGateway.setSummary(getString(R.string.dashboard_gateway_stopped));
+                                break;
+                        }
+                    });
+                });
+            }
+
+            // Refresh LLM status
+            Preference dashLlm = findPreference("hermes_dashboard_llm");
+            if (dashLlm != null) {
+                String provider = mConfigManager.getModelProvider();
+                String apiKey = mConfigManager.getApiKey(provider);
+                if (apiKey != null && !apiKey.isEmpty()) {
+                    dashLlm.setSummary(getString(R.string.dashboard_llm_configured,
+                            provider, mConfigManager.getModelName()));
+                } else {
+                    dashLlm.setSummary(getString(R.string.dashboard_llm_not_configured));
+                }
+            }
+
+            // Refresh IM status
+            Preference dashIm = findPreference("hermes_dashboard_im");
+            if (dashIm != null) {
+                java.util.List<String> platforms = new java.util.ArrayList<>();
+                if (mConfigManager.isFeishuConfigured()) platforms.add("Feishu");
+                if (!mConfigManager.getEnvVar("TELEGRAM_BOT_TOKEN").isEmpty()) platforms.add("Telegram");
+                if (!mConfigManager.getEnvVar("DISCORD_BOT_TOKEN").isEmpty()) platforms.add("Discord");
+                if (platforms.isEmpty()) {
+                    dashIm.setSummary(getString(R.string.dashboard_im_none));
+                } else {
+                    dashIm.setSummary(getString(R.string.dashboard_im_list,
+                            android.text.TextUtils.join(", ", platforms)));
+                }
+            }
+
+            // Refresh LLM config status
+            Preference llmPref = findPreference("hermes_llm_config");
+            if (llmPref != null) {
+                String provider = mConfigManager.getModelProvider();
+                String apiKey = mConfigManager.getApiKey(provider);
+                boolean hasKey = apiKey != null && !apiKey.isEmpty();
+                llmPref.setSummary(hasKey
+                        ? getString(R.string.llm_configured, provider)
+                        : getString(R.string.llm_not_configured));
+            }
+
+            // Refresh Feishu status
+            Preference feishuPref = findPreference("hermes_feishu_setup");
+            if (feishuPref != null) {
+                boolean configured = mConfigManager.isFeishuConfigured();
+                feishuPref.setSummary(configured
+                        ? getString(R.string.feishu_configured)
+                        : getString(R.string.feishu_not_configured));
+            }
+
+            // Refresh Telegram status
+            Preference telegramPref = findPreference("hermes_telegram_setup");
+            if (telegramPref != null) {
+                boolean configured = !mConfigManager.getEnvVar("TELEGRAM_BOT_TOKEN").isEmpty();
+                telegramPref.setSummary(configured
+                        ? getString(R.string.telegram_configured)
+                        : getString(R.string.telegram_not_configured));
+            }
+
+            // Refresh Discord status
+            Preference discordPref = findPreference("hermes_discord_setup");
+            if (discordPref != null) {
+                boolean configured = !mConfigManager.getEnvVar("DISCORD_BOT_TOKEN").isEmpty();
+                discordPref.setSummary(configured
+                        ? getString(R.string.discord_configured)
+                        : getString(R.string.discord_not_configured));
+            }
+        }
+
+        @Override
         public void onCreatePreferences(Bundle savedInstanceState, String rootKey) {
             setPreferencesFromResource(R.xml.hermes_preferences, rootKey);
             mConfigManager = HermesConfigManager.getInstance();
