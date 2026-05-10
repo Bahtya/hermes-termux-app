@@ -552,15 +552,15 @@ public class FeishuSetupActivity extends AppCompatActivity {
                         validationTv.setVisibility(View.GONE);
                     } else if (!aid.startsWith("cli_") && !aid.isEmpty()) {
                         validationTv.setText(R.string.feishu_app_id_format_hint);
-                        validationTv.setTextColor(ContextCompat.getColor(this, R.color.hermes_validation_warning));
+                        validationTv.setTextColor(ContextCompat.getColor(FeishuSetupActivity.this, R.color.hermes_validation_warning));
                         validationTv.setVisibility(View.VISIBLE);
                     } else if (aid.length() < 10 || sec.length() < 10) {
                         validationTv.setText(R.string.feishu_credentials_short);
-                        validationTv.setTextColor(ContextCompat.getColor(this, R.color.hermes_validation_warning));
+                        validationTv.setTextColor(ContextCompat.getColor(FeishuSetupActivity.this, R.color.hermes_validation_warning));
                         validationTv.setVisibility(View.VISIBLE);
                     } else {
                         validationTv.setText(R.string.feishu_credentials_ok);
-                        validationTv.setTextColor(ContextCompat.getColor(this, R.color.hermes_validation_success));
+                        validationTv.setTextColor(ContextCompat.getColor(FeishuSetupActivity.this, R.color.hermes_validation_success));
                         validationTv.setVisibility(View.VISIBLE);
                     }
                 }
@@ -853,10 +853,10 @@ public class FeishuSetupActivity extends AppCompatActivity {
                 if (testStatus != null) {
                     if (success) {
                         testStatus.setText(R.string.feishu_test_success);
-                        testStatus.setTextColor(ContextCompat.getColor(this, R.color.hermes_validation_success));
+                        testStatus.setTextColor(ContextCompat.getColor(FeishuSetupActivity.this, R.color.hermes_validation_success));
                     } else {
                         testStatus.setText(R.string.feishu_test_warning);
-                        testStatus.setTextColor(ContextCompat.getColor(this, R.color.hermes_validation_warning));
+                        testStatus.setTextColor(ContextCompat.getColor(FeishuSetupActivity.this, R.color.hermes_validation_warning));
                     }
                 }
             });
