@@ -135,6 +135,9 @@ public class HermesConfigActivity extends AppCompatActivity {
                 }
             }
 
+            // --- Health check summary ---
+            updateHealthCheck();
+
             // --- Config validation ---
             updateValidationDisplay();
 
@@ -373,6 +376,9 @@ public class HermesConfigActivity extends AppCompatActivity {
                     startActivity(new Intent(requireContext(), FeishuSetupActivity.class));
                     return true;
                 case "validation_system_prompt":
+                    showFragment(new LlmConfigFragment());
+                    return true;
+                case "hermes_health_check":
                     showFragment(new LlmConfigFragment());
                     return true;
             }
@@ -978,6 +984,38 @@ public class HermesConfigActivity extends AppCompatActivity {
                 } else {
                     profilePref.setSummary(getString(R.string.profile_active_format, name, provider, model));
                 }
+            }
+        }
+
+        private void updateHealthCheck() {
+            Preference healthPref = findPreference("hermes_health_check");
+            if (healthPref == null) return;
+
+            java.util.List<String> issues = new java.util.ArrayList<>();
+            String provider = mConfigManager.getModelProvider();
+            String apiKey = mConfigManager.getApiKey(provider);
+            String model = mConfigManager.getModelName();
+
+            if (apiKey == null || apiKey.isEmpty()) {
+                issues.add("api_key");
+            }
+            if (model == null || model.isEmpty()) {
+                issues.add("model");
+            }
+
+            int imCount = 0;
+            if (mConfigManager.isFeishuConfigured()) imCount++;
+            if (!mConfigManager.getEnvVar("TELEGRAM_BOT_TOKEN").isEmpty()) imCount++;
+            if (!mConfigManager.getEnvVar("DISCORD_BOT_TOKEN").isEmpty()) imCount++;
+            if (!mConfigManager.getEnvVar("WHATSAPP_PHONE_NUMBER_ID").isEmpty()) imCount++;
+            if (imCount == 0) {
+                issues.add("im");
+            }
+
+            if (issues.isEmpty()) {
+                healthPref.setSummary(getString(R.string.health_check_ready));
+            } else {
+                healthPref.setSummary(getString(R.string.health_check_issues, issues.size()));
             }
         }
 

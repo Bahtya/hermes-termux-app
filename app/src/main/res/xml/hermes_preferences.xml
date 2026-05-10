@@ -3,6 +3,11 @@
 
     <PreferenceCategory android:title="@string/dashboard_title">
         <Preference
+            android:key="hermes_health_check"
+            android:title="@string/health_check_title"
+            android:summary="@string/health_check_checking"
+            android:selectable="true" />
+        <Preference
             android:key="hermes_dashboard_gateway"
             android:title="@string/dashboard_gateway_title"
             android:selectable="false" />
