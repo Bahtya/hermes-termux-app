@@ -15,10 +15,18 @@
         android:summary="@string/llm_api_key_summary"
         android:inputType="textPassword" />
 
-    <EditTextPreference
+    <ListPreference
         android:key="llm_model"
         android:title="@string/llm_model_title"
         android:summary="@string/llm_model_summary"
+        android:entries="@array/llm_models_openai"
+        android:entryValues="@array/llm_models_openai"
         android:defaultValue="gpt-4o" />
+
+    <EditTextPreference
+        android:key="llm_base_url"
+        android:title="@string/llm_base_url_title"
+        android:summary="@string/llm_base_url_summary"
+        android:inputType="textUri" />
 
 </PreferenceScreen>

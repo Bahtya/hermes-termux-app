@@ -11,6 +11,7 @@ import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentTransaction;
+import androidx.preference.ListPreference;
 import androidx.preference.Preference;
 import androidx.preference.PreferenceFragmentCompat;
 
@@ -154,9 +155,12 @@ public class HermesConfigActivity extends AppCompatActivity {
             setPreferencesFromResource(R.xml.hermes_llm_preferences, rootKey);
             mConfigManager = HermesConfigManager.getInstance();
 
+            String currentProvider = mConfigManager.getModelProvider();
+            updateModelList(currentProvider);
+
             Preference apiKeyPref = findPreference("llm_api_key");
             if (apiKeyPref != null) {
-                String currentKey = mConfigManager.getApiKey(mConfigManager.getModelProvider());
+                String currentKey = mConfigManager.getApiKey(currentProvider);
                 if (currentKey != null && !currentKey.isEmpty()) {
                     apiKeyPref.setSummary(maskApiKey(currentKey));
                 }
@@ -170,11 +174,20 @@ public class HermesConfigActivity extends AppCompatActivity {
             Preference providerPref = findPreference("llm_provider");
             if (providerPref != null) {
                 providerPref.setOnPreferenceChangeListener((p, newVal) -> {
-                    mConfigManager.setModelProvider((String) newVal);
-                    String key = mConfigManager.getApiKey((String) newVal);
+                    String provider = (String) newVal;
+                    mConfigManager.setModelProvider(provider);
+                    updateModelList(provider);
+
+                    String key = mConfigManager.getApiKey(provider);
                     Preference akp = findPreference("llm_api_key");
                     if (akp != null) {
                         akp.setSummary(key != null ? maskApiKey(key) : "");
+                    }
+
+                    Preference baseUrlPref = findPreference("llm_base_url");
+                    if (baseUrlPref != null) {
+                        boolean needsUrl = "ollama".equals(provider) || "custom".equals(provider);
+                        baseUrlPref.setVisible(needsUrl);
                     }
                     return true;
                 });
@@ -186,6 +199,48 @@ public class HermesConfigActivity extends AppCompatActivity {
                     mConfigManager.setModelName((String) newVal);
                     return true;
                 });
+            }
+
+            Preference baseUrlPref = findPreference("llm_base_url");
+            if (baseUrlPref != null) {
+                baseUrlPref.setOnPreferenceChangeListener((p, newVal) -> {
+                    mConfigManager.setEnvVar("OPENAI_BASE_URL", (String) newVal);
+                    return true;
+                });
+                boolean needsUrl = "ollama".equals(currentProvider) || "custom".equals(currentProvider);
+                baseUrlPref.setVisible(needsUrl);
+            }
+        }
+
+        private void updateModelList(String provider) {
+            ListPreference modelPref = findPreference("llm_model");
+            if (modelPref == null) return;
+
+            int arrayResId = getModelArrayResId(provider);
+            if (arrayResId != 0) {
+                CharSequence[] models = getResources().getTextArray(arrayResId);
+                modelPref.setEntries(models);
+                modelPref.setEntryValues(models);
+                if (models.length > 0) {
+                    modelPref.setValue(models[0].toString());
+                    mConfigManager.setModelName(models[0].toString());
+                }
+            }
+        }
+
+        private int getModelArrayResId(String provider) {
+            switch (provider) {
+                case "openai": return R.array.llm_models_openai;
+                case "anthropic": return R.array.llm_models_anthropic;
+                case "google": return R.array.llm_models_google;
+                case "deepseek": return R.array.llm_models_deepseek;
+                case "openrouter": return R.array.llm_models_openrouter;
+                case "xai": return R.array.llm_models_xai;
+                case "alibaba": return R.array.llm_models_alibaba;
+                case "mistral": return R.array.llm_models_mistral;
+                case "nvidia": return R.array.llm_models_nvidia;
+                case "ollama": return R.array.llm_models_ollama;
+                default: return 0;
             }
         }
 
