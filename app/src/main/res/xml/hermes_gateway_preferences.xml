@@ -16,10 +16,36 @@
         android:title="@string/gateway_restart_title"
         android:summary="@string/gateway_restart_summary" />
 
+    <PreferenceCategory android:title="@string/gateway_auto_restart_category">
+        <SwitchPreferenceCompat
+            android:key="gateway_auto_restart"
+            android:title="@string/gateway_auto_restart_title"
+            android:summary="@string/gateway_auto_restart_summary"
+            android:defaultValue="true" />
+
+        <ListPreference
+            android:key="gateway_max_restarts"
+            android:title="@string/gateway_max_restarts_title"
+            android:summary="@string/gateway_max_restarts_summary"
+            android:entries="@array/gateway_restart_count_names"
+            android:entryValues="@array/gateway_restart_count_values"
+            android:defaultValue="3" />
+
+        <ListPreference
+            android:key="gateway_restart_delay"
+            android:title="@string/gateway_restart_delay_title"
+            android:summary="@string/gateway_restart_delay_summary"
+            android:entries="@array/gateway_restart_delay_names"
+            android:entryValues="@array/gateway_restart_delay_values"
+            android:defaultValue="30" />
+    </PreferenceCategory>
+
     <Preference
         android:key="gateway_diagnostic"
         android:title="@string/gateway_diagnostic_title"
         android:summary="@string/gateway_diagnostic_summary" />
+
+    <Preference
         android:key="gateway_notif_permission"
         android:title="@string/gateway_notif_perm_title"
         android:summary="@string/gateway_notif_perm_summary" />

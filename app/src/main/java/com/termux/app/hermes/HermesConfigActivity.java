@@ -1094,6 +1094,33 @@ public class HermesConfigActivity extends AppCompatActivity {
         @Override
         public void onCreatePreferences(Bundle savedInstanceState, String rootKey) {
             setPreferencesFromResource(R.xml.hermes_gateway_preferences, rootKey);
+
+            // Auto-restart toggle
+            Preference autoRestartPref = findPreference("gateway_auto_restart");
+            if (autoRestartPref != null) {
+                autoRestartPref.setOnPreferenceChangeListener((p, newVal) -> {
+                    mConfigManager.setEnvVar("GATEWAY_AUTO_RESTART", (Boolean) newVal ? "true" : "false");
+                    return true;
+                });
+            }
+
+            // Max restarts
+            Preference maxRestartsPref = findPreference("gateway_max_restarts");
+            if (maxRestartsPref != null) {
+                maxRestartsPref.setOnPreferenceChangeListener((p, newVal) -> {
+                    mConfigManager.setEnvVar("GATEWAY_MAX_RESTARTS", (String) newVal);
+                    return true;
+                });
+            }
+
+            // Restart delay
+            Preference restartDelayPref = findPreference("gateway_restart_delay");
+            if (restartDelayPref != null) {
+                restartDelayPref.setOnPreferenceChangeListener((p, newVal) -> {
+                    mConfigManager.setEnvVar("GATEWAY_RESTART_DELAY", (String) newVal);
+                    return true;
+                });
+            }
         }
 
         @Override

@@ -47,7 +47,31 @@ public class HermesGatewayService extends Service {
     private Process mGatewayProcess;
     private boolean mRunning = false;
     private int mRestartAttempts = 0;
-    private static final int MAX_RESTARTS = 3;
+    private static final int DEFAULT_MAX_RESTARTS = 3;
+    private static final int DEFAULT_RESTART_DELAY_MS = 30_000;
+
+    private int getMaxRestarts() {
+        try {
+            return Integer.parseInt(HermesConfigManager.getInstance()
+                    .getEnvVar("GATEWAY_MAX_RESTARTS"));
+        } catch (Exception e) {
+            return DEFAULT_MAX_RESTARTS;
+        }
+    }
+
+    private int getRestartDelayMs() {
+        try {
+            return Integer.parseInt(HermesConfigManager.getInstance()
+                    .getEnvVar("GATEWAY_RESTART_DELAY")) * 1000;
+        } catch (Exception e) {
+            return DEFAULT_RESTART_DELAY_MS;
+        }
+    }
+
+    private boolean isAutoRestartEnabled() {
+        return !"false".equals(HermesConfigManager.getInstance()
+                .getEnvVar("GATEWAY_AUTO_RESTART"));
+    }
     private static final int TOTAL_STARTUP_STEPS = 5;
     private long mProcessStartTime = 0;
     private int mStartupStep = 0;
@@ -60,14 +84,14 @@ public class HermesGatewayService extends Service {
         public void run() {
             if (mRunning) {
                 boolean alive = mGatewayProcess != null && mGatewayProcess.isAlive();
-                if (!alive && mRestartAttempts < MAX_RESTARTS) {
+                if (!alive && isAutoRestartEnabled() && (getMaxRestarts() < 0 || mRestartAttempts < getMaxRestarts())) {
                     Log.w(TAG, "Gateway process died, restarting (attempt " + (mRestartAttempts + 1) + ")");
                     showCrashNotification(mRestartAttempts + 1);
                     startGatewayProcess();
                     mRestartAttempts++;
                     saveRestartState();
                 } else if (!alive) {
-                    Log.e(TAG, "Gateway failed after " + MAX_RESTARTS + " restart attempts");
+                    Log.e(TAG, "Gateway failed after " + getMaxRestarts() + " restart attempts");
                     showErrorNotification();
                     mRunning = false;
                 } else {
