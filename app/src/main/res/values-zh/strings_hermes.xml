@@ -71,6 +71,12 @@
     <string name="llm_test_success_slow">连接正常但响应较慢（%1$dms），模型可能负载较高。</string>
     <string name="llm_test_fail_no_response">API 密钥有效但模型未响应，请检查模型名称。</string>
 
+    <!-- LLM Cost Estimate -->
+    <string name="llm_cost_title">预估费用</string>
+    <string name="llm_cost_free">免费（通过 Ollama 使用本地模型）</string>
+    <string name="llm_cost_estimate_format">~%s（输入/输出）</string>
+    <string name="llm_cost_estimate_unknown">此模型的定价信息不可用</string>
+
     <!-- LLM Provider Arrays -->
     <string-array name="llm_provider_names">
         <item>OpenAI</item>

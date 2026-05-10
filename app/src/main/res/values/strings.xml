@@ -782,6 +782,9 @@
     <string name="llm_preset_summary">Quick setup for common use cases</string>
     <string name="llm_provider_info_title">Provider Info</string>
     <string name="llm_cost_title">Estimated Cost</string>
+    <string name="llm_cost_free">Free (local model via Ollama)</string>
+    <string name="llm_cost_estimate_format">~%s (input/output)</string>
+    <string name="llm_cost_estimate_unknown">Pricing not available for this model</string>
     <string name="llm_custom_model_title">Custom Model Name</string>
     <string name="llm_custom_model_summary">Enter the model name to use</string>
     <string name="llm_params_category_title">Parameters</string>
