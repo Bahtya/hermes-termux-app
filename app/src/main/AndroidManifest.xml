@@ -136,6 +136,13 @@
             android:label="@string/hermes_setup_wizard_title"
             android:theme="@style/Theme.TermuxApp.DayNight.DarkActionBar" />
 
+        <activity
+            android:name=".app.hermes.GatewayLogActivity"
+            android:exported="false"
+            android:label="@string/gateway_log_title"
+            android:parentActivityName=".app.hermes.HermesConfigActivity"
+            android:theme="@style/Theme.TermuxApp.DayNight.DarkActionBar" />
+
         <service
             android:name="com.termux.app.hermes.HermesGatewayService"
             android:exported="false"

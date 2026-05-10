@@ -49,6 +49,11 @@
             android:summary="@string/hermes_check_update_summary" />
 
         <Preference
+            android:key="hermes_gateway_log"
+            android:title="@string/gateway_log_title"
+            android:summary="@string/hermes_gateway_log_summary" />
+
+        <Preference
             android:key="hermes_reset_config"
             android:title="@string/hermes_reset_title"
             android:summary="@string/hermes_reset_summary" />
