@@ -434,4 +434,7 @@
     <string name="hermes_not_installed_banner_installing">正在安装 Hermes Agent…</string>
     <string name="hermes_not_installed_banner_installed">Hermes Agent 安装成功！</string>
     <string name="hermes_not_installed_banner_failed">安装失败，点击重试。</string>
+    <!-- Setup Wizard -->
+    <string name="hermes_run_wizard_title">运行设置向导</string>
+    <string name="hermes_run_wizard_summary">重新运行初始设置向导以配置 AI 和消息平台</string>
 </resources>

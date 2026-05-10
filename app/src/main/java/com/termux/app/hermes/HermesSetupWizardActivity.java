@@ -30,6 +30,7 @@ public class HermesSetupWizardActivity extends AppCompatActivity {
 
     private static final String PREFS_NAME = "hermes_setup";
     private static final String KEY_WIZARD_COMPLETED = "wizard_completed";
+    private static final String KEY_WIZARD_DISMISSED = "wizard_dismissed";
 
     private HermesConfigManager mConfigManager;
     private int mCurrentStep = 0;
@@ -98,6 +99,25 @@ public class HermesSetupWizardActivity extends AppCompatActivity {
         setContentView(root);
 
         showStep(STEP_WELCOME);
+    }
+
+    @Override
+    public void onBackPressed() {
+        if (mCurrentStep > STEP_WELCOME) {
+            navigateBack();
+        } else {
+            markDismissed();
+            super.onBackPressed();
+        }
+    }
+
+    private void markDismissed() {
+        if (!isWizardCompleted(this)) {
+            getSharedPreferences(PREFS_NAME, MODE_PRIVATE)
+                    .edit()
+                    .putBoolean(KEY_WIZARD_DISMISSED, true)
+                    .apply();
+        }
     }
 
     private void showStep(int step) {
@@ -496,6 +516,18 @@ public class HermesSetupWizardActivity extends AppCompatActivity {
     public static boolean isWizardCompleted(android.content.Context context) {
         return context.getSharedPreferences(PREFS_NAME, android.content.Context.MODE_PRIVATE)
                 .getBoolean(KEY_WIZARD_COMPLETED, false);
+    }
+
+    public static boolean isWizardDismissed(android.content.Context context) {
+        return context.getSharedPreferences(PREFS_NAME, android.content.Context.MODE_PRIVATE)
+                .getBoolean(KEY_WIZARD_DISMISSED, false);
+    }
+
+    public static void clearDismissedFlag(android.content.Context context) {
+        context.getSharedPreferences(PREFS_NAME, android.content.Context.MODE_PRIVATE)
+                .edit()
+                .remove(KEY_WIZARD_DISMISSED)
+                .apply();
     }
 
     private String getClipboardText() {
