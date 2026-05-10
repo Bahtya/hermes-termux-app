@@ -48,10 +48,11 @@ public class FeishuSetupActivity extends AppCompatActivity {
     private static final int STEP_WELCOME = 0;
     private static final int STEP_DOMAIN = 1;
     private static final int STEP_CREATE_APP = 2;
-    private static final int STEP_CREDENTIALS = 3;
-    private static final int STEP_TEST = 4;
-    private static final int STEP_COMPLETE = 5;
-    private static final int TOTAL_STEPS = 6;
+    private static final int STEP_EVENT_SUB = 3;
+    private static final int STEP_CREDENTIALS = 4;
+    private static final int STEP_TEST = 5;
+    private static final int STEP_COMPLETE = 6;
+    private static final int TOTAL_STEPS = 7;
     private static final int REQUEST_CODE_QR_SCAN = 0x4652;
 
     private int mCurrentStep = STEP_WELCOME;
@@ -137,6 +138,7 @@ public class FeishuSetupActivity extends AppCompatActivity {
             case STEP_WELCOME: return createWelcomeStep();
             case STEP_DOMAIN: return createDomainStep();
             case STEP_CREATE_APP: return createCreateAppStep();
+            case STEP_EVENT_SUB: return createEventSubStep();
             case STEP_CREDENTIALS: return createCredentialsStep();
             case STEP_TEST: return createTestStep();
             case STEP_COMPLETE: return createCompleteStep();
@@ -330,7 +332,106 @@ public class FeishuSetupActivity extends AppCompatActivity {
     }
 
     // =========================================================================
-    // Step 4: Enter Credentials (with QR scan option)
+    // Step 4: Event Subscription Setup
+    // =========================================================================
+
+    private View createEventSubStep() {
+        LinearLayout ll = new LinearLayout(this);
+        ll.setOrientation(LinearLayout.VERTICAL);
+        int pad = dp(24);
+        ll.setPadding(pad, pad, pad, pad);
+
+        TextView titleTv = new TextView(this);
+        titleTv.setText(R.string.feishu_event_sub_title);
+        titleTv.setTypeface(null, android.graphics.Typeface.BOLD);
+        titleTv.setTextSize(18);
+        titleTv.setPadding(0, 0, 0, dp(8));
+        ll.addView(titleTv);
+
+        TextView descTv = new TextView(this);
+        descTv.setText(R.string.feishu_event_sub_desc);
+        descTv.setLineSpacing(dp(2), 1f);
+        descTv.setPadding(0, 0, 0, dp(12));
+        ll.addView(descTv);
+
+        // Webhook URL display
+        TextView webhookLabel = new TextView(this);
+        webhookLabel.setText(R.string.feishu_webhook_url_label);
+        webhookLabel.setTypeface(null, android.graphics.Typeface.BOLD);
+        webhookLabel.setPadding(0, dp(8), 0, dp(4));
+        ll.addView(webhookLabel);
+
+        String webhookUrl = "https://your-server.com/webhook/feishu";
+        TextView webhookUrlTv = new TextView(this);
+        webhookUrlTv.setText(webhookUrl);
+        webhookUrlTv.setTextSize(14);
+        webhookUrlTv.setTextColor(ContextCompat.getColor(this, android.R.color.holo_blue_dark));
+        webhookUrlTv.setPadding(dp(8), dp(4), dp(8), dp(4));
+        webhookUrlTv.setBackgroundColor(0x0F000000);
+        webhookUrlTv.setBreakStrategy(android.text.Layout.BREAK_STRATEGY_SIMPLE);
+        ll.addView(webhookUrlTv);
+
+        android.widget.Button copyBtn = new android.widget.Button(this);
+        copyBtn.setText(R.string.feishu_copy_webhook);
+        copyBtn.setOnClickListener(v -> {
+            android.content.ClipboardManager clipboard = (android.content.ClipboardManager)
+                    getSystemService(CLIPBOARD_SERVICE);
+            android.content.ClipData clip = android.content.ClipData.newPlainText("Webhook URL", webhookUrl);
+            clipboard.setPrimaryClip(clip);
+            copyBtn.setText(R.string.feishu_copied);
+            copyBtn.postDelayed(() -> copyBtn.setText(R.string.feishu_copy_webhook), 2000);
+        });
+        ll.addView(copyBtn);
+
+        addSpacer(ll, dp(12));
+
+        // Instructions
+        TextView instrTitle = new TextView(this);
+        instrTitle.setText(R.string.feishu_event_sub_steps);
+        instrTitle.setTypeface(null, android.graphics.Typeface.BOLD);
+        instrTitle.setPadding(0, dp(8), 0, dp(4));
+        ll.addView(instrTitle);
+
+        String[] instructions = getString(R.string.feishu_event_sub_instructions).split("\n");
+        for (String instr : instructions) {
+            if (instr.trim().isEmpty()) continue;
+            TextView instrTv = new TextView(this);
+            instrTv.setText(instr.trim());
+            instrTv.setTextSize(13);
+            instrTv.setLineSpacing(dp(2), 1f);
+            instrTv.setPadding(dp(12), dp(2), 0, dp(2));
+            ll.addView(instrTv);
+        }
+
+        addSpacer(ll, dp(12));
+
+        // Open console button
+        android.widget.Button openBtn = new android.widget.Button(this);
+        openBtn.setText(R.string.feishu_open_event_console);
+        openBtn.setOnClickListener(v -> {
+            String domain = mDomain;
+            String url = "https://open." + domain + ".com/app/" + mAppId + "/event";
+            try {
+                startActivity(new Intent(Intent.ACTION_VIEW, android.net.Uri.parse(url)));
+            } catch (Exception ignored) {}
+        });
+        ll.addView(openBtn);
+
+        addSpacer(ll, dp(12));
+
+        // WebSocket mode info
+        TextView wsNote = new TextView(this);
+        wsNote.setText(R.string.feishu_websocket_note);
+        wsNote.setTextSize(12);
+        wsNote.setTextColor(ContextCompat.getColor(this, R.color.hermes_text_hint));
+        wsNote.setLineSpacing(dp(2), 1f);
+        ll.addView(wsNote);
+
+        return wrapInScrollView(ll);
+    }
+
+    // =========================================================================
+    // Step 5: Enter Credentials (with QR scan option)
     // =========================================================================
 
     private View createCredentialsStep() {

@@ -510,6 +510,21 @@
     <string name="discord_complete_next_steps">Next steps:\n\n• Invite your bot to your Discord server\n• Start the Hermes Gateway from Settings\n• Send a message to your bot on Discord\n• You can change settings anytime from Hermes Settings</string>
 
     <!-- Feishu Setup -->
+        <!-- Feishu event subscription -->
+    <string name="feishu_event_sub_title">Event Subscription</string>
+    <string name="feishu_event_sub_desc">Configure event subscription so Feishu can send messages to your Hermes gateway. You need to set up a webhook URL in the Feishu developer console.</string>
+    <string name="feishu_webhook_url_label">Webhook URL (copy this):</string>
+    <string name="feishu_copy_webhook">Copy Webhook URL</string>
+    <string name="feishu_copied">Copied!</string>
+    <string name="feishu_event_sub_steps">Setup Instructions:</string>
+    <string name="feishu_event_sub_instructions">1. Open Feishu Developer Console → Your App → Events
+2. Click "Add Event"
+3. Subscribe to: im.message.receive_v1
+4. Set the request URL to the webhook URL above
+5. If using WebSocket mode, you can skip the URL setup
+6. Make sure event permissions are enabled</string>
+    <string name="feishu_open_event_console">Open Event Settings</string>
+    <string name="feishu_websocket_note">Note: If you selected WebSocket connection mode, you do not need to configure a webhook URL. The gateway will connect to Feishu via WebSocket automatically.</string>
     <string name="feishu_setup_title">Feishu / Lark Setup</string>
     <string name="feishu_step_progress">Step %1$d/%2$d</string>
     <string name="feishu_next">Next</string>
