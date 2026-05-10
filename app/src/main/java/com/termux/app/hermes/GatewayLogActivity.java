@@ -134,10 +134,13 @@ public class GatewayLogActivity extends AppCompatActivity {
         mScrollView = new ScrollView(this);
         mScrollView.setFillViewport(true);
         mScrollView.setOnScrollChangeListener((v, scrollX, scrollY, oldScrollX, oldScrollY) -> {
-            View child = v.getChildAt(v.getChildCount() - 1);
-            if (child != null) {
-                int diff = child.getBottom() - (v.getHeight() + scrollY);
-                mAutoScroll = diff < dp(50);
+            if (v instanceof ScrollView) {
+                ScrollView sv = (ScrollView) v;
+                View child = sv.getChildAt(sv.getChildCount() - 1);
+                if (child != null) {
+                    int diff = child.getBottom() - (sv.getHeight() + scrollY);
+                    mAutoScroll = diff < dp(50);
+                }
             }
         });
 
