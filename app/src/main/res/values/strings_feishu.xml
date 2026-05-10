@@ -27,4 +27,13 @@
     <string name="feishu_config_saved">Feishu configuration saved successfully</string>
     <string name="feishu_config_error">Failed to save configuration</string>
     <string name="feishu_step_indicator">Step %1$d of %2$d</string>
+
+    <!-- Button strings referenced by layouts -->
+    <string name="feishu_button_cancel">Cancel</string>
+    <string name="feishu_button_back">Back</string>
+    <string name="feishu_button_next">Next</string>
+    <string name="feishu_button_finish">Finish</string>
+    <string name="feishu_credentials_description">Enter the App ID and App Secret from your Feishu/Lark application credentials page.</string>
+    <string name="feishu_confirm_cancel_yes">Yes, Cancel</string>
+    <string name="feishu_confirm_cancel_no">Continue Setup</string>
 </resources>
