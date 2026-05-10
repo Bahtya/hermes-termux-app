@@ -441,6 +441,7 @@ public class HermesConfigActivity extends AppCompatActivity {
                 apiKeyPref.setOnPreferenceChangeListener((p, newVal) -> {
                     mConfigManager.setApiKey(mConfigManager.getModelProvider(), (String) newVal);
                     p.setSummary(maskApiKey((String) newVal));
+                    HermesConfigManager.restartGatewayIfRunning(requireContext());
                     return true;
                 });
             }
@@ -463,6 +464,7 @@ public class HermesConfigActivity extends AppCompatActivity {
                         boolean needsUrl = "ollama".equals(provider) || "custom".equals(provider);
                         baseUrlPref.setVisible(needsUrl);
                     }
+                    HermesConfigManager.restartGatewayIfRunning(requireContext());
                     return true;
                 });
             }
@@ -471,6 +473,7 @@ public class HermesConfigActivity extends AppCompatActivity {
             if (modelPref != null) {
                 modelPref.setOnPreferenceChangeListener((p, newVal) -> {
                     mConfigManager.setModelName((String) newVal);
+                    HermesConfigManager.restartGatewayIfRunning(requireContext());
                     return true;
                 });
             }
@@ -479,6 +482,7 @@ public class HermesConfigActivity extends AppCompatActivity {
             if (baseUrlPref != null) {
                 baseUrlPref.setOnPreferenceChangeListener((p, newVal) -> {
                     mConfigManager.setEnvVar("OPENAI_BASE_URL", (String) newVal);
+                    HermesConfigManager.restartGatewayIfRunning(requireContext());
                     return true;
                 });
                 boolean needsUrl = "ollama".equals(currentProvider) || "custom".equals(currentProvider);

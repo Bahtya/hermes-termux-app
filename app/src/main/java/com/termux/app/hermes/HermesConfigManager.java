@@ -793,4 +793,23 @@ public class HermesConfigManager {
             Logger.logError(LOG_TAG, "Error writing to " + path + ": " + e.getMessage());
         }
     }
+
+    /**
+     * Restarts the gateway service if it is currently running.
+     * Call this after config changes that require a gateway restart.
+     */
+    public static void restartGatewayIfRunning(android.content.Context context) {
+        HermesGatewayStatus.checkAsync((status, detail) -> {
+            if (status == HermesGatewayStatus.Status.RUNNING) {
+                new android.os.Handler(android.os.Looper.getMainLooper()).postDelayed(() -> {
+                    context.startService(new android.content.Intent(context, HermesGatewayService.class)
+                            .setAction(HermesGatewayService.ACTION_STOP));
+                    new android.os.Handler(android.os.Looper.getMainLooper()).postDelayed(() -> {
+                        context.startService(new android.content.Intent(context, HermesGatewayService.class)
+                                .setAction(HermesGatewayService.ACTION_START));
+                    }, 1500);
+                }, 500);
+            }
+        });
+    }
 }
