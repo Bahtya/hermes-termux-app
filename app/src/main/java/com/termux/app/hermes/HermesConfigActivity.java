@@ -254,6 +254,9 @@ public class HermesConfigActivity extends AppCompatActivity {
                 case "hermes_import_config":
                     showImportConfirmDialog();
                     return true;
+                case "hermes_battery_opt":
+                    requestBatteryOptimization(preference);
+                    return true;
             }
             return super.onPreferenceTreeClick(preference);
         }
@@ -265,6 +268,34 @@ public class HermesConfigActivity extends AppCompatActivity {
                     .addToBackStack(null)
                     .setTransition(FragmentTransaction.TRANSIT_FRAGMENT_OPEN)
                     .commit();
+        }
+
+        private void requestBatteryOptimization(Preference pref) {
+            android.os.PowerManager pm = (android.os.PowerManager)
+                    requireContext().getSystemService(Context.POWER_SERVICE);
+            String packageName = requireContext().getPackageName();
+            if (pm != null && pm.isIgnoringBatteryOptimizations(packageName)) {
+                if (pref != null) pref.setSummary(getString(R.string.battery_opt_already_whitelisted));
+                return;
+            }
+            new AlertDialog.Builder(requireContext())
+                    .setTitle(R.string.battery_opt_prompt_title)
+                    .setMessage(R.string.battery_opt_prompt_message)
+                    .setPositiveButton(R.string.battery_opt_prompt_positive, (d, w) -> {
+                        try {
+                            Intent intent = new Intent(
+                                    android.provider.Settings.ACTION_REQUEST_IGNORE_BATTERY_OPTIMIZATIONS);
+                            intent.setData(android.net.Uri.parse("package:" + packageName));
+                            startActivity(intent);
+                        } catch (Exception e) {
+                            // Fallback: open battery optimization settings
+                            Intent fallback = new Intent(
+                                    android.provider.Settings.ACTION_IGNORE_BATTERY_OPTIMIZATION_SETTINGS);
+                            startActivity(fallback);
+                        }
+                    })
+                    .setNegativeButton(R.string.battery_opt_prompt_negative, null)
+                    .show();
         }
 
         private void checkForUpdate(Preference updatePref) {
