@@ -523,6 +523,7 @@ public class HermesConfigActivity extends AppCompatActivity {
     public static class LlmConfigFragment extends PreferenceFragmentCompat {
 
         private HermesConfigManager mConfigManager;
+        private boolean mHasUnsavedChanges = false;
 
         @Override
         public void onCreatePreferences(Bundle savedInstanceState, String rootKey) {
@@ -541,6 +542,7 @@ public class HermesConfigActivity extends AppCompatActivity {
                 apiKeyPref.setOnPreferenceChangeListener((p, newVal) -> {
                     mConfigManager.setApiKey(mConfigManager.getModelProvider(), (String) newVal);
                     p.setSummary(maskApiKey((String) newVal));
+                    mHasUnsavedChanges = true;
                     return true;
                 });
             }
@@ -563,6 +565,7 @@ public class HermesConfigActivity extends AppCompatActivity {
                         boolean needsUrl = "ollama".equals(provider) || "custom".equals(provider);
                         baseUrlPref.setVisible(needsUrl);
                     }
+                    mHasUnsavedChanges = true;
                     return true;
                 });
             }
@@ -571,6 +574,7 @@ public class HermesConfigActivity extends AppCompatActivity {
             if (modelPref != null) {
                 modelPref.setOnPreferenceChangeListener((p, newVal) -> {
                     mConfigManager.setModelName((String) newVal);
+                    mHasUnsavedChanges = true;
                     return true;
                 });
             }
@@ -579,11 +583,53 @@ public class HermesConfigActivity extends AppCompatActivity {
             if (baseUrlPref != null) {
                 baseUrlPref.setOnPreferenceChangeListener((p, newVal) -> {
                     mConfigManager.setEnvVar("OPENAI_BASE_URL", (String) newVal);
+                    mHasUnsavedChanges = true;
                     return true;
                 });
                 boolean needsUrl = "ollama".equals(currentProvider) || "custom".equals(currentProvider);
                 baseUrlPref.setVisible(needsUrl);
             }
+        }
+
+        @Override
+        public void onResume() {
+            super.onResume();
+            requireActivity().getOnBackPressedDispatcher().addCallback(
+                    getViewLifecycleOwner(),
+                    new androidx.activity.OnBackPressedCallback(true) {
+                        @Override
+                        public void handleOnBackPressed() {
+                            if (mHasUnsavedChanges) {
+                                showUnsavedChangesDialog();
+                            } else {
+                                setEnabled(false);
+                                requireActivity().onBackPressed();
+                            }
+                        }
+                    });
+        }
+
+        private void showUnsavedChangesDialog() {
+            new AlertDialog.Builder(requireContext())
+                    .setTitle(R.string.config_unsaved_title)
+                    .setMessage(R.string.config_unsaved_message)
+                    .setPositiveButton(R.string.config_unsaved_save, (d, w) -> {
+                        mHasUnsavedChanges = false;
+                        Toast.makeText(requireContext(), R.string.config_changes_saved,
+                                Toast.LENGTH_SHORT).show();
+                        requireActivity().getSupportFragmentManager().popBackStack();
+                    })
+                    .setNegativeButton(R.string.config_unsaved_discard, (d, w) -> {
+                        mHasUnsavedChanges = false;
+                        reloadConfig();
+                        requireActivity().getSupportFragmentManager().popBackStack();
+                    })
+                    .setNeutralButton(R.string.config_unsaved_cancel, null)
+                    .show();
+        }
+
+        private void reloadConfig() {
+            HermesConfigManager.reinitialize();
         }
 
         private void updateModelList(String provider) {
@@ -625,11 +671,62 @@ public class HermesConfigActivity extends AppCompatActivity {
 
         @Override
         public boolean onPreferenceTreeClick(@NonNull Preference preference) {
-            if ("llm_test_connection".equals(preference.getKey())) {
+            String key = preference.getKey();
+            if ("llm_test_connection".equals(key)) {
                 testConnection(preference);
                 return true;
             }
+            if ("llm_get_api_key".equals(key)) {
+                openProviderUrl(getApiKeyUrl());
+                return true;
+            }
+            if ("llm_docs".equals(key)) {
+                openProviderUrl(getDocsUrl());
+                return true;
+            }
             return super.onPreferenceTreeClick(preference);
+        }
+
+        private void openProviderUrl(String url) {
+            if (url == null) return;
+            try {
+                Intent intent = new Intent(Intent.ACTION_VIEW, android.net.Uri.parse(url));
+                startActivity(intent);
+            } catch (Exception ignored) {}
+        }
+
+        private String getApiKeyUrl() {
+            String provider = mConfigManager.getModelProvider();
+            switch (provider) {
+                case "openai":     return "https://platform.openai.com/api-keys";
+                case "anthropic":  return "https://console.anthropic.com/settings/keys";
+                case "google":     return "https://aistudio.google.com/apikey";
+                case "deepseek":   return "https://platform.deepseek.com/api_keys";
+                case "openrouter": return "https://openrouter.ai/keys";
+                case "xai":        return "https://console.x.ai/";
+                case "alibaba":    return "https://dashscope.console.aliyun.com/apiKey";
+                case "mistral":    return "https://console.mistral.ai/api-keys/";
+                case "nvidia":     return "https://build.nvidia.com/";
+                case "ollama":     return "http://localhost:11434";
+                default:           return null;
+            }
+        }
+
+        private String getDocsUrl() {
+            String provider = mConfigManager.getModelProvider();
+            switch (provider) {
+                case "openai":     return "https://platform.openai.com/docs";
+                case "anthropic":  return "https://docs.anthropic.com/en/docs";
+                case "google":     return "https://ai.google.dev/gemini-api/docs";
+                case "deepseek":   return "https://api-docs.deepseek.com/";
+                case "openrouter": return "https://openrouter.ai/docs";
+                case "xai":        return "https://docs.x.ai/";
+                case "alibaba":    return "https://help.aliyun.com/document_detail/2712195.html";
+                case "mistral":    return "https://docs.mistral.ai/";
+                case "nvidia":     return "https://build.nvidia.com/explore/discover";
+                case "ollama":     return "https://github.com/ollama/ollama";
+                default:           return null;
+            }
         }
 
         private void testConnection(Preference testPref) {
