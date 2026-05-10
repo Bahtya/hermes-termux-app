@@ -10,6 +10,7 @@ import androidx.annotation.NonNull;
 import androidx.appcompat.app.ActionBar;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.os.LocaleListCompat;
 import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentTransaction;
 import androidx.preference.ListPreference;
@@ -185,6 +186,27 @@ public class HermesConfigActivity extends AppCompatActivity {
                 discordPref.setSummary(configured
                         ? getString(R.string.discord_configured)
                         : getString(R.string.discord_not_configured));
+            }
+
+            // Language preference
+            ListPreference langPref = findPreference("hermes_language");
+            if (langPref != null) {
+                LocaleListCompat current = AppCompatDelegate.getApplicationLocales();
+                if (!current.isEmpty()) {
+                    langPref.setValue(current.get(0).getLanguage());
+                }
+                langPref.setOnPreferenceChangeListener((p, newVal) -> {
+                    String lang = (String) newVal;
+                    if (lang.isEmpty()) {
+                        AppCompatDelegate.setApplicationLocales(LocaleListCompat.getEmptyLocaleList());
+                    } else {
+                        AppCompatDelegate.setApplicationLocales(
+                                LocaleListCompat.forLanguageTags(lang));
+                    }
+                    Toast.makeText(requireContext(), R.string.language_changed,
+                            Toast.LENGTH_SHORT).show();
+                    return true;
+                });
             }
         }
 

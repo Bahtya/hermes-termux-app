@@ -210,4 +210,12 @@
     <string name="hermes_web_start_gateway">启动网关</string>
     <string name="hermes_not_installed_title">Hermes 未安装</string>
     <string name="hermes_not_installed_message">Hermes Agent 尚未安装在：\n%1$s\n\n请等待自动安装完成。</string>
+
+    <!-- Language Switcher -->
+    <string name="language_title">语言</string>
+    <string name="language_summary">更改应用显示语言</string>
+    <string name="language_system">跟随系统</string>
+    <string name="language_en">English</string>
+    <string name="language_zh">中文（简体）</string>
+    <string name="language_changed">语言将在重启应用后生效</string>
 </resources>

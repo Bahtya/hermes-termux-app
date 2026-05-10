@@ -561,4 +561,23 @@
     <string name="hermes_setup_done_title">You\'re all set!</string>
     <string name="hermes_setup_done_text">Hermes is ready to go. You can start the gateway from the Hermes Settings or use the Web UI tab.\n\nTo change your settings at any time, tap the Hermes icon in the sidebar.</string>
 
+    <!-- Language Switcher -->
+    <string name="language_title">Language</string>
+    <string name="language_summary">Change app display language</string>
+    <string name="language_system">System Default</string>
+    <string name="language_en">English</string>
+    <string name="language_zh">中文（简体）</string>
+    <string name="language_changed">Language will change after restarting the app</string>
+
+    <string-array name="language_names">
+        <item>@string/language_system</item>
+        <item>@string/language_en</item>
+        <item>@string/language_zh</item>
+    </string-array>
+    <string-array name="language_values">
+        <item></item>
+        <item>en</item>
+        <item>zh</item>
+    </string-array>
+
 </resources>

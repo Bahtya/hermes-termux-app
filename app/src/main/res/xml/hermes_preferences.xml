@@ -58,6 +58,14 @@
 
     <PreferenceCategory android:title="@string/hermes_cat_advanced">
 
+        <ListPreference
+            android:key="hermes_language"
+            android:title="@string/language_title"
+            android:summary="@string/language_summary"
+            android:entries="@array/language_names"
+            android:entryValues="@array/language_values"
+            android:defaultValue="" />
+
         <Preference
             android:key="hermes_check_update"
             android:title="@string/hermes_check_update_title"
