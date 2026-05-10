@@ -4,9 +4,14 @@ on:
   pull_request:
     branches: [ main ]
 
+concurrency:
+  group: pr-checks-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+
 jobs:
   lint:
     runs-on: ubuntu-latest
+    timeout-minutes: 15
     steps:
       - name: Checkout repository
         uses: actions/checkout@v6
@@ -17,10 +22,27 @@ jobs:
           distribution: temurin
           java-version: '17'
 
+      - name: Cache Gradle packages
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.gradle/caches
+            ~/.gradle/wrapper
+          key: gradle-${{ runner.os }}-${{ hashFiles('**/*.gradle*', '**/gradle-wrapper.properties') }}
+          restore-keys: |
+            gradle-${{ runner.os }}-
+
       - name: Run lint
+        id: lint
         env:
           TERMUX_PACKAGE_VARIANT: apt-android-7
-        run: ./gradlew downloadBootstraps lint -Pandroid.lint.abortOnError=false -Pandroid.lint.warningsAsErrors=false
+        run: |
+          ./gradlew downloadBootstraps assembleDebug lint -Pandroid.lint.abortOnError=false -Pandroid.lint.warningsAsErrors=false 2>&1 | tee lint-output.txt
+          # Count issues
+          ERRORS=$(grep -c "Severity: Error" lint-output.txt || echo "0")
+          WARNINGS=$(grep -c "Severity: Warning" lint-output.txt || echo "0")
+          echo "errors=$ERRORS" >> $GITHUB_OUTPUT
+          echo "warnings=$WARNINGS" >> $GITHUB_OUTPUT
 
       - name: Upload lint report
         if: always()
@@ -28,3 +50,52 @@ jobs:
         with:
           name: lint-report
           path: app/build/reports/lint-results-debug.html
+
+      - name: Lint summary
+        if: always()
+        run: |
+          echo "### Lint Results" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "- **Errors**: ${{ steps.lint.outputs.errors }}" >> $GITHUB_STEP_SUMMARY
+          echo "- **Warnings**: ${{ steps.lint.outputs.warnings }}" >> $GITHUB_STEP_SUMMARY
+          echo "- **Report**: Download the lint-report artifact for details" >> $GITHUB_STEP_SUMMARY
+
+  unit-tests:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Clone repository
+        uses: actions/checkout@v6
+
+      - name: Setup java 17
+        uses: actions/setup-java@v5
+        with:
+          distribution: temurin
+          java-version: '17'
+
+      - name: Cache Gradle packages
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.gradle/caches
+            ~/.gradle/wrapper
+          key: gradle-${{ runner.os }}-${{ hashFiles('**/*.gradle*', '**/gradle-wrapper.properties') }}
+          restore-keys: |
+            gradle-${{ runner.os }}-
+
+      - name: Execute tests
+        env:
+          TERMUX_PACKAGE_VARIANT: apt-android-7
+        run: ./gradlew downloadBootstrappers test
+
+      - name: Upload test report
+        if: always()
+        uses: actions/upload-artifact@v6
+        with:
+          name: test-report
+          path: app/build/reports/tests/
+
+      - name: Test summary
+        if: always()
+        run: |
+          echo "### Unit Tests ${{ job.status == 'success' && '✅' || '❌' }}" >> $GITHUB_STEP_SUMMARY
