@@ -69,6 +69,7 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.drawerlayout.widget.DrawerLayout;
 import androidx.viewpager.widget.ViewPager;
 
+import java.io.File;
 import java.util.Arrays;
 
 /**
@@ -402,12 +403,10 @@ public final class TermuxActivity extends AppCompatActivity implements ServiceCo
 
         mTermuxService = ((TermuxService.LocalBinder) service).service;
 
-        // Ensure Hermes Agent is installed (idempotent)
-        HermesInstaller.installIfNeeded(this);
-
-        // Show setup wizard on first launch
-        if (!HermesSetupWizardActivity.isWizardCompleted(this)) {
-            startActivity(new Intent(this, HermesSetupWizardActivity.class));
+        // Show install + setup flow if Hermes is not yet installed or wizard not completed
+        File markerFile = new File(com.termux.shared.termux.TermuxConstants.TERMUX_DATA_HOME_DIR_PATH + "/hermes-installed");
+        if (!markerFile.exists() || !HermesSetupWizardActivity.isWizardCompleted(this)) {
+            startActivity(new Intent(this, com.termux.app.hermes.HermesInstallActivity.class));
         }
 
         // Auto-start gateway if enabled
