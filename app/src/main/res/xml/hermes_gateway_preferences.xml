@@ -40,6 +40,35 @@
             android:defaultValue="30" />
     </PreferenceCategory>
 
+
+    <PreferenceCategory android:title="@string/gateway_notif_category">
+        <ListPreference
+            android:key="gateway_notif_importance"
+            android:title="@string/gateway_notif_importance_title"
+            android:summary="@string/gateway_notif_importance_summary"
+            android:entries="@array/notif_importance_names"
+            android:entryValues="@array/notif_importance_values"
+            android:defaultValue="3" />
+
+        <SwitchPreferenceCompat
+            android:key="gateway_notif_sound"
+            android:title="@string/gateway_notif_sound_title"
+            android:summary="@string/gateway_notif_sound_summary"
+            android:defaultValue="true" />
+
+        <SwitchPreferenceCompat
+            android:key="gateway_notif_vibrate"
+            android:title="@string/gateway_notif_vibrate_title"
+            android:summary="@string/gateway_notif_vibrate_summary"
+            android:defaultValue="false" />
+
+        <SwitchPreferenceCompat
+            android:key="gateway_quiet_hours"
+            android:title="@string/gateway_quiet_hours_title"
+            android:summary="@string/gateway_quiet_hours_summary"
+            android:defaultValue="false" />
+    </PreferenceCategory>
+
     <Preference
         android:key="gateway_diagnostic"
         android:title="@string/gateway_diagnostic_title"

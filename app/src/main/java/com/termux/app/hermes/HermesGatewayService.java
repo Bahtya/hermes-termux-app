@@ -116,6 +116,26 @@ public class HermesGatewayService extends Service {
     }
 
     @Override
+
+    private int getNotificationImportance() {
+        try {
+            return Integer.parseInt(HermesConfigManager.getInstance()
+                    .getEnvVar("GATEWAY_NOTIF_IMPORTANCE"));
+        } catch (Exception e) {
+            return NotificationManager.IMPORTANCE_DEFAULT;
+        }
+    }
+
+    private boolean isNotificationSoundEnabled() {
+        return !"false".equals(HermesConfigManager.getInstance()
+                .getEnvVar("GATEWAY_NOTIF_SOUND"));
+    }
+
+    private boolean isNotificationVibrateEnabled() {
+        return "true".equals(HermesConfigManager.getInstance()
+                .getEnvVar("GATEWAY_NOTIF_VIBRATE"));
+    }
+
     public int onStartCommand(Intent intent, int flags, int startId) {
         if (intent != null) {
             String action = intent.getAction();
