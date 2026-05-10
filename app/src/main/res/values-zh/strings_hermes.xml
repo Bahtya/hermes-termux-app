@@ -394,6 +394,12 @@ App ID 以"cli_"开头，约 10-20 个字符。App Secret 较长（30+ 字符）
     <string name="quickstart_running">运行中 — %1$s</string>
     <string name="quickstart_stopped">点击启动网关</string>
     <string name="quickstart_not_installed">Hermes 未安装 — 等待自动安装</string>
+    <string name="setup_progress_title">设置进度</string>
+    <string name="setup_progress_step_llm">1. 配置 AI 提供商</string>
+    <string name="setup_progress_step_im">2. 连接消息平台</string>
+    <string name="setup_progress_step_gateway">3. 启动网关</string>
+    <string name="setup_progress_complete">全部完成！Hermes 已就绪。</string>
+    <string name="setup_progress_summary">已完成 %1$d / %2$d 步</string>
     <string name="dashboard_gateway_title">网关</string>
     <string name="dashboard_gateway_running">运行中</string>
     <string name="dashboard_gateway_stopped">已停止</string>

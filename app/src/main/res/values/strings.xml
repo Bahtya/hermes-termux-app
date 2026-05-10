@@ -721,6 +721,12 @@ App ID starts with "cli_" and is about 10–20 characters. App Secret is longer 
     <string name="quickstart_running">Running — %1$s</string>
     <string name="quickstart_stopped">Tap to start the gateway</string>
     <string name="quickstart_not_installed">Hermes not installed — waiting for auto-install</string>
+    <string name="setup_progress_title">Setup Progress</string>
+    <string name="setup_progress_step_llm">1. Configure AI Provider</string>
+    <string name="setup_progress_step_im">2. Connect Messaging</string>
+    <string name="setup_progress_step_gateway">3. Start Gateway</string>
+    <string name="setup_progress_complete">All set! Hermes is ready.</string>
+    <string name="setup_progress_summary">%1$d of %2$d steps complete</string>
     <string name="dashboard_gateway_title">Gateway</string>
     <string name="dashboard_gateway_running">Running</string>
     <string name="dashboard_gateway_stopped">Stopped</string>
