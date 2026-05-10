@@ -22,7 +22,9 @@ import com.termux.R;
 import com.termux.app.TermuxActivity;
 import com.termux.shared.termux.TermuxConstants;
 
+import java.io.BufferedReader;
 import java.io.File;
+import java.io.FileReader;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
@@ -31,62 +33,123 @@ public class HermesGatewayService extends Service {
     private static final String TAG = "HermesGateway";
     private static final int NOTIFICATION_ID = 2001;
     private static final int ERROR_NOTIFICATION_ID = 2002;
+    private static final int RECOVERY_NOTIFICATION_ID = 2003;
     private static final String CHANNEL_ID = "hermes_gateway_channel";
     private static final String ERROR_CHANNEL_ID = "hermes_gateway_errors";
     public static final String ACTION_START = "com.hermes.termux.GATEWAY_START";
     public static final String ACTION_STOP = "com.hermes.termux.GATEWAY_STOP";
     public static final String ACTION_CHECK = "com.hermes.termux.GATEWAY_CHECK";
     public static final String ACTION_RESTART = "com.hermes.termux.GATEWAY_RESTART";
-    public static final String ACTION_DISABLE_RECOVERY = "com.hermes.termux.DISABLE_RECOVERY";
     public static final String PREF_AUTO_START = "hermes_auto_start_gateway";
     private static final String PREF_RESTART_COUNT = "gateway_restart_count";
     private static final String PREF_LAST_CRASH_TIME = "gateway_last_crash_time";
-    private static final String PREF_DISABLE_RECOVERY = "gateway_disable_recovery";
-    private static final long STABLE_UPTIME_MS = 60_000;
+
+    private static final long HEALTH_CHECK_INTERVAL_MS = 60_000;
+    private static final long STABLE_UPTIME_MS = 300_000; // 5 minutes
+    private static final int MAX_RESTARTS = 5;
+    private static final long[] BACKOFF_DELAYS_MS = {
+        30_000, 60_000, 120_000, 240_000, 300_000
+    };
+    private static final long LOG_STALE_THRESHOLD_MS = 120_000; // 2 minutes
+
+    public static long sStartTime = 0;
 
     private final Handler mHandler = new Handler(Looper.getMainLooper());
     private final ExecutorService mExecutor = Executors.newSingleThreadExecutor();
     private Process mGatewayProcess;
     private boolean mRunning = false;
     private int mRestartAttempts = 0;
-    private static final int MAX_RESTARTS = 3;
     private long mProcessStartTime = 0;
-    private static volatile long sStartTime = 0;
-
-    /** Returns the timestamp when the gateway was last started, or 0 if not running. */
-    public static long getStartTime() {
-        return sStartTime;
-    }
+    private long mLastLogActivityTime = 0;
 
     private final Runnable mHealthCheck = new Runnable() {
         @Override
         public void run() {
-            if (mRunning) {
-                boolean alive = mGatewayProcess != null && mGatewayProcess.isAlive();
-                if (!alive && mRestartAttempts < MAX_RESTARTS && !isRecoveryDisabled(HermesGatewayService.this)) {
-                    Log.w(TAG, "Gateway process died, restarting (attempt " + (mRestartAttempts + 1) + ")");
-                    showCrashNotification(mRestartAttempts + 1);
-                    startGatewayProcess();
-                    mRestartAttempts++;
-                    saveRestartState();
-                } else if (!alive) {
-                    Log.e(TAG, "Gateway failed after " + MAX_RESTARTS + " restart attempts");
-                    showErrorNotification();
-                    mRunning = false;
-                    sStartTime = 0;
-                } else {
-                    // Process is alive — reset restart count after stable uptime
-                    long uptime = System.currentTimeMillis() - mProcessStartTime;
-                    if (uptime > STABLE_UPTIME_MS && mRestartAttempts > 0) {
-                        Log.i(TAG, "Gateway stable for 60s, resetting restart count");
-                        mRestartAttempts = 0;
-                        clearRestartState();
-                    }
+            if (!mRunning) return;
+
+            boolean alive = mGatewayProcess != null && mGatewayProcess.isAlive();
+            boolean logActive = checkLogActivity();
+
+            if (!alive) {
+                handleProcessDeath("process died");
+            } else if (!logActive && mProcessStartTime > 0
+                    && (System.currentTimeMillis() - mProcessStartTime) > STABLE_UPTIME_MS) {
+                // Process is alive but log is stale — possible zombie
+                Log.w(TAG, "Gateway process alive but log stale for 2min, treating as zombie");
+                killGatewayProcess();
+                handleProcessDeath("zombie detected (no log activity)");
+            } else {
+                // Process healthy — reset restart count after stable uptime
+                long uptime = System.currentTimeMillis() - mProcessStartTime;
+                if (uptime > STABLE_UPTIME_MS && mRestartAttempts > 0) {
+                    Log.i(TAG, "Gateway stable for 5min, resetting restart count");
+                    mRestartAttempts = 0;
+                    clearRestartState();
                 }
-                mHandler.postDelayed(this, 30_000);
+            }
+
+            if (mRunning) {
+                mHandler.postDelayed(this, HEALTH_CHECK_INTERVAL_MS);
             }
         }
     };
+
+    private void handleProcessDeath(String reason) {
+        if (mRestartAttempts < MAX_RESTARTS) {
+            long delay = BACKOFF_DELAYS_MS[Math.min(mRestartAttempts, BACKOFF_DELAYS_MS.length - 1)];
+            Log.w(TAG, "Gateway " + reason + ", restarting in " + (delay / 1000) + "s (attempt "
+                    + (mRestartAttempts + 1) + "/" + MAX_RESTARTS + ")");
+            showRecoveryNotification(mRestartAttempts + 1, delay / 1000);
+
+            mRestartAttempts++;
+            saveRestartState();
+
+            mHandler.postDelayed(() -> {
+                if (mRunning) startGatewayProcess();
+            }, delay);
+        } else {
+            Log.e(TAG, "Gateway failed after " + MAX_RESTARTS + " restart attempts");
+            showErrorNotification();
+            mRunning = false;
+        }
+    }
+
+    private boolean checkLogActivity() {
+        try {
+            String logPath = TermuxConstants.TERMUX_HOME_DIR_PATH + "/.hermes/logs/gateway.log";
+            File logFile = new File(logPath);
+            if (!logFile.exists()) return true; // No log file yet, assume OK
+
+            long lastModified = logFile.lastModified();
+            long now = System.currentTimeMillis();
+
+            if (lastModified > mLastLogActivityTime) {
+                mLastLogActivityTime = lastModified;
+                return true;
+            }
+
+            // Log hasn't been updated since our last check
+            return (now - lastModified) < LOG_STALE_THRESHOLD_MS;
+        } catch (Exception e) {
+            return true; // On error, don't assume zombie
+        }
+    }
+
+    private void killGatewayProcess() {
+        try {
+            ProcessBuilder pb = new ProcessBuilder(
+                    TermuxConstants.TERMUX_BIN_PREFIX_DIR_PATH + "/bash", "-c",
+                    "pkill -f 'hermes gateway' 2>/dev/null; echo done"
+            );
+            pb.environment().put("PATH", TermuxConstants.TERMUX_BIN_PREFIX_DIR_PATH + ":/system/bin");
+            pb.start();
+        } catch (Exception ignored) {}
+
+        if (mGatewayProcess != null) {
+            mGatewayProcess.destroyForcibly();
+            mGatewayProcess = null;
+        }
+    }
 
     @Override
     public void onCreate() {
@@ -102,19 +165,16 @@ public class HermesGatewayService extends Service {
                 stopGateway();
                 return START_NOT_STICKY;
             }
-            if (ACTION_DISABLE_RECOVERY.equals(action)) {
-                setRecoveryDisabled(this, true);
-                updateNotification("Auto-recovery disabled");
-                cancelErrorNotification();
-                return START_STICKY;
-            }
             if (ACTION_RESTART.equals(action)) {
                 clearRestartState();
                 mRestartAttempts = 0;
                 cancelErrorNotification();
-                if (!mRunning) {
-                    startGatewayProcess();
+                cancelRecoveryNotification();
+                if (mRunning) {
+                    killGatewayProcess();
+                    mRunning = false;
                 }
+                startGatewayProcess();
                 return START_STICKY;
             }
         }
@@ -161,15 +221,21 @@ public class HermesGatewayService extends Service {
                 mRunning = true;
                 mProcessStartTime = System.currentTimeMillis();
                 sStartTime = mProcessStartTime;
+                mLastLogActivityTime = System.currentTimeMillis();
                 if (mRestartAttempts == 0) {
                     clearRestartState();
                 }
 
                 cancelErrorNotification();
-                Notification notification = buildNotification(getString(R.string.gateway_notif_running));
+                cancelRecoveryNotification();
+
+                long uptimeMs = System.currentTimeMillis() - mProcessStartTime;
+                String uptimeStr = formatUptime(uptimeMs);
+                Notification notification = buildNotification("Hermes Gateway running");
                 startForeground(NOTIFICATION_ID, notification);
 
-                mHandler.postDelayed(mHealthCheck, 30_000);
+                mHandler.removeCallbacks(mHealthCheck);
+                mHandler.postDelayed(mHealthCheck, HEALTH_CHECK_INTERVAL_MS);
                 Log.i(TAG, "Gateway process started");
             } catch (Exception e) {
                 Log.e(TAG, "Failed to start gateway", e);
@@ -180,23 +246,11 @@ public class HermesGatewayService extends Service {
 
     private void stopGateway() {
         mRunning = false;
-        sStartTime = 0;
         mHandler.removeCallbacks(mHealthCheck);
 
-        try {
-            ProcessBuilder pb = new ProcessBuilder(
-                    TermuxConstants.TERMUX_BIN_PREFIX_DIR_PATH + "/bash", "-c",
-                    "pkill -f 'hermes gateway' 2>/dev/null; echo done"
-            );
-            pb.environment().put("PATH", TermuxConstants.TERMUX_BIN_PREFIX_DIR_PATH + ":/system/bin");
-            pb.start();
-        } catch (Exception ignored) {}
+        killGatewayProcess();
 
-        if (mGatewayProcess != null) {
-            mGatewayProcess.destroy();
-            mGatewayProcess = null;
-        }
-
+        sStartTime = 0;
         stopForeground(STOP_FOREGROUND_REMOVE);
         stopSelf();
     }
@@ -209,7 +263,7 @@ public class HermesGatewayService extends Service {
     }
 
     private Notification buildNotification(String text) {
-        Intent openIntent = new Intent(this, HermesConfigActivity.class);
+        Intent openIntent = new Intent(this, TermuxActivity.class);
         PendingIntent pi = PendingIntent.getActivity(this, 0, openIntent,
                 PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE);
 
@@ -224,12 +278,12 @@ public class HermesGatewayService extends Service {
                 PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE);
 
         return new NotificationCompat.Builder(this, CHANNEL_ID)
-                .setContentTitle(getString(R.string.gateway_notif_channel_name))
+                .setContentTitle("Hermes Gateway")
                 .setContentText(text)
                 .setSmallIcon(R.drawable.ic_hermes)
                 .setContentIntent(pi)
-                .addAction(0, getString(R.string.gateway_notif_stop), stopPi)
-                .addAction(0, getString(R.string.gateway_notif_restart), restartPi)
+                .addAction(0, "Restart", restartPi)
+                .addAction(0, "Stop", stopPi)
                 .setOngoing(true)
                 .build();
     }
@@ -241,40 +295,38 @@ public class HermesGatewayService extends Service {
 
             NotificationChannel channel = new NotificationChannel(
                     CHANNEL_ID,
-                    getString(R.string.gateway_notif_channel_name),
+                    "Hermes Gateway",
                     NotificationManager.IMPORTANCE_LOW
             );
-            channel.setDescription(getString(R.string.gateway_notif_channel_desc));
+            channel.setDescription("Hermes gateway status");
             nm.createNotificationChannel(channel);
 
             NotificationChannel errorChannel = new NotificationChannel(
                     ERROR_CHANNEL_ID,
-                    getString(R.string.gateway_notif_error_channel_name),
+                    "Hermes Gateway Alerts",
                     NotificationManager.IMPORTANCE_DEFAULT
             );
-            errorChannel.setDescription(getString(R.string.gateway_notif_error_channel_desc));
+            errorChannel.setDescription("Gateway crash and restart alerts");
             nm.createNotificationChannel(errorChannel);
         }
     }
 
-    private void showCrashNotification(int attempt) {
-        Intent disableIntent = new Intent(this, HermesGatewayService.class);
-        disableIntent.setAction(ACTION_DISABLE_RECOVERY);
-        PendingIntent disablePi = PendingIntent.getService(this, 3, disableIntent,
-                PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE);
-
+    private void showRecoveryNotification(int attempt, long delaySeconds) {
         Notification notification = new NotificationCompat.Builder(this, ERROR_CHANNEL_ID)
-                .setContentTitle(getString(R.string.gateway_crash_title))
-                .setContentText(getString(R.string.gateway_crash_message, attempt, MAX_RESTARTS))
-                .setStyle(new NotificationCompat.BigTextStyle()
-                        .bigText(getString(R.string.gateway_crash_detail, attempt, MAX_RESTARTS)))
+                .setContentTitle("Hermes Gateway Recovering")
+                .setContentText("Crash detected — restarting in " + delaySeconds + "s (attempt "
+                        + attempt + "/" + MAX_RESTARTS + ")")
                 .setSmallIcon(R.drawable.ic_hermes)
                 .setAutoCancel(true)
-                .addAction(0, getString(R.string.gateway_crash_disable), disablePi)
                 .setPriority(NotificationCompat.PRIORITY_DEFAULT)
                 .build();
         NotificationManager nm = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
-        if (nm != null) nm.notify(ERROR_NOTIFICATION_ID, notification);
+        if (nm != null) nm.notify(RECOVERY_NOTIFICATION_ID, notification);
+    }
+
+    private void cancelRecoveryNotification() {
+        NotificationManager nm = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
+        if (nm != null) nm.cancel(RECOVERY_NOTIFICATION_ID);
     }
 
     private void showErrorNotification() {
@@ -284,8 +336,8 @@ public class HermesGatewayService extends Service {
                 PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE);
 
         Notification notification = new NotificationCompat.Builder(this, ERROR_CHANNEL_ID)
-                .setContentTitle(getString(R.string.gateway_stopped_crash_title))
-                .setContentText(getString(R.string.gateway_stopped_crash_message, MAX_RESTARTS))
+                .setContentTitle("Hermes Gateway Stopped")
+                .setContentText("Gateway crashed " + MAX_RESTARTS + " times and could not recover")
                 .setSmallIcon(R.drawable.ic_hermes)
                 .setAutoCancel(false)
                 .setOngoing(true)
@@ -322,6 +374,28 @@ public class HermesGatewayService extends Service {
                 .getInt(PREF_RESTART_COUNT, 0);
     }
 
+    private static String formatUptime(long uptimeMs) {
+        long seconds = uptimeMs / 1000;
+        long minutes = seconds / 60;
+        long hours = minutes / 60;
+        if (hours > 0) return hours + "h " + (minutes % 60) + "m";
+        if (minutes > 0) return minutes + "m " + (seconds % 60) + "s";
+        return seconds + "s";
+    }
+
+    /** Returns current gateway uptime in milliseconds, or 0 if not running. */
+    public static long getUptime() {
+        if (sStartTime == 0) return 0;
+        long uptime = System.currentTimeMillis() - sStartTime;
+        return uptime > 0 ? uptime : 0;
+    }
+
+    /** Returns formatted uptime string, or "stopped" if not running. */
+    public static String getFormattedUptime() {
+        long uptime = getUptime();
+        return uptime > 0 ? formatUptime(uptime) : "stopped";
+    }
+
     @Override
     public void onDestroy() {
         stopGateway();
@@ -333,23 +407,6 @@ public class HermesGatewayService extends Service {
     @Override
     public IBinder onBind(Intent intent) {
         return null;
-    }
-
-    public static boolean isRecoveryDisabled(Context context) {
-        return context.getSharedPreferences("hermes_gateway", Context.MODE_PRIVATE)
-                .getBoolean(PREF_DISABLE_RECOVERY, false);
-    }
-
-    public static void setRecoveryDisabled(Context context, boolean disabled) {
-        context.getSharedPreferences("hermes_gateway", Context.MODE_PRIVATE)
-                .edit()
-                .putBoolean(PREF_DISABLE_RECOVERY, disabled)
-                .apply();
-    }
-
-    public static int getRestartCount(Context context) {
-        return context.getSharedPreferences("hermes_gateway", Context.MODE_PRIVATE)
-                .getInt(PREF_RESTART_COUNT, 0);
     }
 
     public static boolean isAutoStartEnabled(Context context) {
