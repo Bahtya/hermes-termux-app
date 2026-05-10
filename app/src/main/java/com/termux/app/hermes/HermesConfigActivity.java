@@ -2771,7 +2771,7 @@ public class HermesConfigActivity extends AppCompatActivity {
             if (map.containsKey("max_tokens")) {
                 try {
                     int maxTokens = Integer.parseInt(map.get("max_tokens"));
-                    mConfigManager.setMaxTokens(maxTokens);
+                    mConfigManager.setModelMaxTokens(maxTokens);
                     Preference mtPref = findPreference("llm_max_tokens");
                     if (mtPref instanceof EditTextPreference) ((EditTextPreference) mtPref).setText(String.valueOf(maxTokens));
                 } catch (NumberFormatException ignored) {}
@@ -2779,6 +2779,10 @@ public class HermesConfigActivity extends AppCompatActivity {
 
             mHasUnsavedChanges = true;
             Toast.makeText(requireContext(), R.string.llm_qr_imported, Toast.LENGTH_SHORT).show();
+        }
+
+        private int dp(int value) {
+            return (int) (value * getResources().getDisplayMetrics().density);
         }
     }
 
