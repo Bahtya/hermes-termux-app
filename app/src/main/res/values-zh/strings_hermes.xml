@@ -72,6 +72,16 @@
     <!-- Gateway Control -->
     <string name="gateway_start_title">启动网关</string>
     <string name="gateway_start_summary">启动 Hermes 消息网关</string>
+
+    <!-- Battery Optimization -->
+    <string name="battery_optimization_title">电池优化</string>
+    <string name="battery_optimization_summary_off">点击将应用加入白名单 — 防止网关被系统终止</string>
+    <string name="battery_optimization_summary_on">应用已加入白名单 — 网关将稳定运行</string>
+    <string name="battery_optimization_prompt_title">保持网关运行</string>
+    <string name="battery_optimization_prompt_message">您的设备可能会为了省电而终止 Hermes 网关。将应用加入电池优化白名单可确保网关稳定运行。\n\n这仅影响 Hermes — 不会显著影响电池续航。</string>
+    <string name="battery_optimization_open_settings">打开设置</string>
+    <string name="battery_optimization_skip">跳过</string>
+
     <string name="gateway_stop_title">停止网关</string>
     <string name="gateway_stop_summary">停止运行中的网关</string>
     <string name="gateway_restart_title">重启网关</string>

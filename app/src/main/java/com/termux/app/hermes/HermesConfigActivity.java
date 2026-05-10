@@ -2,7 +2,10 @@ package com.termux.app.hermes;
 
 import android.content.Context;
 import android.content.Intent;
+import android.net.Uri;
 import android.os.Bundle;
+import android.os.PowerManager;
+import android.provider.Settings;
 import android.view.MenuItem;
 import android.widget.Toast;
 
@@ -149,6 +152,16 @@ public class HermesConfigActivity extends AppCompatActivity {
                 });
             }
 
+            // Battery optimization status
+            Preference batteryPref = findPreference("hermes_battery_optimization");
+            if (batteryPref != null) {
+                PowerManager pm = (PowerManager) requireContext().getSystemService(Context.POWER_SERVICE);
+                boolean isWhitelisted = pm != null && pm.isIgnoringBatteryOptimizations(requireContext().getPackageName());
+                batteryPref.setSummary(isWhitelisted
+                        ? getString(R.string.battery_optimization_summary_on)
+                        : getString(R.string.battery_optimization_summary_off));
+            }
+
             // Show LLM config status
             Preference llmPref = findPreference("hermes_llm_config");
             if (llmPref != null) {
@@ -197,6 +210,9 @@ public class HermesConfigActivity extends AppCompatActivity {
                 case "hermes_llm_config":
                     showFragment(new LlmConfigFragment());
                     return true;
+                case "hermes_battery_optimization":
+                    showBatteryOptimizationDialog();
+                    return true;
                 case "hermes_feishu_setup":
                     startActivity(new Intent(requireContext(), FeishuSetupActivity.class));
                     return true;
@@ -230,6 +246,44 @@ public class HermesConfigActivity extends AppCompatActivity {
                     return true;
             }
             return super.onPreferenceTreeClick(preference);
+        }
+
+        @Override
+        public void onResume() {
+            super.onResume();
+            // Refresh battery optimization status when returning from settings
+            Preference batteryPref = findPreference("hermes_battery_optimization");
+            if (batteryPref != null) {
+                PowerManager pm = (PowerManager) requireContext().getSystemService(Context.POWER_SERVICE);
+                boolean isWhitelisted = pm != null && pm.isIgnoringBatteryOptimizations(requireContext().getPackageName());
+                batteryPref.setSummary(isWhitelisted
+                        ? getString(R.string.battery_optimization_summary_on)
+                        : getString(R.string.battery_optimization_summary_off));
+            }
+        }
+
+        private void showBatteryOptimizationDialog() {
+            PowerManager pm = (PowerManager) requireContext().getSystemService(Context.POWER_SERVICE);
+            if (pm != null && pm.isIgnoringBatteryOptimizations(requireContext().getPackageName())) {
+                Toast.makeText(requireContext(), R.string.battery_optimization_summary_on, Toast.LENGTH_SHORT).show();
+                return;
+            }
+
+            new AlertDialog.Builder(requireContext())
+                    .setTitle(R.string.battery_optimization_prompt_title)
+                    .setMessage(R.string.battery_optimization_prompt_message)
+                    .setPositiveButton(R.string.battery_optimization_open_settings, (d, w) -> {
+                        try {
+                            Intent intent = new Intent(Settings.ACTION_REQUEST_IGNORE_BATTERY_OPTIMIZATIONS);
+                            intent.setData(Uri.parse("package:" + requireContext().getPackageName()));
+                            startActivity(intent);
+                        } catch (Exception e) {
+                            Intent fallback = new Intent(Settings.ACTION_IGNORE_BATTERY_OPTIMIZATION_SETTINGS);
+                            startActivity(fallback);
+                        }
+                    })
+                    .setNegativeButton(R.string.battery_optimization_skip, null)
+                    .show();
         }
 
         private void showFragment(Fragment fragment) {
