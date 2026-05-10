@@ -632,6 +632,10 @@
     </string-array>
     <string name="install_title">Hermes Installation</string>
     <string name="help_title">Hermes Help</string>
+        <!-- Diagnostic -->
+    <string name="diagnostic_title">Connection Diagnostic</string>
+    <string name="diagnostic_run">Run Diagnostic</string>
+    <string name="diagnostic_copy">Copy Report</string>
     <string name="gateway_diagnostic_title">Gateway Diagnostic</string>
     <string name="gateway_diagnostic_summary">Run connectivity diagnostic</string>
     <string name="gateway_notif_perm_title">Notification Permission</string>
