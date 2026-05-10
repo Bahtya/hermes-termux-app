@@ -210,4 +210,14 @@
     <string name="hermes_web_start_gateway">启动网关</string>
     <string name="hermes_not_installed_title">Hermes 未安装</string>
     <string name="hermes_not_installed_message">Hermes Agent 尚未安装在：\n%1$s\n\n请等待自动安装完成。</string>
+
+    <!-- Gateway Pre-check -->
+    <string name="gateway_precheck_title">配置检查</string>
+    <string name="gateway_precheck_start_anyway">仍然启动</string>
+    <string name="gateway_precheck_llm">AI 配置</string>
+    <string name="gateway_precheck_provider">提供商</string>
+    <string name="gateway_precheck_api_key">API 密钥</string>
+    <string name="gateway_precheck_model">模型</string>
+    <string name="gateway_precheck_im">消息平台</string>
+    <string name="gateway_precheck_no_im">未配置消息平台</string>
 </resources>

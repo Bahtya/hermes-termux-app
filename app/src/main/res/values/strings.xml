@@ -561,4 +561,14 @@
     <string name="hermes_setup_done_title">You\'re all set!</string>
     <string name="hermes_setup_done_text">Hermes is ready to go. You can start the gateway from the Hermes Settings or use the Web UI tab.\n\nTo change your settings at any time, tap the Hermes icon in the sidebar.</string>
 
+    <!-- Gateway Pre-check -->
+    <string name="gateway_precheck_title">Configuration Check</string>
+    <string name="gateway_precheck_start_anyway">Start Anyway</string>
+    <string name="gateway_precheck_llm">AI Configuration</string>
+    <string name="gateway_precheck_provider">Provider</string>
+    <string name="gateway_precheck_api_key">API Key</string>
+    <string name="gateway_precheck_model">Model</string>
+    <string name="gateway_precheck_im">Messaging</string>
+    <string name="gateway_precheck_no_im">No messaging platform configured</string>
+
 </resources>

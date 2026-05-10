@@ -654,16 +654,86 @@ public class HermesConfigActivity extends AppCompatActivity {
 
             switch (key) {
                 case "gateway_start":
-                    runGatewayCommand("start");
+                    showValidationAndStart();
                     return true;
                 case "gateway_stop":
                     runGatewayCommand("stop");
                     return true;
                 case "gateway_restart":
-                    runGatewayCommand("restart");
+                    showValidationAndRestart();
                     return true;
             }
             return super.onPreferenceTreeClick(preference);
+        }
+
+        private void showValidationAndStart() {
+            String report = buildValidationReport();
+            boolean allOk = !report.contains("❌"); // ✗
+            new AlertDialog.Builder(requireContext())
+                    .setTitle(R.string.gateway_precheck_title)
+                    .setMessage(report)
+                    .setPositiveButton(allOk ? android.R.string.ok : R.string.gateway_precheck_start_anyway,
+                            (d, w) -> runGatewayCommand("start"))
+                    .setNegativeButton(android.R.string.cancel, null)
+                    .show();
+        }
+
+        private void showValidationAndRestart() {
+            String report = buildValidationReport();
+            boolean allOk = !report.contains("❌");
+            new AlertDialog.Builder(requireContext())
+                    .setTitle(R.string.gateway_precheck_title)
+                    .setMessage(report)
+                    .setPositiveButton(allOk ? android.R.string.ok : R.string.gateway_precheck_start_anyway,
+                            (d, w) -> runGatewayCommand("restart"))
+                    .setNegativeButton(android.R.string.cancel, null)
+                    .show();
+        }
+
+        private String buildValidationReport() {
+            HermesConfigManager cfg = HermesConfigManager.getInstance();
+            StringBuilder sb = new StringBuilder();
+
+            // LLM checks
+            String provider = cfg.getModelProvider();
+            String apiKey = cfg.getApiKey(provider);
+            String model = cfg.getModelName();
+
+            sb.append(getString(R.string.gateway_precheck_llm)).append("\n");
+            sb.append(provider != null && !provider.isEmpty()
+                    ? "  ✅ " : "  ❌ ");
+            sb.append(getString(R.string.gateway_precheck_provider)).append(": ")
+                    .append(provider != null ? provider : "—").append("\n");
+
+            sb.append(apiKey != null && !apiKey.isEmpty()
+                    ? "  ✅ " : "  ❌ ");
+            sb.append(getString(R.string.gateway_precheck_api_key)).append("\n");
+
+            sb.append(model != null && !model.isEmpty()
+                    ? "  ✅ " : "  ❌ ");
+            sb.append(getString(R.string.gateway_precheck_model)).append(": ")
+                    .append(model != null ? model : "—").append("\n");
+
+            // IM checks
+            sb.append("\n").append(getString(R.string.gateway_precheck_im)).append("\n");
+            boolean anyIm = false;
+            if (cfg.isFeishuConfigured()) {
+                sb.append("  ✅ Feishu/Lark\n");
+                anyIm = true;
+            }
+            if (!cfg.getEnvVar("TELEGRAM_BOT_TOKEN").isEmpty()) {
+                sb.append("  ✅ Telegram\n");
+                anyIm = true;
+            }
+            if (!cfg.getEnvVar("DISCORD_BOT_TOKEN").isEmpty()) {
+                sb.append("  ✅ Discord\n");
+                anyIm = true;
+            }
+            if (!anyIm) {
+                sb.append("  ❌ ").append(getString(R.string.gateway_precheck_no_im)).append("\n");
+            }
+
+            return sb.toString();
         }
 
         private void runGatewayCommand(String action) {
