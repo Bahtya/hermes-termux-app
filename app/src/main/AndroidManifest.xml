@@ -137,6 +137,12 @@
             android:theme="@style/Theme.TermuxApp.DayNight.DarkActionBar" />
 
         <activity
+            android:name="com.termux.app.hermes.HermesInstallActivity"
+            android:exported="false"
+            android:label="@string/install_title"
+            android:theme="@style/Theme.TermuxApp.DayNight.DarkActionBar" />
+
+        <activity
             android:name=".app.hermes.GatewayLogActivity"
             android:exported="false"
             android:label="@string/gateway_log_title"

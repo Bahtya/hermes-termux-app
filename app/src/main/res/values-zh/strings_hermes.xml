@@ -256,4 +256,20 @@
     <string name="llm_model_custom">自定义（手动输入）</string>
     <string name="llm_custom_model_title">自定义模型名称</string>
     <string name="llm_custom_model_summary">输入要使用的模型名称</string>
+    <!-- Installation Progress -->
+    <string name="install_title">正在设置 Hermes</string>
+    <string name="install_subtitle">Hermes Agent 正在安装到您的设备上。\n请稍候一分钟。</string>
+    <string name="install_checking">正在检查环境…</string>
+    <string name="install_downloading">正在下载 Hermes Agent…</string>
+    <string name="install_retrying">正在重试…（第 %1$d 次，共 %2$d 次）</string>
+    <string name="install_configuring">正在配置 Hermes…</string>
+    <string name="install_complete">Hermes Agent 安装成功！</string>
+    <string name="install_failed">安装失败：%1$s</string>
+    <string name="install_failed_help">请确保网络连接正常后重试。您也可以跳过此步骤，稍后手动安装。</string>
+    <string name="install_retry">重试</string>
+    <string name="install_skip">暂时跳过</string>
+    <string name="install_step_check">检查环境</string>
+    <string name="install_step_download">下载 Hermes Agent</string>
+    <string name="install_step_configure">配置环境</string>
+    <string name="install_step_done">就绪</string>
 </resources>

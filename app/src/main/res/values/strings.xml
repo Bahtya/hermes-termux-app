@@ -582,5 +582,21 @@
     <string name="config_summary_section_persona">Persona</string>
     <string name="config_summary_key_set">Set</string>
     <string name="config_summary_key_not_set">Not set</string>
+    <!-- Installation Progress -->
+    <string name="install_title">Setting Up Hermes</string>
+    <string name="install_subtitle">Hermes Agent is being installed on your device.\nThis may take a minute.</string>
+    <string name="install_checking">Checking prerequisites…</string>
+    <string name="install_downloading">Downloading Hermes Agent…</string>
+    <string name="install_retrying">Retrying… (attempt %1$d/%2$d)</string>
+    <string name="install_configuring">Configuring Hermes…</string>
+    <string name="install_complete">Hermes Agent installed successfully!</string>
+    <string name="install_failed">Installation failed: %1$s</string>
+    <string name="install_failed_help">Make sure you have an internet connection and try again. You can also skip this step and install manually later.</string>
+    <string name="install_retry">Retry</string>
+    <string name="install_skip">Skip for now</string>
+    <string name="install_step_check">Checking environment</string>
+    <string name="install_step_download">Downloading Hermes Agent</string>
+    <string name="install_step_configure">Configuring environment</string>
+    <string name="install_step_done">Ready</string>
 
 </resources>
