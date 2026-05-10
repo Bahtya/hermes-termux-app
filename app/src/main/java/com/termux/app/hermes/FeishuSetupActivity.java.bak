@@ -44,7 +44,6 @@ public class FeishuSetupActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_feishu_setup);
 
-        setSupportActionBar(findViewById(R.id.feishu_toolbar));
         ActionBar actionBar = getSupportActionBar();
         if (actionBar != null) {
             actionBar.setDisplayHomeAsUpEnabled(true);
@@ -92,10 +91,8 @@ public class FeishuSetupActivity extends AppCompatActivity {
             nextBtn.setText(R.string.feishu_next);
         }
 
-        ActionBar ab = getSupportActionBar();
-        if (ab != null) {
-            ab.setSubtitle("Step " + (step + 1) + "/5");
-        }
+        getSupportActionBar().setSubtitle(
+                getString(R.string.feishu_step_welcome) + " " + (step + 1) + "/5");
     }
 
     private View createStepView(int step) {

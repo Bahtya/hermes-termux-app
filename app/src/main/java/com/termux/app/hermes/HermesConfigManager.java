@@ -714,6 +714,22 @@ public class HermesConfigManager {
     }
 
     // =========================================================================
+    // Reset
+    // =========================================================================
+
+    /** Deletes config files and reloads defaults. */
+    public synchronized void resetToDefaults() {
+        new File(CONFIG_YAML_PATH).delete();
+        new File(ENV_FILE_PATH).delete();
+        mYamlConfig.clear();
+        mEnvVars.clear();
+        writeDefaultConfigYaml();
+        writeDefaultEnvFile();
+        loadConfig();
+        Logger.logInfo(LOG_TAG, "Configuration reset to defaults");
+    }
+
+    // =========================================================================
     // File utilities
     // =========================================================================
 
