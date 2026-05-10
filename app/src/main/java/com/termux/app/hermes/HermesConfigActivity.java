@@ -315,7 +315,7 @@ public class HermesConfigActivity extends AppCompatActivity {
                     startActivity(dcIntent);
                     return true;
                 case "hermes_whatsapp_setup":
-                    showWhatsappSetupDialog();
+                    startActivity(new Intent(requireContext(), WhatsAppSetupActivity.class));
                     return true;
                 case "hermes_gateway_control":
                     showFragment(new GatewayControlFragment());
