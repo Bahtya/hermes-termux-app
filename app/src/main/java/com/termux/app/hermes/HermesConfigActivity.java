@@ -2675,6 +2675,47 @@ public class HermesConfigActivity extends AppCompatActivity {
                     return true;
                 });
             }
+
+            // Voice transcription configuration
+            ListPreference voiceProviderPref = findPreference("voice_provider");
+            if (voiceProviderPref != null) {
+                String provider = mConfigManager.getVoiceProvider();
+                voiceProviderPref.setValue(provider);
+                voiceProviderPref.setOnPreferenceChangeListener((p, newVal) -> {
+                    mConfigManager.setVoiceProvider((String) newVal);
+                    return true;
+                });
+            }
+
+            EditTextPreference voiceLangPref = findPreference("voice_language");
+            if (voiceLangPref != null) {
+                String lang = mConfigManager.getVoiceLanguage();
+                if (!lang.isEmpty()) voiceLangPref.setText(lang);
+                voiceLangPref.setOnPreferenceChangeListener((p, newVal) -> {
+                    mConfigManager.setVoiceLanguage((String) newVal);
+                    return true;
+                });
+            }
+
+            ListPreference voiceModelPref = findPreference("voice_local_model");
+            if (voiceModelPref != null) {
+                String model = mConfigManager.getVoiceLocalModel();
+                voiceModelPref.setValue(model);
+                voiceModelPref.setOnPreferenceChangeListener((p, newVal) -> {
+                    mConfigManager.setVoiceLocalModel((String) newVal);
+                    return true;
+                });
+            }
+
+            EditTextPreference voiceEndpointPref = findPreference("voice_custom_endpoint");
+            if (voiceEndpointPref != null) {
+                String endpoint = mConfigManager.getVoiceCustomEndpoint();
+                if (!endpoint.isEmpty()) voiceEndpointPref.setText(endpoint);
+                voiceEndpointPref.setOnPreferenceChangeListener((p, newVal) -> {
+                    mConfigManager.setVoiceCustomEndpoint((String) newVal);
+                    return true;
+                });
+            }
         }
     }
 }
