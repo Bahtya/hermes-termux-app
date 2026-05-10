@@ -37,7 +37,8 @@ public class HermesSetupWizardActivity extends AppCompatActivity {
     private static final int STEP_WELCOME = 0;
     private static final int STEP_LLM = 1;
     private static final int STEP_IM = 2;
-    private static final int STEP_DONE = 3;
+    private static final int STEP_START = 3;
+    private static final int STEP_DONE = 4;
 
     private ScrollView mScrollView;
     private LinearLayout mContentContainer;
@@ -131,6 +132,7 @@ public class HermesSetupWizardActivity extends AppCompatActivity {
             case STEP_WELCOME: showWelcomeStep(); break;
             case STEP_LLM: showLlmStep(); break;
             case STEP_IM: showImStep(); break;
+            case STEP_START: showStartStep(); break;
             case STEP_DONE: showDoneStep(); break;
         }
 
@@ -426,6 +428,70 @@ public class HermesSetupWizardActivity extends AppCompatActivity {
         mContentContainer.addView(skipNote);
     }
 
+    private void showStartStep() {
+        if (getSupportActionBar() != null) {
+            getSupportActionBar().setSubtitle(R.string.hermes_setup_step_start);
+        }
+
+        addTitle(R.string.hermes_setup_start_title);
+        addParagraph(R.string.hermes_setup_start_text);
+
+        // Start gateway button
+        addSpacer(dp(8));
+        Button startBtn = new Button(this);
+        startBtn.setText(R.string.gateway_start_title);
+        LinearLayout.LayoutParams btnParams = new LinearLayout.LayoutParams(
+                LinearLayout.LayoutParams.WRAP_CONTENT, LinearLayout.LayoutParams.WRAP_CONTENT);
+        btnParams.gravity = android.view.Gravity.CENTER_HORIZONTAL;
+        startBtn.setLayoutParams(btnParams);
+        mContentContainer.addView(startBtn);
+        tagView(startBtn, "start_btn");
+
+        // Status text
+        TextView statusText = new TextView(this);
+        statusText.setPadding(0, dp(16), 0, 0);
+        statusText.setTextSize(15);
+        statusText.setGravity(android.view.Gravity.CENTER_HORIZONTAL);
+        mContentContainer.addView(statusText);
+        tagView(statusText, "start_status");
+
+        // Check if already running
+        if (HermesGatewayService.isRunning()) {
+            startBtn.setEnabled(false);
+            statusText.setText(R.string.hermes_setup_start_already_running);
+            statusText.setTextColor(0xFF388E3C);
+        } else {
+            startBtn.setOnClickListener(v -> {
+                startBtn.setEnabled(false);
+                statusText.setText(R.string.gateway_started);
+                statusText.setTextColor(0xFF1565C0);
+
+                Intent startIntent = new Intent(this, HermesGatewayService.class);
+                startIntent.setAction(HermesGatewayService.ACTION_START);
+                startService(startIntent);
+
+                // Update status after a short delay
+                statusText.postDelayed(() -> {
+                    if (HermesGatewayService.isRunning()) {
+                        statusText.setText(R.string.hermes_setup_start_success);
+                        statusText.setTextColor(0xFF388E3C);
+                    } else {
+                        statusText.setText(R.string.hermes_setup_start_failed);
+                        statusText.setTextColor(0xFFD32F2F);
+                        startBtn.setEnabled(true);
+                    }
+                }, 3000);
+            });
+        }
+
+        addSpacer(dp(16));
+        TextView skipNote = new TextView(this);
+        skipNote.setText(R.string.hermes_setup_start_skip);
+        skipNote.setTextColor(0xFF888888);
+        skipNote.setTextSize(13);
+        mContentContainer.addView(skipNote);
+    }
+
     private void showDoneStep() {
         if (getSupportActionBar() != null) {
             getSupportActionBar().setSubtitle(R.string.hermes_setup_step_done);
@@ -446,6 +512,7 @@ public class HermesSetupWizardActivity extends AppCompatActivity {
         summary.append("\nFeishu: ").append(hasFeishu ? "Configured" : "Not configured");
         summary.append("\nTelegram: ").append(hasTelegram ? "Configured" : "Not configured");
         summary.append("\nDiscord: ").append(hasDiscord ? "Configured" : "Not configured");
+        summary.append("\nGateway: ").append(HermesGatewayService.isRunning() ? "Running" : "Not started");
 
         TextView summaryView = new TextView(this);
         summaryView.setText(summary.toString());
