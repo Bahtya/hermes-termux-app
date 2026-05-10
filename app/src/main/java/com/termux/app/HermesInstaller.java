@@ -1,8 +1,15 @@
 package com.termux.app;
 
+import android.app.Notification;
+import android.app.NotificationChannel;
+import android.app.NotificationManager;
 import android.content.Context;
+import android.os.Build;
 import android.system.Os;
 
+import androidx.core.app.NotificationCompat;
+
+import com.termux.R;
 import com.termux.shared.file.FileUtils;
 import com.termux.shared.logger.Logger;
 import com.termux.shared.termux.TermuxConstants;
@@ -19,6 +26,8 @@ import java.io.FileOutputStream;
 public class HermesInstaller {
 
     private static final String LOG_TAG = "HermesInstaller";
+    private static final String NOTIFICATION_CHANNEL_ID = "hermes_install";
+    private static final int NOTIFICATION_ID = 2001;
 
     private static final String HERMES_MARKER_FILE =
             TermuxConstants.TERMUX_DATA_HOME_DIR_PATH + "/hermes-installed";
@@ -36,16 +45,43 @@ public class HermesInstaller {
             return;
         }
 
-        new Thread(() -> {
+        Thread t = new Thread(() -> {
             try {
+                showNotification(context, "Installing Hermes Agent...", false);
                 deployBootScript(context);
                 runInstallScript();
                 markInstalled();
+                showNotification(context, "Hermes Agent installed successfully", true);
                 Logger.logInfo(LOG_TAG, "Hermes installation complete.");
             } catch (Exception e) {
                 Logger.logErrorExtended(LOG_TAG, "Hermes installation failed:\n" + e.getMessage());
+                showNotification(context, "Hermes installation failed: " + e.getMessage(), true);
             }
-        }).start();
+        }, "HermesInstaller");
+        t.setDaemon(true);
+        t.start();
+    }
+
+    private static void showNotification(Context context, String message, boolean autoCancel) {
+        NotificationManager nm = (NotificationManager)
+                context.getSystemService(Context.NOTIFICATION_SERVICE);
+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            NotificationChannel channel = new NotificationChannel(
+                    NOTIFICATION_CHANNEL_ID, "Hermes Installation",
+                    NotificationManager.IMPORTANCE_LOW);
+            nm.createNotificationChannel(channel);
+        }
+
+        Notification notification = new NotificationCompat.Builder(context, NOTIFICATION_CHANNEL_ID)
+                .setContentTitle("Hermes Termux")
+                .setContentText(message)
+                .setSmallIcon(R.drawable.ic_service_notification)
+                .setAutoCancel(autoCancel)
+                .setPriority(NotificationCompat.PRIORITY_LOW)
+                .build();
+
+        nm.notify(NOTIFICATION_ID, notification);
     }
 
     private static void deployBootScript(Context context) throws Exception {
