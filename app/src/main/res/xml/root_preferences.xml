@@ -1,4 +1,5 @@
-<PreferenceScreen xmlns:app="http://schemas.android.com/apk/res-auto">
+<PreferenceScreen xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:android="http://schemas.android.com/apk/res/android">
 
     <Preference
         app:key="termux"
@@ -12,6 +13,7 @@
         app:summary="@string/hermes_llm_config_summary"
         app:icon="@drawable/ic_settings">
         <intent
+            android:action="android.intent.action.MAIN"
             android:targetPackage="com.hermes.termux"
             android:targetClass="com.termux.app.hermes.HermesConfigActivity" />
     </Preference>
