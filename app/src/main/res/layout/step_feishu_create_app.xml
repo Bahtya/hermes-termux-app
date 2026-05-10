@@ -20,7 +20,6 @@
             android:textColor="?android:attr/textColorPrimary"
             android:layout_marginBottom="16dp" />
 
-        <!-- Instructions card -->
         <com.google.android.material.card.MaterialCardView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
@@ -38,10 +37,8 @@
                 android:textColor="?android:attr/textColorPrimary"
                 android:lineSpacingMultiplier="1.4"
                 android:padding="16dp" />
-
         </com.google.android.material.card.MaterialCardView>
 
-        <!-- Open console button -->
         <com.google.android.material.button.MaterialButton
             android:id="@+id/btn_open_console"
             android:layout_width="match_parent"
@@ -52,6 +49,5 @@
             app:icon="@android:drawable/ic_menu_share"
             app:iconGravity="textStart"
             app:backgroundTint="?attr/colorPrimary" />
-
     </LinearLayout>
 </ScrollView>
