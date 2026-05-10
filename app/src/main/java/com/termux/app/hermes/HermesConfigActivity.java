@@ -128,6 +128,31 @@ public class HermesConfigActivity extends AppCompatActivity {
                 fetchAndDisplayVersion(versionPref);
             }
 
+            // --- Quick-start tile ---
+            Preference quickstartPref = findPreference("hermes_quickstart");
+            if (quickstartPref != null) {
+                HermesGatewayStatus.checkAsync((status, detail) -> {
+                    if (getActivity() == null) return;
+                    getActivity().runOnUiThread(() -> {
+                        switch (status) {
+                            case RUNNING:
+                                String uptime = HermesGatewayService.getFormattedUptime();
+                                quickstartPref.setTitle(getString(R.string.quickstart_stop));
+                                quickstartPref.setSummary(getString(R.string.quickstart_running, uptime));
+                                break;
+                            case NOT_INSTALLED:
+                                quickstartPref.setTitle(getString(R.string.quickstart_not_installed));
+                                quickstartPref.setSummary("");
+                                break;
+                            default:
+                                quickstartPref.setTitle(getString(R.string.quickstart_start));
+                                quickstartPref.setSummary(getString(R.string.quickstart_stopped));
+                                break;
+                        }
+                    });
+                });
+            }
+
             // --- Dashboard: Gateway status ---
             Preference dashGateway = findPreference("hermes_dashboard_gateway");
             if (dashGateway != null) {
@@ -329,6 +354,19 @@ public class HermesConfigActivity extends AppCompatActivity {
             if (key == null) return super.onPreferenceTreeClick(preference);
 
             switch (key) {
+                case "hermes_quickstart":
+                    HermesGatewayStatus.checkAsync((status, detail) -> {
+                        if (status == HermesGatewayStatus.Status.RUNNING) {
+                            requireContext().startService(new Intent(requireContext(), HermesGatewayService.class)
+                                    .setAction(HermesGatewayService.ACTION_STOP));
+                            Toast.makeText(requireContext(), R.string.gateway_stopped, Toast.LENGTH_SHORT).show();
+                        } else if (status != HermesGatewayStatus.Status.NOT_INSTALLED) {
+                            requireContext().startService(new Intent(requireContext(), HermesGatewayService.class)
+                                    .setAction(HermesGatewayService.ACTION_START));
+                            Toast.makeText(requireContext(), R.string.gateway_started, Toast.LENGTH_SHORT).show();
+                        }
+                    });
+                    return true;
                 case "hermes_llm_config":
                     showFragment(new LlmConfigFragment());
                     return true;

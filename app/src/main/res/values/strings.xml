@@ -490,6 +490,11 @@
     <string name="dashboard_version_title">Hermes Version</string>
     <string name="dashboard_version_format">v%1$s</string>
     <string name="dashboard_version_not_installed">Not installed</string>
+    <string name="quickstart_start">Start Gateway</string>
+    <string name="quickstart_stop">Stop Gateway</string>
+    <string name="quickstart_running">Running — %1$s</string>
+    <string name="quickstart_stopped">Tap to start the gateway</string>
+    <string name="quickstart_not_installed">Hermes not installed — waiting for auto-install</string>
     <string name="dashboard_gateway_title">Gateway</string>
     <string name="dashboard_gateway_running">Running</string>
     <string name="dashboard_gateway_stopped">Stopped</string>
