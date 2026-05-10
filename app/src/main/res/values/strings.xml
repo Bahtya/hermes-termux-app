@@ -421,6 +421,9 @@
     <string name="gateway_log_clear_confirm_title">Clear Log?</string>
     <string name="gateway_log_clear_confirm_message">This will delete all gateway log entries.</string>
     <string name="gateway_log_cleared">Log cleared</string>
+    <string name="gateway_log_share">Share</string>
+    <string name="gateway_log_share_title">Share Gateway Log</string>
+    <string name="gateway_log_share_empty">No log content to share.</string>
     <string name="hermes_gateway_log_summary">View gateway log for troubleshooting</string>
 
     <!-- Dashboard -->
