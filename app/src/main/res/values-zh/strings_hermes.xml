@@ -102,6 +102,9 @@ App ID 以"cli_"开头，约 10-20 个字符。App Secret 较长（30+ 字符）
     <string name="llm_api_key_too_short">密钥似乎太短 — 请仔细检查</string>
     <string name="llm_api_key_has_spaces">密钥包含空格 — 将自动去除</string>
     <string name="llm_api_key_no_key_needed">本地模型不需要 API 密钥</string>
+    <string name="llm_key_warning_spaces">API 密钥包含空格 — 请去除空白字符</string>
+    <string name="llm_key_warning_short">API 密钥似乎太短了</string>
+    <string name="llm_key_warning_prefix">密钥应以 %1$s 开头</string>
     <string name="llm_model_title">模型</string>
     <string name="llm_model_summary">要使用的模型名称（例如 gpt-4o、claude-sonnet-4-6）</string>
     <string name="llm_base_url_title">API 地址</string>
