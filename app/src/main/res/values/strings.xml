@@ -500,6 +500,10 @@
     <string name="dashboard_im_title">Messaging</string>
     <string name="dashboard_im_none">No messaging configured</string>
     <string name="dashboard_im_list">Active: %1$s</string>
+    <string name="dashboard_version_title">Hermes Agent</string>
+    <string name="dashboard_version_checking">Checking…</string>
+    <string name="dashboard_version_format">v%1$s</string>
+    <string name="dashboard_version_not_installed">Not installed</string>
     <string name="llm_configured">Configured (%1$s)</string>
     <string name="llm_not_configured">Not configured</string>
     <string name="feishu_configured">Configured</string>
