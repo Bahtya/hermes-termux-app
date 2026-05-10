@@ -1183,7 +1183,7 @@ public class HermesConfigManager {
 
     /** Exports all config to a JSON string suitable for backup. */
     public String exportConfig() {
-        ensureLoaded();
+        loadConfig();
         StringBuilder sb = new StringBuilder();
         sb.append("{\n");
 
@@ -1215,7 +1215,7 @@ public class HermesConfigManager {
 
     /** Exports config with sensitive values masked. */
     public String exportConfigMasked() {
-        ensureLoaded();
+        loadConfig();
         String[] sensitiveKeys = {
                 "API_KEY", "SECRET", "TOKEN", "PASSWORD",
                 "ANTHROPIC_API_KEY", "OPENAI_API_KEY", "GOOGLE_API_KEY",
