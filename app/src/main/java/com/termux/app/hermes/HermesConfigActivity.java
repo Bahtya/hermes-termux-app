@@ -62,9 +62,6 @@ public class HermesConfigActivity extends AppCompatActivity {
             setPreferencesFromResource(R.xml.hermes_preferences, rootKey);
             mConfigManager = HermesConfigManager.getInstance();
 
-            // --- Setup progress checklist ---
-            updateSetupProgress();
-
             // --- Dashboard: Gateway status ---
             Preference dashGateway = findPreference("hermes_dashboard_gateway");
             if (dashGateway != null) {
@@ -197,19 +194,6 @@ public class HermesConfigActivity extends AppCompatActivity {
             if (key == null) return super.onPreferenceTreeClick(preference);
 
             switch (key) {
-                case "setup_step_llm":
-                    showFragment(new LlmConfigFragment());
-                    return true;
-                case "setup_step_im":
-                    if (mConfigManager.isFeishuConfigured()) {
-                        startActivity(new Intent(requireContext(), FeishuSetupActivity.class));
-                    } else {
-                        startActivity(new Intent(requireContext(), ImSetupActivity.class));
-                    }
-                    return true;
-                case "setup_step_gateway":
-                    showFragment(new GatewayControlFragment());
-                    return true;
                 case "hermes_llm_config":
                     showFragment(new LlmConfigFragment());
                     return true;
@@ -257,44 +241,60 @@ public class HermesConfigActivity extends AppCompatActivity {
                     .commit();
         }
 
-        private void updateSetupProgress() {
-            String check = "✅ ";
-            String circle = "⭕ ";
+        private void showQuickSetupDialog() {
+            String[] presets = {
+                    getString(R.string.quick_setup_chatgpt_feishu),
+                    getString(R.string.quick_setup_claude_telegram),
+                    getString(R.string.quick_setup_deepseek_discord),
+                    getString(R.string.quick_setup_ollama),
+                    getString(R.string.quick_setup_custom)
+            };
+            new AlertDialog.Builder(requireContext())
+                    .setTitle(R.string.quick_setup_dialog_title)
+                    .setItems(presets, (dialog, which) -> applyPreset(which))
+                    .setNegativeButton(android.R.string.cancel, null)
+                    .show();
+        }
 
-            String provider = mConfigManager.getModelProvider();
-            boolean hasLLM = !mConfigManager.getApiKey(provider).isEmpty();
-            boolean hasIM = mConfigManager.isFeishuConfigured()
-                    || !mConfigManager.getEnvVar("TELEGRAM_BOT_TOKEN").isEmpty()
-                    || !mConfigManager.getEnvVar("DISCORD_BOT_TOKEN").isEmpty();
-
-            Preference stepLlm = findPreference("setup_step_llm");
-            if (stepLlm != null) {
-                stepLlm.setSummary(hasLLM ? (check + getString(R.string.llm_configured, provider)) : circle + getString(R.string.llm_not_configured));
-            }
-
-            Preference stepIm = findPreference("setup_step_im");
-            if (stepIm != null) {
-                java.util.List<String> platforms = new java.util.ArrayList<>();
-                if (mConfigManager.isFeishuConfigured()) platforms.add("Feishu");
-                if (!mConfigManager.getEnvVar("TELEGRAM_BOT_TOKEN").isEmpty()) platforms.add("Telegram");
-                if (!mConfigManager.getEnvVar("DISCORD_BOT_TOKEN").isEmpty()) platforms.add("Discord");
-                if (platforms.isEmpty()) {
-                    stepIm.setSummary(circle + getString(R.string.dashboard_im_none));
-                } else {
-                    stepIm.setSummary(check + getString(R.string.dashboard_im_list, android.text.TextUtils.join(", ", platforms)));
-                }
-            }
-
-            Preference stepGw = findPreference("setup_step_gateway");
-            if (stepGw != null) {
-                HermesGatewayStatus.checkAsync((status, detail) -> {
-                    if (getActivity() == null) return;
-                    getActivity().runOnUiThread(() -> {
-                        boolean running = status == HermesGatewayStatus.Status.RUNNING;
-                        String label = running ? getString(R.string.gateway_status_running) : getString(R.string.gateway_status_stopped);
-                        if (stepGw != null) stepGw.setSummary((running ? check : circle) + label);
-                    });
-                });
+        private void applyPreset(int which) {
+            switch (which) {
+                case 0: // ChatGPT + Feishu
+                    mConfigManager.setModelProvider("openai");
+                    mConfigManager.setModelName("gpt-4o");
+                    startActivity(new Intent(requireContext(), FeishuSetupActivity.class));
+                    Toast.makeText(requireContext(),
+                            getString(R.string.quick_setup_applied, getString(R.string.quick_setup_chatgpt_feishu)),
+                            Toast.LENGTH_LONG).show();
+                    break;
+                case 1: // Claude + Telegram
+                    mConfigManager.setModelProvider("anthropic");
+                    mConfigManager.setModelName("claude-sonnet-4-6");
+                    Intent tgIntent = new Intent(requireContext(), ImSetupActivity.class);
+                    tgIntent.putExtra(ImSetupActivity.EXTRA_PLATFORM, ImSetupActivity.PLATFORM_TELEGRAM);
+                    startActivity(tgIntent);
+                    Toast.makeText(requireContext(),
+                            getString(R.string.quick_setup_applied, getString(R.string.quick_setup_claude_telegram)),
+                            Toast.LENGTH_LONG).show();
+                    break;
+                case 2: // DeepSeek + Discord
+                    mConfigManager.setModelProvider("deepseek");
+                    mConfigManager.setModelName("deepseek-chat");
+                    Intent dcIntent = new Intent(requireContext(), ImSetupActivity.class);
+                    dcIntent.putExtra(ImSetupActivity.EXTRA_PLATFORM, ImSetupActivity.PLATFORM_DISCORD);
+                    startActivity(dcIntent);
+                    Toast.makeText(requireContext(),
+                            getString(R.string.quick_setup_applied, getString(R.string.quick_setup_deepseek_discord)),
+                            Toast.LENGTH_LONG).show();
+                    break;
+                case 3: // Ollama (local)
+                    mConfigManager.setModelProvider("ollama");
+                    mConfigManager.setModelName("llama3");
+                    Toast.makeText(requireContext(),
+                            R.string.quick_setup_applied_ollama, Toast.LENGTH_LONG).show();
+                    break;
+                case 4: // Custom
+                    showFragment(new LlmConfigFragment());
+                    break;
             }
         }
 
@@ -479,12 +479,6 @@ public class HermesConfigActivity extends AppCompatActivity {
 
     public static class LlmConfigFragment extends PreferenceFragmentCompat {
 
-        private static final String PREFS_LLM_TEST = "hermes_llm_test";
-        private static final String KEY_TEST_STATUS = "last_status";
-        private static final String KEY_TEST_TIME = "last_time";
-        private static final String KEY_TEST_PROVIDER = "last_provider";
-        private static final String KEY_TEST_MODEL = "last_model";
-
         private HermesConfigManager mConfigManager;
 
         @Override
@@ -502,15 +496,10 @@ public class HermesConfigActivity extends AppCompatActivity {
                     apiKeyPref.setSummary(maskApiKey(currentKey));
                 }
                 apiKeyPref.setOnPreferenceChangeListener((p, newVal) -> {
-                    String key = ((String) newVal).trim();
-                    mConfigManager.setApiKey(mConfigManager.getModelProvider(), key);
-                    p.setSummary(key.isEmpty() ? "" : maskApiKey(key));
-                    updateApiKeyHint(key);
-                    invalidateTestCache();
-                    updateTestConnectionSummary();
+                    mConfigManager.setApiKey(mConfigManager.getModelProvider(), (String) newVal);
+                    p.setSummary(maskApiKey((String) newVal));
                     return true;
                 });
-                updateApiKeyHint(currentKey);
             }
 
             Preference providerPref = findPreference("llm_provider");
@@ -523,8 +512,7 @@ public class HermesConfigActivity extends AppCompatActivity {
                     String key = mConfigManager.getApiKey(provider);
                     Preference akp = findPreference("llm_api_key");
                     if (akp != null) {
-                        akp.setSummary(key != null && !key.isEmpty() ? maskApiKey(key) : "");
-                        updateApiKeyHint(key);
+                        akp.setSummary(key != null ? maskApiKey(key) : "");
                     }
 
                     Preference baseUrlPref = findPreference("llm_base_url");
@@ -532,9 +520,6 @@ public class HermesConfigActivity extends AppCompatActivity {
                         boolean needsUrl = "ollama".equals(provider) || "custom".equals(provider);
                         baseUrlPref.setVisible(needsUrl);
                     }
-
-                    invalidateTestCache();
-                    updateTestConnectionSummary();
                     return true;
                 });
             }
@@ -543,8 +528,6 @@ public class HermesConfigActivity extends AppCompatActivity {
             if (modelPref != null) {
                 modelPref.setOnPreferenceChangeListener((p, newVal) -> {
                     mConfigManager.setModelName((String) newVal);
-                    invalidateTestCache();
-                    updateTestConnectionSummary();
                     return true;
                 });
             }
@@ -558,8 +541,6 @@ public class HermesConfigActivity extends AppCompatActivity {
                 boolean needsUrl = "ollama".equals(currentProvider) || "custom".equals(currentProvider);
                 baseUrlPref.setVisible(needsUrl);
             }
-
-            updateTestConnectionSummary();
         }
 
         private void updateModelList(String provider) {
@@ -597,47 +578,6 @@ public class HermesConfigActivity extends AppCompatActivity {
         private String maskApiKey(String key) {
             if (key == null || key.length() < 8) return "****";
             return key.substring(0, 4) + "..." + key.substring(key.length() - 4);
-        }
-
-        private void updateApiKeyHint(String key) {
-            Preference apiKeyPref = findPreference("llm_api_key");
-            if (apiKeyPref == null) return;
-            String provider = mConfigManager.getModelProvider();
-
-            if ("ollama".equals(provider)) {
-                apiKeyPref.setSummary(getString(R.string.llm_api_key_no_key_needed));
-                return;
-            }
-
-            if (key == null || key.isEmpty()) {
-                int hintRes = getProviderHintRes(provider);
-                apiKeyPref.setSummary(getString(hintRes));
-                return;
-            }
-
-            // Warn about spaces
-            if (key.contains(" ") || key.contains("\n") || key.contains("\t")) {
-                apiKeyPref.setSummary(getString(R.string.llm_api_key_has_spaces));
-                return;
-            }
-
-            // Warn about short keys
-            if (key.length() < 20) {
-                apiKeyPref.setSummary(getString(R.string.llm_api_key_too_short));
-                return;
-            }
-
-            apiKeyPref.setSummary(maskApiKey(key));
-        }
-
-        private int getProviderHintRes(String provider) {
-            switch (provider) {
-                case "openai": return R.string.llm_api_key_hint_openai;
-                case "anthropic": return R.string.llm_api_key_hint_anthropic;
-                case "google": return R.string.llm_api_key_hint_google;
-                case "deepseek": return R.string.llm_api_key_hint_deepseek;
-                default: return R.string.llm_api_key_hint_generic;
-            }
         }
 
         @Override
