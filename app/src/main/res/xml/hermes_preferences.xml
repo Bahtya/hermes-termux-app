@@ -3,6 +3,10 @@
 
     <PreferenceCategory android:title="@string/dashboard_title">
         <Preference
+            android:key="hermes_dashboard_progress"
+            android:title="@string/dashboard_progress_title"
+            android:selectable="true" />
+        <Preference
             android:key="hermes_dashboard_gateway"
             android:title="@string/dashboard_gateway_title"
             android:selectable="false" />

@@ -95,6 +95,12 @@
 
     <!-- Dashboard -->
     <string name="dashboard_title">状态概览</string>
+    <string name="dashboard_progress_title">设置进度</string>
+    <string name="dashboard_progress_summary">设置进度：%1$d/3 已完成</string>
+    <string name="dashboard_progress_complete">全部就绪！Hermes 已准备就绪。</string>
+    <string name="dashboard_progress_next_install">下一步：安装 Hermes Agent</string>
+    <string name="dashboard_progress_next_llm">下一步：配置 AI 提供商</string>
+    <string name="dashboard_progress_next_im">下一步：连接消息平台</string>
     <string name="dashboard_gateway_title">网关</string>
     <string name="dashboard_gateway_running">运行中</string>
     <string name="dashboard_gateway_stopped">已停止</string>

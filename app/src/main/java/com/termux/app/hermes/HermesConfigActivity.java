@@ -18,6 +18,7 @@ import androidx.preference.PreferenceFragmentCompat;
 import androidx.preference.SwitchPreferenceCompat;
 
 import com.termux.R;
+import com.termux.app.HermesInstaller;
 import com.termux.shared.termux.TermuxConstants;
 
 import java.io.File;
@@ -61,6 +62,9 @@ public class HermesConfigActivity extends AppCompatActivity {
         public void onCreatePreferences(Bundle savedInstanceState, String rootKey) {
             setPreferencesFromResource(R.xml.hermes_preferences, rootKey);
             mConfigManager = HermesConfigManager.getInstance();
+
+            // --- Dashboard: Setup Progress ---
+            updateSetupProgress();
 
             // --- Dashboard: Gateway status ---
             Preference dashGateway = findPreference("hermes_dashboard_gateway");
@@ -194,6 +198,9 @@ public class HermesConfigActivity extends AppCompatActivity {
             if (key == null) return super.onPreferenceTreeClick(preference);
 
             switch (key) {
+                case "hermes_dashboard_progress":
+                    navigateToNextSetupStep();
+                    return true;
                 case "hermes_llm_config":
                     showFragment(new LlmConfigFragment());
                     return true;
@@ -230,6 +237,56 @@ public class HermesConfigActivity extends AppCompatActivity {
                     return true;
             }
             return super.onPreferenceTreeClick(preference);
+        }
+
+        private void updateSetupProgress() {
+            Preference progressPref = findPreference("hermes_dashboard_progress");
+            if (progressPref == null) return;
+
+            boolean installed = new File(TermuxConstants.TERMUX_BIN_PREFIX_DIR_PATH + "/hermes").exists();
+            String provider = mConfigManager.getModelProvider();
+            String apiKey = mConfigManager.getApiKey(provider);
+            boolean hasLLM = apiKey != null && !apiKey.isEmpty();
+            boolean hasIM = mConfigManager.isFeishuConfigured()
+                    || !mConfigManager.getEnvVar("TELEGRAM_BOT_TOKEN").isEmpty()
+                    || !mConfigManager.getEnvVar("DISCORD_BOT_TOKEN").isEmpty();
+
+            int steps = 0;
+            if (installed) steps++;
+            if (hasLLM) steps++;
+            if (hasIM) steps++;
+
+            if (steps == 3) {
+                progressPref.setSummary(getString(R.string.dashboard_progress_complete));
+            } else {
+                String next;
+                if (!installed) {
+                    next = getString(R.string.dashboard_progress_next_install);
+                } else if (!hasLLM) {
+                    next = getString(R.string.dashboard_progress_next_llm);
+                } else {
+                    next = getString(R.string.dashboard_progress_next_im);
+                }
+                progressPref.setSummary(getString(R.string.dashboard_progress_summary, steps) + "\n" + next);
+            }
+        }
+
+        private void navigateToNextSetupStep() {
+            boolean installed = new File(TermuxConstants.TERMUX_BIN_PREFIX_DIR_PATH + "/hermes").exists();
+            if (!installed) {
+                HermesInstaller.retryInstall(requireContext());
+                Toast.makeText(requireContext(), R.string.hermes_update_checking, Toast.LENGTH_SHORT).show();
+                return;
+            }
+            String provider = mConfigManager.getModelProvider();
+            String apiKey = mConfigManager.getApiKey(provider);
+            boolean hasLLM = apiKey != null && !apiKey.isEmpty();
+            if (!hasLLM) {
+                showFragment(new LlmConfigFragment());
+                return;
+            }
+            // No IM — scroll to IM section (just open Feishu setup as the primary)
+            startActivity(new Intent(requireContext(), FeishuSetupActivity.class));
         }
 
         private void showFragment(Fragment fragment) {

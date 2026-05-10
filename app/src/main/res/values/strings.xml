@@ -414,6 +414,12 @@
 
     <!-- Dashboard -->
     <string name="dashboard_title">Status Overview</string>
+    <string name="dashboard_progress_title">Setup Progress</string>
+    <string name="dashboard_progress_summary">Setup: %1$d/3 complete</string>
+    <string name="dashboard_progress_complete">All set! Hermes is ready to go.</string>
+    <string name="dashboard_progress_next_install">Next: Install Hermes Agent</string>
+    <string name="dashboard_progress_next_llm">Next: Configure AI provider</string>
+    <string name="dashboard_progress_next_im">Next: Connect a messaging platform</string>
     <string name="dashboard_gateway_title">Gateway</string>
     <string name="dashboard_gateway_running">Running</string>
     <string name="dashboard_gateway_stopped">Stopped</string>
