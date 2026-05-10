@@ -27,6 +27,7 @@
     <uses-permission android:name="android.permission.WAKE_LOCK" />
     <uses-permission android:name="android.permission.VIBRATE" />
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE_DATA_SYNC" />
     <uses-permission android:name="android.permission.REQUEST_IGNORE_BATTERY_OPTIMIZATIONS" />
     <uses-permission android:name="android.permission.SYSTEM_ALERT_WINDOW" />
     <uses-permission android:name="android.permission.READ_LOGS" />
@@ -127,6 +128,11 @@
             android:exported="false"
             android:label="@string/hermes_setup_wizard_title"
             android:theme="@style/Theme.TermuxApp.DayNight.DarkActionBar" />
+
+        <service
+            android:name="com.termux.app.hermes.HermesGatewayService"
+            android:exported="false"
+            android:foregroundServiceType="dataSync" />
 
         <activity
             android:name=".shared.activities.ReportActivity"

@@ -18,6 +18,12 @@
 
     <PreferenceCategory android:title="@string/hermes_cat_gateway">
 
+        <SwitchPreferenceCompat
+            android:key="hermes_auto_start_gateway"
+            android:title="@string/gateway_auto_start_title"
+            android:summary="@string/gateway_auto_start_summary"
+            android:defaultValue="false" />
+
         <Preference
             android:key="hermes_gateway_control"
             android:title="@string/hermes_gateway_control_title"

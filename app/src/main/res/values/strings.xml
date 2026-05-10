@@ -357,6 +357,8 @@
     <!-- Gateway Control -->
     <string name="gateway_start_title">Start Gateway</string>
     <string name="gateway_start_summary">Start the Hermes messaging gateway</string>
+    <string name="gateway_auto_start_title">Auto-start Gateway</string>
+    <string name="gateway_auto_start_summary">Start Hermes gateway automatically when app opens</string>
     <string name="gateway_stop_title">Stop Gateway</string>
     <string name="gateway_stop_summary">Stop the running gateway</string>
     <string name="gateway_restart_title">Restart Gateway</string>
