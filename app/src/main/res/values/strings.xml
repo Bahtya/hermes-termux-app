@@ -594,6 +594,13 @@ App ID starts with "cli_" and is about 10–20 characters. App Secret is longer 
     <string name="notification_perm_rationale_title">Allow Notifications?</string>
     <string name="notification_perm_rationale_message">Hermes needs notification permission to show the gateway running status. Without it, you won\'t see when the gateway is active.</string>
 
+    <string name="battery_opt_title">Battery Optimization</string>
+    <string name="battery_opt_summary">Whitelist this app to keep the gateway running in the background</string>
+    <string name="battery_opt_prompt_title">Disable battery optimization?</string>
+    <string name="battery_opt_prompt_message">To keep the Hermes gateway running reliably, disable battery optimization for this app. This prevents Android from killing the gateway process.</string>
+    <string name="battery_opt_prompt_positive">Disable</string>
+    <string name="battery_opt_prompt_negative">Skip</string>
+    <string name="battery_opt_already_whitelisted">Already whitelisted</string>
     <string name="gateway_stop_title">Stop Gateway</string>
     <string name="gateway_stop_summary">Stop the running gateway</string>
     <string name="gateway_restart_title">Restart Gateway</string>
