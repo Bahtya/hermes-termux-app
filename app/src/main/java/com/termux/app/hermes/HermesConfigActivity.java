@@ -247,6 +247,9 @@ public class HermesConfigActivity extends AppCompatActivity {
                 case "hermes_gateway_control":
                     showFragment(new GatewayControlFragment());
                     return true;
+                case "hermes_help":
+                    startActivity(new Intent(requireContext(), HermesHelpActivity.class));
+                    return true;
                 case "hermes_check_update":
                     checkForUpdate(preference);
                     return true;

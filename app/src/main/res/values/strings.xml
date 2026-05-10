@@ -598,5 +598,22 @@
     <string name="install_step_download">Downloading Hermes Agent</string>
     <string name="install_step_configure">Configuring environment</string>
     <string name="install_step_done">Ready</string>
+    <!-- Help & Guide -->
+    <string name="help_title">Help &amp; Guide</string>
+    <string name="help_summary">Quick-start guide, FAQ, and useful links</string>
+    <string name="help_what_is_hermes_title">What is Hermes Agent?</string>
+    <string name="help_what_is_hermes">Hermes Agent is an open-source AI assistant by Nous Research. It runs locally on your device and connects to messaging platforms like Feishu, Telegram, and Discord.\n\nIt supports 200+ AI models from providers like OpenAI, Anthropic, Google, and more. You can also use local models via Ollama.</string>
+    <string name="help_quick_start_title">Quick Start</string>
+    <string name="help_quick_start">1. Configure your AI provider and API key in LLM Settings\n2. Connect at least one messaging platform (Feishu, Telegram, or Discord)\n3. Start the Hermes Gateway from Settings or the dashboard\n4. Send a message to your bot on the messaging platform\n5. The AI will respond based on your configured model and persona</string>
+    <string name="help_connecting_im_title">Connecting Messaging Platforms</string>
+    <string name="help_connecting_im">• Feishu/Lark: Use the guided setup wizard with QR code scanning. You\'ll need an App ID and App Secret from the Feishu Developer Console.\n\n• Telegram: Create a bot via @BotFather and paste the bot token. You can optionally restrict access to specific user IDs.\n\n• Discord: Create a bot in the Discord Developer Portal and paste the token. Enable the Message Content Intent for full functionality.</string>
+    <string name="help_faq_title">FAQ</string>
+    <string name="help_faq">Q: Does Hermes work offline?\nA: Only with Ollama (local models). Cloud providers require internet.\n\nQ: Which AI provider should I use?\nA: OpenRouter offers the best value with access to many models. OpenAI and Anthropic offer the highest quality.\n\nQ: Is my data safe?\nA: API keys are stored locally in the .env file. Messages are sent directly between your device and the AI provider.</string>
+    <string name="help_troubleshooting_title">Troubleshooting</string>
+    <string name="help_troubleshooting">• Gateway won\'t start: Check the gateway log in Advanced settings for errors.\n\n• Bot doesn\'t respond: Make sure the gateway is running and your API key is valid (use Test Connection).\n\n• Installation failed: Make sure you have internet. Try restarting the app. You can skip and install manually later.\n\n• API key not working: Use the Test Connection button in LLM settings to verify.</string>
+    <string name="help_links_title">Useful Links</string>
+    <string name="help_link_github">GitHub Repository</string>
+    <string name="help_link_docs">Official Documentation</string>
+    <string name="help_link_issues">Report an Issue</string>
 
 </resources>

@@ -272,4 +272,21 @@
     <string name="install_step_download">下载 Hermes Agent</string>
     <string name="install_step_configure">配置环境</string>
     <string name="install_step_done">就绪</string>
+    <!-- Help & Guide -->
+    <string name="help_title">帮助与指南</string>
+    <string name="help_summary">快速入门指南、常见问题和实用链接</string>
+    <string name="help_what_is_hermes_title">Hermes Agent 是什么？</string>
+    <string name="help_what_is_hermes">Hermes Agent 是由 Nous Research 开发的开源 AI 助手。它在您的设备上本地运行，可以连接飞书、Telegram 和 Discord 等消息平台。\n\n它支持来自 OpenAI、Anthropic、Google 等 200 多个 AI 模型。您也可以通过 Ollama 使用本地模型。</string>
+    <string name="help_quick_start_title">快速入门</string>
+    <string name="help_quick_start">1. 在 LLM 设置中配置 AI 提供商和 API 密钥\n2. 连接至少一个消息平台（飞书、Telegram 或 Discord）\n3. 从设置或仪表盘启动 Hermes 网关\n4. 在消息平台上向您的机器人发送消息\n5. AI 将根据您配置的模型和人设进行回复</string>
+    <string name="help_connecting_im_title">连接消息平台</string>
+    <string name="help_connecting_im">• 飞书/Lark：使用带二维码扫描的引导设置向导。您需要从飞书开发者控制台获取 App ID 和 App Secret。\n\n• Telegram：通过 @BotFather 创建机器人并粘贴机器人令牌。您可以限制特定用户 ID 的访问。\n\n• Discord：在 Discord 开发者门户创建机器人并粘贴令牌。启用 Message Content Intent 以获得完整功能。</string>
+    <string name="help_faq_title">常见问题</string>
+    <string name="help_faq">问：Hermes 可以离线使用吗？\n答：只有使用 Ollama（本地模型）时可以。云服务商需要网络连接。\n\n问：应该用哪个 AI 提供商？\n答：OpenRouter 性价比最高，可访问多种模型。OpenAI 和 Anthropic 质量最高。\n\n问：我的数据安全吗？\n答：API 密钥存储在本地 .env 文件中。消息直接在您的设备和 AI 提供商之间传输。</string>
+    <string name="help_troubleshooting_title">故障排除</string>
+    <string name="help_troubleshooting">• 网关无法启动：在高级设置中查看网关日志了解错误信息。\n\n• 机器人不回复：确保网关正在运行且 API 密钥有效（使用测试连接功能）。\n\n• 安装失败：确保有网络连接。尝试重启应用。您可以跳过稍后手动安装。\n\n• API 密钥无效：在 LLM 设置中使用测试连接按钮验证。</string>
+    <string name="help_links_title">实用链接</string>
+    <string name="help_link_github">GitHub 仓库</string>
+    <string name="help_link_docs">官方文档</string>
+    <string name="help_link_issues">报告问题</string>
 </resources>
