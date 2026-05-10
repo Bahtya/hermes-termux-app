@@ -102,6 +102,12 @@ public class HermesConfigManager {
     private static final String KEY_BROWSER_HEADLESS = "browser.headless";
     private static final String KEY_BROWSER_MAX_TABS = "browser.max_tabs";
 
+    // Voice transcription config keys
+    private static final String KEY_VOICE_PROVIDER = "voice.provider";
+    private static final String KEY_VOICE_LANGUAGE = "voice.language";
+    private static final String KEY_VOICE_LOCAL_MODEL = "voice.local_model";
+    private static final String KEY_VOICE_CUSTOM_ENDPOINT = "voice.custom_endpoint";
+
     // ---- .env key constants ----
     private static final String ENV_OPENAI_API_KEY = "OPENAI_API_KEY";
     private static final String ENV_ANTHROPIC_API_KEY = "ANTHROPIC_API_KEY";
@@ -720,6 +726,42 @@ public class HermesConfigManager {
 
     public void setModelRoutingThreshold(float threshold) {
         setYamlValue(KEY_ROUTING_THRESHOLD, String.valueOf(threshold));
+    }
+
+    // =========================================================================
+    // Voice transcription config
+    // =========================================================================
+
+    public String getVoiceProvider() {
+        return getYamlValue(KEY_VOICE_PROVIDER, "openai");
+    }
+
+    public void setVoiceProvider(String provider) {
+        setYamlValue(KEY_VOICE_PROVIDER, provider);
+    }
+
+    public String getVoiceLanguage() {
+        return getYamlValue(KEY_VOICE_LANGUAGE, "en");
+    }
+
+    public void setVoiceLanguage(String language) {
+        setYamlValue(KEY_VOICE_LANGUAGE, language);
+    }
+
+    public String getVoiceLocalModel() {
+        return getYamlValue(KEY_VOICE_LOCAL_MODEL, "base");
+    }
+
+    public void setVoiceLocalModel(String model) {
+        setYamlValue(KEY_VOICE_LOCAL_MODEL, model);
+    }
+
+    public String getVoiceCustomEndpoint() {
+        return getYamlValue(KEY_VOICE_CUSTOM_ENDPOINT, "");
+    }
+
+    public void setVoiceCustomEndpoint(String endpoint) {
+        setYamlValue(KEY_VOICE_CUSTOM_ENDPOINT, endpoint);
     }
 
     public void setSystemPrompt(String prompt) {

@@ -1179,4 +1179,42 @@
     <string name="browser_max_tabs_title">Max Concurrent Tabs</string>
     <string name="browser_max_tabs_summary">Maximum number of browser tabs the agent can open (default 5)</string>
 
+    <!-- Voice Transcription -->
+    <string name="voice_category_title">Voice Transcription</string>
+    <string name="voice_provider_title">Transcription Provider</string>
+    <string name="voice_provider_summary">Choose how voice messages are transcribed</string>
+    <string name="voice_language_title">Language Code</string>
+    <string name="voice_language_summary">Language for transcription (e.g., en, zh, ja, ko)</string>
+    <string name="voice_local_model_title">Whisper Model Size</string>
+    <string name="voice_local_model_summary">Local Whisper model size (larger = more accurate but slower)</string>
+    <string name="voice_custom_endpoint_title">Custom Endpoint</string>
+    <string name="voice_custom_endpoint_summary">Custom OpenAI-compatible endpoint URL for transcription</string>
+
+    <string-array name="voice_provider_names">
+        <item>OpenAI Whisper</item>
+        <item>Local Whisper (on-device)</item>
+        <item>Google Speech-to-Text</item>
+        <item>Custom (OpenAI-compatible)</item>
+    </string-array>
+    <string-array name="voice_provider_values">
+        <item>openai</item>
+        <item>local</item>
+        <item>google</item>
+        <item>custom</item>
+    </string-array>
+    <string-array name="voice_whisper_model_names">
+        <item>Tiny (fastest, 39MB)</item>
+        <item>Base (fast, 74MB)</item>
+        <item>Small (balanced, 244MB)</item>
+        <item>Medium (accurate, 769MB)</item>
+        <item>Large (best, 1550MB)</item>
+    </string-array>
+    <string-array name="voice_whisper_model_values">
+        <item>tiny</item>
+        <item>base</item>
+        <item>small</item>
+        <item>medium</item>
+        <item>large</item>
+    </string-array>
+
 </resources>
