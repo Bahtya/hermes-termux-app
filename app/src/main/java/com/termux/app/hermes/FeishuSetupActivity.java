@@ -336,7 +336,10 @@ public class FeishuSetupActivity extends AppCompatActivity {
     // =========================================================================
 
     private View createEventSubStep() {
-        LinearLayout ll = createStepContainer();
+        LinearLayout ll = new LinearLayout(this);
+        ll.setOrientation(LinearLayout.VERTICAL);
+        int pad = dp(24);
+        ll.setPadding(pad, pad, pad, pad);
 
         TextView titleTv = new TextView(this);
         titleTv.setText(R.string.feishu_event_sub_title);
