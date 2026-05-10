@@ -286,6 +286,17 @@
     <string name="llm_provider_summary">Select your LLM provider</string>
     <string name="llm_api_key_title">API Key</string>
     <string name="llm_api_key_summary">Enter your provider API key</string>
+    <string name="llm_api_key_toggle_title">Show / Hide API Key</string>
+    <string name="llm_api_key_toggle_show">Tap to show API key</string>
+    <string name="llm_api_key_toggle_hide">Tap to hide API key</string>
+    <string name="llm_api_key_paste_title">Paste from Clipboard</string>
+    <string name="llm_api_key_paste_summary">Paste API key from clipboard</string>
+    <string name="llm_api_key_pasted">API key pasted from clipboard</string>
+    <string name="llm_api_key_empty_clipboard">Clipboard is empty</string>
+    <string name="llm_api_key_set">Enter API key</string>
+    <string name="llm_api_key_change">Tap to change API key</string>
+    <string name="llm_api_key_set_dialog_title">Enter API Key</string>
+    <string name="llm_api_key_set_dialog_hint">Paste your API key here</string>
     <string name="llm_model_title">Model</string>
     <string name="llm_model_summary">Model name to use (e.g. gpt-4o, claude-sonnet-4-6)</string>
 

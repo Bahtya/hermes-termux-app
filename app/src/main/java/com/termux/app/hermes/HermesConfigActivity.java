@@ -432,17 +432,23 @@ public class HermesConfigActivity extends AppCompatActivity {
             String currentProvider = mConfigManager.getModelProvider();
             updateModelList(currentProvider);
 
+            // API key display (tappable to set)
             Preference apiKeyPref = findPreference("llm_api_key");
             if (apiKeyPref != null) {
                 String currentKey = mConfigManager.getApiKey(currentProvider);
-                if (currentKey != null && !currentKey.isEmpty()) {
-                    apiKeyPref.setSummary(maskApiKey(currentKey));
-                }
-                apiKeyPref.setOnPreferenceChangeListener((p, newVal) -> {
-                    mConfigManager.setApiKey(mConfigManager.getModelProvider(), (String) newVal);
-                    p.setSummary(maskApiKey((String) newVal));
-                    return true;
-                });
+                updateApiKeySummary(apiKeyPref, currentKey, false);
+            }
+
+            // API key visibility toggle
+            Preference togglePref = findPreference("llm_api_key_toggle");
+            if (togglePref != null) {
+                togglePref.setSummary(getString(R.string.llm_api_key_toggle_show));
+            }
+
+            // Paste from clipboard
+            Preference pastePref = findPreference("llm_api_key_paste");
+            if (pastePref != null) {
+                pastePref.setVisible(true);
             }
 
             Preference providerPref = findPreference("llm_provider");
@@ -518,18 +524,108 @@ public class HermesConfigActivity extends AppCompatActivity {
             }
         }
 
+        private boolean mApiKeyVisible = false;
+
         private String maskApiKey(String key) {
             if (key == null || key.length() < 8) return "****";
             return key.substring(0, 4) + "..." + key.substring(key.length() - 4);
         }
 
+        private void updateApiKeySummary(Preference pref, String key, boolean visible) {
+            if (key == null || key.isEmpty()) {
+                pref.setSummary(getString(R.string.llm_api_key_set));
+            } else if (visible) {
+                pref.setSummary(key);
+            } else {
+                pref.setSummary(maskApiKey(key));
+            }
+        }
+
         @Override
         public boolean onPreferenceTreeClick(@NonNull Preference preference) {
-            if ("llm_test_connection".equals(preference.getKey())) {
+            String key = preference.getKey();
+            if ("llm_test_connection".equals(key)) {
                 testConnection(preference);
                 return true;
             }
+            if ("llm_api_key".equals(key)) {
+                showApiKeyInputDialog();
+                return true;
+            }
+            if ("llm_api_key_toggle".equals(key)) {
+                toggleApiKeyVisibility();
+                return true;
+            }
+            if ("llm_api_key_paste".equals(key)) {
+                pasteApiKeyFromClipboard();
+                return true;
+            }
             return super.onPreferenceTreeClick(preference);
+        }
+
+        private void showApiKeyInputDialog() {
+            android.widget.EditText input = new android.widget.EditText(requireContext());
+            input.setInputType(android.text.InputType.TYPE_CLASS_TEXT
+                    | android.text.InputType.TYPE_TEXT_VARIATION_VISIBLE_PASSWORD);
+            input.setHint(getString(R.string.llm_api_key_set_dialog_hint));
+            String currentKey = mConfigManager.getApiKey(mConfigManager.getModelProvider());
+            if (!currentKey.isEmpty()) {
+                input.setText(currentKey);
+            }
+
+            new AlertDialog.Builder(requireContext())
+                    .setTitle(R.string.llm_api_key_set_dialog_title)
+                    .setView(input)
+                    .setPositiveButton(android.R.string.ok, (d, w) -> {
+                        String newKey = input.getText().toString().trim();
+                        mConfigManager.setApiKey(mConfigManager.getModelProvider(), newKey);
+                        Preference apiKeyPref = findPreference("llm_api_key");
+                        if (apiKeyPref != null) {
+                            updateApiKeySummary(apiKeyPref, newKey, mApiKeyVisible);
+                        }
+                    })
+                    .setNegativeButton(android.R.string.cancel, null)
+                    .show();
+        }
+
+        private void toggleApiKeyVisibility() {
+            mApiKeyVisible = !mApiKeyVisible;
+            Preference apiKeyPref = findPreference("llm_api_key");
+            Preference togglePref = findPreference("llm_api_key_toggle");
+            String currentKey = mConfigManager.getApiKey(mConfigManager.getModelProvider());
+
+            if (apiKeyPref != null) {
+                updateApiKeySummary(apiKeyPref, currentKey, mApiKeyVisible);
+            }
+            if (togglePref != null) {
+                togglePref.setSummary(mApiKeyVisible
+                        ? getString(R.string.llm_api_key_toggle_hide)
+                        : getString(R.string.llm_api_key_toggle_show));
+            }
+        }
+
+        private void pasteApiKeyFromClipboard() {
+            ClipboardManager clipboard = (ClipboardManager) requireContext()
+                    .getSystemService(Context.CLIPBOARD_SERVICE);
+            if (clipboard == null || !clipboard.hasPrimaryClip()) {
+                Toast.makeText(requireContext(), R.string.llm_api_key_empty_clipboard,
+                        Toast.LENGTH_SHORT).show();
+                return;
+            }
+            CharSequence clip = clipboard.getPrimaryClip().getItemAt(0).getText();
+            if (clip == null || clip.toString().trim().isEmpty()) {
+                Toast.makeText(requireContext(), R.string.llm_api_key_empty_clipboard,
+                        Toast.LENGTH_SHORT).show();
+                return;
+            }
+            String pastedKey = clip.toString().trim();
+            mConfigManager.setApiKey(mConfigManager.getModelProvider(), pastedKey);
+            Preference apiKeyPref = findPreference("llm_api_key");
+            if (apiKeyPref != null) {
+                updateApiKeySummary(apiKeyPref, pastedKey, mApiKeyVisible);
+            }
+            Toast.makeText(requireContext(), R.string.llm_api_key_pasted,
+                    Toast.LENGTH_SHORT).show();
         }
 
         private void testConnection(Preference testPref) {

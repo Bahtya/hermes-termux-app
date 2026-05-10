@@ -9,11 +9,20 @@
         android:entryValues="@array/llm_provider_values"
         android:defaultValue="openai" />
 
-    <EditTextPreference
+    <Preference
         android:key="llm_api_key"
         android:title="@string/llm_api_key_title"
-        android:summary="@string/llm_api_key_summary"
-        android:inputType="textPassword" />
+        android:summary="@string/llm_api_key_summary" />
+
+    <Preference
+        android:key="llm_api_key_toggle"
+        android:title="@string/llm_api_key_toggle_title"
+        android:summary="@string/llm_api_key_toggle_show" />
+
+    <Preference
+        android:key="llm_api_key_paste"
+        android:title="@string/llm_api_key_paste_title"
+        android:summary="@string/llm_api_key_paste_summary" />
 
     <ListPreference
         android:key="llm_model"

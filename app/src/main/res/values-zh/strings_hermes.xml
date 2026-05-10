@@ -38,6 +38,17 @@
     <string name="llm_provider_summary">选择您的 LLM 提供商</string>
     <string name="llm_api_key_title">API 密钥</string>
     <string name="llm_api_key_summary">输入提供商 API 密钥</string>
+    <string name="llm_api_key_toggle_title">显示 / 隐藏 API 密钥</string>
+    <string name="llm_api_key_toggle_show">点击显示 API 密钥</string>
+    <string name="llm_api_key_toggle_hide">点击隐藏 API 密钥</string>
+    <string name="llm_api_key_paste_title">从剪贴板粘贴</string>
+    <string name="llm_api_key_paste_summary">从剪贴板粘贴 API 密钥</string>
+    <string name="llm_api_key_pasted">已从剪贴板粘贴 API 密钥</string>
+    <string name="llm_api_key_empty_clipboard">剪贴板为空</string>
+    <string name="llm_api_key_set">输入 API 密钥</string>
+    <string name="llm_api_key_change">点击更改 API 密钥</string>
+    <string name="llm_api_key_set_dialog_title">输入 API 密钥</string>
+    <string name="llm_api_key_set_dialog_hint">在此粘贴您的 API 密钥</string>
     <string name="llm_model_title">模型</string>
     <string name="llm_model_summary">要使用的模型名称（例如 gpt-4o、claude-sonnet-4-6）</string>
     <string name="llm_base_url_title">API 地址</string>
