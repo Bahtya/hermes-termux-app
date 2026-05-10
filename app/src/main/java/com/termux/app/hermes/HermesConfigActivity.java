@@ -1523,6 +1523,30 @@ public class HermesConfigActivity extends AppCompatActivity {
                     return true;
                 });
             }
+
+            // Persona template selector
+            ListPreference personaPref = findPreference("llm_persona_template");
+            if (personaPref != null) {
+                personaPref.setOnPreferenceChangeListener((p, newVal) -> {
+                    String prompt = getPersonaPrompt((String) newVal);
+                    if (prompt != null) {
+                        mConfigManager.setSystemPrompt(prompt);
+                        EditTextPreference sysPref = findPreference("llm_system_prompt");
+                        if (sysPref != null) sysPref.setText(prompt);
+                        mHasUnsavedChanges = true;
+                    }
+                    return true;
+                });
+            }
+
+            // System prompt templates click handler
+            Preference templatesPref = findPreference("llm_system_prompt_templates");
+            if (templatesPref != null) {
+                templatesPref.setOnPreferenceClickListener(p -> {
+                    showTemplatePicker();
+                    return true;
+                });
+            }
         }
 
         @Override
@@ -1762,6 +1786,54 @@ public class HermesConfigActivity extends AppCompatActivity {
         private String maskApiKey(String key) {
             if (key == null || key.length() < 8) return "****";
             return key.substring(0, 4) + "..." + key.substring(key.length() - 4);
+        }
+
+        private String getPersonaPrompt(String persona) {
+            switch (persona) {
+                case "professional":
+                    return "You are a professional AI assistant. Be thorough, accurate, and well-organized. Use clear formatting with headers and bullet points. Cite sources when possible. Maintain a formal but approachable tone.";
+                case "friendly":
+                    return "You are a friendly and empathetic AI companion. Be warm, conversational, and supportive. Use casual language and occasional humor. Show genuine interest in helping. Keep responses engaging and easy to read.";
+                case "creative":
+                    return "You are a creative writing assistant. Be imaginative, expressive, and original. Use vivid language and compelling narratives. Help with brainstorming, storytelling, poetry, and creative problem-solving. Think outside the box.";
+                case "technical":
+                    return "You are a technical expert assistant. Provide precise, detailed technical answers. Include code examples, diagrams, and step-by-step instructions when relevant. Prioritize accuracy and best practices. Explain complex concepts clearly.";
+                case "concise":
+                    return "You are a concise assistant. Give brief, direct answers. Avoid unnecessary elaboration. Use bullet points and short sentences. Get straight to the point. Only provide additional detail when specifically asked.";
+                case "tutor":
+                    return "You are a patient language tutor. Help users learn and practice languages. Correct mistakes gently with explanations. Provide examples and exercises. Adapt to the user's skill level. Encourage practice and celebrate progress.";
+                default:
+                    return null;
+            }
+        }
+
+        private void showTemplatePicker() {
+            String[] names = {"Professional Assistant", "Friendly Companion", "Creative Writer",
+                    "Technical Expert", "Concise Helper", "Language Tutor"};
+            String[] values = {"professional", "friendly", "creative", "technical", "concise", "tutor"};
+            String[] previews = new String[names.length];
+            for (int i = 0; i < names.length; i++) {
+                String prompt = getPersonaPrompt(values[i]);
+                previews[i] = names[i] + "\n\n" + (prompt != null ? prompt.substring(0, Math.min(80, prompt.length())) + "…" : "");
+            }
+
+            new AlertDialog.Builder(requireContext())
+                    .setTitle("System Prompt Templates")
+                    .setItems(names, (dialog, which) -> {
+                        String prompt = getPersonaPrompt(values[which]);
+                        if (prompt != null) {
+                            mConfigManager.setSystemPrompt(prompt);
+                            EditTextPreference sysPref = findPreference("llm_system_prompt");
+                            if (sysPref != null) sysPref.setText(prompt);
+                            ListPreference personaPref = findPreference("llm_persona_template");
+                            if (personaPref != null) personaPref.setValue(values[which]);
+                            mHasUnsavedChanges = true;
+                            Toast.makeText(requireContext(),
+                                    names[which] + " applied", Toast.LENGTH_SHORT).show();
+                        }
+                    })
+                    .setNegativeButton(android.R.string.cancel, null)
+                    .show();
         }
 
         @Override
