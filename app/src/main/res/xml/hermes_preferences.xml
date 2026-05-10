@@ -20,6 +20,27 @@
             android:summary="@string/conversation_empty" />
     </PreferenceCategory>
 
+    <PreferenceCategory
+        android:key="hermes_validation_category"
+        android:title="@string/validation_category_title">
+        <Preference
+            android:key="validation_api_key"
+            android:title="@string/validation_api_key_title"
+            android:selectable="true" />
+        <Preference
+            android:key="validation_gateway"
+            android:title="@string/validation_gateway_title"
+            android:selectable="true" />
+        <Preference
+            android:key="validation_im"
+            android:title="@string/validation_im_title"
+            android:selectable="true" />
+        <Preference
+            android:key="validation_system_prompt"
+            android:title="@string/validation_system_prompt_title"
+            android:selectable="true" />
+    </PreferenceCategory>
+
     <PreferenceCategory android:title="@string/profile_category_title">
         <Preference
             android:key="hermes_profile_current"
