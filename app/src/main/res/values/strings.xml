@@ -1148,4 +1148,35 @@
 
     <string name="config_export_masked">Export with masked secrets (safer to share)</string>
 
+    <!-- Model Routing -->
+    <string name="llm_category_routing">Model Routing</string>
+    <string name="llm_routing_mode_title">Routing Mode</string>
+    <string name="llm_routing_mode_summary">Use different models based on task complexity to optimize costs</string>
+    <string name="llm_routing_fast_model_title">Fast/Cheap Model</string>
+    <string name="llm_routing_fast_model_summary">Model for simple tasks (e.g. gpt-4o-mini, claude-haiku-4-5)</string>
+    <string name="llm_routing_threshold_title">Complexity Threshold</string>
+    <string name="llm_routing_threshold_summary">Tasks above this threshold (0.0–1.0) use the primary model</string>
+
+    <string-array name="llm_routing_mode_names">
+        <item>Off (always use primary model)</item>
+        <item>Route by complexity</item>
+        <item>Route by cost</item>
+    </string-array>
+    <string-array name="llm_routing_mode_values">
+        <item>off</item>
+        <item>complexity</item>
+        <item>cost</item>
+    </string-array>
+
+    <!-- Browser Tool Configuration -->
+    <string name="browser_category_title">Browser Tool</string>
+    <string name="browser_inactivity_timeout_title">Inactivity Timeout (minutes)</string>
+    <string name="browser_inactivity_timeout_summary">Close browser after N minutes of no activity (default 30)</string>
+    <string name="browser_user_agent_title">Custom User Agent</string>
+    <string name="browser_user_agent_summary">Custom user agent string for web scraping (leave empty for default)</string>
+    <string name="browser_headless_title">Headless Mode</string>
+    <string name="browser_headless_summary">Run browser in headless mode without visible window</string>
+    <string name="browser_max_tabs_title">Max Concurrent Tabs</string>
+    <string name="browser_max_tabs_summary">Maximum number of browser tabs the agent can open (default 5)</string>
+
 </resources>
