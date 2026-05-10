@@ -1,11 +1,10 @@
 package com.termux.app.hermes;
 
-import android.Manifest;
 import android.content.Context;
 import android.content.Intent;
-import android.content.pm.PackageManager;
-import android.os.Build;
 import android.os.Bundle;
+import android.os.Handler;
+import android.os.Looper;
 import android.view.MenuItem;
 import android.widget.Toast;
 
@@ -13,8 +12,6 @@ import androidx.annotation.NonNull;
 import androidx.appcompat.app.ActionBar;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
-import androidx.core.app.ActivityCompat;
-import androidx.core.content.ContextCompat;
 import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentTransaction;
 import androidx.preference.ListPreference;
@@ -23,14 +20,11 @@ import androidx.preference.PreferenceFragmentCompat;
 import androidx.preference.SwitchPreferenceCompat;
 
 import com.termux.R;
-import com.termux.app.HermesInstaller;
 import com.termux.shared.termux.TermuxConstants;
 
 import java.io.File;
 
 public class HermesConfigActivity extends AppCompatActivity {
-
-    private static final int REQUEST_NOTIFICATION_PERMISSION = 1001;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -61,67 +55,69 @@ public class HermesConfigActivity extends AppCompatActivity {
         return super.onOptionsItemSelected(item);
     }
 
-    static boolean ensureNotificationPermission(android.app.Activity activity) {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-            if (ContextCompat.checkSelfPermission(activity, Manifest.permission.POST_NOTIFICATIONS)
-                    != PackageManager.PERMISSION_GRANTED) {
-                ActivityCompat.requestPermissions(activity,
-                        new String[]{Manifest.permission.POST_NOTIFICATIONS},
-                        REQUEST_NOTIFICATION_PERMISSION);
-                return false;
-            }
-        }
-        return true;
-    }
-
-    @Override
-    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
-        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
-        if (requestCode == REQUEST_NOTIFICATION_PERMISSION) {
-            if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-                Toast.makeText(this, R.string.notification_permission_granted, Toast.LENGTH_SHORT).show();
-            } else {
-                Toast.makeText(this, R.string.notification_permission_denied, Toast.LENGTH_LONG).show();
-            }
-        }
-    }
-
     public static class HermesConfigFragment extends PreferenceFragmentCompat {
 
         private HermesConfigManager mConfigManager;
+        private final Handler mStatusHandler = new Handler(Looper.getMainLooper());
+        private static final long STATUS_REFRESH_INTERVAL_MS = 5000;
+        private boolean mRefreshing = false;
+
+        private final Runnable mStatusRefreshRunnable = new Runnable() {
+            @Override
+            public void run() {
+                if (!mRefreshing || getActivity() == null) return;
+                refreshGatewayStatus();
+                mStatusHandler.postDelayed(this, STATUS_REFRESH_INTERVAL_MS);
+            }
+        };
+
+        @Override
+        public void onResume() {
+            super.onResume();
+            mRefreshing = true;
+            refreshGatewayStatus();
+            mStatusHandler.postDelayed(mStatusRefreshRunnable, STATUS_REFRESH_INTERVAL_MS);
+        }
+
+        @Override
+        public void onPause() {
+            super.onPause();
+            mRefreshing = false;
+            mStatusHandler.removeCallbacks(mStatusRefreshRunnable);
+        }
+
+        private void refreshGatewayStatus() {
+            Preference dashGateway = findPreference("hermes_dashboard_gateway");
+            Preference gatewayPref = findPreference("hermes_gateway_control");
+
+            HermesGatewayStatus.checkAsync((status, detail) -> {
+                if (getActivity() == null) return;
+                getActivity().runOnUiThread(() -> {
+                    String label;
+                    switch (status) {
+                        case RUNNING:
+                            label = getString(R.string.dashboard_gateway_running);
+                            break;
+                        case NOT_INSTALLED:
+                            label = getString(R.string.dashboard_gateway_not_installed);
+                            break;
+                        default:
+                            label = getString(R.string.dashboard_gateway_stopped);
+                            break;
+                    }
+                    if (dashGateway != null) dashGateway.setSummary(label);
+                    if (gatewayPref != null) gatewayPref.setSummary(label);
+                });
+            });
+        }
 
         @Override
         public void onCreatePreferences(Bundle savedInstanceState, String rootKey) {
             setPreferencesFromResource(R.xml.hermes_preferences, rootKey);
             mConfigManager = HermesConfigManager.getInstance();
 
-            // --- Not installed banner ---
-            Preference banner = findPreference("hermes_not_installed_banner");
-            if (banner != null) {
-                boolean installed = new File(TermuxConstants.TERMUX_BIN_PREFIX_DIR_PATH + "/hermes").exists();
-                banner.setVisible(!installed);
-            }
-
-            // --- Dashboard: Gateway status ---
+            // --- Dashboard: Gateway status (initial, refreshed by onResume) ---
             Preference dashGateway = findPreference("hermes_dashboard_gateway");
-            if (dashGateway != null) {
-                HermesGatewayStatus.checkAsync((status, detail) -> {
-                    if (getActivity() == null) return;
-                    getActivity().runOnUiThread(() -> {
-                        switch (status) {
-                            case RUNNING:
-                                dashGateway.setSummary(getString(R.string.dashboard_gateway_running));
-                                break;
-                            case NOT_INSTALLED:
-                                dashGateway.setSummary(getString(R.string.dashboard_gateway_not_installed));
-                                break;
-                            default:
-                                dashGateway.setSummary(getString(R.string.dashboard_gateway_stopped));
-                                break;
-                        }
-                    });
-                });
-            }
 
             // --- Dashboard: LLM status ---
             Preference dashLlm = findPreference("hermes_dashboard_llm");
@@ -151,29 +147,6 @@ public class HermesConfigActivity extends AppCompatActivity {
                 }
             }
 
-            // Show gateway status
-            Preference gatewayPref = findPreference("hermes_gateway_control");
-            if (gatewayPref != null) {
-                HermesGatewayStatus.checkAsync((status, detail) -> {
-                    if (getActivity() == null) return;
-                    getActivity().runOnUiThread(() -> {
-                        String summary;
-                        switch (status) {
-                            case RUNNING:
-                                summary = getString(R.string.gateway_status_running);
-                                break;
-                            case NOT_INSTALLED:
-                                summary = getString(R.string.gateway_status_not_installed);
-                                break;
-                            default:
-                                summary = getString(R.string.gateway_status_stopped);
-                                break;
-                        }
-                        gatewayPref.setSummary(summary);
-                    });
-                });
-            }
-
             // Auto-start gateway toggle
             SwitchPreferenceCompat autoStartPref = findPreference("hermes_auto_start_gateway");
             if (autoStartPref != null) {
@@ -181,11 +154,9 @@ public class HermesConfigActivity extends AppCompatActivity {
                     boolean enabled = (Boolean) newVal;
                     HermesGatewayService.setAutoStartEnabled(requireContext(), enabled);
                     if (enabled) {
-                        if (ensureNotificationPermission(requireActivity())) {
-                            requireContext().startService(
-                                    new Intent(requireContext(), HermesGatewayService.class)
-                                            .setAction(HermesGatewayService.ACTION_START));
-                        }
+                        requireContext().startService(
+                                new Intent(requireContext(), HermesGatewayService.class)
+                                        .setAction(HermesGatewayService.ACTION_START));
                     }
                     return true;
                 });
@@ -255,9 +226,6 @@ public class HermesConfigActivity extends AppCompatActivity {
                 case "hermes_gateway_control":
                     showFragment(new GatewayControlFragment());
                     return true;
-                case "hermes_not_installed_banner":
-                    triggerInstallFromBanner(preference);
-                    return true;
                 case "hermes_check_update":
                     checkForUpdate(preference);
                     return true;
@@ -275,33 +243,6 @@ public class HermesConfigActivity extends AppCompatActivity {
                     return true;
             }
             return super.onPreferenceTreeClick(preference);
-        }
-
-        private void triggerInstallFromBanner(Preference banner) {
-            if (banner != null) {
-                banner.setSummary(getString(R.string.hermes_not_installed_banner_installing));
-                banner.setEnabled(false);
-            }
-            new Thread(() -> {
-                // Delete marker to allow re-install
-                new File(TermuxConstants.TERMUX_DATA_HOME_DIR_PATH + "/hermes-installed").delete();
-                HermesInstaller.retryInstall(requireContext());
-                // Wait and check result
-                try { Thread.sleep(15000); } catch (InterruptedException ignored) {}
-                boolean installed = new File(TermuxConstants.TERMUX_BIN_PREFIX_DIR_PATH + "/hermes").exists();
-                if (getActivity() == null) return;
-                getActivity().runOnUiThread(() -> {
-                    if (installed) {
-                        if (banner != null) banner.setVisible(false);
-                        Toast.makeText(requireContext(), R.string.hermes_not_installed_banner_installed, Toast.LENGTH_LONG).show();
-                    } else {
-                        if (banner != null) {
-                            banner.setSummary(getString(R.string.hermes_not_installed_banner_failed));
-                            banner.setEnabled(true);
-                        }
-                    }
-                });
-            }).start();
         }
 
         private void showFragment(Fragment fragment) {
@@ -742,7 +683,6 @@ public class HermesConfigActivity extends AppCompatActivity {
             Context ctx = requireContext();
             switch (action) {
                 case "start":
-                    if (!ensureNotificationPermission(requireActivity())) return;
                     ctx.startService(new Intent(ctx, HermesGatewayService.class)
                             .setAction(HermesGatewayService.ACTION_START));
                     Toast.makeText(ctx, R.string.gateway_started, Toast.LENGTH_SHORT).show();
@@ -753,7 +693,6 @@ public class HermesConfigActivity extends AppCompatActivity {
                     Toast.makeText(ctx, R.string.gateway_stopped, Toast.LENGTH_SHORT).show();
                     break;
                 case "restart":
-                    if (!ensureNotificationPermission(requireActivity())) return;
                     ctx.startService(new Intent(ctx, HermesGatewayService.class)
                             .setAction(HermesGatewayService.ACTION_STOP));
                     new android.os.Handler(android.os.Looper.getMainLooper()).postDelayed(() -> {
