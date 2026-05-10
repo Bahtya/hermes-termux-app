@@ -158,7 +158,7 @@ public class HermesGatewayService extends Service {
                 }
 
                 cancelErrorNotification();
-                Notification notification = buildNotification("Hermes Gateway running");
+                Notification notification = buildNotification(getString(R.string.gateway_notif_running));
                 startForeground(NOTIFICATION_ID, notification);
 
                 mHandler.postDelayed(mHealthCheck, 30_000);
@@ -201,7 +201,7 @@ public class HermesGatewayService extends Service {
     }
 
     private Notification buildNotification(String text) {
-        Intent openIntent = new Intent(this, TermuxActivity.class);
+        Intent openIntent = new Intent(this, HermesConfigActivity.class);
         PendingIntent pi = PendingIntent.getActivity(this, 0, openIntent,
                 PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE);
 
@@ -210,12 +210,18 @@ public class HermesGatewayService extends Service {
         PendingIntent stopPi = PendingIntent.getService(this, 1, stopIntent,
                 PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE);
 
+        Intent restartIntent = new Intent(this, HermesGatewayService.class);
+        restartIntent.setAction(ACTION_RESTART);
+        PendingIntent restartPi = PendingIntent.getService(this, 2, restartIntent,
+                PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE);
+
         return new NotificationCompat.Builder(this, CHANNEL_ID)
-                .setContentTitle("Hermes Gateway")
+                .setContentTitle(getString(R.string.gateway_notif_channel_name))
                 .setContentText(text)
                 .setSmallIcon(R.drawable.ic_hermes)
                 .setContentIntent(pi)
-                .addAction(0, "Stop", stopPi)
+                .addAction(0, getString(R.string.gateway_notif_stop), stopPi)
+                .addAction(0, getString(R.string.gateway_notif_restart), restartPi)
                 .setOngoing(true)
                 .build();
     }
@@ -227,18 +233,18 @@ public class HermesGatewayService extends Service {
 
             NotificationChannel channel = new NotificationChannel(
                     CHANNEL_ID,
-                    "Hermes Gateway",
+                    getString(R.string.gateway_notif_channel_name),
                     NotificationManager.IMPORTANCE_LOW
             );
-            channel.setDescription("Hermes gateway status");
+            channel.setDescription(getString(R.string.gateway_notif_channel_desc));
             nm.createNotificationChannel(channel);
 
             NotificationChannel errorChannel = new NotificationChannel(
                     ERROR_CHANNEL_ID,
-                    "Hermes Gateway Alerts",
+                    getString(R.string.gateway_notif_error_channel_name),
                     NotificationManager.IMPORTANCE_DEFAULT
             );
-            errorChannel.setDescription("Gateway crash and restart alerts");
+            errorChannel.setDescription(getString(R.string.gateway_notif_error_channel_desc));
             nm.createNotificationChannel(errorChannel);
         }
     }
