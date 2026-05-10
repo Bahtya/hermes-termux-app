@@ -630,6 +630,50 @@ public class HermesConfigActivity extends AppCompatActivity {
                     return true;
                 });
             }
+
+            // Preset selection
+            ListPreference presetPref = findPreference("llm_preset");
+            if (presetPref != null) {
+                presetPref.setOnPreferenceChangeListener((p, newVal) -> {
+                    applyPreset((String) newVal);
+                    mHasUnsavedChanges = true;
+                    return true;
+                });
+            }
+
+            // Temperature preference
+            Preference tempPref = findPreference("llm_temperature");
+            if (tempPref != null) {
+                tempPref.setOnPreferenceChangeListener((p, newVal) -> {
+                    try {
+                        mConfigManager.setModelTemperature(Float.parseFloat((String) newVal));
+                    } catch (NumberFormatException ignored) {}
+                    mHasUnsavedChanges = true;
+                    return true;
+                });
+            }
+
+            // Max tokens preference
+            Preference maxTokensPref = findPreference("llm_max_tokens");
+            if (maxTokensPref != null) {
+                maxTokensPref.setOnPreferenceChangeListener((p, newVal) -> {
+                    try {
+                        mConfigManager.setModelMaxTokens(Integer.parseInt((String) newVal));
+                    } catch (NumberFormatException ignored) {}
+                    mHasUnsavedChanges = true;
+                    return true;
+                });
+            }
+
+            // System prompt preference
+            Preference sysPromptPref = findPreference("llm_system_prompt");
+            if (sysPromptPref != null) {
+                sysPromptPref.setOnPreferenceChangeListener((p, newVal) -> {
+                    mConfigManager.setSystemPrompt((String) newVal);
+                    mHasUnsavedChanges = true;
+                    return true;
+                });
+            }
         }
 
         @Override
@@ -805,6 +849,54 @@ public class HermesConfigActivity extends AppCompatActivity {
                 case "nvidia": return R.array.llm_models_nvidia;
                 case "ollama": return R.array.llm_models_ollama;
                 default: return 0;
+            }
+        }
+
+        private void applyPreset(String preset) {
+            float temperature;
+            int maxTokens;
+            String systemPrompt;
+
+            switch (preset) {
+                case "creative":
+                    temperature = 0.9f;
+                    maxTokens = 2048;
+                    systemPrompt = "You are a creative and imaginative AI assistant. Think outside the box, offer unique perspectives, and express ideas vividly.";
+                    break;
+                case "precise":
+                    temperature = 0.2f;
+                    maxTokens = 4096;
+                    systemPrompt = "You are a precise and analytical AI assistant. Provide accurate, well-structured answers. Be concise and factual.";
+                    break;
+                case "code":
+                    temperature = 0.2f;
+                    maxTokens = 4096;
+                    systemPrompt = "You are an expert software engineer. Write clean, efficient code. Explain your reasoning. Follow best practices and design patterns.";
+                    break;
+                case "balanced":
+                default:
+                    temperature = 0.7f;
+                    maxTokens = 2048;
+                    systemPrompt = "You are a helpful AI assistant. Be friendly, clear, and thorough in your responses.";
+                    break;
+            }
+
+            mConfigManager.setModelTemperature(temperature);
+            mConfigManager.setModelMaxTokens(maxTokens);
+            mConfigManager.setSystemPrompt(systemPrompt);
+
+            // Update UI fields
+            androidx.preference.EditTextPreference tempPref = findPreference("llm_temperature");
+            if (tempPref != null) {
+                tempPref.setText(String.valueOf(temperature));
+            }
+            androidx.preference.EditTextPreference maxTokPref = findPreference("llm_max_tokens");
+            if (maxTokPref != null) {
+                maxTokPref.setText(String.valueOf(maxTokens));
+            }
+            androidx.preference.EditTextPreference sysPref = findPreference("llm_system_prompt");
+            if (sysPref != null) {
+                sysPref.setText(systemPrompt);
             }
         }
 
