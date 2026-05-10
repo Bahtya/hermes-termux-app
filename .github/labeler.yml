@@ -1,25 +1,28 @@
-area: hermes:
-  - app/src/main/java/com/termux/app/hermes/**
-
-area: ui:
-  - app/src/main/res/layout/**
-  - app/src/main/res/xml/**
-  - app/src/main/res/drawable/**
-
-area: gateway:
-  - app/src/main/java/com/termux/app/hermes/HermesGateway*
-
-area: ci:
-  - .github/workflows/**
-  - .github/labeler.yml
-
-area: i18n:
-  - app/src/main/res/values-zh/**
-
-area: config:
+# Auto-label PRs based on changed file paths
+hermes:
+  - app/src/main/java/com/termux/app/hermes/**/*
+  - app/src/main/res/**/strings_hermes.xml
   - app/src/main/res/xml/hermes_*.xml
+
+ui:
+  - app/src/main/res/layout/**/*
+  - app/src/main/res/xml/**/*
+
+gateway:
+  - app/src/main/java/com/termux/app/hermes/HermesGatewayService.java
+  - app/src/main/java/com/termux/app/hermes/HermesGatewayStatus.java
+  - app/src/main/java/com/termux/app/hermes/GatewayLogActivity.java
+
+llm:
   - app/src/main/java/com/termux/app/hermes/HermesConfigManager.java
 
-area: im:
-  - app/src/main/java/com/termux/app/hermes/FeishuSetup*
-  - app/src/main/java/com/termux/app/hermes/ImSetup*
+im:
+  - app/src/main/java/com/termux/app/hermes/ImSetupActivity.java
+  - app/src/main/java/com/termux/app/hermes/FeishuSetupActivity.java
+
+ci:
+  - .github/workflows/**/*
+
+i18n:
+  - app/src/main/res/values-zh/**/*
+  - app/src/main/res/values/strings.xml
