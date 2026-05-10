@@ -43,6 +43,10 @@ public class HermesConfigManager {
     public static final String ENV_FILE_PATH =
             HERMES_CONFIG_DIR_PATH + "/" + ENV_FILE;
 
+    /** Full path to SOUL.md — the primary agent identity file. */
+    public static final String SOUL_MD_PATH =
+            HERMES_CONFIG_DIR_PATH + "/SOUL.md";
+
     // ---- config.yaml keys ----
     private static final String KEY_TERMINAL_BACKEND = "terminal.backend";
     private static final String KEY_TERMINAL_CWD = "terminal.cwd";
@@ -50,6 +54,7 @@ public class HermesConfigManager {
     private static final String KEY_MODEL_NAME = "model.name";
     private static final String KEY_MODEL_TEMPERATURE = "model.temperature";
     private static final String KEY_MODEL_MAX_TOKENS = "model.max_tokens";
+    private static final String KEY_AGENT_PERSONALITY = "agent.personality";
 
     // Feishu config.yaml keys (under feishu: section)
     private static final String KEY_FEISHU_APP_ID = "feishu.app_id";
@@ -295,6 +300,7 @@ public class HermesConfigManager {
         // Always include these sections in this order.
         sections.put("terminal", new LinkedHashMap<>());
         sections.put("model", new LinkedHashMap<>());
+        sections.put("agent", new LinkedHashMap<>());
         sections.put("feishu", new LinkedHashMap<>());
 
         for (Map.Entry<String, String> entry : mYamlConfig.entrySet()) {
@@ -692,6 +698,44 @@ public class HermesConfigManager {
 
     public void setFeishuHomeChannel(String channel) {
         setYamlValue(KEY_FEISHU_HOME_CHANNEL, channel);
+    }
+
+    // =========================================================================
+    // Persona / System Prompt
+    // =========================================================================
+
+    /** Returns the selected personality preset name, or empty string for custom. */
+    public String getSelectedPersona() {
+        return getYamlValue(KEY_AGENT_PERSONALITY, "");
+    }
+
+    /** Sets the selected personality preset name. Use empty string for custom. */
+    public void setSelectedPersona(String persona) {
+        setYamlValue(KEY_AGENT_PERSONALITY, persona != null ? persona : "");
+    }
+
+    /** Returns the system prompt content from SOUL.md, or empty string. */
+    public String getSystemPrompt() {
+        File file = new File(SOUL_MD_PATH);
+        if (!file.exists()) return "";
+        StringBuilder sb = new StringBuilder();
+        try (BufferedReader reader = new BufferedReader(new FileReader(file))) {
+            String line;
+            while ((line = reader.readLine()) != null) {
+                sb.append(line).append("\n");
+            }
+        } catch (IOException e) {
+            Logger.logError(LOG_TAG, "Error reading SOUL.md: " + e.getMessage());
+            return "";
+        }
+        return sb.toString().trim();
+    }
+
+    /** Writes the system prompt content to SOUL.md. */
+    public synchronized void setSystemPrompt(String prompt) {
+        String content = (prompt != null ? prompt : "") + "\n";
+        writeStringToFile(SOUL_MD_PATH, content);
+        Logger.logDebug(LOG_TAG, "SOUL.md written");
     }
 
     // =========================================================================

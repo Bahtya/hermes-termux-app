@@ -25,6 +25,11 @@
             android:icon="@drawable/ic_settings" />
 
         <Preference
+            android:key="hermes_persona_config"
+            android:title="@string/hermes_persona_title"
+            android:summary="@string/hermes_persona_summary" />
+
+        <Preference
             android:key="hermes_feishu_setup"
             android:title="@string/hermes_feishu_setup_title"
             android:summary="@string/hermes_feishu_setup_summary" />

@@ -561,4 +561,43 @@
     <string name="hermes_setup_done_title">You\'re all set!</string>
     <string name="hermes_setup_done_text">Hermes is ready to go. You can start the gateway from the Hermes Settings or use the Web UI tab.\n\nTo change your settings at any time, tap the Hermes icon in the sidebar.</string>
 
+    <!-- Persona / System Prompt -->
+    <string name="hermes_persona_title">Persona / System Prompt</string>
+    <string name="hermes_persona_summary">Customize your AI assistant\'s personality</string>
+    <string name="persona_preset_title">Persona Preset</string>
+    <string name="persona_preset_summary">Choose a predefined personality</string>
+    <string name="persona_custom_title">Custom System Prompt</string>
+    <string name="persona_custom_summary">Enter a custom system prompt (overrides preset)</string>
+    <string name="persona_custom_dialog_title">Custom System Prompt</string>
+    <string name="persona_preview_title">Current Prompt</string>
+    <string name="persona_preview_summary">No system prompt set</string>
+    <string name="persona_saved">Persona saved</string>
+
+    <string-array name="persona_preset_names">
+        <item>None (Default)</item>
+        <item>Helpful Assistant</item>
+        <item>Concise</item>
+        <item>Technical Expert</item>
+        <item>Creative Writer</item>
+        <item>Teacher</item>
+        <item>Translator</item>
+    </string-array>
+    <string-array name="persona_preset_values">
+        <item></item>
+        <item>helpful</item>
+        <item>concise</item>
+        <item>technical</item>
+        <item>creative</item>
+        <item>teacher</item>
+        <item>translator</item>
+    </string-array>
+
+    <!-- Persona prompt texts -->
+    <string name="persona_prompt_helpful">You are a helpful, friendly AI assistant. Be warm, thorough, and supportive in your responses.</string>
+    <string name="persona_prompt_concise">You are a concise assistant. Keep responses brief and to the point. Avoid unnecessary elaboration.</string>
+    <string name="persona_prompt_technical">You are a technical expert. Provide detailed, accurate technical information with code examples when relevant.</string>
+    <string name="persona_prompt_creative">You are a creative assistant. Think outside the box and offer imaginative, original ideas.</string>
+    <string name="persona_prompt_teacher">You are a patient teacher. Explain concepts clearly with examples and step-by-step guidance.</string>
+    <string name="persona_prompt_translator">You are a professional translator. Translate text accurately while preserving tone and nuance. When no specific translation is requested, help users with language-related tasks.</string>
+
 </resources>

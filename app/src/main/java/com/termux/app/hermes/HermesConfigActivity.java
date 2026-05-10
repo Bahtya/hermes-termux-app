@@ -15,6 +15,7 @@ import androidx.fragment.app.FragmentTransaction;
 import androidx.preference.ListPreference;
 import androidx.preference.Preference;
 import androidx.preference.PreferenceFragmentCompat;
+import androidx.preference.EditTextPreference;
 import androidx.preference.SwitchPreferenceCompat;
 
 import com.termux.R;
@@ -160,6 +161,21 @@ public class HermesConfigActivity extends AppCompatActivity {
                         : getString(R.string.llm_not_configured));
             }
 
+            // Show persona status
+            Preference personaPref = findPreference("hermes_persona_config");
+            if (personaPref != null) {
+                String persona = mConfigManager.getSelectedPersona();
+                String prompt = mConfigManager.getSystemPrompt();
+                if (!persona.isEmpty()) {
+                    personaPref.setSummary(persona.substring(0, 1).toUpperCase()
+                            + persona.substring(1));
+                } else if (prompt != null && !prompt.isEmpty()) {
+                    personaPref.setSummary(getString(R.string.persona_custom_title));
+                } else {
+                    personaPref.setSummary(getString(R.string.persona_preview_summary));
+                }
+            }
+
             // Show Feishu status
             Preference feishuPref = findPreference("hermes_feishu_setup");
             if (feishuPref != null) {
@@ -196,6 +212,9 @@ public class HermesConfigActivity extends AppCompatActivity {
             switch (key) {
                 case "hermes_llm_config":
                     showFragment(new LlmConfigFragment());
+                    return true;
+                case "hermes_persona_config":
+                    showFragment(new PersonaConfigFragment());
                     return true;
                 case "hermes_feishu_setup":
                     startActivity(new Intent(requireContext(), FeishuSetupActivity.class));
@@ -688,6 +707,95 @@ public class HermesConfigActivity extends AppCompatActivity {
                     }, 1500);
                     Toast.makeText(ctx, R.string.gateway_restarted, Toast.LENGTH_SHORT).show();
                     break;
+            }
+        }
+    }
+
+    public static class PersonaConfigFragment extends PreferenceFragmentCompat {
+
+        private HermesConfigManager mConfigManager;
+
+        @Override
+        public void onCreatePreferences(Bundle savedInstanceState, String rootKey) {
+            setPreferencesFromResource(R.xml.hermes_persona_preferences, rootKey);
+            mConfigManager = HermesConfigManager.getInstance();
+
+            String currentPersona = mConfigManager.getSelectedPersona();
+            String currentPrompt = mConfigManager.getSystemPrompt();
+
+            ListPreference presetPref = findPreference("persona_preset");
+            if (presetPref != null) {
+                if (!currentPersona.isEmpty()) {
+                    presetPref.setValue(currentPersona);
+                }
+                presetPref.setOnPreferenceChangeListener((p, newVal) -> {
+                    String persona = (String) newVal;
+                    mConfigManager.setSelectedPersona(persona);
+
+                    if (persona.isEmpty()) {
+                        // Custom mode — don't overwrite SOUL.md
+                        updatePreview(null);
+                        EditTextPreference customPref = findPreference("persona_custom_prompt");
+                        if (customPref != null) customPref.setVisible(true);
+                    } else {
+                        // Write preset prompt to SOUL.md
+                        String prompt = getPresetPrompt(persona);
+                        mConfigManager.setSystemPrompt(prompt);
+                        updatePreview(prompt);
+                        EditTextPreference customPref = findPreference("persona_custom_prompt");
+                        if (customPref != null) customPref.setVisible(false);
+                    }
+                    return true;
+                });
+            }
+
+            EditTextPreference customPref = findPreference("persona_custom_prompt");
+            if (customPref != null) {
+                if (currentPersona.isEmpty() && !currentPrompt.isEmpty()) {
+                    customPref.setText(currentPrompt);
+                }
+                customPref.setVisible(currentPersona.isEmpty());
+                customPref.setOnPreferenceChangeListener((p, newVal) -> {
+                    String prompt = (String) newVal;
+                    mConfigManager.setSelectedPersona("");
+                    mConfigManager.setSystemPrompt(prompt != null ? prompt : "");
+                    updatePreview(prompt);
+                    if (presetPref != null) presetPref.setValue("");
+                    return true;
+                });
+            }
+
+            // Initial preview
+            if (!currentPersona.isEmpty()) {
+                updatePreview(getPresetPrompt(currentPersona));
+            } else if (!currentPrompt.isEmpty()) {
+                updatePreview(currentPrompt);
+            }
+        }
+
+        private void updatePreview(String prompt) {
+            Preference previewPref = findPreference("persona_preview");
+            if (previewPref != null) {
+                if (prompt != null && !prompt.isEmpty()) {
+                    String truncated = prompt.length() > 120
+                            ? prompt.substring(0, 120) + "…"
+                            : prompt;
+                    previewPref.setSummary(truncated);
+                } else {
+                    previewPref.setSummary(getString(R.string.persona_preview_summary));
+                }
+            }
+        }
+
+        private String getPresetPrompt(String persona) {
+            switch (persona) {
+                case "helpful":    return getString(R.string.persona_prompt_helpful);
+                case "concise":    return getString(R.string.persona_prompt_concise);
+                case "technical":  return getString(R.string.persona_prompt_technical);
+                case "creative":   return getString(R.string.persona_prompt_creative);
+                case "teacher":    return getString(R.string.persona_prompt_teacher);
+                case "translator": return getString(R.string.persona_prompt_translator);
+                default:           return "";
             }
         }
     }

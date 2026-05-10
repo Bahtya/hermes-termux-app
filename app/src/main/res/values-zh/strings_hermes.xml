@@ -210,4 +210,33 @@
     <string name="hermes_web_start_gateway">启动网关</string>
     <string name="hermes_not_installed_title">Hermes 未安装</string>
     <string name="hermes_not_installed_message">Hermes Agent 尚未安装在：\n%1$s\n\n请等待自动安装完成。</string>
+
+    <!-- Persona / System Prompt -->
+    <string name="hermes_persona_title">人设 / 系统提示词</string>
+    <string name="hermes_persona_summary">自定义 AI 助手的性格和行为</string>
+    <string name="persona_preset_title">预设人设</string>
+    <string name="persona_preset_summary">选择预定义的性格模板</string>
+    <string name="persona_custom_title">自定义系统提示词</string>
+    <string name="persona_custom_summary">输入自定义系统提示词（将覆盖预设）</string>
+    <string name="persona_custom_dialog_title">自定义系统提示词</string>
+    <string name="persona_preview_title">当前提示词</string>
+    <string name="persona_preview_summary">未设置系统提示词</string>
+    <string name="persona_saved">人设已保存</string>
+
+    <string-array name="persona_preset_names">
+        <item>无（默认）</item>
+        <item>友好助手</item>
+        <item>简洁模式</item>
+        <item>技术专家</item>
+        <item>创意写手</item>
+        <item>耐心教师</item>
+        <item>翻译专家</item>
+    </string-array>
+
+    <string name="persona_prompt_helpful">你是一个友好、乐于助人的 AI 助手。回复时保持温暖、详尽和鼓励性。</string>
+    <string name="persona_prompt_concise">你是一个简洁的助手。回复时保持简明扼要，直奔主题。</string>
+    <string name="persona_prompt_technical">你是一个技术专家。提供详细、准确的技术信息，在相关时附带代码示例。</string>
+    <string name="persona_prompt_creative">你是一个富有创意的助手。跳出常规思考，提供富有想象力和原创性的想法。</string>
+    <string name="persona_prompt_teacher">你是一个耐心的教师。用清晰的示例和逐步引导来解释概念。</string>
+    <string name="persona_prompt_translator">你是一个专业翻译。准确翻译文本，同时保留语气和细微差别。在没有具体翻译任务时，帮助用户处理语言相关的问题。</string>
 </resources>
