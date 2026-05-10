@@ -165,7 +165,7 @@ public class HermesConfigActivity extends AppCompatActivity {
             if (feishuPref != null) {
                 boolean configured = mConfigManager.isFeishuConfigured();
                 feishuPref.setSummary(configured
-                        ? getString(R.string.feishu_configured)
+                        ? getString(R.string.feishu_configured_detail, maskCredential(mConfigManager.getFeishuAppId(), 8))
                         : getString(R.string.feishu_not_configured));
             }
 
@@ -174,7 +174,7 @@ public class HermesConfigActivity extends AppCompatActivity {
             if (telegramPref != null) {
                 boolean configured = !mConfigManager.getEnvVar("TELEGRAM_BOT_TOKEN").isEmpty();
                 telegramPref.setSummary(configured
-                        ? getString(R.string.telegram_configured)
+                        ? getString(R.string.telegram_configured_detail, maskCredential(mConfigManager.getEnvVar("TELEGRAM_BOT_TOKEN"), 8))
                         : getString(R.string.telegram_not_configured));
             }
 
@@ -183,7 +183,7 @@ public class HermesConfigActivity extends AppCompatActivity {
             if (discordPref != null) {
                 boolean configured = !mConfigManager.getEnvVar("DISCORD_BOT_TOKEN").isEmpty();
                 discordPref.setSummary(configured
-                        ? getString(R.string.discord_configured)
+                        ? getString(R.string.discord_configured_detail, maskCredential(mConfigManager.getEnvVar("DISCORD_BOT_TOKEN"), 8))
                         : getString(R.string.discord_not_configured));
             }
         }
@@ -230,6 +230,12 @@ public class HermesConfigActivity extends AppCompatActivity {
                     return true;
             }
             return super.onPreferenceTreeClick(preference);
+        }
+
+        private String maskCredential(String value, int visibleChars) {
+            if (value == null || value.isEmpty()) return "";
+            if (value.length() <= visibleChars) return value;
+            return value.substring(0, visibleChars) + "...";
         }
 
         private void showFragment(Fragment fragment) {
