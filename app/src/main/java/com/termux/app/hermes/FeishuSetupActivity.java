@@ -50,6 +50,7 @@ public class FeishuSetupActivity extends AppCompatActivity {
     private static final int STEP_TEST = 4;
     private static final int STEP_COMPLETE = 5;
     private static final int TOTAL_STEPS = 6;
+    private static final int REQUEST_CODE_QR_SCAN = 0x4652;
 
     private int mCurrentStep = STEP_WELCOME;
     private String mDomain = "feishu";
@@ -362,6 +363,21 @@ public class FeishuSetupActivity extends AppCompatActivity {
         if (qrBitmap != null) {
             qrImageView.setImageBitmap(qrBitmap);
         }
+
+        // Scan QR Code button — uses any installed barcode scanner app
+        com.google.android.material.button.MaterialButton scanQrBtn =
+                new com.google.android.material.button.MaterialButton(this);
+        scanQrBtn.setText(R.string.feishu_scan_qr_code);
+        scanQrBtn.setAllCaps(false);
+        scanQrBtn.setCornerRadius(dp(20));
+        LinearLayout.LayoutParams scanBtnParams = new LinearLayout.LayoutParams(
+                LinearLayout.LayoutParams.WRAP_CONTENT, LinearLayout.LayoutParams.WRAP_CONTENT);
+        scanBtnParams.gravity = Gravity.CENTER_HORIZONTAL;
+        scanBtnParams.topMargin = dp(8);
+        scanBtnParams.bottomMargin = dp(16);
+        scanQrBtn.setLayoutParams(scanBtnParams);
+        scanQrBtn.setOnClickListener(v -> launchQrScanner());
+        ll.addView(scanQrBtn);
 
         // Auto-detect clipboard for App ID
         String clipboardContent = getClipboardText();
@@ -681,6 +697,103 @@ public class FeishuSetupActivity extends AppCompatActivity {
         ll.addView(nextStepsTv);
 
         return wrapInScrollView(ll);
+    }
+
+    // =========================================================================
+    // QR Code Scanning
+    // =========================================================================
+
+    private void launchQrScanner() {
+        Intent intent = new Intent("com.google.zxing.client.android.SCAN");
+        intent.putExtra("SCAN_MODE", "QR_CODE_MODE");
+        intent.putExtra("PROMPT_MESSAGE", getString(R.string.feishu_scan_prompt));
+
+        // Try with ZXing-compatible scanner first
+        if (intent.resolveActivity(getPackageManager()) != null) {
+            startActivityForResult(intent, REQUEST_CODE_QR_SCAN);
+            return;
+        }
+
+        // Fallback: try Barcode Scanner package names
+        String[] scannerPackages = {
+                "com.google.zxing.client.android",
+                "com.srowen.bs.android",
+                "com.gamma.scan",
+                "la.droid.qr",
+                "com.application_onestop.qrscanner"
+        };
+        for (String pkg : scannerPackages) {
+            intent.setPackage(pkg);
+            if (intent.resolveActivity(getPackageManager()) != null) {
+                startActivityForResult(intent, REQUEST_CODE_QR_SCAN);
+                return;
+            }
+        }
+
+        // No scanner found — suggest clipboard paste
+        Toast.makeText(this, R.string.feishu_no_qr_scanner, Toast.LENGTH_LONG).show();
+    }
+
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+        if (requestCode == REQUEST_CODE_QR_SCAN) {
+            if (resultCode == RESULT_OK && data != null) {
+                String scanResult = data.getStringExtra("SCAN_RESULT");
+                if (scanResult != null && !scanResult.isEmpty()) {
+                    fillFromScanResult(scanResult);
+                }
+            }
+        }
+    }
+
+    private void fillFromScanResult(String scanResult) {
+        // Only fill if we're on the credentials step
+        if (mCurrentStep != STEP_CREDENTIALS) return;
+
+        EditText appIdEdit = findViewById(R.id.feishu_app_id_input);
+        EditText appSecretEdit = findViewById(R.id.feishu_app_secret_input);
+        if (appIdEdit == null) return;
+
+        // If the scan result looks like an App ID (starts with cli_), fill it directly
+        String trimmed = scanResult.trim();
+        if (trimmed.startsWith("cli_")) {
+            appIdEdit.setText(trimmed);
+            Toast.makeText(this, R.string.feishu_scan_app_id_filled, Toast.LENGTH_SHORT).show();
+            return;
+        }
+
+        // Try to extract App ID / App Secret from a URL or JSON-like content
+        // Feishu credential URLs may contain app_id or app_id= parameter
+        String appId = extractQueryParam(trimmed, "app_id");
+        if (appId == null) appId = extractQueryParam(trimmed, "appId");
+        String appSecret = extractQueryParam(trimmed, "app_secret");
+        if (appSecret == null) appSecret = extractQueryParam(trimmed, "appSecret");
+
+        if (appId != null) {
+            appIdEdit.setText(appId);
+            if (appSecret != null && appSecretEdit != null) {
+                appSecretEdit.setText(appSecret);
+            }
+            Toast.makeText(this, R.string.feishu_scan_app_id_filled, Toast.LENGTH_SHORT).show();
+        } else {
+            // Just put it in the App ID field and let the user validate
+            appIdEdit.setText(trimmed);
+            Toast.makeText(this, R.string.feishu_scan_filled, Toast.LENGTH_SHORT).show();
+        }
+    }
+
+    private String extractQueryParam(String text, String paramName) {
+        // Extract from URL query params: ?app_id=xxx or &app_id=xxx
+        String marker = paramName + "=";
+        int start = text.indexOf(marker);
+        if (start < 0) return null;
+        start += marker.length();
+        int end = text.indexOf('&', start);
+        if (end < 0) end = text.indexOf('"', start);
+        if (end < 0) end = text.indexOf('\'', start);
+        if (end < 0) end = text.length();
+        return text.substring(start, end);
     }
 
     // =========================================================================

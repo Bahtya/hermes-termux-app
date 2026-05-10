@@ -536,7 +536,15 @@
     <string name="feishu_step4_title">Enter Credentials</string>
     <string name="feishu_step4_desc">Scan the QR code below with Feishu to open the credentials page, or enter them manually.</string>
     <string name="feishu_qr_scan_hint">Scan this QR code with Feishu to open the Developer Console:</string>
+    <string name="feishu_scan_qr_code">Scan QR Code</string>
+    <string name="feishu_scan_prompt">Point the camera at a Feishu credential QR code</string>
+    <string name="feishu_no_qr_scanner">No QR scanner app found. Please install a barcode scanner or paste credentials manually.</string>
+    <string name="feishu_scan_app_id_filled">App ID filled from QR code</string>
+    <string name="feishu_scan_filled">QR content filled — please verify</string>
     <string name="feishu_manual_entry_label">Or enter credentials manually:</string>
+    <string name="im_scan_qr_code">Scan QR Code</string>
+    <string name="im_scan_qr_prompt">Point the camera at a bot token QR code</string>
+    <string name="im_scan_token_filled">Token filled from QR code</string>
     <string name="feishu_paste">Paste</string>
     <string name="feishu_toggle_visibility">Show</string>
     <string name="feishu_paste_detected">App ID detected! Tap to fill: %1$s</string>
