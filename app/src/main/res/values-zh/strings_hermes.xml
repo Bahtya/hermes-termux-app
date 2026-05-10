@@ -93,6 +93,16 @@
     <string name="gateway_log_cleared">日志已清除</string>
     <string name="hermes_gateway_log_summary">查看网关日志以排查问题</string>
 
+    <!-- Gateway Log Level -->
+    <string name="gateway_log_level_title">日志级别</string>
+    <string name="gateway_log_level_summary">设置网关日志详细程度</string>
+    <string-array name="gateway_log_level_names">
+        <item>调试</item>
+        <item>信息</item>
+        <item>警告</item>
+        <item>错误</item>
+    </string-array>
+
     <!-- Dashboard -->
     <string name="dashboard_title">状态概览</string>
     <string name="dashboard_gateway_title">网关</string>

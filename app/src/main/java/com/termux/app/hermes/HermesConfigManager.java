@@ -59,6 +59,8 @@ public class HermesConfigManager {
     private static final String KEY_FEISHU_ALLOWED_USERS = "feishu.allowed_users";
     private static final String KEY_FEISHU_HOME_CHANNEL = "feishu.home_channel";
 
+    private static final String KEY_GATEWAY_LOG_LEVEL = "gateway.log_level";
+
     // ---- .env key constants ----
     private static final String ENV_OPENAI_API_KEY = "OPENAI_API_KEY";
     private static final String ENV_ANTHROPIC_API_KEY = "ANTHROPIC_API_KEY";
@@ -533,6 +535,14 @@ public class HermesConfigManager {
 
     public void setModelMaxTokens(int maxTokens) {
         setYamlValue(KEY_MODEL_MAX_TOKENS, String.valueOf(maxTokens));
+    }
+
+    public String getGatewayLogLevel() {
+        return getYamlValue(KEY_GATEWAY_LOG_LEVEL, "info");
+    }
+
+    public void setGatewayLogLevel(String level) {
+        setYamlValue(KEY_GATEWAY_LOG_LEVEL, level);
     }
 
     // =========================================================================

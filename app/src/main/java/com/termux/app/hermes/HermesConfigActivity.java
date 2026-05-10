@@ -18,6 +18,7 @@ import androidx.preference.PreferenceFragmentCompat;
 import androidx.preference.SwitchPreferenceCompat;
 
 import com.termux.R;
+import com.termux.app.hermes.HermesConfigManager;
 import com.termux.shared.termux.TermuxConstants;
 
 import java.io.File;
@@ -645,6 +646,16 @@ public class HermesConfigActivity extends AppCompatActivity {
         @Override
         public void onCreatePreferences(Bundle savedInstanceState, String rootKey) {
             setPreferencesFromResource(R.xml.hermes_gateway_preferences, rootKey);
+
+            ListPreference logLevelPref = findPreference("gateway_log_level");
+            if (logLevelPref != null) {
+                HermesConfigManager mgr = HermesConfigManager.getInstance();
+                logLevelPref.setValue(mgr.getGatewayLogLevel());
+                logLevelPref.setOnPreferenceChangeListener((pref, newValue) -> {
+                    mgr.setGatewayLogLevel((String) newValue);
+                    return true;
+                });
+            }
         }
 
         @Override

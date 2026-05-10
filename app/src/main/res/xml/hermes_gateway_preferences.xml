@@ -16,4 +16,12 @@
         android:title="@string/gateway_restart_title"
         android:summary="@string/gateway_restart_summary" />
 
+    <ListPreference
+        android:key="gateway_log_level"
+        android:title="@string/gateway_log_level_title"
+        android:summary="@string/gateway_log_level_summary"
+        android:entries="@array/gateway_log_level_names"
+        android:entryValues="@array/gateway_log_level_values"
+        android:defaultValue="info" />
+
 </PreferenceScreen>

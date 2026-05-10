@@ -412,6 +412,22 @@
     <string name="gateway_log_cleared">Log cleared</string>
     <string name="hermes_gateway_log_summary">View gateway log for troubleshooting</string>
 
+    <!-- Gateway Log Level -->
+    <string name="gateway_log_level_title">Log Level</string>
+    <string name="gateway_log_level_summary">Set the gateway logging verbosity</string>
+    <string-array name="gateway_log_level_names">
+        <item>Debug</item>
+        <item>Info</item>
+        <item>Warning</item>
+        <item>Error</item>
+    </string-array>
+    <string-array name="gateway_log_level_values">
+        <item>debug</item>
+        <item>info</item>
+        <item>warn</item>
+        <item>error</item>
+    </string-array>
+
     <!-- Dashboard -->
     <string name="dashboard_title">Status Overview</string>
     <string name="dashboard_gateway_title">Gateway</string>
