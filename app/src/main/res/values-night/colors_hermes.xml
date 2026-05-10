@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Hermes status colors (dark mode) -->
+    <color name="hermes_status_running">#FF66BB6A</color>
+    <color name="hermes_status_stopped">#FFEF5350</color>
+    <color name="hermes_status_not_installed">#FF757575</color>
+
+    <!-- Hermes UI colors (dark mode) -->
+    <color name="hermes_text_secondary">#FFB0B0B0</color>
+    <color name="hermes_text_hint">#FF9E9E9E</color>
+    <color name="hermes_step_number_bg">#FF5C9FE6</color>
+    <color name="hermes_step_number_text">#FFFFFFFF</color>
+    <color name="hermes_divider">#FF424242</color>
+    <color name="hermes_card_background">#FF2A2A2A</color>
+    <color name="hermes_separator">#33FFFFFF</color>
+    <color name="hermes_validation_warning">#FFFFB74D</color>
+    <color name="hermes_validation_success">#FF66BB6A</color>
+    <color name="hermes_paste_button_bg">#FF388E3C</color>
+    <color name="hermes_paste_button_text">#FFFFFFFF</color>
+</resources>

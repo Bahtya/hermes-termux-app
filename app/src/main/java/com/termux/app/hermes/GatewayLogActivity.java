@@ -16,6 +16,8 @@ import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 
 import com.termux.R;
+
+import androidx.core.content.ContextCompat;
 import com.termux.shared.termux.TermuxConstants;
 
 import java.io.BufferedReader;
@@ -83,7 +85,7 @@ public class GatewayLogActivity extends AppCompatActivity {
 
         // Separator
         View separator = new View(this);
-        separator.setBackgroundColor(0x33000000);
+        separator.setBackgroundColor(ContextCompat.getColor(this, R.color.hermes_separator));
         LinearLayout.LayoutParams sepParams = new LinearLayout.LayoutParams(
                 LinearLayout.LayoutParams.MATCH_PARENT, dp(1));
         sepParams.setMargins(dp(12), dp(4), dp(12), dp(4));
