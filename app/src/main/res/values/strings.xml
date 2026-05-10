@@ -814,6 +814,11 @@
     <string name="feishu_app_id_prefix">App IDs start with "cli_"</string>
 
     <!-- Gateway auto-restart -->
+        <!-- Gateway stats -->
+    <string name="gateway_stats_category">Session Stats</string>
+    <string name="gateway_stats_title">Current Session</string>
+    <string name="gateway_stats_running">Uptime: %s</string>
+    <string name="gateway_stats_stopped">Gateway is not running</string>
     <string name="gateway_auto_restart_category">Auto-Recovery</string>
     <string name="gateway_auto_restart_title">Auto-Restart on Failure</string>
     <string name="gateway_auto_restart_summary">Automatically restart gateway when it crashes</string>
