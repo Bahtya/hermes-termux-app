@@ -57,6 +57,11 @@
     <string name="tab_bash">Bash</string>
     <string name="tab_hermes">Hermes</string>
     <string name="tab_web">Web UI</string>
+    <string name="hermes_status_overlay_running">Gateway: Running</string>
+    <string name="hermes_status_overlay_stopped">Gateway: Stopped</string>
+    <string name="hermes_status_overlay_not_installed">Gateway: Not installed</string>
+    <string name="hermes_status_overlay_content_description">Hermes gateway status</string>
+
     <string name="hermes_not_installed">Hermes CLI is not installed.\n\nPlace the hermes binary at:\n%1$s\nand make it executable:\nchmod +x %1$s</string>
 
     <string name="msg_enabling_terminal_toolbar">Enabling Terminal Toolbar</string>

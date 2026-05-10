@@ -3,6 +3,11 @@
     <!-- Tab bar -->
     <string name="tab_hermes">Hermes</string>
     <string name="tab_web">Web 界面</string>
+    <string name="hermes_status_overlay_running">网关：运行中</string>
+    <string name="hermes_status_overlay_stopped">网关：已停止</string>
+    <string name="hermes_status_overlay_not_installed">网关：未安装</string>
+    <string name="hermes_status_overlay_content_description">Hermes 网关状态</string>
+
     <string name="hermes_not_installed">Hermes CLI 未安装。\n\n请将 hermes 可执行文件放置在：\n%1$s\n并添加执行权限：\nchmod +x %1$s</string>
 
     <!-- Hermes Configuration -->
