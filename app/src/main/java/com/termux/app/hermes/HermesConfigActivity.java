@@ -310,9 +310,7 @@ public class HermesConfigActivity extends AppCompatActivity {
                     startActivity(tgIntent);
                     return true;
                 case "hermes_discord_setup":
-                    Intent dcIntent = new Intent(requireContext(), ImSetupActivity.class);
-                    dcIntent.putExtra(ImSetupActivity.EXTRA_PLATFORM, ImSetupActivity.PLATFORM_DISCORD);
-                    startActivity(dcIntent);
+                    startActivity(new Intent(requireContext(), DiscordSetupActivity.class));
                     return true;
                 case "hermes_whatsapp_setup":
                     startActivity(new Intent(requireContext(), WhatsAppSetupActivity.class));
