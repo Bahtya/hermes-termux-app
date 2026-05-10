@@ -1263,4 +1263,31 @@
         <item>ERROR</item>
     </string-array>
 
+    <!-- Prompt Chains -->
+    <string name="chains_title">Prompt Chains</string>
+    <string name="chains_summary">Configure multi-step AI workflows</string>
+    <string name="chains_empty">No prompt chains configured</string>
+    <string name="chains_add">Add Chain</string>
+    <string name="chains_name_hint">Chain name</string>
+    <string name="chains_desc_hint">Description</string>
+    <string name="chains_mode_title">Execution Mode</string>
+    <string name="chains_step_prompt_title">Step %d System Prompt</string>
+    <string name="chains_step_model_title">Model Override (optional)</string>
+    <string name="chains_step_tools_title">Allowed Tools (empty = all)</string>
+    <string name="chains_add_step">Add Step</string>
+    <string name="chains_saved">Chain "%s" saved</string>
+    <string name="chains_deleted">Chain "%s" deleted</string>
+    <string name="chains_name_required">Chain name is required</string>
+    <string name="chains_remove">Remove</string>
+    <string name="chains_edit">Edit</string>
+
+    <string-array name="chains_mode_names">
+        <item>Sequential (wait for each step)</item>
+        <item>Parallel (run all at once)</item>
+    </string-array>
+    <string-array name="chains_mode_values">
+        <item>sequential</item>
+        <item>parallel</item>
+    </string-array>
+
 </resources>

@@ -121,6 +121,9 @@ public class HermesConfigManager {
     private static final String KEY_LOGGING_MAX_FILES = "logging.max_files";
     private static final String KEY_LOGGING_TO_FILE = "logging.to_file";
 
+    // Prompt chain config keys
+    private static final String KEY_CHAINS = "chains";
+
     // ---- .env key constants ----
     private static final String ENV_OPENAI_API_KEY = "OPENAI_API_KEY";
     private static final String ENV_ANTHROPIC_API_KEY = "ANTHROPIC_API_KEY";
@@ -866,6 +869,178 @@ public class HermesConfigManager {
 
     public void setLoggingToFile(boolean enabled) {
         setYamlValue(KEY_LOGGING_TO_FILE, enabled ? "true" : "false");
+    }
+
+    // =========================================================================
+    // Prompt chain management
+    // =========================================================================
+
+    private static final String CHAIN_PREFS = "hermes_prompt_chains";
+
+    /** Simple data class for a prompt chain step. */
+    public static class ChainStep {
+        public String systemPrompt;
+        public String modelOverride;
+        public String toolsAllowed;
+
+        public ChainStep(String systemPrompt, String modelOverride, String toolsAllowed) {
+            this.systemPrompt = systemPrompt;
+            this.modelOverride = modelOverride;
+            this.toolsAllowed = toolsAllowed;
+        }
+    }
+
+    /** Simple data class for a prompt chain. */
+    public static class PromptChain {
+        public String name;
+        public String description;
+        public String mode; // "sequential" or "parallel"
+        public List<ChainStep> steps;
+
+        public PromptChain(String name, String description, String mode) {
+            this.name = name;
+            this.description = description;
+            this.mode = mode;
+            this.steps = new ArrayList<>();
+        }
+    }
+
+    /** Returns all saved prompt chain names. */
+    public List<String> getChainNames(Context context) {
+        SharedPreferences prefs = context.getSharedPreferences(CHAIN_PREFS, Context.MODE_PRIVATE);
+        String json = prefs.getString("chains_index", "[]");
+        List<String> names = new ArrayList<>();
+        // Simple parse: ["name1","name2"]
+        String cleaned = json.replace("[", "").replace("]", "").replace("\"", "").trim();
+        if (cleaned.isEmpty()) return names;
+        for (String part : cleaned.split(",")) {
+            String trimmed = part.trim();
+            if (!trimmed.isEmpty()) names.add(trimmed);
+        }
+        return names;
+    }
+
+    /** Saves a prompt chain. */
+    public void saveChain(Context context, PromptChain chain) {
+        SharedPreferences prefs = context.getSharedPreferences(CHAIN_PREFS, Context.MODE_PRIVATE);
+        SharedPreferences.Editor editor = prefs.edit();
+
+        // Update index
+        List<String> names = getChainNames(context);
+        if (!names.contains(chain.name)) names.add(chain.name);
+        StringBuilder indexBuilder = new StringBuilder("[");
+        for (int i = 0; i < names.size(); i++) {
+            if (i > 0) indexBuilder.append(",");
+            indexBuilder.append("\"").append(names.get(i)).append("\"");
+        }
+        indexBuilder.append("]");
+        editor.putString("chains_index", indexBuilder.toString());
+
+        // Serialize chain to JSON
+        StringBuilder sb = new StringBuilder();
+        sb.append("{\"name\":\"").append(escapeJson(chain.name)).append("\"");
+        sb.append(",\"description\":\"").append(escapeJson(chain.description)).append("\"");
+        sb.append(",\"mode\":\"").append(chain.mode).append("\"");
+        sb.append(",\"steps\":[");
+        for (int i = 0; i < chain.steps.size(); i++) {
+            ChainStep step = chain.steps.get(i);
+            if (i > 0) sb.append(",");
+            sb.append("{\"prompt\":\"").append(escapeJson(step.systemPrompt)).append("\"");
+            sb.append(",\"model\":\"").append(escapeJson(step.modelOverride)).append("\"");
+            sb.append(",\"tools\":\"").append(escapeJson(step.toolsAllowed)).append("\"}");
+        }
+        sb.append("]}");
+        editor.putString("chain_" + chain.name, sb.toString());
+        editor.apply();
+
+        // Also write to config.yaml for hermes-agent to read
+        setYamlValue("chains." + chain.name + ".description", chain.description);
+        setYamlValue("chains." + chain.name + ".mode", chain.mode);
+    }
+
+    /** Loads a prompt chain by name. Returns null if not found. */
+    public PromptChain loadChain(Context context, String name) {
+        SharedPreferences prefs = context.getSharedPreferences(CHAIN_PREFS, Context.MODE_PRIVATE);
+        String json = prefs.getString("chain_" + name, null);
+        if (json == null) return null;
+
+        try {
+            String desc = extractJsonStringValue(json, "description");
+            String mode = extractJsonStringValue(json, "mode");
+            PromptChain chain = new PromptChain(name, desc != null ? desc : "", mode != null ? mode : "sequential");
+
+            // Parse steps
+            String stepsMarker = "\"steps\":[";
+            int stepsStart = json.indexOf(stepsMarker);
+            if (stepsStart >= 0) {
+                stepsStart += stepsMarker.length();
+                int depth = 1;
+                int pos = stepsStart;
+                while (pos < json.length() && depth > 0) {
+                    char c = json.charAt(pos);
+                    if (c == '[') depth++;
+                    else if (c == ']') depth--;
+                    if (depth == 0 || c == '}') {
+                        if (c == '}') {
+                            String stepJson = json.substring(stepsStart, pos + 1);
+                            stepsStart = pos + 1;
+                            while (stepsStart < json.length() && (json.charAt(stepsStart) == ',' || json.charAt(stepsStart) == ' ')) {
+                                stepsStart++;
+                            }
+                            String prompt = extractJsonStringValue(stepJson, "prompt");
+                            String model = extractJsonStringValue(stepJson, "model");
+                            String tools = extractJsonStringValue(stepJson, "tools");
+                            chain.steps.add(new ChainStep(
+                                    prompt != null ? prompt : "",
+                                    model != null ? model : "",
+                                    tools != null ? tools : ""));
+                        }
+                    }
+                    pos++;
+                }
+            }
+            return chain;
+        } catch (Exception e) {
+            return null;
+        }
+    }
+
+    /** Deletes a prompt chain by name. */
+    public void deleteChain(Context context, String name) {
+        SharedPreferences prefs = context.getSharedPreferences(CHAIN_PREFS, Context.MODE_PRIVATE);
+        prefs.edit().remove("chain_" + name).apply();
+
+        List<String> names = getChainNames(context);
+        names.remove(name);
+        StringBuilder indexBuilder = new StringBuilder("[");
+        for (int i = 0; i < names.size(); i++) {
+            if (i > 0) indexBuilder.append(",");
+            indexBuilder.append("\"").append(names.get(i)).append("\"");
+        }
+        indexBuilder.append("]");
+        prefs.edit().putString("chains_index", indexBuilder.toString()).apply();
+    }
+
+    private String extractJsonStringValue(String json, String key) {
+        String marker = "\"" + key + "\":\"";
+        int start = json.indexOf(marker);
+        if (start < 0) return null;
+        start += marker.length();
+        StringBuilder sb = new StringBuilder();
+        for (int i = start; i < json.length(); i++) {
+            char c = json.charAt(i);
+            if (c == '\\' && i + 1 < json.length()) {
+                char next = json.charAt(i + 1);
+                if (next == '"') { sb.append('"'); i++; continue; }
+                if (next == '\\') { sb.append('\\'); i++; continue; }
+                if (next == 'n') { sb.append('\n'); i++; continue; }
+                if (next == 't') { sb.append('\t'); i++; continue; }
+            } else if (c == '"') {
+                return sb.toString();
+            }
+            sb.append(c);
+        }
+        return sb.toString();
     }
 
     // =========================================================================
