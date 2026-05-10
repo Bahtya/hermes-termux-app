@@ -66,6 +66,20 @@ public class HermesConfigManager {
     private static final String KEY_FEISHU_ALLOWED_USERS = "feishu.allowed_users";
     private static final String KEY_FEISHU_HOME_CHANNEL = "feishu.home_channel";
 
+    // Agent behavior config.yaml keys
+    private static final String KEY_COMPRESSION_ENABLED = "compression.enabled";
+    private static final String KEY_COMPRESSION_THRESHOLD = "compression.threshold";
+    private static final String KEY_CONTEXT_LENGTH = "context_length";
+    private static final String KEY_AGENT_MAX_TURNS = "agent.max_turns";
+    private static final String KEY_AGENT_GATEWAY_TIMEOUT = "agent.gateway_timeout";
+    private static final String KEY_AGENT_VERBOSE = "agent.verbose";
+    private static final String KEY_MEMORY_ENABLED = "memory.memory_enabled";
+    private static final String KEY_USER_PROFILE_ENABLED = "memory.user_profile_enabled";
+    private static final String KEY_MEMORY_CHAR_LIMIT = "memory.memory_char_limit";
+    private static final String KEY_SESSION_RESET_MODE = "session_reset.mode";
+    private static final String KEY_SESSION_IDLE_MINUTES = "session_reset.idle_minutes";
+    private static final String KEY_SESSION_RESET_HOUR = "session_reset.at_hour";
+
     // ---- .env key constants ----
     private static final String ENV_OPENAI_API_KEY = "OPENAI_API_KEY";
     private static final String ENV_ANTHROPIC_API_KEY = "ANTHROPIC_API_KEY";
