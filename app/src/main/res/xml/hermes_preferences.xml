@@ -1,6 +1,11 @@
 <?xml version="1.0" encoding="utf-8"?>
 <PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android">
 
+    <Preference
+        android:key="hermes_quickstart"
+        android:title="@string/quickstart_start"
+        android:summary="@string/quickstart_stopped" />
+
     <PreferenceCategory android:title="@string/dashboard_title">
         <Preference
             android:key="hermes_dashboard_version"
