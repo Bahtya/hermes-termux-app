@@ -569,6 +569,7 @@ public class HermesConfigActivity extends AppCompatActivity {
                 apiKeyPref.setOnPreferenceChangeListener((p, newVal) -> {
                     mConfigManager.setApiKey(mConfigManager.getModelProvider(), (String) newVal);
                     p.setSummary(maskApiKey((String) newVal));
+                    restartGatewayIfRunning();
                     return true;
                 });
             }
@@ -591,6 +592,7 @@ public class HermesConfigActivity extends AppCompatActivity {
                         boolean needsUrl = "ollama".equals(provider) || "custom".equals(provider);
                         baseUrlPref.setVisible(needsUrl);
                     }
+                    restartGatewayIfRunning();
                     return true;
                 });
             }
@@ -599,6 +601,7 @@ public class HermesConfigActivity extends AppCompatActivity {
             if (modelPref != null) {
                 modelPref.setOnPreferenceChangeListener((p, newVal) -> {
                     mConfigManager.setModelName((String) newVal);
+                    restartGatewayIfRunning();
                     return true;
                 });
             }
@@ -694,6 +697,24 @@ public class HermesConfigActivity extends AppCompatActivity {
         private String maskApiKey(String key) {
             if (key == null || key.length() < 8) return "****";
             return key.substring(0, 4) + "..." + key.substring(key.length() - 4);
+        }
+
+        private void restartGatewayIfRunning() {
+            HermesGatewayStatus.checkAsync((status, detail) -> {
+                if (status == HermesGatewayStatus.Status.RUNNING && getActivity() != null) {
+                    new android.os.Handler(android.os.Looper.getMainLooper()).postDelayed(() -> {
+                        if (getActivity() == null) return;
+                        Context ctx = getActivity();
+                        ctx.startService(new Intent(ctx, HermesGatewayService.class)
+                                .setAction(HermesGatewayService.ACTION_STOP));
+                        new android.os.Handler(android.os.Looper.getMainLooper()).postDelayed(() -> {
+                            ctx.startService(new Intent(ctx, HermesGatewayService.class)
+                                    .setAction(HermesGatewayService.ACTION_START));
+                        }, 1500);
+                        Toast.makeText(ctx, R.string.gateway_restart_for_config, Toast.LENGTH_SHORT).show();
+                    }, 500);
+                }
+            });
         }
 
         @Override

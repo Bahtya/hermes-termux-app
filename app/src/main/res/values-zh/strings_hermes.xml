@@ -281,6 +281,7 @@ App ID 以"cli_"开头，约 10-20 个字符。App Secret 较长（30+ 字符）
     <string name="gateway_stopped">网关已停止</string>
     <string name="gateway_restarted">网关重启中…</string>
     <string name="gateway_auto_restart_toast">正在应用配置更改…</string>
+    <string name="gateway_restart_for_config">正在重启网关以应用更改…</string>
     <string name="gateway_status_running">运行中</string>
     <string name="gateway_status_stopped">已停止</string>
     <string name="gateway_status_not_installed">未安装</string>
