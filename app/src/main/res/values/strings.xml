@@ -259,6 +259,13 @@
     <string name="hermes_reset_confirm_title">Reset Hermes Config?</string>
     <string name="hermes_reset_confirm_message">This will delete your Hermes configuration files. API keys and settings will be lost.</string>
     <string name="hermes_reset_done">Configuration reset to defaults</string>
+    <string name="hermes_check_update_title">Check for Updates</string>
+    <string name="hermes_check_update_summary">Check if a newer version of Hermes Agent is available</string>
+    <string name="hermes_update_available">Update available: %1$s (current: %2$s)</string>
+    <string name="hermes_up_to_date">Hermes Agent is up to date (%1$s)</string>
+    <string name="hermes_update_checking">Checking for updates…</string>
+    <string name="hermes_update_failed">Failed to check for updates</string>
+    <string name="hermes_version_label">Hermes Agent version</string>
 
     <!-- LLM Preferences -->
     <string name="llm_provider_title">AI Provider</string>
