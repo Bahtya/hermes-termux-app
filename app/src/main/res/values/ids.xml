@@ -8,4 +8,7 @@
     <item type="id" name="feishu_test_progress" />
     <item type="id" name="feishu_test_status" />
     <item type="id" name="btn_feishu_test" />
+    <item type="id" name="im_token_input" />
+    <item type="id" name="im_users_input" />
+    <item type="id" name="im_test_status" />
 </resources>
