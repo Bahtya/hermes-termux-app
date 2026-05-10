@@ -232,7 +232,6 @@ public class HermesGatewayService extends Service {
 
         boolean indeterminate = (currentStep >= totalSteps);
         return new NotificationCompat.Builder(this, CHANNEL_ID)
-                .setContentTitle(getString(R.string.gateway_step_loading_config).split("\\.\.")[0])
                 .setContentTitle("Hermes Gateway (" + currentStep + "/" + totalSteps + ")")
                 .setContentText(message)
                 .setSmallIcon(R.drawable.ic_hermes)
