@@ -2227,7 +2227,7 @@ public class HermesConfigActivity extends AppCompatActivity {
                     String key = mConfigManager.getApiKey(provider);
                     Preference akp = findPreference("llm_api_key");
                     if (akp != null) akp.setSummary(key != null && !key.isEmpty() ? maskApiKey(key) : "");
-                    Preference baseUrlPref = findPreference("llm_base_url");
+                    EditTextPreference baseUrlPref = findPreference("llm_base_url");
                     if (baseUrlPref != null && "ollama".equals(provider)) {
                         baseUrlPref.setText("http://localhost:11434/v1");
                         baseUrlPref.setVisible(true);
