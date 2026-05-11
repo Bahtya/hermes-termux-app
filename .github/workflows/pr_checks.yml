@@ -5,7 +5,7 @@ on:
     branches: [ main ]
 
 concurrency:
-  group: pr-checks-${{ github.event.pull_request.number }}-${{ matrix.package_variant }}
+  group: pr-checks-${{ github.event.pull_request.number }}
   cancel-in-progress: true
 
 jobs:

@@ -9,7 +9,7 @@ on:
       - main
 
 concurrency:
-  group: tests-${{ github.ref }}-${{ matrix.package_variant }}
+  group: tests-${{ github.ref }}
   cancel-in-progress: true
 
 jobs:
