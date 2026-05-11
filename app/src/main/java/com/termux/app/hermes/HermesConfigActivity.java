@@ -1200,7 +1200,7 @@ public class HermesConfigActivity extends AppCompatActivity {
             scrollView.addView(layout);
 
             int done = (gatewayInstalled ? 1 : 0) + (hasApiKey ? 1 : 0) + (hasModel ? 1 : 0) + (hasIm ? 1 : 0);
-            String title = "Setup Progress: " + (done * 100 / 4) + "%";
+            String title = getString(R.string.setup_progress_title, done * 100 / 4);
 
             new AlertDialog.Builder(requireContext())
                     .setTitle(title)
