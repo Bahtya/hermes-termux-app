@@ -463,6 +463,9 @@
     <string name="install_failed_help">请检查网络连接后重试。</string>
     <string name="install_retry">重试</string>
     <string name="install_retrying">正在重试（%1$d/%2$d）…</string>
+    <string name="install_direct_attempt">正在下载 Hermes Agent…（第 %1$d/%2$d 次）</string>
+    <string name="install_fallback_mirror">直连失败，正在尝试 ghfast 镜像加速…</string>
+    <string name="install_mirror_failed">镜像也失败了：%1$s</string>
     <string name="install_skip">跳过</string>
     <string name="install_step_check">检查环境</string>
     <string name="install_step_download">下载安装</string>

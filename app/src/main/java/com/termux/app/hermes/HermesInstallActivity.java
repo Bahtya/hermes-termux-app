@@ -26,8 +26,6 @@ public class HermesInstallActivity extends AppCompatActivity {
 
     private static final String MARKER_FILE =
             TermuxConstants.TERMUX_DATA_HOME_DIR_PATH + "/hermes-installed";
-    private static final String INSTALL_URL =
-            "https://hermes-agent.nousresearch.com/install.sh";
     private static final int MAX_RETRIES = 3;
 
     private TextView mStatusText;
@@ -202,39 +200,23 @@ public class HermesInstallActivity extends AppCompatActivity {
 
                 Thread.sleep(500);
 
-                // Step 2: Download and install
+                // Step 2: Download and install (with mirror fallback)
                 mHandler.post(() -> {
                     updateStepIndicators(2);
                     mStatusText.setText(R.string.install_downloading);
                     mProgressBar.setProgress(30);
                 });
 
-                Exception lastError = null;
-                boolean success = false;
-
-                for (int attempt = 1; attempt <= MAX_RETRIES; attempt++) {
-                    final int att = attempt;
-                    mHandler.post(() -> {
-                        if (att > 1) {
-                            mStatusText.setText(getString(R.string.install_retrying, att, MAX_RETRIES));
-                        }
-                    });
-
-                    try {
-                        runInstallScript();
-                        success = true;
-                        break;
-                    } catch (Exception e) {
-                        lastError = e;
-                        if (attempt < MAX_RETRIES) {
-                            Thread.sleep(5000);
-                        }
+                HermesInstallHelper.executeInstall(HermesInstallActivity.this, MAX_RETRIES, new HermesInstallHelper.ProgressCallback() {
+                    @Override
+                    public void onStatus(String message) {
+                        mHandler.post(() -> mStatusText.setText(message));
                     }
-                }
-
-                if (!success) {
-                    throw lastError != null ? lastError : new RuntimeException("Installation failed");
-                }
+                    @Override
+                    public boolean isCancelled() {
+                        return isFinishing() || isDestroyed();
+                    }
+                });
 
                 // Step 3: Mark installed
                 mHandler.post(() -> {
@@ -315,33 +297,6 @@ public class HermesInstallActivity extends AppCompatActivity {
             }
 
             mStepContainer.addView(stepTv);
-        }
-    }
-
-    private void runInstallScript() throws Exception {
-        String bashPath = TermuxConstants.TERMUX_BIN_PREFIX_DIR_PATH + "/bash";
-
-        ProcessBuilder pb = new ProcessBuilder(
-                bashPath, "-c",
-                "curl -fsSL " + INSTALL_URL + " | " + bashPath
-        );
-        pb.environment().put("HOME", TermuxConstants.TERMUX_HOME_DIR_PATH);
-        pb.environment().put("PATH", TermuxConstants.TERMUX_BIN_PREFIX_DIR_PATH
-                + ":/system/bin:/system/xbin");
-        pb.redirectErrorStream(true);
-
-        Process p = pb.start();
-        StringBuilder output = new StringBuilder();
-        try (BufferedReader reader = new BufferedReader(new InputStreamReader(p.getInputStream()))) {
-            String line;
-            while ((line = reader.readLine()) != null) {
-                output.append(line).append("\n");
-            }
-        }
-
-        int exit = p.waitFor();
-        if (exit != 0) {
-            throw new RuntimeException("Install script exited with code " + exit);
         }
     }
 
