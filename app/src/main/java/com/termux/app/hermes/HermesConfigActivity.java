@@ -2202,12 +2202,7 @@ public class HermesConfigActivity extends AppCompatActivity {
                 return true;
             }
             if ("llm_get_api_key".equals(key)) {
-                String provider = mConfigManager.getModelProvider();
-                if ("ollama".equals(provider)) {
-                    showOllamaSetupGuide();
-                } else {
-                    openProviderUrl(getApiKeyUrl());
-                }
+                showProviderSetupGuide();
                 return true;
             }
             if ("llm_docs".equals(key)) {
@@ -2329,6 +2324,131 @@ public class HermesConfigActivity extends AppCompatActivity {
                 case "nvidia":     return "https://build.nvidia.com/explore/discover";
                 case "ollama":     return "https://github.com/ollama/ollama";
                 default:           return null;
+            }
+        }
+
+        private void showProviderSetupGuide() {
+            String provider = mConfigManager.getModelProvider();
+            if ("ollama".equals(provider)) {
+                showOllamaSetupGuide();
+                return;
+            }
+
+            float density = getResources().getDisplayMetrics().density;
+            ScrollView scrollView = new ScrollView(requireContext());
+            LinearLayout layout = new LinearLayout(requireContext());
+            layout.setOrientation(LinearLayout.VERTICAL);
+            int pad = (int) (16 * density);
+            layout.setPadding(pad, pad, pad, pad);
+
+            // Title
+            String providerDisplayName = getProviderDisplayName(provider);
+            TextView title = new TextView(requireContext());
+            title.setText(getString(R.string.provider_setup_guide_title, providerDisplayName));
+            title.setTextSize(20);
+            title.setTypeface(null, android.graphics.Typeface.BOLD);
+            title.setPadding(0, 0, 0, (int) (12 * density));
+            layout.addView(title);
+
+            // Intro
+            TextView intro = new TextView(requireContext());
+            intro.setText(getProviderIntroResId(provider));
+            intro.setTextSize(14);
+            intro.setPadding(0, 0, 0, (int) (12 * density));
+            layout.addView(intro);
+
+            // Pricing badge
+            TextView pricing = new TextView(requireContext());
+            pricing.setText(getString(R.string.provider_setup_pricing_title) + ": " + getProviderPricingText(provider));
+            pricing.setTextSize(13);
+            pricing.setTypeface(null, android.graphics.Typeface.ITALIC);
+            pricing.setPadding(0, 0, 0, (int) (12 * density));
+            layout.addView(pricing);
+
+            // Steps title
+            TextView stepsTitle = new TextView(requireContext());
+            stepsTitle.setText(R.string.provider_setup_step_title);
+            stepsTitle.setTextSize(16);
+            stepsTitle.setTypeface(null, android.graphics.Typeface.BOLD);
+            stepsTitle.setPadding(0, (int) (8 * density), 0, (int) (8 * density));
+            layout.addView(stepsTitle);
+
+            // Steps
+            String[] steps = getString(getProviderStepsResId(provider)).split("\n");
+            for (String step : steps) {
+                TextView stepView = new TextView(requireContext());
+                stepView.setText(step);
+                stepView.setTextSize(13);
+                stepView.setPadding((int) (8 * density), (int) (4 * density), 0, (int) (4 * density));
+                layout.addView(stepView);
+            }
+
+            scrollView.addView(layout);
+
+            new AlertDialog.Builder(requireContext())
+                    .setTitle(getString(R.string.provider_setup_guide_title, providerDisplayName))
+                    .setView(scrollView)
+                    .setPositiveButton(R.string.provider_setup_open_dashboard, (d, w) -> {
+                        openProviderUrl(getApiKeyUrl());
+                    })
+                    .setNegativeButton(android.R.string.cancel, null)
+                    .show();
+        }
+
+        private String getProviderDisplayName(String provider) {
+            switch (provider) {
+                case "openai": return "OpenAI";
+                case "anthropic": return "Anthropic";
+                case "google": return "Google AI";
+                case "deepseek": return "DeepSeek";
+                case "openrouter": return "OpenRouter";
+                case "xai": return "xAI";
+                case "alibaba": return "Alibaba Cloud";
+                case "mistral": return "Mistral AI";
+                case "nvidia": return "NVIDIA";
+                case "ollama": return "Ollama";
+                default: return provider;
+            }
+        }
+
+        private int getProviderIntroResId(String provider) {
+            switch (provider) {
+                case "openai": return R.string.provider_setup_openai_intro;
+                case "anthropic": return R.string.provider_setup_anthropic_intro;
+                case "google": return R.string.provider_setup_google_intro;
+                case "deepseek": return R.string.provider_setup_deepseek_intro;
+                case "openrouter": return R.string.provider_setup_openrouter_intro;
+                case "xai": return R.string.provider_setup_xai_intro;
+                case "alibaba": return R.string.provider_setup_alibaba_intro;
+                case "mistral": return R.string.provider_setup_mistral_intro;
+                case "nvidia": return R.string.provider_setup_nvidia_intro;
+                default: return R.string.provider_setup_custom_intro;
+            }
+        }
+
+        private int getProviderStepsResId(String provider) {
+            switch (provider) {
+                case "openai": return R.string.provider_setup_openai_steps;
+                case "anthropic": return R.string.provider_setup_anthropic_steps;
+                case "google": return R.string.provider_setup_google_steps;
+                case "deepseek": return R.string.provider_setup_deepseek_steps;
+                case "openrouter": return R.string.provider_setup_openrouter_steps;
+                case "xai": return R.string.provider_setup_xai_steps;
+                case "alibaba": return R.string.provider_setup_alibaba_steps;
+                case "mistral": return R.string.provider_setup_mistral_steps;
+                case "nvidia": return R.string.provider_setup_nvidia_steps;
+                default: return R.string.provider_setup_custom_steps;
+            }
+        }
+
+        private String getProviderPricingText(String provider) {
+            switch (provider) {
+                case "ollama": return getString(R.string.provider_setup_local_free);
+                case "google":
+                case "openrouter":
+                    return getString(R.string.provider_setup_free_tier);
+                default:
+                    return getString(R.string.provider_setup_paid);
             }
         }
 
