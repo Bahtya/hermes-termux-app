@@ -36,7 +36,9 @@ import com.termux.shared.termux.TermuxConstants;
 
 import androidx.core.content.ContextCompat;
 
+import java.io.BufferedReader;
 import java.io.File;
+import java.io.InputStreamReader;
 import java.util.List;
 
 public class HermesConfigActivity extends AppCompatActivity {
@@ -82,6 +84,7 @@ public class HermesConfigActivity extends AppCompatActivity {
     public static class HermesConfigFragment extends PreferenceFragmentCompat {
 
         private HermesConfigManager mConfigManager;
+        private android.app.AlertDialog mQuickStartDialog;
 
         @Override
         public void onCreatePreferences(Bundle savedInstanceState, String rootKey) {
@@ -386,6 +389,9 @@ public class HermesConfigActivity extends AppCompatActivity {
                 case "validation_system_prompt":
                     showFragment(new LlmConfigFragment());
                     return true;
+                case "hermes_quick_start":
+                    showQuickStartDialog();
+                    return true;
                 case "hermes_health_check":
                     showFragment(new LlmConfigFragment());
                     return true;
@@ -640,6 +646,158 @@ public class HermesConfigActivity extends AppCompatActivity {
                     })
                     .setNegativeButton(android.R.string.cancel, null)
                     .show();
+        }
+
+        private void showQuickStartDialog() {
+            // Check if Ollama is already configured
+            String provider = mConfigManager.getModelProvider();
+            String apiKey = mConfigManager.getApiKey(provider);
+            if ("ollama".equals(provider) && !apiKey.isEmpty()) {
+                new AlertDialog.Builder(requireContext())
+                        .setTitle(R.string.quick_start_title)
+                        .setMessage(R.string.quick_start_already_setup)
+                        .setPositiveButton(android.R.string.ok, null)
+                        .show();
+                return;
+            }
+
+            // Model choice dialog
+            String[] models = {"phi3", "llama3", "qwen2.5"};
+            int[] labels = {
+                    R.string.quick_start_model_small,
+                    R.string.quick_start_model_medium,
+                    R.string.quick_start_model_large
+            };
+            String[] modelLabels = new String[labels.length];
+            for (int i = 0; i < labels.length; i++) {
+                modelLabels[i] = getString(labels[i]);
+            }
+
+            new AlertDialog.Builder(requireContext())
+                    .setTitle(R.string.quick_start_model_choice_title)
+                    .setItems(modelLabels, (dialog, which) -> {
+                        runQuickStart(models[which]);
+                    })
+                    .setNegativeButton(android.R.string.cancel, null)
+                    .show();
+        }
+
+        private void runQuickStart(String model) {
+            // Show progress dialog
+            mQuickStartDialog = new android.app.AlertDialog.Builder(requireContext())
+                    .setTitle(R.string.quick_start_progress_title)
+                    .setCancelable(false)
+                    .show();
+
+            TextView statusText = new TextView(requireContext());
+            statusText.setPadding(dp(24), dp(16), dp(24), dp(16));
+            statusText.setText(R.string.quick_start_step_check);
+            mQuickStartDialog.setContentView(statusText);
+
+            new Thread(() -> {
+                String binPath = com.termux.shared.termux.TermuxConstants.TERMUX_BIN_PREFIX_DIR_PATH;
+                String home = com.termux.shared.termux.TermuxConstants.TERMUX_HOME_DIR_PATH;
+                StringBuilder log = new StringBuilder();
+
+                try {
+                    // Step 1: Check if Ollama is installed
+                    updateQuickStartStatus(statusText, getString(R.string.quick_start_step_check));
+                    boolean ollamaInstalled = new java.io.File(binPath + "/ollama").exists();
+
+                    // Step 2: Install Ollama if needed
+                    if (!ollamaInstalled) {
+                        updateQuickStartStatus(statusText, getString(R.string.quick_start_step_install));
+                        ProcessBuilder installPb = new ProcessBuilder(
+                                binPath + "/bash", "-c",
+                                "curl -fsSL https://ollama.com/install.sh | sh 2>&1"
+                        );
+                        installPb.environment().put("HOME", home);
+                        installPb.environment().put("PATH", binPath + ":/system/bin:/system/xbin");
+                        installPb.redirectErrorStream(true);
+                        Process installProc = installPb.start();
+                        BufferedReader reader = new BufferedReader(new InputStreamReader(installProc.getInputStream()));
+                        String line;
+                        while ((line = reader.readLine()) != null) {
+                            log.append(line).append("\n");
+                        }
+                        int exitCode = installProc.waitFor();
+                        if (exitCode != 0) {
+                            throw new Exception("Ollama install failed (exit " + exitCode + ")");
+                        }
+                    }
+
+                    // Step 3: Start Ollama server in background
+                    ProcessBuilder servePb = new ProcessBuilder(
+                            binPath + "/bash", "-c",
+                            "pkill -f 'ollama serve' 2>/dev/null; " + binPath + "/ollama serve &>/dev/null & sleep 2; echo done"
+                    );
+                    servePb.environment().put("HOME", home);
+                    servePb.environment().put("PATH", binPath + ":/system/bin:/system/xbin");
+                    servePb.start().waitFor();
+
+                    // Step 4: Pull model
+                    updateQuickStartStatus(statusText, getString(R.string.quick_start_step_pull) + " (" + model + ")");
+                    ProcessBuilder pullPb = new ProcessBuilder(
+                            binPath + "/bash", "-c",
+                            binPath + "/ollama pull " + model + " 2>&1"
+                    );
+                    pullPb.environment().put("HOME", home);
+                    pullPb.environment().put("PATH", binPath + ":/system/bin:/system/xbin");
+                    pullPb.redirectErrorStream(true);
+                    Process pullProc = pullPb.start();
+                    BufferedReader pullReader = new BufferedReader(new InputStreamReader(pullProc.getInputStream()));
+                    while ((line = pullReader.readLine()) != null) {
+                        log.append(line).append("\n");
+                    }
+                    int pullExit = pullProc.waitFor();
+                    if (pullExit != 0) {
+                        throw new Exception("Model pull failed (exit " + pullExit + ")");
+                    }
+
+                    // Step 5: Configure Hermes
+                    updateQuickStartStatus(statusText, getString(R.string.quick_start_step_config));
+                    Thread.sleep(500);
+                    mConfigManager.setModelProvider("ollama");
+                    mConfigManager.setModelName(model);
+                    mConfigManager.setApiKey("ollama", "ollama");
+                    String baseUrl = "http://localhost:11434/v1";
+                    mConfigManager.setEnvVar("OPENAI_BASE_URL", baseUrl);
+
+                    // Step 6: Done
+                    if (getActivity() != null) {
+                        getActivity().runOnUiThread(() -> {
+                            if (mQuickStartDialog != null) mQuickStartDialog.dismiss();
+                            new AlertDialog.Builder(requireContext())
+                                    .setTitle(R.string.quick_start_title)
+                                    .setMessage(R.string.quick_start_step_done)
+                                    .setPositiveButton(R.string.gateway_start_title, (d, w) -> {
+                                        // Navigate to gateway control
+                                        showFragment(new GatewayControlFragment());
+                                    })
+                                    .setNegativeButton(android.R.string.ok, null)
+                                    .show();
+                        });
+                    }
+
+                } catch (Exception e) {
+                    if (getActivity() != null) {
+                        getActivity().runOnUiThread(() -> {
+                            if (mQuickStartDialog != null) mQuickStartDialog.dismiss();
+                            new AlertDialog.Builder(requireContext())
+                                    .setTitle(R.string.quick_start_title)
+                                    .setMessage(getString(R.string.quick_start_failed, e.getMessage()))
+                                    .setPositiveButton(android.R.string.ok, null)
+                                    .show();
+                        });
+                    }
+                }
+            }).start();
+        }
+
+        private void updateQuickStartStatus(TextView tv, String text) {
+            if (getActivity() != null) {
+                getActivity().runOnUiThread(() -> tv.setText(text));
+            }
         }
 
         private void showExportDialog() {

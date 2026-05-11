@@ -3,6 +3,10 @@
 
     <PreferenceCategory android:title="@string/dashboard_title">
         <Preference
+            android:key="hermes_quick_start"
+            android:title="@string/quick_start_title"
+            android:summary="@string/quick_start_summary" />
+        <Preference
             android:key="hermes_health_check"
             android:title="@string/health_check_title"
             android:summary="@string/health_check_checking"
