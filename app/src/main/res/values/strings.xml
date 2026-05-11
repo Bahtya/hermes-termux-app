@@ -781,6 +781,7 @@
     <string name="diagnostic_title">Connection Diagnostic</string>
     <string name="diagnostic_run">Run Diagnostic</string>
     <string name="diagnostic_copy">Copy Report</string>
+    <string name="diagnostic_fix">Fix Issues</string>
         <!-- Conversation history -->
     <string name="conversation_title">Conversation History</string>
     <string name="conversation_filter_label">Filter:</string>

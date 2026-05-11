@@ -356,6 +356,12 @@
     <string name="im_test_message_no_gateway">请先启动网关以发送测试消息。</string>
     <string name="im_test_message_button">发送测试消息</string>
 
+    <!-- Diagnostic -->
+    <string name="diagnostic_title">连接诊断</string>
+    <string name="diagnostic_run">运行诊断</string>
+    <string name="diagnostic_copy">复制报告</string>
+    <string name="diagnostic_fix">修复问题</string>
+
     <!-- Hermes Installation -->
     <string name="install_title">Hermes 安装</string>
     <string name="install_subtitle">正在安装 Hermes Agent</string>
