@@ -41,6 +41,8 @@ public class HermesInstaller {
             TermuxConstants.TERMUX_BOOT_SCRIPTS_DIR_PATH + "/hermes-gateway";
     private static final String HERMES_PATCH_MARKER_FILE =
             TermuxConstants.TERMUX_DATA_HOME_DIR_PATH + "/hermes-paths-patched";
+    private static final String HERMES_BASH_INIT_MARKER_FILE =
+            TermuxConstants.TERMUX_DATA_HOME_DIR_PATH + "/hermes-bash-init-deployed";
 
     private HermesInstaller() {}
 
@@ -58,19 +60,32 @@ public class HermesInstaller {
      * get their bootstrap binaries patched without needing a clean reinstall.
      */
     static void runUpgradeMigrations() {
-        if (new File(HERMES_PATCH_MARKER_FILE).exists()) return;
-        if (!new File(TermuxConstants.TERMUX_BIN_PREFIX_DIR_PATH, "bash").exists()) return;
-
-        Logger.logInfo(LOG_TAG, "Running upgrade migration: patching bootstrap paths");
-        TermuxInstaller.patchBootstrapPaths(TermuxConstants.TERMUX_PREFIX_DIR_PATH);
-
-        try {
-            try (FileOutputStream out = new FileOutputStream(HERMES_PATCH_MARKER_FILE)) {
-                out.write("1\n".getBytes("UTF-8"));
+        // Migration 1: Patch bootstrap binary paths
+        if (!new File(HERMES_PATCH_MARKER_FILE).exists()) {
+            if (new File(TermuxConstants.TERMUX_BIN_PREFIX_DIR_PATH, "bash").exists()) {
+                Logger.logInfo(LOG_TAG, "Running upgrade migration: patching bootstrap paths");
+                TermuxInstaller.patchBootstrapPaths(TermuxConstants.TERMUX_PREFIX_DIR_PATH);
             }
-            Logger.logInfo(LOG_TAG, "Upgrade migration complete");
-        } catch (Exception e) {
-            Logger.logErrorExtended(LOG_TAG, "Failed to write patch marker: " + e.getMessage());
+            try {
+                try (FileOutputStream out = new FileOutputStream(HERMES_PATCH_MARKER_FILE)) {
+                    out.write("1\n".getBytes("UTF-8"));
+                }
+            } catch (Exception e) {
+                Logger.logErrorExtended(LOG_TAG, "Failed to write patch marker: " + e.getMessage());
+            }
+        }
+
+        // Migration 2: Deploy bash init file to bypass compiled-in bash.bashrc path
+        if (!new File(HERMES_BASH_INIT_MARKER_FILE).exists()) {
+            try {
+                deployBashInit();
+                try (FileOutputStream out = new FileOutputStream(HERMES_BASH_INIT_MARKER_FILE)) {
+                    out.write("1\n".getBytes("UTF-8"));
+                }
+                Logger.logInfo(LOG_TAG, "Bash init migration complete");
+            } catch (Exception e) {
+                Logger.logErrorExtended(LOG_TAG, "Failed to deploy bash init: " + e.getMessage());
+            }
         }
     }
 
@@ -204,7 +219,34 @@ public class HermesInstaller {
         try (FileOutputStream out = new FileOutputStream(HERMES_MARKER_FILE)) {
             out.write("1\n".getBytes("UTF-8"));
         }
+        deployBashInit();
         deployShellProfile();
+    }
+
+    /**
+     * Deploy the .hermes_bash_init file that serves as bash's --rcfile target.
+     * This bypasses the compiled-in /data/data/com.termux/.../bash.bashrc path
+     * which causes "Permission denied" on forked packages where the package name
+     * differs. The init file sources the system bash.bashrc and profile from the
+     * correct $PREFIX path, then sources the user's .bashrc.
+     */
+    private static void deployBashInit() throws Exception {
+        String home = TermuxConstants.TERMUX_HOME_DIR_PATH;
+        File initFile = new File(home, ".hermes_bash_init");
+
+        String content = "# Hermes bash init - sourced via --rcfile to bypass compiled-in bash.bashrc path\n"
+                + "if [ -f \"$PREFIX/etc/bash.bashrc\" ]; then\n"
+                + "    . \"$PREFIX/etc/bash.bashrc\"\n"
+                + "fi\n"
+                + "if [ -f \"$HOME/.bashrc\" ]; then\n"
+                + "    . \"$HOME/.bashrc\"\n"
+                + "fi\n";
+
+        try (FileOutputStream out = new FileOutputStream(initFile)) {
+            out.write(content.getBytes("UTF-8"));
+        }
+        Os.chmod(initFile.getAbsolutePath(), 0644);
+        Logger.logInfo(LOG_TAG, "Deployed bash init file to " + initFile.getAbsolutePath());
     }
 
     private static void deployShellProfile() throws Exception {
