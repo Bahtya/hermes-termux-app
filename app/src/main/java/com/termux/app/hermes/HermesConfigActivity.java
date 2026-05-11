@@ -1210,8 +1210,8 @@ public class HermesConfigActivity extends AppCompatActivity {
         }
 
         private void updateValidationDisplay() {
-            int totalChecks = 4;
-            int passedChecks = 0;
+            final int totalChecks = 4;
+            final int[] syncPassed = {0};
 
             // API key validation
             Preference apiKeyVal = findPreference("validation_api_key");
@@ -1222,7 +1222,7 @@ public class HermesConfigActivity extends AppCompatActivity {
                 if (hasKey) {
                     apiKeyVal.setTitle("✅ " + getString(R.string.validation_api_key_title));
                     apiKeyVal.setSummary(getString(R.string.validation_api_key_ok, provider));
-                    passedChecks++;
+                    syncPassed[0]++;
                 } else {
                     apiKeyVal.setTitle("❌ " + getString(R.string.validation_api_key_title));
                     apiKeyVal.setSummary(getString(R.string.validation_api_key_missing));
@@ -1250,7 +1250,7 @@ public class HermesConfigActivity extends AppCompatActivity {
                                 gatewayVal.setSummary(getString(R.string.validation_gateway_stopped));
                                 break;
                         }
-                        updateValidationSummary(passedChecks + (status == HermesGatewayStatus.Status.RUNNING ? 1 : 0), totalChecks);
+                        updateValidationSummary(syncPassed[0] + (status == HermesGatewayStatus.Status.RUNNING ? 1 : 0), totalChecks);
                     });
                 });
             }
@@ -1265,7 +1265,7 @@ public class HermesConfigActivity extends AppCompatActivity {
                 if (imCount > 0) {
                     imVal.setTitle("✅ " + getString(R.string.validation_im_title));
                     imVal.setSummary(getString(R.string.validation_im_ok, String.valueOf(imCount)));
-                    passedChecks++;
+                    syncPassed[0]++;
                 } else {
                     imVal.setTitle("❌ " + getString(R.string.validation_im_title));
                     imVal.setSummary(getString(R.string.validation_im_missing));
@@ -1279,14 +1279,14 @@ public class HermesConfigActivity extends AppCompatActivity {
                 if (prompt != null && !prompt.isEmpty()) {
                     promptVal.setTitle("✅ " + getString(R.string.validation_system_prompt_title));
                     promptVal.setSummary(getString(R.string.validation_system_prompt_ok, prompt.length()));
-                    passedChecks++;
+                    syncPassed[0]++;
                 } else {
                     promptVal.setTitle("⚠️ " + getString(R.string.validation_system_prompt_title));
                     promptVal.setSummary(getString(R.string.validation_system_prompt_missing));
                 }
             }
 
-            updateValidationSummary(passedChecks, totalChecks);
+            updateValidationSummary(syncPassed[0], totalChecks);
 
             // Error recovery
             updateErrorRecovery();
