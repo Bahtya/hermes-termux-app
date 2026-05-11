@@ -6,6 +6,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
 import android.view.View;
+import android.view.ViewGroup;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
@@ -909,9 +910,17 @@ public class HermesSetupWizardActivity extends AppCompatActivity {
 
     @SuppressWarnings("unchecked")
     private <T extends View> T findTaggedView(String tag) {
-        for (int i = 0; i < mContentContainer.getChildCount(); i++) {
-            View child = mContentContainer.getChildAt(i);
-            if (tag.equals(child.getTag())) return (T) child;
+        return (T) findTaggedViewRecursive(mContentContainer, tag);
+    }
+
+    private View findTaggedViewRecursive(ViewGroup parent, String tag) {
+        for (int i = 0; i < parent.getChildCount(); i++) {
+            View child = parent.getChildAt(i);
+            if (tag.equals(child.getTag())) return child;
+            if (child instanceof ViewGroup) {
+                View found = findTaggedViewRecursive((ViewGroup) child, tag);
+                if (found != null) return found;
+            }
         }
         return null;
     }
