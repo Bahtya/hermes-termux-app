@@ -1772,8 +1772,10 @@ public class HermesConfigActivity extends AppCompatActivity {
             // Preset selection
             ListPreference presetPref = findPreference("llm_preset");
             if (presetPref != null) {
+                updatePresetDescription(presetPref.getValue());
                 presetPref.setOnPreferenceChangeListener((p, newVal) -> {
                     applyPreset((String) newVal);
+                    updatePresetDescription((String) newVal);
                     mHasUnsavedChanges = true;
                     return true;
                 });
@@ -2146,6 +2148,20 @@ public class HermesConfigActivity extends AppCompatActivity {
             if (sysPref != null) {
                 sysPref.setText(systemPrompt);
             }
+        }
+
+        private void updatePresetDescription(String preset) {
+            Preference presetInfo = findPreference("llm_preset_info");
+            if (presetInfo == null) return;
+            int descResId;
+            switch (preset != null ? preset : "balanced") {
+                case "creative": descResId = R.string.llm_preset_desc_creative; break;
+                case "precise": descResId = R.string.llm_preset_desc_precise; break;
+                case "code": descResId = R.string.llm_preset_desc_code; break;
+                case "custom": descResId = R.string.llm_preset_desc_custom; break;
+                default: descResId = R.string.llm_preset_desc_balanced; break;
+            }
+            presetInfo.setSummary(getString(descResId));
         }
 
         private String maskApiKey(String key) {

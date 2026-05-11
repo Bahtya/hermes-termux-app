@@ -514,4 +514,11 @@
     <string name="tutorial_next">下一步</string>
     <string name="notification_action_restart">重启</string>
     <string name="notification_action_stop">停止</string>
+
+    <!-- LLM Preset descriptions -->
+    <string name="llm_preset_desc_balanced">均衡 — 温度 0.7，2048 词元。适合日常聊天。</string>
+    <string name="llm_preset_desc_creative">创意 — 温度 0.9，2048 词元。富有想象力和表现力。</string>
+    <string name="llm_preset_desc_precise">精准 — 温度 0.2，4096 词元。注重事实和分析。</string>
+    <string name="llm_preset_desc_code">代码 — 温度 0.2，4096 词元。专业编程助手。</string>
+    <string name="llm_preset_desc_custom">自定义 — 保持当前参数不变。</string>
 </resources>
