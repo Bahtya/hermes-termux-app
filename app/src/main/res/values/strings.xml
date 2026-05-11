@@ -569,6 +569,8 @@
     <string name="dashboard_title">Status Overview</string>
     <string name="quick_start_title">Quick Start — Free AI</string>
     <string name="quick_start_summary">One-tap setup with Ollama (no API key needed, runs locally)</string>
+    <string name="welcome_banner_title">Welcome to Hermes!</string>
+    <string name="welcome_banner_summary">Tap here to run the setup wizard and get started in minutes.</string>
     <string name="quick_start_progress_title">Setting up free AI…</string>
     <string name="quick_start_step_check">Checking Ollama…</string>
     <string name="quick_start_step_install">Installing Ollama…</string>
