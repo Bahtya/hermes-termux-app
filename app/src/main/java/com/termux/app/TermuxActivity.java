@@ -37,8 +37,6 @@ import com.termux.shared.activity.media.AppCompatActivityUtils;
 import com.termux.app.hermes.HermesConfigActivity;
 import com.termux.app.hermes.HermesGatewayService;
 import com.termux.app.hermes.HermesSetupWizardActivity;
-import com.termux.app.hermes.HermesStatusOverlay;
-import com.termux.app.hermes.HermesStatusOverlay;
 import com.termux.shared.data.IntentUtils;
 import com.termux.shared.android.PermissionUtils;
 import com.termux.shared.data.DataUtils;
@@ -48,7 +46,6 @@ import com.termux.app.activities.HelpActivity;
 import com.termux.app.activities.SettingsActivity;
 import com.termux.shared.termux.crash.TermuxCrashUtils;
 import com.termux.shared.termux.settings.preferences.TermuxAppSharedPreferences;
-import com.termux.app.terminal.HermesTabBarController;
 import com.termux.app.terminal.TermuxSessionsListViewController;
 import com.termux.app.terminal.io.TerminalToolbarViewPager;
 import com.termux.app.terminal.TermuxTerminalViewClient;
@@ -143,16 +140,6 @@ public final class TermuxActivity extends AppCompatActivity implements ServiceCo
      * The termux sessions list controller.
      */
     TermuxSessionsListViewController mTermuxSessionListViewController;
-
-    /**
-     * The Hermes tab bar controller.
-     */
-    HermesTabBarController mHermesTabBarController;
-
-    /**
-     * The Hermes gateway status overlay shown on the terminal screen.
-     */
-    HermesStatusOverlay mHermesStatusOverlay;
 
     /**
      * The {@link TermuxActivity} broadcast receiver for various things like terminal style configuration changes.
@@ -259,15 +246,11 @@ public final class TermuxActivity extends AppCompatActivity implements ServiceCo
 
         setTermuxTerminalViewAndClients();
 
-        mHermesTabBarController = new HermesTabBarController(this);
-
         setTerminalToolbarView(savedInstanceState);
 
         setSettingsButtonView();
 
         setHermesSettingsButtonView();
-
-        setHermesStatusOverlay();
 
         setNewSessionButtonView();
 
@@ -337,10 +320,6 @@ public final class TermuxActivity extends AppCompatActivity implements ServiceCo
         if (mTermuxTerminalViewClient != null)
             mTermuxTerminalViewClient.onResume();
 
-        // Start gateway status overlay monitoring
-        if (mHermesStatusOverlay != null)
-            mHermesStatusOverlay.startMonitoring();
-
         // Check if a crash happened on last run of the app or if a plugin crashed and show a
         // notification with the crash details if it did
         TermuxCrashUtils.notifyAppCrashFromCrashLogFile(this, LOG_TAG);
@@ -363,10 +342,6 @@ public final class TermuxActivity extends AppCompatActivity implements ServiceCo
 
         if (mTermuxTerminalViewClient != null)
             mTermuxTerminalViewClient.onStop();
-
-        // Stop gateway status overlay monitoring
-        if (mHermesStatusOverlay != null)
-            mHermesStatusOverlay.stopMonitoring();
 
         removeTermuxActivityRootViewGlobalLayoutListener();
 
@@ -422,10 +397,10 @@ public final class TermuxActivity extends AppCompatActivity implements ServiceCo
         // Ensure Hermes Agent is installed (idempotent)
         HermesInstaller.installIfNeeded(this);
 
-        // Show setup wizard on first launch (only if not completed or dismissed)
-        if (!HermesSetupWizardActivity.isWizardCompleted(this)
-                && !HermesSetupWizardActivity.isWizardDismissed(this)) {
-            startActivity(new Intent(this, HermesSetupWizardActivity.class));
+        // Show welcome dialog on first launch if not configured
+        if (HermesSetupWizardActivity.needsSetup(this)
+                && !getSharedPreferences("hermes_setup", MODE_PRIVATE).getBoolean("welcome_dialog_shown", false)) {
+            showHermesWelcomeDialog();
         }
 
         // Auto-start gateway if enabled
@@ -449,9 +424,6 @@ public final class TermuxActivity extends AppCompatActivity implements ServiceCo
                             launchFailsafe = intent.getExtras().getBoolean(TERMUX_ACTIVITY.EXTRA_FAILSAFE_SESSION, false);
                         }
                         mTermuxTerminalSessionActivityClient.addNewSession(launchFailsafe, null);
-                        if (mHermesTabBarController != null) {
-                            mHermesTabBarController.onServiceConnected();
-                        }
                     } catch (WindowManager.BadTokenException e) {
                         // Activity finished - ignore.
                     }
@@ -470,9 +442,6 @@ public final class TermuxActivity extends AppCompatActivity implements ServiceCo
                 mTermuxTerminalSessionActivityClient.addNewSession(isFailSafe, null);
             } else {
                 mTermuxTerminalSessionActivityClient.setCurrentSession(mTermuxTerminalSessionActivityClient.getCurrentStoredSessionOrLast());
-            }
-            if (mHermesTabBarController != null) {
-                mHermesTabBarController.onServiceConnected();
             }
         }
 
@@ -630,19 +599,19 @@ public final class TermuxActivity extends AppCompatActivity implements ServiceCo
         }
     }
 
-    private void setHermesStatusOverlay() {
-        mHermesStatusOverlay = new HermesStatusOverlay(this);
+    private void showHermesWelcomeDialog() {
+        getSharedPreferences("hermes_setup", MODE_PRIVATE)
+                .edit().putBoolean("welcome_dialog_shown", true).apply();
 
-        int size = Math.round(16 * getResources().getDisplayMetrics().density);
-        int margin = Math.round(8 * getResources().getDisplayMetrics().density);
-        RelativeLayout.LayoutParams params = new RelativeLayout.LayoutParams(size, size);
-        params.addRule(RelativeLayout.ALIGN_PARENT_TOP);
-        params.addRule(RelativeLayout.ALIGN_PARENT_END);
-        params.setMargins(margin, margin, margin, margin);
-
-        // Add overlay to the relative layout that holds the terminal and toolbar
-        ViewGroup rootLayout = findViewById(R.id.activity_termux_root_relative_layout);
-        rootLayout.addView(mHermesStatusOverlay, params);
+        new androidx.appcompat.app.AlertDialog.Builder(this)
+                .setTitle(R.string.hermes_welcome_dialog_title)
+                .setMessage(R.string.hermes_welcome_dialog_message)
+                .setPositiveButton(R.string.hermes_welcome_dialog_start, (d, w) -> {
+                    startActivity(new Intent(this, HermesSetupWizardActivity.class));
+                })
+                .setNegativeButton(R.string.hermes_welcome_dialog_later, null)
+                .setCancelable(true)
+                .show();
     }
 
     private void setNewSessionButtonView() {
@@ -962,10 +931,6 @@ public final class TermuxActivity extends AppCompatActivity implements ServiceCo
 
     public TermuxTerminalSessionActivityClient getTermuxTerminalSessionClient() {
         return mTermuxTerminalSessionActivityClient;
-    }
-
-    public HermesTabBarController getHermesTabBarController() {
-        return mHermesTabBarController;
     }
 
     @Nullable

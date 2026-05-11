@@ -1474,4 +1474,50 @@
     <string name="tutorial_next">Next</string>
     <string name="web_load_error_title">Error</string>
 
+    <!-- Hermes Setup Wizard (robust redesign) -->
+    <string name="hermes_setup_skip">Skip</string>
+    <string name="hermes_setup_reconfigure">Re-run Setup Wizard</string>
+    <string name="hermes_setup_quick_ollama">Quick Start with Ollama (Free, No API Key)</string>
+    <string name="hermes_welcome_dialog_title">Welcome to Hermes!</string>
+    <string name="hermes_welcome_dialog_message">Hermes Agent is ready to set up. Tap the Hermes icon in the toolbar to configure your AI assistant.\n\nYou can set up anytime — nothing will break if you explore first.</string>
+    <string name="hermes_welcome_dialog_start">Start Setup</string>
+    <string name="hermes_welcome_dialog_later">Later</string>
+
+    <!-- Hermes Drawer Navigation -->
+    <string name="hermes_nav_dashboard">Dashboard</string>
+    <string name="hermes_nav_ai_config">AI Configuration</string>
+    <string name="hermes_nav_im_setup">IM Integration</string>
+    <string name="hermes_nav_gateway">Gateway Control</string>
+    <string name="hermes_nav_logs">Logs</string>
+    <string name="hermes_nav_diagnostics">Diagnostics</string>
+    <string name="hermes_nav_setup_wizard">Setup Wizard</string>
+    <string name="hermes_nav_help">Help</string>
+    <string name="hermes_nav_restore_backup">Restore Config Backup</string>
+
+    <!-- Hermes Dashboard -->
+    <string name="hermes_dashboard_title">Hermes Dashboard</string>
+    <string name="hermes_dashboard_config_empty">Not configured yet. Run the Setup Wizard to get started.</string>
+    <string name="hermes_dashboard_config_partial">Partially configured. Some features may not work.</string>
+    <string name="hermes_dashboard_config_ready">Hermes is configured and ready.</string>
+    <string name="hermes_dashboard_run_setup">Run Setup Wizard</string>
+    <string name="hermes_dashboard_status_section">Status</string>
+    <string name="hermes_dashboard_actions_section">Quick Actions</string>
+    <string name="hermes_dashboard_label_ai_provider">AI Provider:</string>
+    <string name="hermes_dashboard_label_im">IM:</string>
+    <string name="hermes_dashboard_label_gateway">Gateway:</string>
+    <string name="hermes_dashboard_not_configured">Not configured</string>
+    <string name="hermes_dashboard_im_none">None configured</string>
+    <string name="hermes_dashboard_gw_running">Running</string>
+    <string name="hermes_dashboard_gw_not_installed">Not installed</string>
+    <string name="hermes_dashboard_gw_stopped">Stopped</string>
+    <string name="hermes_action_prefix">  → %s</string>
+    <string name="hermes_action_start_gateway">Start Gateway</string>
+    <string name="hermes_action_ai_settings">Open AI Settings</string>
+    <string name="hermes_action_im_setup">Configure IM</string>
+    <string name="hermes_action_view_logs">View Logs</string>
+    <string name="hermes_action_diagnostics">Run Diagnostics</string>
+    <string name="hermes_restore_backup_message">This will restore configuration from the last backup. Current settings will be overwritten. Continue?</string>
+    <string name="hermes_restore_success">Configuration restored from backup</string>
+    <string name="hermes_restore_no_backup">No backup found</string>
+
 </resources>
