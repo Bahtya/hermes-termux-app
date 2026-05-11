@@ -220,6 +220,18 @@ public class HermesInstallActivity extends AppCompatActivity {
 
                 Thread.sleep(500);
 
+                // Step 3b: Validate installation
+                mHandler.post(() -> {
+                    mStatusText.setText(R.string.install_validating);
+                    mProgressBar.setProgress(90);
+                });
+
+                boolean validated = validateInstallation();
+                if (!validated) {
+                    mHandler.post(() -> mStatusText.setText(R.string.install_validate_fail));
+                    Thread.sleep(1500);
+                }
+
                 // Step 4: Done
                 mHandler.post(() -> {
                     updateStepIndicators(4);
@@ -308,6 +320,30 @@ public class HermesInstallActivity extends AppCompatActivity {
     private void markInstalled() throws Exception {
         try (java.io.FileOutputStream out = new java.io.FileOutputStream(MARKER_FILE)) {
             out.write("1\n".getBytes("UTF-8"));
+        }
+    }
+
+    private boolean validateInstallation() {
+        try {
+            String binPath = TermuxConstants.TERMUX_BIN_PREFIX_DIR_PATH;
+            // Check marker file
+            if (!new File(MARKER_FILE).exists()) return false;
+            // Check config directory
+            File configDir = new File(TermuxConstants.TERMUX_HOME_DIR_PATH + "/.hermes");
+            if (!configDir.exists() || !configDir.isDirectory()) return false;
+            // Try running hermes --version
+            ProcessBuilder pb = new ProcessBuilder(binPath + "/hermes", "--version");
+            pb.environment().put("HOME", TermuxConstants.TERMUX_HOME_DIR_PATH);
+            pb.environment().put("PATH", binPath + ":/system/bin");
+            pb.redirectErrorStream(true);
+            Process p = pb.start();
+            BufferedReader reader = new BufferedReader(new InputStreamReader(p.getInputStream()));
+            String firstLine = reader.readLine();
+            p.waitFor();
+            reader.close();
+            return firstLine != null && !firstLine.isEmpty();
+        } catch (Exception e) {
+            return false;
         }
     }
 
