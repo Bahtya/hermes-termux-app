@@ -1,6 +1,7 @@
 package com.termux.shared.termux.shell.command.runner.terminal;
 
 import android.content.Context;
+import android.system.Os;
 import android.system.OsConstants;
 
 import androidx.annotation.NonNull;
@@ -96,6 +97,7 @@ public class TermuxSession {
                 for (String shellBinary : UnixShellEnvironment.LOGIN_SHELL_BINARIES) {
                     File shellFile = new File(defaultBinPath, shellBinary);
                     if (shellFile.canExecute()) {
+                        ensureExecutable(shellFile);
                         executionCommand.executable = shellFile.getAbsolutePath();
                         break;
                     }
@@ -281,6 +283,15 @@ public class TermuxSession {
     }
 
 
+
+    /** Ensure a binary file has execute permission, fixing it if necessary. */
+    private static void ensureExecutable(@NonNull File file) {
+        if (!file.canExecute()) {
+            try {
+                Os.chmod(file.getAbsolutePath(), 0755);
+            } catch (Exception ignored) {}
+        }
+    }
 
     public interface TermuxSessionClient {
 
