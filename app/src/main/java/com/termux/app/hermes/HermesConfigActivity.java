@@ -1293,7 +1293,7 @@ public class HermesConfigActivity extends AppCompatActivity {
         }
 
         private void updateValidationSummary(int passed, int total) {
-            PreferenceCategory validationCat = findPreference("hermes_validation_category");
+            androidx.preference.PreferenceCategory validationCat = findPreference("hermes_validation_category");
             if (validationCat != null) {
                 validationCat.setTitle(getString(R.string.validation_category_title)
                         + " (" + getString(R.string.validation_summary_format, passed, total) + ")");
