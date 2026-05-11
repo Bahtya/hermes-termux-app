@@ -266,7 +266,6 @@ public class HermesConfigActivity extends AppCompatActivity {
         mNavigationView.setCheckedItem(R.id.nav_dashboard);
     }
 
-    private LinearLayout mInstallStatusCard;
     private android.os.Handler mInstallPollHandler;
     private Runnable mInstallPollRunnable;
 
@@ -339,8 +338,6 @@ public class HermesConfigActivity extends AppCompatActivity {
         cardParams.bottomMargin = dp(16);
         card.setLayoutParams(cardParams);
         parent.addView(card);
-
-        mInstallStatusCard = card;
 
         // Poll for state changes while install is in progress
         if (state == HermesInstallHelper.InstallState.BOOTSTRAPPING

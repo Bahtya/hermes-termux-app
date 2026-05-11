@@ -108,14 +108,13 @@ public class HermesInstallHelper {
         ensureBashReady(context, callback);
 
         // Phase 1: direct attempts
-        setState(context, InstallState.DOWNLOADING);
+        setState(context, InstallState.INSTALLING);
         for (int attempt = 1; attempt <= maxDirectRetries; attempt++) {
             if (callback != null && callback.isCancelled()) return;
             try {
                 if (callback != null) {
                     callback.onStatus(context.getString(R.string.install_direct_attempt, attempt, maxDirectRetries));
                 }
-                setState(context, InstallState.INSTALLING);
                 runShellCommand(buildInstallCommand(false, null));
                 setState(context, InstallState.INSTALLED);
                 return;
@@ -124,7 +123,6 @@ public class HermesInstallHelper {
                         .append(e.getMessage()).append("\n");
                 Logger.logWarn(LOG_TAG, "Direct install attempt " + attempt + " failed: " + e.getMessage());
                 if (attempt < maxDirectRetries) {
-                    setState(context, InstallState.DOWNLOADING);
                     if (callback != null) {
                         callback.onStatus(context.getString(R.string.install_retrying, attempt, maxDirectRetries));
                     }
@@ -134,7 +132,6 @@ public class HermesInstallHelper {
         }
 
         // Phase 2: mirror fallback
-        setState(context, InstallState.DOWNLOADING);
         for (String mirror : MIRROR_PREFIXES) {
             if (callback != null && callback.isCancelled()) return;
             try {
@@ -142,7 +139,6 @@ public class HermesInstallHelper {
                     callback.onStatus(context.getString(R.string.install_fallback_mirror));
                 }
                 Logger.logInfo(LOG_TAG, "Falling back to mirror: " + mirror);
-                setState(context, InstallState.INSTALLING);
                 runShellCommand(buildInstallCommand(true, mirror));
                 setState(context, InstallState.INSTALLED);
                 return;

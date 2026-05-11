@@ -77,7 +77,6 @@ public class HermesInstaller {
                     });
                     markInstalled();
                     fixBinaryPermissions();
-                    HermesInstallHelper.setState(context, HermesInstallHelper.InstallState.INSTALLED);
                     HermesConfigManager.reinitialize();
                     showSuccess(context, "Hermes Agent installed successfully");
                     Logger.logInfo(LOG_TAG, "Hermes installation complete.");
@@ -223,7 +222,8 @@ public class HermesInstaller {
     /** Fix execute permissions on critical Termux binaries after hermes-agent install. */
     private static void fixBinaryPermissions() {
         String binDir = TermuxConstants.TERMUX_BIN_PREFIX_DIR_PATH;
-        String[] binaries = {"bash", "sh", "login", "cat", "chmod", "cp", "ls", "mkdir", "rm", "hermes"};
+        String[] binaries = {"bash", "sh", "login", "cat", "chmod", "cp", "ls", "mkdir", "rm",
+                "hermes", "git", "curl", "python", "pip", "sed", "grep", "tar", "env"};
         for (String name : binaries) {
             File bin = new File(binDir, name);
             if (bin.exists()) {
