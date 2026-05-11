@@ -303,12 +303,18 @@ public class HermesGatewayService extends Service {
         PendingIntent stopPi = PendingIntent.getService(this, 1, stopIntent,
                 PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE);
 
+        Intent restartIntent = new Intent(this, HermesGatewayService.class);
+        restartIntent.setAction(ACTION_RESTART);
+        PendingIntent restartPi = PendingIntent.getService(this, 2, restartIntent,
+                PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE);
+
         return new NotificationCompat.Builder(this, CHANNEL_ID)
                 .setContentTitle("Hermes Gateway")
                 .setContentText(text)
                 .setSmallIcon(R.drawable.ic_hermes)
                 .setContentIntent(pi)
-                .addAction(0, "Stop", stopPi)
+                .addAction(0, getString(R.string.notification_action_restart), restartPi)
+                .addAction(0, getString(R.string.notification_action_stop), stopPi)
                 .setOngoing(true)
                 .build();
     }
