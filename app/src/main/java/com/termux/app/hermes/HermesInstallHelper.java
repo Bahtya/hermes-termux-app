@@ -1,5 +1,8 @@
 package com.termux.app.hermes;
 
+import android.content.Context;
+
+import com.termux.R;
 import com.termux.shared.logger.Logger;
 import com.termux.shared.termux.TermuxConstants;
 
@@ -40,7 +43,7 @@ public class HermesInstallHelper {
      * Phase 1: direct connection (up to maxDirectRetries attempts, 5s delay).
      * Phase 2: each mirror in MIRROR_PREFIXES (1 attempt per mirror).
      */
-    public static void executeInstall(int maxDirectRetries, ProgressCallback callback) throws Exception {
+    public static void executeInstall(Context context, int maxDirectRetries, ProgressCallback callback) throws Exception {
         StringBuilder errorLog = new StringBuilder();
 
         // Phase 1: direct attempts
@@ -48,7 +51,7 @@ public class HermesInstallHelper {
             if (callback != null && callback.isCancelled()) return;
             try {
                 if (callback != null) {
-                    callback.onStatus("Downloading Hermes Agent... (attempt " + attempt + "/" + maxDirectRetries + ")");
+                    callback.onStatus(context.getString(R.string.install_direct_attempt, attempt, maxDirectRetries));
                 }
                 runShellCommand(buildInstallCommand(false, null));
                 return; // success
@@ -58,7 +61,7 @@ public class HermesInstallHelper {
                 Logger.logWarn(LOG_TAG, "Direct install attempt " + attempt + " failed: " + e.getMessage());
                 if (attempt < maxDirectRetries) {
                     if (callback != null) {
-                        callback.onStatus("Retrying in 5s... (" + attempt + "/" + maxDirectRetries + ")");
+                        callback.onStatus(context.getString(R.string.install_retrying, attempt, maxDirectRetries));
                     }
                     Thread.sleep(5000);
                 }
@@ -70,7 +73,7 @@ public class HermesInstallHelper {
             if (callback != null && callback.isCancelled()) return;
             try {
                 if (callback != null) {
-                    callback.onStatus("Direct connection failed, trying " + mirror + " mirror...");
+                    callback.onStatus(context.getString(R.string.install_fallback_mirror));
                 }
                 Logger.logInfo(LOG_TAG, "Falling back to mirror: " + mirror);
                 runShellCommand(buildInstallCommand(true, mirror));
