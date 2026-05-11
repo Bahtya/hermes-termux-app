@@ -39,6 +39,8 @@ public class HermesInstaller {
             TermuxConstants.TERMUX_DATA_HOME_DIR_PATH + "/hermes-installed";
     private static final String HERMES_BOOT_SCRIPT =
             TermuxConstants.TERMUX_BOOT_SCRIPTS_DIR_PATH + "/hermes-gateway";
+    private static final String HERMES_PATCH_MARKER_FILE =
+            TermuxConstants.TERMUX_DATA_HOME_DIR_PATH + "/hermes-paths-patched";
 
     private HermesInstaller() {}
 
@@ -48,6 +50,28 @@ public class HermesInstaller {
             return;
         }
         startInstallThread(context, false);
+    }
+
+    /**
+     * Run upgrade migrations for existing installations. Called on every app start
+     * from TermuxApplication so that users who upgrade from a previous version
+     * get their bootstrap binaries patched without needing a clean reinstall.
+     */
+    static void runUpgradeMigrations() {
+        if (new File(HERMES_PATCH_MARKER_FILE).exists()) return;
+        if (!new File(TermuxConstants.TERMUX_BIN_PREFIX_DIR_PATH, "bash").exists()) return;
+
+        Logger.logInfo(LOG_TAG, "Running upgrade migration: patching bootstrap paths");
+        TermuxInstaller.patchBootstrapPaths(TermuxConstants.TERMUX_PREFIX_DIR_PATH);
+
+        try {
+            try (FileOutputStream out = new FileOutputStream(HERMES_PATCH_MARKER_FILE)) {
+                out.write("1\n".getBytes("UTF-8"));
+            }
+            Logger.logInfo(LOG_TAG, "Upgrade migration complete");
+        } catch (Exception e) {
+            Logger.logErrorExtended(LOG_TAG, "Failed to write patch marker: " + e.getMessage());
+        }
     }
 
     public static void retryInstall(Context context) {
@@ -185,8 +209,12 @@ public class HermesInstaller {
 
     private static void deployShellProfile() throws Exception {
         String home = TermuxConstants.TERMUX_HOME_DIR_PATH;
+        String prefix = TermuxConstants.TERMUX_PREFIX_DIR_PATH;
         File bashrc = new File(home, ".bashrc");
         String hermesBlock = "\n# Hermes Terminal Configuration\n"
+                + "if [ -f \"$PREFIX/etc/profile\" ]; then\n"
+                + "    . \"$PREFIX/etc/profile\"\n"
+                + "fi\n"
                 + "export USER=hermes\n"
                 + "export LOGNAME=hermes\n"
                 + "export PS1='\\[\\e[1;32m\\]hermes@hermes\\[\\e[0m\\]:\\[\\e[1;34m\\]\\w\\[\\e[0m\\]\\$ '\n";
