@@ -534,7 +534,17 @@ public class HermesSetupWizardActivity extends AppCompatActivity {
         saveLlmConfig();
 
         String provider = mConfigManager.getModelProvider();
-        String apiKey = mConfigManager.getApiKey(provider);
+
+        // Read API key directly from input field for immediate feedback
+        EditText apiKeyInput = findTaggedView("api_key_input");
+        String apiKey = "";
+        if (apiKeyInput != null) {
+            apiKey = apiKeyInput.getText().toString().trim();
+        }
+        if (apiKey.isEmpty()) {
+            apiKey = mConfigManager.getApiKey(provider);
+        }
+
         String model = mConfigManager.getModelName();
         TextView testStatus = findTaggedView("test_status");
 
@@ -794,8 +804,28 @@ public class HermesSetupWizardActivity extends AppCompatActivity {
     private void navigateNext() {
         if (mCurrentStep == STEP_LLM) {
             saveLlmConfig();
-            String provider = mConfigManager.getModelProvider();
-            String apiKey = mConfigManager.getApiKey(provider);
+
+            // Read provider directly from spinner to determine if key is required
+            Spinner providerSpinner = findTaggedView("provider_spinner");
+            String[] providerValues = getResources().getStringArray(R.array.llm_provider_values);
+            String provider = null;
+            if (providerSpinner != null) {
+                int pos = providerSpinner.getSelectedItemPosition();
+                if (pos >= 0 && pos < providerValues.length) {
+                    provider = providerValues[pos];
+                }
+            }
+
+            // Read API key directly from input field, falling back to saved config
+            EditText apiKeyInput = findTaggedView("api_key_input");
+            String apiKey = "";
+            if (apiKeyInput != null) {
+                apiKey = apiKeyInput.getText().toString().trim();
+            }
+            if (apiKey.isEmpty()) {
+                apiKey = mConfigManager.getApiKey(provider != null ? provider : mConfigManager.getModelProvider());
+            }
+
             if (apiKey.isEmpty() && !"ollama".equals(provider)) {
                 Toast.makeText(this, getString(R.string.llm_test_no_key), Toast.LENGTH_SHORT).show();
                 return;
@@ -819,18 +849,22 @@ public class HermesSetupWizardActivity extends AppCompatActivity {
         EditText apiKeyInput = findTaggedView("api_key_input");
         Spinner modelSpinner = findTaggedView("model_spinner");
 
+        // Save provider FIRST so that setApiKey uses the correct provider key
         String[] providerValues = getResources().getStringArray(R.array.llm_provider_values);
+        String provider = null;
         if (providerSpinner != null) {
             int pos = providerSpinner.getSelectedItemPosition();
             if (pos >= 0 && pos < providerValues.length) {
-                mConfigManager.setModelProvider(providerValues[pos]);
+                provider = providerValues[pos];
+                mConfigManager.setModelProvider(provider);
             }
         }
 
         if (apiKeyInput != null) {
             String key = apiKeyInput.getText().toString().trim();
             if (!key.isEmpty()) {
-                mConfigManager.setApiKey(mConfigManager.getModelProvider(), key);
+                String targetProvider = provider != null ? provider : mConfigManager.getModelProvider();
+                mConfigManager.setApiKey(targetProvider, key);
             }
         }
 
