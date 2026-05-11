@@ -612,4 +612,100 @@
     <string name="llm_provider_info_title">提供商信息</string>
     <string name="llm_quick_switch_model_label">模型</string>
     <string name="llm_quick_switch_provider_label">提供商</string>
+
+    <!-- Templates -->
+    <string name="template_title">快速设置模板</string>
+    <string name="template_header">选择一个模板来自动配置 AI 助手。您可以随时自定义设置。</string>
+    <string name="template_apply">应用</string>
+    <string name="template_applied">已应用模板「%s」！</string>
+    <string name="template_code_title">编程助手</string>
+    <string name="template_code_desc">专业程序员，编写整洁代码、解释概念、帮助调试。</string>
+    <string name="template_code_prompt">你是一位专业的软件工程师。编写整洁、高效、文档完善的代码。清晰地解释你的推理。调试时，找出根本原因并提出修复建议。遵循适合所用语言和框架的最佳实践和设计模式。</string>
+    <string name="template_code_settings">温度：0.2 · 最大词元：4096 · 适合：编程帮助</string>
+    <string name="template_creative_title">创意写作</string>
+    <string name="template_creative_desc">富有想象力的写作助手，适合故事、头脑风暴和创意项目。</string>
+    <string name="template_creative_prompt">你是一位富有创意和想象力的作家。跳出思维框架，提供独特视角，生动表达想法。帮助完成故事、诗歌、头脑风暴和创意项目。富有表现力和吸引力。</string>
+    <string name="template_creative_settings">温度：0.9 · 最大词元：2048 · 适合：创意写作</string>
+    <string name="template_email_title">邮件撰写</string>
+    <string name="template_email_desc">专业邮件撰写助手，适用于工作和个人沟通。</string>
+    <string name="template_email_prompt">你是一位专业的邮件撰写者。撰写清晰、简洁、结构良好的邮件。根据上下文匹配适当的语气（正式、半正式、随意）。保持邮件聚焦和可操作。</string>
+    <string name="template_email_settings">温度：0.5 · 最大词元：1024 · 适合：邮件和沟通</string>
+    <string name="template_research_title">研究助手</string>
+    <string name="template_research_desc">分析型助手，用于研究、事实核查和深度分析。</string>
+    <string name="template_research_prompt">你是一位细致的研究助手。提供准确、有出处的信息。从多角度分析主题。以结构化格式呈现发现。始终注明局限性和不确定性。精确且基于事实。</string>
+    <string name="template_research_settings">温度：0.3 · 最大词元：4096 · 适合：研究和分析</string>
+    <string name="template_study_title">学习伙伴</string>
+    <string name="template_study_desc">耐心的辅导老师，清晰地解释概念，帮助学习。</string>
+    <string name="template_study_prompt">你是一位耐心且鼓励学习的辅导老师。用简单的语言和例子清晰地解释概念。将复杂主题分解为易于理解的部分。提出后续问题以检查理解程度。根据学习者调整教学风格。</string>
+    <string name="template_study_settings">温度：0.7 · 最大词元：2048 · 适合：学习和辅导</string>
+
+    <!-- Profile Management -->
+    <string name="profile_active_default">默认（当前设置）</string>
+    <string name="profile_active_format" formatted="false">%s（%s / %s）</string>
+    <string name="profile_deleted">配置文件「%s」已删除</string>
+    <string name="profile_loaded">配置文件「%s」已加载</string>
+    <string name="profile_name_hint">配置文件名称</string>
+    <string name="profile_no_profiles">没有保存的配置文件</string>
+    <string name="profile_not_found">配置文件未找到</string>
+    <string name="profile_saved">配置文件「%s」已保存</string>
+
+    <!-- Usage Stats -->
+    <string name="usage_cost_estimate" formatted="false">约 %s（基于 %s 提供商定价）</string>
+    <string name="usage_uptime_format" formatted="false">%d 次会话 · 总计：%s</string>
+
+    <!-- Config Import -->
+    <string name="config_import_fail">导入失败：%1$s</string>
+
+    <!-- MCP Server -->
+    <string name="mcp_server_added">MCP 服务器已添加</string>
+    <string name="mcp_server_command">命令</string>
+    <string name="mcp_server_command_hint">例如 npx -y @modelcontextprotocol/server-memory</string>
+    <string name="mcp_server_edit">编辑</string>
+    <string name="mcp_server_name">服务器名称</string>
+    <string name="mcp_server_remove">移除</string>
+    <string name="mcp_server_removed">MCP 服务器已移除</string>
+    <string name="mcp_server_save_error">请输入服务器名称</string>
+    <string name="mcp_server_type">类型</string>
+    <string name="mcp_server_url">服务器 URL</string>
+    <string name="mcp_server_url_hint">例如 http://localhost:3001</string>
+    <string-array name="mcp_server_type_names">
+        <item>命令（stdio）</item>
+        <item>HTTP URL</item>
+    </string-array>
+
+    <!-- Prompt Chains -->
+    <string name="chains_title">提示链</string>
+    <string name="chains_summary">配置多步骤 AI 工作流</string>
+    <string name="chains_add">添加链</string>
+    <string name="chains_add_step">添加步骤</string>
+    <string name="chains_edit">编辑</string>
+    <string name="chains_remove">移除</string>
+    <string name="chains_saved">链「%s」已保存</string>
+    <string name="chains_deleted">链「%s」已删除</string>
+    <string name="chains_empty">未配置提示链</string>
+    <string name="chains_name_hint">链名称</string>
+    <string name="chains_name_required">链名称为必填项</string>
+    <string name="chains_desc_hint">描述</string>
+    <string name="chains_mode_title">执行模式</string>
+    <string name="chains_step_model_title">模型覆盖（可选）</string>
+    <string name="chains_step_prompt_title">步骤 %d 系统提示词</string>
+    <string name="chains_step_tools_title">允许的工具（空 = 全部）</string>
+    <string-array name="chains_mode_names">
+        <item>顺序执行（等待每步完成）</item>
+        <item>并行执行（同时运行所有步骤）</item>
+    </string-array>
+
+    <!-- Gateway Config Arrays -->
+    <string-array name="gateway_restart_count_names">
+        <item>1 次</item>
+        <item>3 次</item>
+        <item>5 次</item>
+        <item>无限制</item>
+    </string-array>
+    <string-array name="gateway_restart_delay_names">
+        <item>10 秒</item>
+        <item>30 秒</item>
+        <item>60 秒</item>
+        <item>120 秒</item>
+    </string-array>
 </resources>
