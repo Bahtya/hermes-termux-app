@@ -4,6 +4,7 @@ import android.content.Intent;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
+import android.view.MenuItem;
 import android.view.View;
 import android.widget.Button;
 import android.widget.LinearLayout;
@@ -45,15 +46,31 @@ public class HermesInstallActivity extends AppCompatActivity {
 
         LinearLayout root = new LinearLayout(this);
         root.setOrientation(LinearLayout.VERTICAL);
+
+        androidx.appcompat.widget.Toolbar toolbar = new androidx.appcompat.widget.Toolbar(this);
+        toolbar.setTitle(R.string.install_title);
+        toolbar.setTitleTextColor(0xFFFFFFFF);
+        toolbar.setBackgroundColor(0xFF1A1A2E);
+        int toolbarHeight = (int) (56 * getResources().getDisplayMetrics().density);
+        toolbar.setLayoutParams(new LinearLayout.LayoutParams(
+                LinearLayout.LayoutParams.MATCH_PARENT, toolbarHeight));
+        root.addView(toolbar);
+        setSupportActionBar(toolbar);
+        if (getSupportActionBar() != null) {
+            getSupportActionBar().setDisplayHomeAsUpEnabled(true);
+        }
+
+        LinearLayout content = new LinearLayout(this);
+        content.setOrientation(LinearLayout.VERTICAL);
         int pad = dp(24);
-        root.setPadding(pad, pad, pad, pad);
+        content.setPadding(pad, pad, pad, pad);
 
         // Icon
         TextView icon = new TextView(this);
         icon.setText("🚀");
         icon.setTextSize(48);
         icon.setGravity(android.view.Gravity.CENTER_HORIZONTAL);
-        root.addView(icon);
+        content.addView(icon);
 
         addSpacer(root, dp(16));
 
@@ -63,7 +80,7 @@ public class HermesInstallActivity extends AppCompatActivity {
         title.setTextSize(22);
         title.setTypeface(null, android.graphics.Typeface.BOLD);
         title.setGravity(android.view.Gravity.CENTER_HORIZONTAL);
-        root.addView(title);
+        content.addView(title);
 
         addSpacer(root, dp(8));
 
@@ -74,14 +91,14 @@ public class HermesInstallActivity extends AppCompatActivity {
         subtitle.setTextColor(0xFF666666);
         subtitle.setGravity(android.view.Gravity.CENTER_HORIZONTAL);
         subtitle.setLineSpacing(dp(4), 1f);
-        root.addView(subtitle);
+        content.addView(subtitle);
 
         addSpacer(root, dp(24));
 
         // Step indicators
         mStepContainer = new LinearLayout(this);
         mStepContainer.setOrientation(LinearLayout.VERTICAL);
-        root.addView(mStepContainer);
+        content.addView(mStepContainer);
 
         addSpacer(root, dp(16));
 
@@ -91,7 +108,7 @@ public class HermesInstallActivity extends AppCompatActivity {
         mProgressBar.setProgress(0);
         LinearLayout.LayoutParams pbParams = new LinearLayout.LayoutParams(
                 LinearLayout.LayoutParams.MATCH_PARENT, dp(8));
-        root.addView(mProgressBar, pbParams);
+        content.addView(mProgressBar, pbParams);
 
         addSpacer(root, dp(12));
 
@@ -100,7 +117,7 @@ public class HermesInstallActivity extends AppCompatActivity {
         mStatusText.setText(R.string.install_checking);
         mStatusText.setTextSize(14);
         mStatusText.setGravity(android.view.Gravity.CENTER_HORIZONTAL);
-        root.addView(mStatusText);
+        content.addView(mStatusText);
 
         addSpacer(root, dp(4));
 
@@ -110,7 +127,7 @@ public class HermesInstallActivity extends AppCompatActivity {
         mDetailText.setTextColor(0xFF999999);
         mDetailText.setGravity(android.view.Gravity.CENTER_HORIZONTAL);
         mDetailText.setVisibility(View.GONE);
-        root.addView(mDetailText);
+        content.addView(mDetailText);
 
         addSpacer(root, dp(24));
 
@@ -131,7 +148,9 @@ public class HermesInstallActivity extends AppCompatActivity {
         mSkipButton.setOnClickListener(v -> proceedToNext());
         buttonRow.addView(mSkipButton);
 
-        root.addView(buttonRow);
+        content.addView(buttonRow);
+
+        root.addView(content);
 
         ScrollView sv = new ScrollView(this);
         sv.addView(root);
@@ -145,6 +164,15 @@ public class HermesInstallActivity extends AppCompatActivity {
         }
 
         startInstallation();
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(@NonNull MenuItem item) {
+        if (item.getItemId() == android.R.id.home) {
+            finish();
+            return true;
+        }
+        return super.onOptionsItemSelected(item);
     }
 
     private void startInstallation() {

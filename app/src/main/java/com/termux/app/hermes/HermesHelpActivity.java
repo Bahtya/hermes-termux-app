@@ -23,33 +23,46 @@ public class HermesHelpActivity extends AppCompatActivity {
 
         LinearLayout root = new LinearLayout(this);
         root.setOrientation(LinearLayout.VERTICAL);
-        int pad = dp(24);
-        root.setPadding(pad, pad, pad, pad);
+
+        androidx.appcompat.widget.Toolbar toolbar = new androidx.appcompat.widget.Toolbar(this);
+        toolbar.setTitle(R.string.help_title);
+        toolbar.setTitleTextColor(0xFFFFFFFF);
+        toolbar.setBackgroundColor(0xFF1A1A2E);
+        int toolbarHeight = (int) (56 * getResources().getDisplayMetrics().density);
+        toolbar.setLayoutParams(new LinearLayout.LayoutParams(
+                LinearLayout.LayoutParams.MATCH_PARENT, toolbarHeight));
+        root.addView(toolbar);
+        setSupportActionBar(toolbar);
 
         ActionBar actionBar = getSupportActionBar();
         if (actionBar != null) {
             actionBar.setDisplayHomeAsUpEnabled(true);
-            actionBar.setTitle(R.string.help_title);
         }
 
-        addSection(root, R.string.help_what_is_hermes_title, R.string.help_what_is_hermes);
-        addSection(root, R.string.help_quick_start_title, R.string.help_quick_start);
-        addSection(root, R.string.help_connecting_im_title, R.string.help_connecting_im);
-        addSection(root, R.string.help_faq_title, R.string.help_faq);
-        addSection(root, R.string.help_troubleshooting_title, R.string.help_troubleshooting);
+        LinearLayout content = new LinearLayout(this);
+        content.setOrientation(LinearLayout.VERTICAL);
+        int pad = dp(24);
+        content.setPadding(pad, pad, pad, pad);
 
-        addSpacer(root, dp(16));
+        addSection(content, R.string.help_what_is_hermes_title, R.string.help_what_is_hermes);
+        addSection(content, R.string.help_quick_start_title, R.string.help_quick_start);
+        addSection(content, R.string.help_connecting_im_title, R.string.help_connecting_im);
+        addSection(content, R.string.help_faq_title, R.string.help_faq);
+        addSection(content, R.string.help_troubleshooting_title, R.string.help_troubleshooting);
+
+        addSpacer(content, dp(16));
         TextView linksTitle = new TextView(this);
         linksTitle.setText(R.string.help_links_title);
         linksTitle.setTextSize(18);
         linksTitle.setTypeface(null, android.graphics.Typeface.BOLD);
         linksTitle.setPadding(0, 0, 0, dp(8));
-        root.addView(linksTitle);
+        content.addView(linksTitle);
 
-        addLink(root, getString(R.string.help_link_github), "https://github.com/nousresearch/hermes-agent");
-        addLink(root, getString(R.string.help_link_docs), "https://hermes-agent.nousresearch.com/docs");
-        addLink(root, getString(R.string.help_link_issues), "https://github.com/Bahtya/hermes-termux-app/issues");
+        addLink(content, getString(R.string.help_link_github), "https://github.com/nousresearch/hermes-agent");
+        addLink(content, getString(R.string.help_link_docs), "https://hermes-agent.nousresearch.com/docs");
+        addLink(content, getString(R.string.help_link_issues), "https://github.com/Bahtya/hermes-termux-app/issues");
 
+        root.addView(content);
         ScrollView sv = new ScrollView(this);
         sv.addView(root);
         setContentView(sv);

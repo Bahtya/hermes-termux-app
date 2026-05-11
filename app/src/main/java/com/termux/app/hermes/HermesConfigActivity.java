@@ -3165,9 +3165,9 @@ public class HermesConfigActivity extends AppCompatActivity {
             String model = mConfigManager.getModelName();
             String apiKey = mConfigManager.getApiKey(provider);
             // Mask API key for sharing
-            String maskedKey = apiKey.length() > 8
+            String maskedKey = (apiKey != null && apiKey.length() > 8)
                     ? apiKey.substring(0, 4) + "****" + apiKey.substring(apiKey.length() - 4)
-                    : (apiKey.isEmpty() ? "" : "****");
+                    : (apiKey != null && !apiKey.isEmpty() ? "****" : "");
 
             String qrData = "hermes-llm://config?"
                     + "provider=" + provider
