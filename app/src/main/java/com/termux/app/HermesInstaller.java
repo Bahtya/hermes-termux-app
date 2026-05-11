@@ -15,6 +15,7 @@ import androidx.core.app.NotificationCompat;
 
 import com.termux.R;
 import com.termux.app.hermes.HermesConfigManager;
+import com.termux.app.hermes.HermesInstallHelper;
 import com.termux.shared.file.FileUtils;
 import com.termux.shared.logger.Logger;
 import com.termux.shared.termux.TermuxConstants;
@@ -38,8 +39,6 @@ public class HermesInstaller {
             TermuxConstants.TERMUX_DATA_HOME_DIR_PATH + "/hermes-installed";
     private static final String HERMES_BOOT_SCRIPT =
             TermuxConstants.TERMUX_BOOT_SCRIPTS_DIR_PATH + "/hermes-gateway";
-    private static final String HERMES_INSTALL_URL =
-            "https://hermes-agent.nousresearch.com/install.sh";
 
     private HermesInstaller() {}
 
@@ -65,34 +64,25 @@ public class HermesInstaller {
                     deployBootScript();
                 }
 
-                boolean success = false;
-                Exception lastError = null;
-
-                for (int attempt = 1; attempt <= MAX_RETRIES; attempt++) {
-                    try {
-                        showProgress(context, "Downloading Hermes Agent... (attempt " + attempt + "/" + MAX_RETRIES + ")", 30);
-                        runInstallScript(attempt);
-                        success = true;
-                        break;
-                    } catch (Exception e) {
-                        lastError = e;
-                        Logger.logWarn(LOG_TAG, "Install attempt " + attempt + " failed: " + e.getMessage());
-                        if (attempt < MAX_RETRIES) {
-                            showProgress(context, "Retrying in 5s... (" + attempt + "/" + MAX_RETRIES + ")", 30);
-                            Thread.sleep(5000);
+                try {
+                    HermesInstallHelper.executeInstall(MAX_RETRIES, new HermesInstallHelper.ProgressCallback() {
+                        @Override
+                        public void onStatus(String message) {
+                            showProgress(context, message, 30);
                         }
-                    }
-                }
-
-                if (success) {
+                        @Override
+                        public boolean isCancelled() {
+                            return Thread.currentThread().isInterrupted();
+                        }
+                    });
                     markInstalled();
                     HermesConfigManager.reinitialize();
                     showSuccess(context, "Hermes Agent installed successfully");
                     Logger.logInfo(LOG_TAG, "Hermes installation complete.");
-                } else {
-                    String errorMsg = lastError != null ? lastError.getMessage() : "Unknown error";
+                } catch (Exception e) {
+                    String errorMsg = e.getMessage() != null ? e.getMessage() : "Unknown error";
                     showError(context, "Installation failed: " + errorMsg);
-                    Logger.logErrorExtended(LOG_TAG, "Hermes installation failed after " + MAX_RETRIES + " attempts:\n" + errorMsg);
+                    Logger.logErrorExtended(LOG_TAG, "Hermes installation failed:\n" + errorMsg);
                 }
             } catch (InterruptedException e) {
                 Thread.currentThread().interrupt();
@@ -182,40 +172,6 @@ public class HermesInstaller {
         }
         Os.chmod(scriptFile.getAbsolutePath(), 0700);
         Logger.logInfo(LOG_TAG, "Deployed boot script to " + HERMES_BOOT_SCRIPT);
-    }
-
-    private static void runInstallScript(int attempt) throws Exception {
-        String bashPath = TermuxConstants.TERMUX_BIN_PREFIX_DIR_PATH + "/bash";
-        String curlPath = TermuxConstants.TERMUX_BIN_PREFIX_DIR_PATH + "/curl";
-
-        if (!new File(bashPath).exists() || !new File(curlPath).exists()) {
-            throw new RuntimeException("bash or curl not available yet");
-        }
-
-        ProcessBuilder pb = new ProcessBuilder(
-                bashPath, "-c",
-                "curl -fsSL " + HERMES_INSTALL_URL + " | " + bashPath
-        );
-        pb.environment().put("HOME", TermuxConstants.TERMUX_HOME_DIR_PATH);
-        pb.environment().put("PATH", TermuxConstants.TERMUX_BIN_PREFIX_DIR_PATH
-                + ":/system/bin:/system/xbin");
-        pb.redirectErrorStream(true);
-
-        Process p = pb.start();
-
-        StringBuilder output = new StringBuilder();
-        try (BufferedReader reader = new BufferedReader(new InputStreamReader(p.getInputStream()))) {
-            String line;
-            while ((line = reader.readLine()) != null) {
-                output.append(line).append("\n");
-            }
-        }
-
-        int exit = p.waitFor();
-        if (exit != 0) {
-            throw new RuntimeException("Install script exited with code " + exit
-                    + (output.length() > 0 ? "\n" + output : ""));
-        }
     }
 
     private static void markInstalled() throws Exception {
