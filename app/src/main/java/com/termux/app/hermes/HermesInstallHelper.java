@@ -46,6 +46,9 @@ public class HermesInstallHelper {
     public static void executeInstall(Context context, int maxDirectRetries, ProgressCallback callback) throws Exception {
         StringBuilder errorLog = new StringBuilder();
 
+        // Phase 0: wait for Termux bootstrap to finish
+        ensureBashReady(callback);
+
         // Phase 1: direct attempts
         for (int attempt = 1; attempt <= maxDirectRetries; attempt++) {
             if (callback != null && callback.isCancelled()) return;
@@ -86,6 +89,34 @@ public class HermesInstallHelper {
         }
 
         throw new RuntimeException("All download methods failed\n" + errorLog);
+    }
+
+    /**
+     * Wait until bash can actually execute (bootstrap packages fully installed).
+     * Retries every 3 seconds for up to 60 seconds.
+     */
+    private static void ensureBashReady(ProgressCallback callback) throws Exception {
+        String bashPath = TermuxConstants.TERMUX_BIN_PREFIX_DIR_PATH + "/bash";
+        int maxWaitAttempts = 20;
+
+        for (int i = 0; i < maxWaitAttempts; i++) {
+            if (callback != null && callback.isCancelled()) return;
+            if (new File(bashPath).exists()) {
+                try {
+                    ProcessBuilder pb = new ProcessBuilder(bashPath, "-c", "echo ok");
+                    pb.redirectErrorStream(true);
+                    Process p = pb.start();
+                    p.getInputStream().close();
+                    int exit = p.waitFor();
+                    if (exit == 0) return;
+                } catch (Exception ignored) {
+                    // bash exists but can't run yet (missing .so), keep waiting
+                }
+            }
+            Logger.logInfo(LOG_TAG, "Bootstrap not ready, waiting... (" + (i + 1) + "/" + maxWaitAttempts + ")");
+            Thread.sleep(3000);
+        }
+        throw new RuntimeException("Termux bootstrap packages are not ready after 60 seconds");
     }
 
     /**
