@@ -874,6 +874,14 @@
     <string name="llm_preset_desc_custom">Custom — your current parameters unchanged.</string>
     <string name="llm_preset_title">Configuration Preset</string>
     <string name="llm_preset_summary">Quick setup for common use cases</string>
+    <string name="llm_quick_setup_title">Quick Setup — Tap your provider</string>
+    <string name="llm_quick_openai_summary">GPT-4o — best quality, $5/million tokens</string>
+    <string name="llm_quick_anthropic_summary">Claude Sonnet — balanced, $3/million tokens</string>
+    <string name="llm_quick_deepseek_summary">DeepSeek Chat — great value, $0.27/million tokens</string>
+    <string name="llm_quick_google_summary">Gemini Flash — fast, $0.15/million tokens</string>
+    <string name="llm_quick_ollama_summary">Free local AI — no API key, runs on device</string>
+    <string name="llm_quick_openrouter_summary">Multi-provider — access any model via one API</string>
+    <string name="llm_provider_switched">Switched to %s — set your API key below</string>
     <string name="llm_provider_info_title">Provider Info</string>
     <string name="llm_cost_title">Estimated Cost</string>
     <string name="llm_cost_free">Free (local model via Ollama)</string>
