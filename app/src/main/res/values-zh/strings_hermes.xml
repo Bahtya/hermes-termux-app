@@ -732,4 +732,51 @@
         <item>60 秒</item>
         <item>120 秒</item>
     </string-array>
+
+    <!-- Hermes Setup Wizard (robust redesign) -->
+    <string name="hermes_setup_skip">跳过</string>
+    <string name="hermes_setup_reconfigure">重新运行设置向导</string>
+    <string name="hermes_setup_quick_ollama">使用 Ollama 快速开始（免费，无需 API Key）</string>
+    <string name="hermes_welcome_dialog_title">欢迎使用 Hermes！</string>
+    <string name="hermes_welcome_dialog_message">Hermes Agent 已准备就绪。点击工具栏中的 Hermes 图标配置您的 AI 助手。\n\n您可以随时设置，先探索也没关系。</string>
+    <string name="hermes_welcome_dialog_start">开始设置</string>
+    <string name="hermes_welcome_dialog_later">稍后</string>
+
+    <!-- Hermes Drawer Navigation -->
+    <string name="hermes_nav_dashboard">仪表盘</string>
+    <string name="hermes_nav_ai_config">AI 配置</string>
+    <string name="hermes_nav_im_setup">IM 接入</string>
+    <string name="hermes_nav_gateway">网关控制</string>
+    <string name="hermes_nav_logs">日志</string>
+    <string name="hermes_nav_diagnostics">诊断</string>
+    <string name="hermes_nav_setup_wizard">设置向导</string>
+    <string name="hermes_nav_help">帮助</string>
+    <string name="hermes_nav_restore_backup">恢复配置备份</string>
+
+    <!-- Hermes Dashboard -->
+    <string name="hermes_dashboard_title">Hermes 仪表盘</string>
+    <string name="hermes_dashboard_config_empty">尚未配置。运行设置向导开始使用。</string>
+    <string name="hermes_dashboard_config_partial">部分配置完成，部分功能可能不可用。</string>
+    <string name="hermes_dashboard_config_ready">Hermes 已配置完成，可以运行。</string>
+    <string name="hermes_dashboard_run_setup">运行设置向导</string>
+    <string name="hermes_dashboard_status_section">状态</string>
+    <string name="hermes_dashboard_actions_section">快捷操作</string>
+    <string name="hermes_dashboard_label_ai_provider">AI 提供商：</string>
+    <string name="hermes_dashboard_label_im">消息平台：</string>
+    <string name="hermes_dashboard_label_gateway">网关：</string>
+    <string name="hermes_dashboard_not_configured">未配置</string>
+    <string name="hermes_dashboard_im_none">未配置</string>
+    <string name="hermes_dashboard_gw_running">运行中</string>
+    <string name="hermes_dashboard_gw_not_installed">未安装</string>
+    <string name="hermes_dashboard_gw_stopped">已停止</string>
+    <string name="hermes_action_prefix">  → %s</string>
+    <string name="hermes_action_start_gateway">启动网关</string>
+    <string name="hermes_action_ai_settings">打开 AI 设置</string>
+    <string name="hermes_action_im_setup">配置消息平台</string>
+    <string name="hermes_action_view_logs">查看日志</string>
+    <string name="hermes_action_diagnostics">运行诊断</string>
+    <string name="hermes_restore_backup_message">将从最近的备份恢复配置。当前设置将被覆盖。继续？</string>
+    <string name="hermes_restore_success">已从备份恢复配置</string>
+    <string name="hermes_restore_no_backup">未找到备份</string>
+
 </resources>

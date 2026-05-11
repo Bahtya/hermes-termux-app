@@ -355,8 +355,13 @@ public class HermesConfigManager {
         }
     }
 
-    /** Writes the current {@link #mYamlConfig} map back to config.yaml. */
+    /** Writes the current {@link #mYamlConfig} map back to config.yaml. Auto-backup before write. */
     private synchronized void writeYamlConfig() {
+        // Backup on first write (don't backup every keystroke)
+        if (!new File(BACKUP_YAML_PATH).exists()) {
+            File yamlFile = new File(CONFIG_YAML_PATH);
+            if (yamlFile.exists()) copyFile(CONFIG_YAML_PATH, BACKUP_YAML_PATH);
+        }
         // Reconstruct a simple YAML from the flat map, grouping by section.
         Map<String, Map<String, String>> sections = new LinkedHashMap<>();
 
@@ -456,8 +461,13 @@ public class HermesConfigManager {
         }
     }
 
-    /** Persists the current {@link #mEnvVars} map back to the {@code .env} file. */
+    /** Persists the current {@link #mEnvVars} map back to the {@code .env} file. Auto-backup before write. */
     private synchronized void writeEnvFile() {
+        // Backup on first write
+        if (!new File(BACKUP_ENV_PATH).exists()) {
+            File envFile = new File(ENV_FILE_PATH);
+            if (envFile.exists()) copyFile(ENV_FILE_PATH, BACKUP_ENV_PATH);
+        }
         StringBuilder sb = new StringBuilder();
         sb.append("# Hermes Agent Environment Variables\n");
         sb.append("# LLM Provider API Keys\n");
@@ -1286,11 +1296,88 @@ public class HermesConfigManager {
     }
 
     // =========================================================================
+    // Config status
+    // =========================================================================
+
+    /** Overall configuration completeness. */
+    public enum ConfigStatus {
+        /** No API keys and no IM platforms configured. */
+        EMPTY,
+        /** Some configuration present but not enough to run the gateway. */
+        PARTIAL,
+        /** At least one LLM provider has an API key and a model is selected. */
+        READY
+    }
+
+    /** Returns the current configuration completeness status. */
+    public ConfigStatus getConfigStatus() {
+        String provider = getModelProvider();
+        String apiKey = getApiKey(provider);
+        boolean hasLLM = !apiKey.isEmpty() || "ollama".equals(provider);
+        boolean hasModel = !getModelName().isEmpty();
+        boolean hasIM = isFeishuConfigured()
+                || !getEnvVar("TELEGRAM_BOT_TOKEN").isEmpty()
+                || !getEnvVar("DISCORD_BOT_TOKEN").isEmpty()
+                || !getEnvVar("WHATSAPP_PHONE_NUMBER_ID").isEmpty();
+
+        if (hasLLM && hasModel) return ConfigStatus.READY;
+        if (hasIM || (hasLLM && !hasModel) || (!apiKey.isEmpty())) return ConfigStatus.PARTIAL;
+        return ConfigStatus.EMPTY;
+    }
+
+    // =========================================================================
+    // Backup / Restore
+    // =========================================================================
+
+    private static final String BACKUP_YAML_PATH = HERMES_CONFIG_DIR_PATH + "/config.yaml.bak";
+    private static final String BACKUP_ENV_PATH = HERMES_CONFIG_DIR_PATH + "/.env.bak";
+
+    /** Backs up current config files before a write operation. */
+    public synchronized void backupConfig() {
+        File yamlFile = new File(CONFIG_YAML_PATH);
+        File envFile = new File(ENV_FILE_PATH);
+        if (yamlFile.exists()) {
+            copyFile(CONFIG_YAML_PATH, BACKUP_YAML_PATH);
+        }
+        if (envFile.exists()) {
+            copyFile(ENV_FILE_PATH, BACKUP_ENV_PATH);
+        }
+    }
+
+    /** Restores config from backup. Returns true if restore succeeded. */
+    public synchronized boolean restoreFromBackup() {
+        File bakYaml = new File(BACKUP_YAML_PATH);
+        File bakEnv = new File(BACKUP_ENV_PATH);
+        if (!bakYaml.exists() && !bakEnv.exists()) return false;
+
+        if (bakYaml.exists()) copyFile(BACKUP_YAML_PATH, CONFIG_YAML_PATH);
+        if (bakEnv.exists()) copyFile(BACKUP_ENV_PATH, ENV_FILE_PATH);
+        loadConfig();
+        Logger.logInfo(LOG_TAG, "Configuration restored from backup");
+        return true;
+    }
+
+    private static void copyFile(String srcPath, String dstPath) {
+        File src = new File(srcPath);
+        File dst = new File(dstPath);
+        if (!src.exists()) return;
+        try (java.io.InputStream in = new java.io.FileInputStream(src);
+             java.io.OutputStream out = new java.io.FileOutputStream(dst)) {
+            byte[] buf = new byte[4096];
+            int len;
+            while ((len = in.read(buf)) > 0) out.write(buf, 0, len);
+        } catch (IOException e) {
+            Logger.logError(LOG_TAG, "Failed to copy " + srcPath + " to " + dstPath + ": " + e.getMessage());
+        }
+    }
+
+    // =========================================================================
     // Reset
     // =========================================================================
 
     /** Deletes config files and reloads defaults. */
     public synchronized void resetToDefaults() {
+        backupConfig();
         new File(CONFIG_YAML_PATH).delete();
         new File(ENV_FILE_PATH).delete();
         mYamlConfig.clear();

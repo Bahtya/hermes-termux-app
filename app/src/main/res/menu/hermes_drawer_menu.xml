@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <group android:checkableBehavior="single">
+        <item
+            android:id="@+id/nav_dashboard"
+            android:title="@string/hermes_nav_dashboard" />
+        <item
+            android:id="@+id/nav_ai_config"
+            android:title="@string/hermes_nav_ai_config" />
+        <item
+            android:id="@+id/nav_im_setup"
+            android:title="@string/hermes_nav_im_setup" />
+        <item
+            android:id="@+id/nav_gateway"
+            android:title="@string/hermes_nav_gateway" />
+    </group>
+
+    <group android:checkableBehavior="single">
+        <item
+            android:id="@+id/nav_logs"
+            android:title="@string/hermes_nav_logs" />
+        <item
+            android:id="@+id/nav_diagnostics"
+            android:title="@string/hermes_nav_diagnostics" />
+    </group>
+
+    <group android:checkableBehavior="single">
+        <item
+            android:id="@+id/nav_setup_wizard"
+            android:title="@string/hermes_nav_setup_wizard" />
+        <item
+            android:id="@+id/nav_help"
+            android:title="@string/hermes_nav_help" />
+        <item
+            android:id="@+id/nav_restore_backup"
+            android:title="@string/hermes_nav_restore_backup" />
+    </group>
+
+</menu>
