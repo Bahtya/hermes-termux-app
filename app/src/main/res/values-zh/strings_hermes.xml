@@ -524,4 +524,92 @@
 
     <!-- Validation -->
     <string name="validation_summary_format">%2$d 项检查中有 %1$d 项通过</string>
+
+    <!-- Feishu Setup (supplementary - main translations in strings_feishu.xml) -->
+    <string name="feishu_app_id_prefix">应用 ID 以 \"cli_\" 开头</string>
+    <string name="feishu_auto_detect_desc">已从二维码检测到凭据，请确认是否正确。</string>
+    <string name="feishu_auto_detect_title">自动检测到的凭据</string>
+    <string name="feishu_copied">已复制！</string>
+    <string-array name="feishu_create_app_steps">
+        <item>点击下方按钮打开开发者控制台</item>
+        <item>点击「创建应用」并选择「机器人」作为应用类型</item>
+        <item>为您的机器人输入名称（例如「我的 Hermes 机器人」）</item>
+        <item>进入「机器人」部分，启用机器人功能</item>
+        <item>从凭据页面复制应用 ID 和应用密钥</item>
+    </string-array>
+    <string name="feishu_copy_webhook">复制 Webhook URL</string>
+    <string name="feishu_credentials_help">输入飞书开发者控制台中的应用 ID 和应用密钥。</string>
+    <string name="feishu_deep_link_summary">直接打开飞书开发者控制台</string>
+    <string name="feishu_deep_link_title">快速设置链接</string>
+    <string name="feishu_domain_label">选择您的平台：</string>
+    <string name="feishu_event_sub_desc">配置事件订阅，使飞书能将消息发送到您的 Hermes 网关。您需要在飞书开发者控制台设置 Webhook URL。</string>
+    <string name="feishu_event_sub_steps">设置说明：</string>
+    <string name="feishu_event_sub_instructions">1. 打开飞书开发者控制台 → 您的应用 → 事件\n2. 点击「添加事件」\n3. 订阅：im.message.receive_v1\n4. 将请求 URL 设为上方的 Webhook URL\n5. 如果使用 WebSocket 模式，可以跳过 URL 设置\n6. 确保已启用事件权限</string>
+    <string name="feishu_event_sub_title">事件订阅</string>
+    <string name="feishu_no_qr_scanner">未找到二维码扫描应用，请安装一个。</string>
+    <string name="feishu_open_dev_console">打开开发者控制台</string>
+    <string name="feishu_open_dev_console_url">https://open.feishu.cn/app</string>
+    <string name="feishu_open_event_console">打开事件设置</string>
+    <string name="feishu_qr_tip_desc">将手机摄像头对准飞书开发者控制台上的二维码，可快速复制应用 ID 和密钥。</string>
+    <string name="feishu_qr_tip_title">提示：用手机摄像头扫描</string>
+    <string name="feishu_scan_app_id_filled">已填入应用 ID：%1$s</string>
+    <string name="feishu_scan_filled">已从二维码填入凭据</string>
+    <string name="feishu_scan_prompt">扫描二维码以填入凭据</string>
+    <string name="feishu_scan_qr_code">扫描二维码</string>
+    <string name="feishu_webhook_url_label">Webhook URL（复制此链接）：</string>
+    <string name="feishu_websocket_note">注意：如果您选择了 WebSocket 连接方式，则无需配置 Webhook URL。网关将通过 WebSocket 自动连接到飞书。</string>
+    <string name="feishu_welcome_new_desc">此向导将引导您完成飞书机器人与 Hermes 的连接。您需要准备：</string>
+    <string name="feishu_welcome_new_title">欢迎使用飞书设置</string>
+
+    <!-- Gateway Log -->
+    <string name="gateway_log_copied">日志已复制到剪贴板</string>
+    <string name="gateway_log_copy">复制</string>
+    <string name="gateway_log_filter_label">筛选：</string>
+    <string name="gateway_log_no_matches">没有匹配的日志条目。</string>
+    <string name="gateway_log_share">分享</string>
+    <string name="gateway_log_share_title">分享网关日志</string>
+
+    <!-- Gateway Settings -->
+    <string name="gateway_notif_perm_summary">授予网关服务通知权限</string>
+    <string name="gateway_notif_perm_title">通知权限</string>
+    <string name="gateway_quiet_hours_end">结束时间</string>
+    <string name="gateway_quiet_hours_start">开始时间</string>
+    <string name="gateway_quiet_hours_summary">在指定时段内抑制非关键通知</string>
+    <string name="gateway_quiet_hours_title">静默时段</string>
+    <string name="gateway_stats_category">会话统计</string>
+    <string name="gateway_stats_running">运行时间：%s</string>
+    <string name="gateway_stats_stopped">网关未运行</string>
+    <string name="gateway_stats_title">当前会话</string>
+
+    <!-- Hermes Update -->
+    <string name="hermes_update_available">有更新可用：%1$s（当前：%2$s）</string>
+    <string name="hermes_update_checking">正在检查更新…</string>
+    <string name="hermes_update_failed">检查更新失败</string>
+    <string name="hermes_up_to_date">Hermes Agent 已是最新版本（%1$s）</string>
+    <string name="hermes_version_label">Hermes Agent 版本</string>
+
+    <!-- IM -->
+    <string name="im_scan_qr_code">扫描二维码</string>
+    <string name="im_scan_qr_prompt">扫描二维码以填入凭据</string>
+    <string name="im_scan_token_filled">已从二维码填入令牌</string>
+    <string name="im_test_detail_fail">失败：%1$s - %2$s</string>
+    <string name="im_test_detail_success">连接成功！机器人：%1$s</string>
+    <string name="im_test_no_token">请先输入机器人令牌</string>
+    <string name="im_test_retry">重试</string>
+    <string name="im_test_running">正在测试连接…</string>
+
+    <!-- LLM Config -->
+    <string name="llm_api_key_hint_openai">OpenAI 密钥以 sk- 开头</string>
+    <string name="llm_base_url_hint_default">留空使用默认提供商 URL</string>
+    <string name="llm_custom_model_summary">输入要使用的模型名称</string>
+    <string name="llm_custom_model_title">自定义模型名称</string>
+    <string name="llm_export_qr_summary">以二维码分享配置</string>
+    <string name="llm_export_qr_title">通过二维码导出</string>
+    <string name="llm_import_qr_summary">扫描二维码导入配置</string>
+    <string name="llm_import_qr_title">通过二维码导入</string>
+    <string name="llm_paste_key_summary">从剪贴板粘贴</string>
+    <string name="llm_paste_key_title">粘贴 API 密钥</string>
+    <string name="llm_provider_info_title">提供商信息</string>
+    <string name="llm_quick_switch_model_label">模型</string>
+    <string name="llm_quick_switch_provider_label">提供商</string>
 </resources>
