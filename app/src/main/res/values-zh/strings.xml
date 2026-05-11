@@ -100,6 +100,15 @@
     <string name="validation_gateway_title">网关状态</string>
     <string name="validation_im_title">IM 平台</string>
     <string name="validation_system_prompt_title">系统提示词</string>
+    <string name="validation_api_key_ok">已配置 %s 的 API 密钥</string>
+    <string name="validation_api_key_missing">未设置 API 密钥 — 点击配置</string>
+    <string name="validation_gateway_running">网关正在运行（运行时间：%s）</string>
+    <string name="validation_gateway_stopped">网关未运行 — 点击启动</string>
+    <string name="validation_gateway_not_installed">Hermes 未安装 — 点击安装</string>
+    <string name="validation_im_ok">已配置 %s 个平台</string>
+    <string name="validation_im_missing">未配置 IM 平台 — 点击设置</string>
+    <string name="validation_system_prompt_ok">已设置系统提示词（%d 字）</string>
+    <string name="validation_system_prompt_missing">未设置系统提示词 — 点击添加</string>
 
     <!-- WhatsApp -->
     <string name="whatsapp_configured">WhatsApp Business 已配置</string>
