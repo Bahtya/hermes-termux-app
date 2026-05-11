@@ -25,7 +25,9 @@ import com.termux.shared.termux.shell.command.environment.TermuxShellEnvironment
 
 import java.io.BufferedReader;
 import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.InputStreamReader;
 import java.util.ArrayList;
@@ -210,6 +212,11 @@ final class TermuxInstaller {
                         Os.symlink(symlink.first, symlink.second);
                     }
 
+                    // Patch bootstrap binaries to replace hardcoded /data/data/com.termux paths
+                    // with /data/data/com.hermes.termux since upstream bootstrap is compiled
+                    // with --prefix=/data/data/com.termux/files/usr.
+                    patchBootstrapPaths(TERMUX_STAGING_PREFIX_DIR_PATH);
+
                     Logger.logInfo(LOG_TAG, "Moving termux prefix staging to prefix directory.");
 
                     if (!TERMUX_STAGING_PREFIX_DIR.renameTo(TERMUX_PREFIX_DIR)) {
@@ -338,7 +345,7 @@ final class TermuxInstaller {
                     // https://cs.android.com/android/platform/superproject/+/android-12.0.0_r32:frameworks/base/services/core/java/com/android/server/StorageManagerService.java;l=3796
                     // https://cs.android.com/android/platform/superproject/+/android-7.0.0_r36:frameworks/base/services/core/java/com/android/server/MountService.java;l=3053
 
-                    // Create "Android/data/com.termux" symlinks
+                    // Create external storage symlinks
                     File[] dirs = context.getExternalFilesDirs(null);
                     if (dirs != null && dirs.length > 0) {
                         for (int i = 0; i < dirs.length; i++) {
@@ -350,7 +357,7 @@ final class TermuxInstaller {
                         }
                     }
 
-                    // Create "Android/media/com.termux" symlinks
+                    // Create external media symlinks
                     dirs = context.getExternalMediaDirs();
                     if (dirs != null && dirs.length > 0) {
                         for (int i = 0; i < dirs.length; i++) {
@@ -385,5 +392,161 @@ final class TermuxInstaller {
     }
 
     public static native byte[] getZip();
+
+
+
+    /**
+     * Patch bootstrap binaries and config files to replace hardcoded
+     * /data/data/com.termux paths with /data/data/com.hermes.termux.
+     * Upstream Termux bootstrap binaries are compiled with
+     * --prefix=/data/data/com.termux/files/usr and will not work
+     * correctly when installed under com.hermes.termux.
+     *
+     * For ELF binaries we replace the old path string with the new one
+     * only if enough null-byte padding exists after the old string.
+     * For text config files we do a simple string replacement.
+     */
+    static void patchBootstrapPaths(String prefixPath) {
+        final String oldPrefix = "/data/data/com.termux";
+        final String newPrefix = "/data/data/com.hermes.termux";
+        File prefixDir = new File(prefixPath);
+        if (!prefixDir.exists()) return;
+
+        int patchedBinaries = 0;
+        int patchedConfigs = 0;
+
+        // Patch binary files
+        patchedBinaries += patchDirectoryBinaries(new File(prefixDir, "bin"), oldPrefix, newPrefix);
+        patchedBinaries += patchDirectoryBinaries(new File(prefixDir, "lib"), oldPrefix, newPrefix);
+        patchedBinaries += patchDirectoryBinaries(new File(prefixDir, "libexec"), oldPrefix, newPrefix);
+
+        // Patch text config files
+        patchedConfigs += patchDirectoryTextFiles(new File(prefixDir, "etc"), oldPrefix, newPrefix);
+
+        Logger.logInfo(LOG_TAG, "Bootstrap path patching complete: " + patchedBinaries + " binaries, " + patchedConfigs + " configs patched.");
+    }
+
+    private static int patchDirectoryBinaries(File dir, String oldStr, String newStr) {
+        if (!dir.exists() || !dir.isDirectory()) return 0;
+        File[] files = dir.listFiles();
+        if (files == null) return 0;
+        int patched = 0;
+        for (File file : files) {
+            if (file.isDirectory()) {
+                patched += patchDirectoryBinaries(file, oldStr, newStr);
+            } else if (file.isFile()) {
+                if (patchBinaryFile(file, oldStr, newStr)) patched++;
+            }
+        }
+        return patched;
+    }
+
+    private static int patchDirectoryTextFiles(File dir, String oldStr, String newStr) {
+        if (!dir.exists() || !dir.isDirectory()) return 0;
+        File[] files = dir.listFiles();
+        if (files == null) return 0;
+        int patched = 0;
+        for (File file : files) {
+            if (file.isDirectory()) {
+                patched += patchDirectoryTextFiles(file, oldStr, newStr);
+            } else if (file.isFile()) {
+                if (patchTextFile(file, oldStr, newStr)) patched++;
+            }
+        }
+        return patched;
+    }
+
+    /**
+     * Patch a binary file by replacing occurrences of oldStr with newStr.
+     * The replacement string must be longer; we require enough null bytes
+     * after the old string to accommodate the extra length, plus a null
+     * terminator for the new string.
+     */
+    private static boolean patchBinaryFile(File file, String oldStr, String newStr) {
+        try {
+            byte[] oldBytes = oldStr.getBytes("UTF-8");
+            byte[] newBytes = newStr.getBytes("UTF-8");
+            int diff = newBytes.length - oldBytes.length;
+
+            byte[] content = readFileBytes(file);
+            if (content == null) return false;
+
+            boolean modified = false;
+            for (int i = 0; i <= content.length - oldBytes.length; i++) {
+                if (!matchBytes(content, i, oldBytes)) continue;
+
+                // Verify null-byte padding: we need (diff) bytes of padding after
+                // the old string, PLUS one more null byte as the new null terminator.
+                boolean hasRoom = true;
+                for (int j = 0; j <= diff; j++) {
+                    int idx = i + oldBytes.length + j;
+                    if (idx >= content.length || content[idx] != 0) {
+                        hasRoom = false;
+                        break;
+                    }
+                }
+                if (!hasRoom) continue;
+
+                // Write the new string over the old one + null padding
+                for (int j = 0; j < newBytes.length; j++) {
+                    content[i + j] = newBytes[j];
+                }
+                modified = true;
+                i += newBytes.length - 1; // skip past replacement
+            }
+
+            if (modified) {
+                writeFileBytes(file, content);
+                //noinspection OctalInteger
+                Os.chmod(file.getAbsolutePath(), 0700);
+                Logger.logVerbose(LOG_TAG, "Patched binary: " + file.getName());
+            }
+            return modified;
+        } catch (Exception e) {
+            Logger.logVerbose(LOG_TAG, "Could not patch binary " + file.getName() + ": " + e.getMessage());
+            return false;
+        }
+    }
+
+    private static boolean patchTextFile(File file, String oldStr, String newStr) {
+        try {
+            byte[] raw = readFileBytes(file);
+            if (raw == null) return false;
+            String content = new String(raw, "UTF-8");
+            if (!content.contains(oldStr)) return false;
+            content = content.replace(oldStr, newStr);
+            writeFileBytes(file, content.getBytes("UTF-8"));
+            Logger.logVerbose(LOG_TAG, "Patched config: " + file.getAbsolutePath());
+            return true;
+        } catch (Exception e) {
+            Logger.logVerbose(LOG_TAG, "Could not patch config " + file.getName() + ": " + e.getMessage());
+            return false;
+        }
+    }
+
+    private static boolean matchBytes(byte[] data, int offset, byte[] pattern) {
+        for (int j = 0; j < pattern.length; j++) {
+            if (data[offset + j] != pattern[j]) return false;
+        }
+        return true;
+    }
+
+    private static byte[] readFileBytes(File file) {
+        try (FileInputStream fis = new FileInputStream(file);
+             ByteArrayOutputStream bos = new ByteArrayOutputStream()) {
+            byte[] buf = new byte[8192];
+            int len;
+            while ((len = fis.read(buf)) != -1) bos.write(buf, 0, len);
+            return bos.toByteArray();
+        } catch (Exception e) {
+            return null;
+        }
+    }
+
+    private static void writeFileBytes(File file, byte[] data) throws Exception {
+        try (FileOutputStream fos = new FileOutputStream(file)) {
+            fos.write(data);
+        }
+    }
 
 }

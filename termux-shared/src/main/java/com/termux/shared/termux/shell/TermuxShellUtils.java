@@ -60,7 +60,7 @@ public class TermuxShellUtils {
                                         interpreter = TermuxConstants.TERMUX_BIN_PREFIX_DIR_PATH + "/" + binary;
                                     } else if (shebangExecutable.contains("/usr/bin/") || shebangExecutable.contains("/bin/")) {
                                         // Handle full paths from other Termux installations, e.g.
-                                        // /data/data/com.termux/files/usr/bin/sh → $PREFIX/bin/sh
+                                        // Handle full paths from other Termux installations
                                         String[] parts = shebangExecutable.split("/");
                                         String binary = parts[parts.length - 1];
                                         interpreter = TermuxConstants.TERMUX_BIN_PREFIX_DIR_PATH + "/" + binary;
