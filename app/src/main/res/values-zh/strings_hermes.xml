@@ -346,6 +346,13 @@
     <string name="llm_get_api_key_summary">打开提供商控制台获取或管理 API 密钥</string>
     <string name="llm_docs_title">提供商文档</string>
     <string name="llm_docs_summary">查看设置指南和价格信息</string>
+    <string name="ollama_setup_guide_title">Ollama 设置指南</string>
+    <string name="ollama_setup_intro">Ollama 在本地运行 AI 模型。无需 API 密钥，完全免费且保护隐私。</string>
+    <string name="ollama_setup_steps_title">安装步骤</string>
+    <string name="ollama_setup_steps"><![CDATA[1. 打开 Termux 终端（Bash 标签页）\n2. 运行：curl -fsSL https://ollama.com/install.sh | sh\n3. 等待安装完成\n4. 启动 Ollama：ollama serve &\n5. 拉取模型：ollama pull llama3\n6. 返回此处选择模型]]></string>
+    <string name="ollama_setup_models"><![CDATA[\n热门模型：\n• llama3 — 通用最佳（4.7GB）\n• mistral — 快速且强大（4.1GB）\n• codellama — 代码生成\n• phi3 — 小巧快速（2.3GB）\n• gemma2 — Google 开源模型]]></string>
+    <string name="ollama_setup_dialog_title">Ollama 设置</string>
+    <string name="ollama_setup_open_terminal">打开终端</string>
 
     <!-- IM Test Message -->
     <string name="im_test_message_title">发送测试消息</string>
