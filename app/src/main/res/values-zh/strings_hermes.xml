@@ -382,12 +382,6 @@
     <string name="install_validate_success">验证通过</string>
     <string name="install_validate_fail">验证失败 — 安装可能不完整</string>
 
-    <!-- Diagnostic -->
-    <string name="diagnostic_title">连接诊断</string>
-    <string name="diagnostic_run">运行诊断</string>
-    <string name="diagnostic_copy">复制报告</string>
-    <string name="diagnostic_fix">修复问题</string>
-
     <!-- Persona Templates -->
     <string name="llm_templates_title">系统提示词模板</string>
     <string name="llm_templates_summary">选择预设人设模板</string>
