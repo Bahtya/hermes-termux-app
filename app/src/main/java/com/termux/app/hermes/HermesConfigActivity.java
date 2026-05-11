@@ -2150,28 +2150,25 @@ public class HermesConfigActivity extends AppCompatActivity {
         }
 
         private String getPersonaPrompt(String persona) {
+            int resId = 0;
             switch (persona) {
-                case "professional":
-                    return "You are a professional AI assistant. Be thorough, accurate, and well-organized. Use clear formatting with headers and bullet points. Cite sources when possible. Maintain a formal but approachable tone.";
-                case "friendly":
-                    return "You are a friendly and empathetic AI companion. Be warm, conversational, and supportive. Use casual language and occasional humor. Show genuine interest in helping. Keep responses engaging and easy to read.";
-                case "creative":
-                    return "You are a creative writing assistant. Be imaginative, expressive, and original. Use vivid language and compelling narratives. Help with brainstorming, storytelling, poetry, and creative problem-solving. Think outside the box.";
-                case "technical":
-                    return "You are a technical expert assistant. Provide precise, detailed technical answers. Include code examples, diagrams, and step-by-step instructions when relevant. Prioritize accuracy and best practices. Explain complex concepts clearly.";
-                case "concise":
-                    return "You are a concise assistant. Give brief, direct answers. Avoid unnecessary elaboration. Use bullet points and short sentences. Get straight to the point. Only provide additional detail when specifically asked.";
-                case "tutor":
-                    return "You are a patient language tutor. Help users learn and practice languages. Correct mistakes gently with explanations. Provide examples and exercises. Adapt to the user's skill level. Encourage practice and celebrate progress.";
-                default:
-                    return null;
+                case "professional": resId = R.string.persona_prompt_professional; break;
+                case "friendly": resId = R.string.persona_prompt_friendly; break;
+                case "creative": resId = R.string.persona_prompt_creative; break;
+                case "technical": resId = R.string.persona_prompt_technical; break;
+                case "concise": resId = R.string.persona_prompt_concise; break;
+                case "tutor": resId = R.string.persona_prompt_tutor; break;
+                case "translator": resId = R.string.persona_prompt_translator; break;
+                case "coder": resId = R.string.persona_prompt_coder; break;
+                case "data_analyst": resId = R.string.persona_prompt_data_analyst; break;
+                default: return null;
             }
+            return getString(resId);
         }
 
         private void showTemplatePicker() {
-            String[] names = {"Professional Assistant", "Friendly Companion", "Creative Writer",
-                    "Technical Expert", "Concise Helper", "Language Tutor"};
-            String[] values = {"professional", "friendly", "creative", "technical", "concise", "tutor"};
+            String[] names = getResources().getStringArray(R.array.llm_persona_names);
+            String[] values = getResources().getStringArray(R.array.llm_persona_values);
             String[] previews = new String[names.length];
             for (int i = 0; i < names.length; i++) {
                 String prompt = getPersonaPrompt(values[i]);
@@ -2179,7 +2176,7 @@ public class HermesConfigActivity extends AppCompatActivity {
             }
 
             new AlertDialog.Builder(requireContext())
-                    .setTitle("System Prompt Templates")
+                    .setTitle(R.string.llm_templates_title)
                     .setItems(names, (dialog, which) -> {
                         String prompt = getPersonaPrompt(values[which]);
                         if (prompt != null) {
