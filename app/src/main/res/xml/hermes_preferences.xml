@@ -85,7 +85,7 @@
             android:summary="@string/profile_delete_summary" />
     </PreferenceCategory>
 
-    <PreferenceCategory android:title="Backup">
+    <PreferenceCategory android:title="@string/category_backup">
         <Preference
             android:key="hermes_config_export"
             android:title="@string/config_export_title"
@@ -251,7 +251,7 @@
     </PreferenceCategory>
 
 
-    <PreferenceCategory android:title="Help">
+    <PreferenceCategory android:title="@string/category_help">
         <Preference
             android:key="tutorial_reset"
             android:title="@string/tutorial_reset_title"

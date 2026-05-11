@@ -160,7 +160,7 @@ public class HermesWebActivity extends AppCompatActivity {
             } catch (Exception e) {
                 runOnUiThread(() -> {
                     new AlertDialog.Builder(this)
-                            .setTitle("Error")
+                            .setTitle(R.string.error_dialog_title)
                             .setMessage(e.getMessage())
                             .setPositiveButton(android.R.string.ok, (d, w) -> finish())
                             .show();

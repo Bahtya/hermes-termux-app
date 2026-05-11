@@ -432,4 +432,17 @@
     <string name="whatsapp_test_fail">连接失败，请检查凭证。</string>
     <string name="whatsapp_complete_title">WhatsApp Business 已连接</string>
     <string name="whatsapp_complete_next_steps">后续步骤：\n\n• 在 Meta 开发者门户中配置 Webhook URL\n• 启动 Hermes 网关\n• 向你的 WhatsApp Business 号码发送消息\n• 你可以随时从 Hermes 设置中修改配置</string>
+
+    <!-- i18n: previously hardcoded strings -->
+    <string name="category_backup">备份</string>
+    <string name="category_help">帮助</string>
+    <string name="setup_progress_title">设置进度：%1$d%%</string>
+    <string name="copied">已复制！</string>
+    <string name="copy_failed">复制失败：%1$s</string>
+    <string name="share_failed">分享失败：%1$s</string>
+    <string name="error_dialog_title">错误</string>
+    <string name="tutorial_back">上一步</string>
+    <string name="tutorial_skip">跳过</string>
+    <string name="tutorial_done">完成</string>
+    <string name="tutorial_next">下一步</string>
 </resources>

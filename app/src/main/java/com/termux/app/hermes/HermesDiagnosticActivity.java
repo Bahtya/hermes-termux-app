@@ -399,7 +399,7 @@ public class HermesDiagnosticActivity extends AppCompatActivity {
                 getSystemService(CLIPBOARD_SERVICE);
         android.content.ClipData clip = android.content.ClipData.newPlainText("Diagnostic Report", sb.toString());
         clipboard.setPrimaryClip(clip);
-        mCopyButton.setText("Copied!");
+        mCopyButton.setText(R.string.copied);
         mCopyButton.postDelayed(() -> mCopyButton.setText(R.string.diagnostic_copy), 2000);
     }
 
