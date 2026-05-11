@@ -521,4 +521,7 @@
     <string name="llm_preset_desc_precise">精准 — 温度 0.2，4096 词元。注重事实和分析。</string>
     <string name="llm_preset_desc_code">代码 — 温度 0.2，4096 词元。专业编程助手。</string>
     <string name="llm_preset_desc_custom">自定义 — 保持当前参数不变。</string>
+
+    <!-- Validation -->
+    <string name="validation_summary_format">%2$d 项检查中有 %1$d 项通过</string>
 </resources>
