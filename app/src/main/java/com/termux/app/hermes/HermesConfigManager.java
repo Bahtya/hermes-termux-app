@@ -1233,6 +1233,25 @@ public class HermesConfigManager {
     }
 
     /**
+     * Returns {@code true} if there is any meaningful configuration present
+     * (at least one API key or any IM platform configured).
+     */
+    public boolean hasAnyConfig() {
+        // Check all known providers for API keys
+        String[] providers = {"openai", "anthropic", "google", "deepseek", "openrouter",
+                "xai", "alibaba", "mistral", "nvidia", "ollama", "custom"};
+        for (String p : providers) {
+            if (!getApiKey(p).isEmpty()) return true;
+        }
+        // Check IM platforms
+        if (isFeishuConfigured()) return true;
+        if (!getYamlValue("telegram.bot_token").isEmpty()) return true;
+        if (!getYamlValue("discord.bot_token").isEmpty()) return true;
+        if (!getYamlValue("whatsapp.phone_number_id").isEmpty()) return true;
+        return false;
+    }
+
+    /**
      * Returns {@code true} if Feishu integration has the minimum required
      * credentials configured (app_id and app_secret non-empty).
      */

@@ -87,6 +87,7 @@ public class HermesConfigActivity extends AppCompatActivity {
         private android.app.AlertDialog mQuickStartDialog;
         private final android.os.Handler mDashboardHandler = new android.os.Handler(android.os.Looper.getMainLooper());
         private Runnable mDashboardRefresh;
+        private boolean mWizardLaunched;
 
         @Override
         public void onCreatePreferences(Bundle savedInstanceState, String rootKey) {
@@ -1559,6 +1560,8 @@ public class HermesConfigActivity extends AppCompatActivity {
             updateValidationDisplay();
             updateUsageStats();
             refreshDashboard();
+            checkFirstRun();
+            updateWelcomeBanner();
             // Start periodic dashboard refresh
             if (mDashboardRefresh != null) mDashboardHandler.removeCallbacks(mDashboardRefresh);
             mDashboardRefresh = () -> {
@@ -1609,6 +1612,34 @@ public class HermesConfigActivity extends AppCompatActivity {
                 } else {
                     dashLlm.setSummary(getString(R.string.dashboard_llm_not_configured));
                 }
+            }
+        }
+
+        private void checkFirstRun() {
+            if (mWizardLaunched || getActivity() == null) return;
+            boolean wizardDone = HermesSetupWizardActivity.isWizardCompleted(getActivity());
+            if (wizardDone) return;
+            boolean hasConfig = mConfigManager.hasAnyConfig();
+            if (!hasConfig && !HermesSetupWizardActivity.isWizardDismissed(getActivity())) {
+                mWizardLaunched = true;
+                startActivity(new Intent(getActivity(), HermesSetupWizardActivity.class));
+            }
+        }
+
+        private void updateWelcomeBanner() {
+            Preference banner = findPreference("hermes_welcome_banner");
+            if (banner == null || getActivity() == null) return;
+            boolean wizardDone = HermesSetupWizardActivity.isWizardCompleted(getActivity());
+            boolean dismissed = HermesSetupWizardActivity.isWizardDismissed(getActivity());
+            boolean hasConfig = mConfigManager.hasAnyConfig();
+            boolean show = !wizardDone && (dismissed || hasConfig) && !mConfigManager.isConfigured();
+            banner.setVisible(show);
+            if (show) {
+                banner.setOnPreferenceClickListener(p -> {
+                    HermesSetupWizardActivity.clearDismissedFlag(getActivity());
+                    startActivity(new Intent(getActivity(), HermesSetupWizardActivity.class));
+                    return true;
+                });
             }
         }
 

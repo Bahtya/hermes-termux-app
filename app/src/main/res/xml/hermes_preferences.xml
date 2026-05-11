@@ -3,6 +3,12 @@
 
     <PreferenceCategory android:title="@string/dashboard_title">
         <Preference
+            android:key="hermes_welcome_banner"
+            android:title="@string/welcome_banner_title"
+            android:summary="@string/welcome_banner_summary"
+            android:selectable="true"
+            android:visible="false" />
+        <Preference
             android:key="hermes_quick_start"
             android:title="@string/quick_start_title"
             android:summary="@string/quick_start_summary" />
