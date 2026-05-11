@@ -624,6 +624,14 @@
     <string name="llm_paste_key_summary">从剪贴板粘贴</string>
     <string name="llm_paste_key_title">粘贴 API 密钥</string>
     <string name="llm_provider_info_title">提供商信息</string>
+    <string name="llm_quick_setup_title">快速设置 — 点击选择提供商</string>
+    <string name="llm_quick_openai_summary">GPT-4o — 最佳质量，$5/百万词元</string>
+    <string name="llm_quick_anthropic_summary">Claude Sonnet — 均衡，$3/百万词元</string>
+    <string name="llm_quick_deepseek_summary">DeepSeek Chat — 高性价比，$0.27/百万词元</string>
+    <string name="llm_quick_google_summary">Gemini Flash — 快速，$0.15/百万词元</string>
+    <string name="llm_quick_ollama_summary">免费本地 AI — 无需 API 密钥，设备端运行</string>
+    <string name="llm_quick_openrouter_summary">多提供商 — 一个 API 访问所有模型</string>
+    <string name="llm_provider_switched">已切换到 %s — 请在下方设置 API 密钥</string>
     <string name="llm_quick_switch_model_label">模型</string>
     <string name="llm_quick_switch_provider_label">提供商</string>
 

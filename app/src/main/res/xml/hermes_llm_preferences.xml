@@ -1,6 +1,42 @@
 <?xml version="1.0" encoding="utf-8"?>
 <PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android">
 
+    <PreferenceCategory
+        android:key="llm_category_quick_setup"
+        android:title="@string/llm_quick_setup_title">
+
+        <Preference
+            android:key="llm_quick_openai"
+            android:title="OpenAI"
+            android:summary="@string/llm_quick_openai_summary" />
+
+        <Preference
+            android:key="llm_quick_anthropic"
+            android:title="Anthropic"
+            android:summary="@string/llm_quick_anthropic_summary" />
+
+        <Preference
+            android:key="llm_quick_deepseek"
+            android:title="DeepSeek"
+            android:summary="@string/llm_quick_deepseek_summary" />
+
+        <Preference
+            android:key="llm_quick_google"
+            android:title="Google Gemini"
+            android:summary="@string/llm_quick_google_summary" />
+
+        <Preference
+            android:key="llm_quick_ollama"
+            android:title="Ollama (Local)"
+            android:summary="@string/llm_quick_ollama_summary" />
+
+        <Preference
+            android:key="llm_quick_openrouter"
+            android:title="OpenRouter"
+            android:summary="@string/llm_quick_openrouter_summary" />
+
+    </PreferenceCategory>
+
     <ListPreference
         android:key="llm_preset"
         android:title="@string/llm_preset_title"
