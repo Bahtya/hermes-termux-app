@@ -1210,14 +1210,21 @@ public class HermesConfigActivity extends AppCompatActivity {
         }
 
         private void updateValidationDisplay() {
+            final int totalChecks = 4;
+            final int[] syncPassed = {0};
+
             // API key validation
             Preference apiKeyVal = findPreference("validation_api_key");
             if (apiKeyVal != null) {
                 String provider = mConfigManager.getModelProvider();
                 String apiKey = mConfigManager.getApiKey(provider);
-                if (apiKey != null && !apiKey.isEmpty()) {
+                boolean hasKey = apiKey != null && !apiKey.isEmpty();
+                if (hasKey) {
+                    apiKeyVal.setTitle("✅ " + getString(R.string.validation_api_key_title));
                     apiKeyVal.setSummary(getString(R.string.validation_api_key_ok, provider));
+                    syncPassed[0]++;
                 } else {
+                    apiKeyVal.setTitle("❌ " + getString(R.string.validation_api_key_title));
                     apiKeyVal.setSummary(getString(R.string.validation_api_key_missing));
                 }
             }
@@ -1231,15 +1238,19 @@ public class HermesConfigActivity extends AppCompatActivity {
                         switch (status) {
                             case RUNNING:
                                 String uptime = HermesGatewayService.getFormattedUptime();
+                                gatewayVal.setTitle("✅ " + getString(R.string.validation_gateway_title));
                                 gatewayVal.setSummary(getString(R.string.validation_gateway_running, uptime));
                                 break;
                             case NOT_INSTALLED:
+                                gatewayVal.setTitle("❌ " + getString(R.string.validation_gateway_title));
                                 gatewayVal.setSummary(getString(R.string.validation_gateway_not_installed));
                                 break;
                             default:
+                                gatewayVal.setTitle("⚠️ " + getString(R.string.validation_gateway_title));
                                 gatewayVal.setSummary(getString(R.string.validation_gateway_stopped));
                                 break;
                         }
+                        updateValidationSummary(syncPassed[0] + (status == HermesGatewayStatus.Status.RUNNING ? 1 : 0), totalChecks);
                     });
                 });
             }
@@ -1252,8 +1263,11 @@ public class HermesConfigActivity extends AppCompatActivity {
                 if (!mConfigManager.getEnvVar("TELEGRAM_BOT_TOKEN").isEmpty()) imCount++;
                 if (!mConfigManager.getEnvVar("DISCORD_BOT_TOKEN").isEmpty()) imCount++;
                 if (imCount > 0) {
+                    imVal.setTitle("✅ " + getString(R.string.validation_im_title));
                     imVal.setSummary(getString(R.string.validation_im_ok, String.valueOf(imCount)));
+                    syncPassed[0]++;
                 } else {
+                    imVal.setTitle("❌ " + getString(R.string.validation_im_title));
                     imVal.setSummary(getString(R.string.validation_im_missing));
                 }
             }
@@ -1263,14 +1277,27 @@ public class HermesConfigActivity extends AppCompatActivity {
             if (promptVal != null) {
                 String prompt = mConfigManager.getSystemPrompt();
                 if (prompt != null && !prompt.isEmpty()) {
+                    promptVal.setTitle("✅ " + getString(R.string.validation_system_prompt_title));
                     promptVal.setSummary(getString(R.string.validation_system_prompt_ok, prompt.length()));
+                    syncPassed[0]++;
                 } else {
+                    promptVal.setTitle("⚠️ " + getString(R.string.validation_system_prompt_title));
                     promptVal.setSummary(getString(R.string.validation_system_prompt_missing));
                 }
             }
 
+            updateValidationSummary(syncPassed[0], totalChecks);
+
             // Error recovery
             updateErrorRecovery();
+        }
+
+        private void updateValidationSummary(int passed, int total) {
+            androidx.preference.PreferenceCategory validationCat = findPreference("hermes_validation_category");
+            if (validationCat != null) {
+                validationCat.setTitle(getString(R.string.validation_category_title)
+                        + " (" + getString(R.string.validation_summary_format, passed, total) + ")");
+            }
         }
 
         private void updateErrorRecovery() {

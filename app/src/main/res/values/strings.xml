@@ -525,6 +525,7 @@
     <string name="error_recovery_no_prompt">No system prompt set — tap to add one</string>
     <string name="error_recovery_multiple_issues">Multiple issues found — tap to view</string>
     <string name="validation_category_title">Configuration Health</string>
+    <string name="validation_summary_format">%d of %d checks passed</string>
     <string name="validation_api_key_title">API Key</string>
     <string name="validation_api_key_ok">API key configured for %s</string>
     <string name="validation_api_key_missing">No API key set — tap to configure</string>
