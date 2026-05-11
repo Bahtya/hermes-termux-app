@@ -8,6 +8,8 @@ import android.graphics.Color;
 import android.graphics.PorterDuff;
 import android.graphics.Rect;
 import android.view.Gravity;
+
+import com.termux.R;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
@@ -124,7 +126,7 @@ public class HermesTutorialOverlay {
 
         if (step > 0) {
             Button backBtn = new Button(context);
-            backBtn.setText("Back");
+            backBtn.setText(R.string.tutorial_back);
             backBtn.setOnClickListener(v -> {
                 root.removeView(overlay);
                 saveStep(context, step - 1);
@@ -134,7 +136,7 @@ public class HermesTutorialOverlay {
         }
 
         Button nextBtn = new Button(context);
-        nextBtn.setText(step == TUTORIAL_STEPS.length - 1 ? "Done" : "Next");
+        nextBtn.setText(step == TUTORIAL_STEPS.length - 1 ? context.getString(R.string.tutorial_done) : context.getString(R.string.tutorial_next));
         nextBtn.setOnClickListener(v -> {
             root.removeView(overlay);
             if (step == TUTORIAL_STEPS.length - 1) {
@@ -148,7 +150,7 @@ public class HermesTutorialOverlay {
         buttonBar.addView(nextBtn);
 
         Button skipBtn = new Button(context);
-        skipBtn.setText("Skip");
+        skipBtn.setText(R.string.tutorial_skip);
         skipBtn.setTextColor(0xFF888888);
         skipBtn.setOnClickListener(v -> {
             root.removeView(overlay);

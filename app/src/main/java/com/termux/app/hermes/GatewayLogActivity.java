@@ -443,7 +443,7 @@ public class GatewayLogActivity extends AppCompatActivity {
                 Toast.makeText(this, R.string.gateway_log_copied, Toast.LENGTH_SHORT).show();
             }
         } catch (Exception e) {
-            Toast.makeText(this, "Copy failed: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+            Toast.makeText(this, getString(R.string.copy_failed, e.getMessage()), Toast.LENGTH_SHORT).show();
         }
     }
 
@@ -455,7 +455,7 @@ public class GatewayLogActivity extends AppCompatActivity {
             shareIntent.putExtra(Intent.EXTRA_SUBJECT, "Hermes Gateway Log");
             startActivity(Intent.createChooser(shareIntent, getString(R.string.gateway_log_share_title)));
         } catch (Exception e) {
-            Toast.makeText(this, "Share failed: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+            Toast.makeText(this, getString(R.string.share_failed, e.getMessage()), Toast.LENGTH_SHORT).show();
         }
     }
 

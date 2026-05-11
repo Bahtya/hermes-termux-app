@@ -1365,4 +1365,18 @@
         <item>parallel</item>
     </string-array>
 
+    <!-- i18n: previously hardcoded strings -->
+    <string name="category_backup">Backup</string>
+    <string name="category_help">Help</string>
+    <string name="setup_progress_title">Setup Progress: %1$d%%</string>
+    <string name="copied">Copied!</string>
+    <string name="copy_failed">Copy failed: %1$s</string>
+    <string name="share_failed">Share failed: %1$s</string>
+    <string name="error_dialog_title">Error</string>
+    <string name="tutorial_back">Back</string>
+    <string name="tutorial_skip">Skip</string>
+    <string name="tutorial_done">Done</string>
+    <string name="tutorial_next">Next</string>
+    <string name="web_load_error_title">Error</string>
+
 </resources>
