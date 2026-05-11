@@ -1519,5 +1519,11 @@
     <string name="hermes_restore_backup_message">This will restore configuration from the last backup. Current settings will be overwritten. Continue?</string>
     <string name="hermes_restore_success">Configuration restored from backup</string>
     <string name="hermes_restore_no_backup">No backup found</string>
+    <string name="hermes_dashboard_reset_section">Reset</string>
+    <string name="hermes_dashboard_reset_all">Reset All Configuration</string>
+    <string name="hermes_reset_all_title">Reset Everything?</string>
+    <string name="hermes_reset_all_message">This will delete all Hermes configuration (API keys, IM settings, gateway config) and restart the setup wizard. This cannot be undone.</string>
+    <string name="hermes_reset_all_confirm">Reset</string>
+    <string name="hermes_reset_all_done">Configuration reset. Restarting setup wizard…</string>
 
 </resources>
