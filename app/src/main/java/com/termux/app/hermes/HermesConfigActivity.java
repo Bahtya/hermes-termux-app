@@ -1748,12 +1748,16 @@ public class HermesConfigActivity extends AppCompatActivity {
                 modelPref.setOnPreferenceChangeListener((p, newVal) -> {
                     mConfigManager.setModelName((String) newVal);
                     updateCostEstimate((String) newVal);
+                    updateModelInfo((String) newVal);
                     mHasUnsavedChanges = true;
                     return true;
                 });
-                // Show initial cost estimate
+                // Show initial cost estimate and model info
                 String currentModel = mConfigManager.getModelName();
-                if (!currentModel.isEmpty()) updateCostEstimate(currentModel);
+                if (!currentModel.isEmpty()) {
+                    updateCostEstimate(currentModel);
+                    updateModelInfo(currentModel);
+                }
             }
 
             Preference baseUrlPref = findPreference("llm_base_url");
@@ -2764,6 +2768,64 @@ public class HermesConfigActivity extends AppCompatActivity {
                 case "mistral-large-latest": return "$2.00 / $6.00 per 1M tokens";
                 case "mistral-small-latest": return "$0.10 / $0.30 per 1M tokens";
                 default: return null;
+            }
+        }
+
+        private void updateModelInfo(String model) {
+            Preference modelInfoPref = findPreference("llm_model_info");
+            if (modelInfoPref == null) return;
+            int descResId = getModelDescResId(model);
+            if (descResId != 0) {
+                modelInfoPref.setSummary(getString(descResId));
+                modelInfoPref.setVisible(true);
+            } else {
+                modelInfoPref.setVisible(false);
+            }
+        }
+
+        private int getModelDescResId(String model) {
+            if (model == null) return 0;
+            switch (model) {
+                // OpenAI
+                case "gpt-4o": return R.string.model_desc_gpt_4o;
+                case "gpt-4o-mini": return R.string.model_desc_gpt_4o_mini;
+                case "o1": return R.string.model_desc_o1;
+                case "o1-mini": return R.string.model_desc_o1_mini;
+                case "o3-mini": return R.string.model_desc_o3_mini;
+                case "gpt-4-turbo": return R.string.model_desc_gpt_4_turbo;
+                // Anthropic
+                case "claude-sonnet-4-6": return R.string.model_desc_claude_sonnet;
+                case "claude-opus-4-7": return R.string.model_desc_claude_opus;
+                case "claude-haiku-4-5": return R.string.model_desc_claude_haiku;
+                // Google
+                case "gemini-2.5-pro": return R.string.model_desc_gemini_pro;
+                case "gemini-2.5-flash": return R.string.model_desc_gemini_flash;
+                case "gemini-2.0-flash": return R.string.model_desc_gemini_flash2;
+                // DeepSeek
+                case "deepseek-chat": return R.string.model_desc_deepseek_chat;
+                case "deepseek-reasoner": return R.string.model_desc_deepseek_reasoner;
+                // xAI
+                case "grok-3": return R.string.model_desc_grok_3;
+                case "grok-3-mini": return R.string.model_desc_grok_3_mini;
+                // Alibaba
+                case "qwen-max": return R.string.model_desc_qwen_max;
+                case "qwen-plus": return R.string.model_desc_qwen_plus;
+                case "qwen-turbo": return R.string.model_desc_qwen_turbo;
+                // Mistral
+                case "mistral-large-latest": return R.string.model_desc_mistral_large;
+                case "mistral-medium-latest": return R.string.model_desc_mistral_medium;
+                case "codestral-latest": return R.string.model_desc_codestral;
+                // NVIDIA
+                case "meta/llama-3.3-70b-instruct": return R.string.model_desc_llama_70b;
+                case "deepseek-ai/deepseek-r1": return R.string.model_desc_deepseek_r1_nvidia;
+                case "google/gemma-2-27b-it": return R.string.model_desc_gemma_27b;
+                case "nvidia/llama-3.1-nemotron-70b-instruct": return R.string.model_desc_nemotron_70b;
+                // Ollama
+                case "llama3": return R.string.model_desc_llama3_local;
+                case "qwen2.5": return R.string.model_desc_qwen25_local;
+                case "deepseek-r1": return R.string.model_desc_deepseek_r1_local;
+                case "gemma2": return R.string.model_desc_gemma2_local;
+                default: return 0;
             }
         }
 
