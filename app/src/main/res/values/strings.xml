@@ -375,6 +375,40 @@
         <item>gemma2</item>
     </string-array>
 
+    <!-- Model info -->
+    <string name="llm_model_info_title">About This Model</string>
+    <string name="model_desc_gpt_4o">Flagship model. Best for complex reasoning, analysis, and creative tasks. Fast responses, excellent all-rounder.</string>
+    <string name="model_desc_gpt_4o_mini">Fast and affordable. Great for simple tasks, quick answers, and high-volume usage.</string>
+    <string name="model_desc_o1">Advanced reasoning model. Thinks step-by-step for math, science, and complex problem-solving. Slower but more thorough.</string>
+    <string name="model_desc_o1_mini">Faster reasoning model. Good balance of reasoning ability and speed.</string>
+    <string name="model_desc_o3_mini">Latest reasoning model. Improved efficiency and capability for complex tasks.</string>
+    <string name="model_desc_gpt_4_turbo">Previous generation flagship. Still powerful but newer models are recommended.</string>
+    <string name="model_desc_claude_sonnet">Best balance of speed and intelligence. Recommended for most tasks — writing, analysis, coding, and conversation.</string>
+    <string name="model_desc_claude_opus">Most capable model. Excels at complex analysis, nuanced writing, and challenging problems. Higher cost, slower responses.</string>
+    <string name="model_desc_claude_haiku">Fastest Claude model. Great for quick tasks, classification, and when speed matters most. Most affordable.</string>
+    <string name="model_desc_gemini_pro">Most capable Gemini model. Strong at reasoning, multilingual tasks, and long context. Good for complex work.</string>
+    <string name="model_desc_gemini_flash">Fast and efficient. Excellent for everyday tasks with good quality. Great value.</string>
+    <string name="model_desc_gemini_flash2">Previous generation flash model. Fast responses at lower cost.</string>
+    <string name="model_desc_deepseek_chat">General purpose model. Strong at coding and math. Very cost-effective.</string>
+    <string name="model_desc_deepseek_reasoner">Reasoning model that shows its thought process. Best for complex logic and math problems.</string>
+    <string name="model_desc_openrouter_default">Access multiple providers through one API. Choose any model — costs vary by provider.</string>
+    <string name="model_desc_grok_3">Latest Grok model with real-time knowledge. Good for current events and general tasks.</string>
+    <string name="model_desc_grok_3_mini">Smaller, faster Grok model. Good for quick tasks at lower cost.</string>
+    <string name="model_desc_qwen_max">Most capable Qwen model. Excellent Chinese language support and general reasoning.</string>
+    <string name="model_desc_qwen_plus">Balanced performance and cost. Good for most tasks with strong Chinese support.</string>
+    <string name="model_desc_qwen_turbo">Fastest Qwen model. Ideal for simple tasks and high-volume usage. Most affordable.</string>
+    <string name="model_desc_mistral_large">Most capable Mistral model. Strong at following complex instructions and multilingual tasks.</string>
+    <string name="model_desc_mistral_medium">Balanced model. Good performance at moderate cost.</string>
+    <string name="model_desc_codestral">Specialized for code generation and understanding. Best for programming tasks.</string>
+    <string name="model_desc_llama_70b">Meta\'s open-source model. Great general purpose capabilities running on NVIDIA infrastructure.</string>
+    <string name="model_desc_deepseek_r1_nvidia">Reasoning model with transparent thought process. Excels at math and logic problems.</string>
+    <string name="model_desc_gemma_27b">Google\'s open model. Efficient and capable for its size.</string>
+    <string name="model_desc_nemotron_70b">NVIDIA\'s fine-tuned model. Optimized for helpfulness and instruction following.</string>
+    <string name="model_desc_llama3_local">Meta\'s popular open-source model. Runs locally, completely private. Good general purpose.</string>
+    <string name="model_desc_qwen25_local">Strong multilingual model. Excellent Chinese and English support. Runs locally.</string>
+    <string name="model_desc_deepseek_r1_local">Powerful reasoning model that shows its thinking. Great for complex problems. Runs locally.</string>
+    <string name="model_desc_gemma2_local">Google\'s efficient open model. Good balance of speed and quality. Runs locally.</string>
+
     <!-- LLM Base URL -->
     <string name="llm_base_url_title">Base URL</string>
     <string name="llm_base_url_summary">Custom endpoint URL (for Ollama or compatible APIs)</string>
