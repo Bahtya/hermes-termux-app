@@ -9,6 +9,10 @@
         android:entryValues="@array/llm_preset_values"
         android:defaultValue="balanced" />
 
+    <Preference
+        android:key="llm_preset_info"
+        android:selectable="false" />
+
     <PreferenceCategory
         android:key="llm_category_auth"
         android:title="@string/llm_category_auth">
