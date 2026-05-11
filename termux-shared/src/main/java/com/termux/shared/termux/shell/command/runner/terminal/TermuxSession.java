@@ -15,6 +15,7 @@ import com.termux.shared.shell.command.environment.UnixShellEnvironment;
 import com.termux.shared.shell.command.result.ResultData;
 import com.termux.shared.errors.Errno;
 import com.termux.shared.logger.Logger;
+import com.termux.shared.termux.TermuxConstants;
 import com.termux.shared.shell.command.environment.IShellEnvironment;
 import com.termux.shared.shell.ShellUtils;
 import com.termux.terminal.TerminalSession;
@@ -122,6 +123,21 @@ public class TermuxSession {
 
         // Setup command args
         String[] commandArgs = shellEnvironmentClient.setupShellCommandArguments(executionCommand.executable, executionCommand.arguments);
+
+        // For interactive bash sessions, use --rcfile to bypass the compiled-in
+        // system bash.bashrc path. Bash is compiled with --prefix=/data/data/com.termux
+        // which embeds paths that cause "Permission denied" on forked packages.
+        // Binary patching can't always fix this because the replacement prefix is longer.
+        if (isLoginShell && commandArgs.length > 0) {
+            String basename = ShellUtils.getExecutableBasename(commandArgs[0]);
+            if ("bash".equals(basename)) {
+                String[] expanded = new String[commandArgs.length + 2];
+                System.arraycopy(commandArgs, 0, expanded, 0, commandArgs.length);
+                expanded[commandArgs.length] = "--rcfile";
+                expanded[commandArgs.length + 1] = TermuxConstants.TERMUX_HOME_DIR_PATH + "/.hermes_bash_init";
+                commandArgs = expanded;
+            }
+        }
 
         executionCommand.executable = commandArgs[0];
         String processName = ShellUtils.getExecutableBasename(executionCommand.executable);
