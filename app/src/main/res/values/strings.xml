@@ -427,6 +427,7 @@
     <string name="gateway_step_starting">Starting gateway…</string>
     <string name="gateway_step_running">Gateway running</string>
     <string name="gateway_step_failed">Gateway failed to start</string>
+    <string name="gateway_notification_running">Running — %1$s</string>
 
     <!-- Gateway Log -->
     <string name="gateway_log_title">Gateway Log</string>
