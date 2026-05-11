@@ -1980,6 +1980,7 @@ public class HermesConfigActivity extends AppCompatActivity {
             String currentProvider = mConfigManager.getModelProvider();
             updateModelList(currentProvider);
             updateProviderHints(currentProvider);
+            setupQuickProviderButtons();
 
             Preference apiKeyPref = findPreference("llm_api_key");
             if (apiKeyPref != null) {
@@ -2226,6 +2227,49 @@ public class HermesConfigActivity extends AppCompatActivity {
 
         private void reloadConfig() {
             HermesConfigManager.reinitialize();
+        }
+
+        private void setupQuickProviderButtons() {
+            String[][] providers = {
+                {"llm_quick_openai",      "openai",     "gpt-4o"},
+                {"llm_quick_anthropic",   "anthropic",  "claude-sonnet-4-6"},
+                {"llm_quick_deepseek",    "deepseek",   "deepseek-chat"},
+                {"llm_quick_google",      "google",     "gemini-2.5-flash"},
+                {"llm_quick_ollama",      "ollama",     "llama3"},
+                {"llm_quick_openrouter",  "openrouter", "anthropic/claude-sonnet-4-6"},
+            };
+            for (String[] entry : providers) {
+                Preference pref = findPreference(entry[0]);
+                if (pref == null) continue;
+                String provider = entry[1];
+                String model = entry[2];
+                pref.setOnPreferenceClickListener(p -> {
+                    mConfigManager.setModelProvider(provider);
+                    mConfigManager.setModelName(model);
+                    if ("ollama".equals(provider)) {
+                        mConfigManager.setEnvVar("OPENAI_BASE_URL", "http://localhost:11434/v1");
+                    }
+                    ListPreference providerList = findPreference("llm_provider");
+                    if (providerList != null) providerList.setValue(provider);
+                    updateModelList(provider);
+                    updateProviderHints(provider);
+                    updateCostEstimate(model);
+                    updateModelInfo(model);
+                    String key = mConfigManager.getApiKey(provider);
+                    Preference akp = findPreference("llm_api_key");
+                    if (akp != null) akp.setSummary(key != null && !key.isEmpty() ? maskApiKey(key) : "");
+                    EditTextPreference baseUrlPref = findPreference("llm_base_url");
+                    if (baseUrlPref != null && "ollama".equals(provider)) {
+                        baseUrlPref.setText("http://localhost:11434/v1");
+                        baseUrlPref.setVisible(true);
+                    }
+                    mHasUnsavedChanges = true;
+                    if (getActivity() != null) {
+                        Toast.makeText(getActivity(), getString(R.string.llm_provider_switched, provider), Toast.LENGTH_SHORT).show();
+                    }
+                    return true;
+                });
+            }
         }
 
         private void updateProviderHints(String provider) {
