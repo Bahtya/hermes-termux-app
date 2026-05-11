@@ -355,4 +355,24 @@
     <string name="im_test_message_fail">发送测试消息失败：%1$s</string>
     <string name="im_test_message_no_gateway">请先启动网关以发送测试消息。</string>
     <string name="im_test_message_button">发送测试消息</string>
+
+    <!-- Hermes Installation -->
+    <string name="install_title">Hermes 安装</string>
+    <string name="install_subtitle">正在安装 Hermes Agent</string>
+    <string name="install_checking">正在检查 Hermes…</string>
+    <string name="install_downloading">正在下载 Hermes…</string>
+    <string name="install_configuring">正在配置…</string>
+    <string name="install_complete">Hermes 安装成功！</string>
+    <string name="install_failed">安装失败：%1$s</string>
+    <string name="install_failed_help">请检查网络连接后重试。</string>
+    <string name="install_retry">重试</string>
+    <string name="install_retrying">正在重试（%1$d/%2$d）…</string>
+    <string name="install_skip">跳过</string>
+    <string name="install_step_check">检查环境</string>
+    <string name="install_step_download">下载安装</string>
+    <string name="install_step_configure">配置</string>
+    <string name="install_step_done">完成</string>
+    <string name="install_validating">正在验证安装…</string>
+    <string name="install_validate_success">验证通过</string>
+    <string name="install_validate_fail">验证失败 — 安装可能不完整</string>
 </resources>
