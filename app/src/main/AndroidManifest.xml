@@ -109,95 +109,95 @@
             android:exported="false"
             android:label="@string/hermes_config_title"
             android:parentActivityName=".app.activities.SettingsActivity"
-            android:theme="@style/Theme.TermuxApp.DayNight.DarkActionBar" />
+            android:theme="@style/Theme.TermuxApp.DayNight.NoActionBar" />
 
         <activity
             android:name=".app.hermes.FeishuSetupActivity"
             android:exported="false"
             android:label="@string/feishu_setup_title"
             android:parentActivityName=".app.hermes.HermesConfigActivity"
-            android:theme="@style/Theme.TermuxApp.DayNight.DarkActionBar" />
+            android:theme="@style/Theme.TermuxApp.DayNight.NoActionBar" />
 
         <activity
             android:name=".app.hermes.TelegramSetupActivity"
             android:exported="false"
             android:label="@string/telegram_setup_title"
             android:parentActivityName=".app.hermes.HermesConfigActivity"
-            android:theme="@style/Theme.TermuxApp.DayNight.DarkActionBar" />
+            android:theme="@style/Theme.TermuxApp.DayNight.NoActionBar" />
 
         <activity
             android:name=".app.hermes.ImSetupActivity"
             android:exported="false"
             android:label="@string/telegram_setup_title"
             android:parentActivityName=".app.hermes.HermesConfigActivity"
-            android:theme="@style/Theme.TermuxApp.DayNight.DarkActionBar" />
+            android:theme="@style/Theme.TermuxApp.DayNight.NoActionBar" />
 
         <activity
             android:name=".app.hermes.DiscordSetupActivity"
             android:exported="false"
             android:label="@string/discord_setup_title"
             android:parentActivityName=".app.hermes.HermesConfigActivity"
-            android:theme="@style/Theme.TermuxApp.DayNight.DarkActionBar" />
+            android:theme="@style/Theme.TermuxApp.DayNight.NoActionBar" />
 
         <activity
             android:name=".app.hermes.WhatsAppSetupActivity"
             android:exported="false"
             android:label="@string/whatsapp_setup_title"
             android:parentActivityName=".app.hermes.HermesConfigActivity"
-            android:theme="@style/Theme.TermuxApp.DayNight.DarkActionBar" />
+            android:theme="@style/Theme.TermuxApp.DayNight.NoActionBar" />
 
         <activity
             android:name="com.termux.app.hermes.HermesWebActivity"
             android:exported="false"
             android:label="@string/hermes_web_title"
-            android:theme="@style/Theme.TermuxApp.DayNight.DarkActionBar" />
+            android:theme="@style/Theme.TermuxApp.DayNight.NoActionBar" />
 
         <activity
             android:name="com.termux.app.hermes.HermesSetupWizardActivity"
             android:exported="false"
             android:label="@string/hermes_setup_wizard_title"
-            android:theme="@style/Theme.TermuxApp.DayNight.DarkActionBar" />
+            android:theme="@style/Theme.TermuxApp.DayNight.NoActionBar" />
 
         <activity
             android:name="com.termux.app.hermes.HermesInstallActivity"
             android:exported="false"
             android:label="@string/install_title"
-            android:theme="@style/Theme.TermuxApp.DayNight.DarkActionBar" />
+            android:theme="@style/Theme.TermuxApp.DayNight.NoActionBar" />
 
         <activity
             android:name=".app.hermes.GatewayLogActivity"
             android:exported="false"
             android:label="@string/gateway_log_title"
             android:parentActivityName=".app.hermes.HermesConfigActivity"
-            android:theme="@style/Theme.TermuxApp.DayNight.DarkActionBar" />
+            android:theme="@style/Theme.TermuxApp.DayNight.NoActionBar" />
 
         <activity
             android:name="com.termux.app.hermes.HermesHelpActivity"
             android:exported="false"
             android:label="@string/help_title"
             android:parentActivityName=".app.hermes.HermesConfigActivity"
-            android:theme="@style/Theme.TermuxApp.DayNight.DarkActionBar" />
+            android:theme="@style/Theme.TermuxApp.DayNight.NoActionBar" />
 
         <activity
             android:name="com.termux.app.hermes.HermesDiagnosticActivity"
             android:exported="false"
             android:label="@string/gateway_diagnostic_title"
             android:parentActivityName=".app.hermes.HermesConfigActivity"
-            android:theme="@style/Theme.TermuxApp.DayNight.DarkActionBar" />
+            android:theme="@style/Theme.TermuxApp.DayNight.NoActionBar" />
 
         <activity
             android:name="com.termux.app.hermes.HermesTemplateActivity"
             android:exported="false"
             android:label="@string/template_menu_title"
             android:parentActivityName=".app.hermes.HermesConfigActivity"
-            android:theme="@style/Theme.TermuxApp.DayNight.DarkActionBar" />
+            android:theme="@style/Theme.TermuxApp.DayNight.NoActionBar" />
 
         <activity
             android:name="com.termux.app.hermes.HermesConversationActivity"
             android:exported="false"
             android:label="@string/conversation_title"
             android:parentActivityName=".app.hermes.HermesConfigActivity"
-            android:theme="@style/Theme.TermuxApp.DayNight.DarkActionBar" />
+            android:theme="@style/Theme.TermuxApp.DayNight.NoActionBar" />
 
         <service
             android:name="com.termux.app.hermes.HermesGatewayService"
