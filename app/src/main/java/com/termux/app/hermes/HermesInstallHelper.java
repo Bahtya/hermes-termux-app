@@ -1,6 +1,7 @@
 package com.termux.app.hermes;
 
 import android.content.Context;
+import android.content.SharedPreferences;
 
 import com.termux.R;
 import com.termux.shared.logger.Logger;
@@ -17,6 +18,11 @@ import java.io.InputStreamReader;
 public class HermesInstallHelper {
 
     private static final String LOG_TAG = "HermesInstallHelper";
+    private static final String PREFS_NAME = "hermes_install_state";
+    private static final String KEY_INSTALL_STATE = "install_state";
+
+    private static final String MARKER_FILE =
+            TermuxConstants.TERMUX_DATA_HOME_DIR_PATH + "/hermes-installed";
 
     static final String INSTALL_URL_DIRECT =
             "https://hermes-agent.nousresearch.com/install.sh";
@@ -31,15 +37,66 @@ public class HermesInstallHelper {
             "https://ghfast.top/",
     };
 
+    public enum InstallState {
+        NOT_INSTALLED,
+        BOOTSTRAPPING,
+        DOWNLOADING,
+        INSTALLING,
+        INSTALLED,
+        FAILED
+    }
+
     private HermesInstallHelper() {}
+
+    // =========================================================================
+    // State persistence
+    // =========================================================================
+
+    public static void setState(Context context, InstallState state) {
+        context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
+                .edit().putString(KEY_INSTALL_STATE, state.name()).apply();
+        Logger.logInfo(LOG_TAG, "Install state: " + state.name());
+    }
+
+    public static InstallState getState(Context context) {
+        String name = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
+                .getString(KEY_INSTALL_STATE, null);
+        if (name != null) {
+            try { return InstallState.valueOf(name); } catch (IllegalArgumentException ignored) {}
+        }
+        return getCurrentState(context);
+    }
+
+    /** Determine actual state from filesystem (marker file + bash availability). */
+    public static InstallState getCurrentState(Context context) {
+        if (new File(MARKER_FILE).exists()) {
+            return InstallState.INSTALLED;
+        }
+        return InstallState.NOT_INSTALLED;
+    }
+
+    /** Delete marker file and reset state to allow reinstallation. */
+    public static void resetInstall(Context context) {
+        new File(MARKER_FILE).delete();
+        setState(context, InstallState.NOT_INSTALLED);
+    }
+
+    // =========================================================================
+    // Progress callback
+    // =========================================================================
 
     public interface ProgressCallback {
         void onStatus(String message);
         boolean isCancelled();
     }
 
+    // =========================================================================
+    // Install execution
+    // =========================================================================
+
     /**
      * Run the install script with automatic mirror fallback.
+     * Phase 0: wait for bootstrap.
      * Phase 1: direct connection (up to maxDirectRetries attempts, 5s delay).
      * Phase 2: each mirror in MIRROR_PREFIXES (1 attempt per mirror).
      */
@@ -47,9 +104,11 @@ public class HermesInstallHelper {
         StringBuilder errorLog = new StringBuilder();
 
         // Phase 0: wait for Termux bootstrap to finish
+        setState(context, InstallState.BOOTSTRAPPING);
         ensureBashReady(context, callback);
 
         // Phase 1: direct attempts
+        setState(context, InstallState.INSTALLING);
         for (int attempt = 1; attempt <= maxDirectRetries; attempt++) {
             if (callback != null && callback.isCancelled()) return;
             try {
@@ -57,7 +116,8 @@ public class HermesInstallHelper {
                     callback.onStatus(context.getString(R.string.install_direct_attempt, attempt, maxDirectRetries));
                 }
                 runShellCommand(buildInstallCommand(false, null));
-                return; // success
+                setState(context, InstallState.INSTALLED);
+                return;
             } catch (Exception e) {
                 errorLog.append("Direct attempt ").append(attempt).append(": ")
                         .append(e.getMessage()).append("\n");
@@ -80,7 +140,8 @@ public class HermesInstallHelper {
                 }
                 Logger.logInfo(LOG_TAG, "Falling back to mirror: " + mirror);
                 runShellCommand(buildInstallCommand(true, mirror));
-                return; // success
+                setState(context, InstallState.INSTALLED);
+                return;
             } catch (Exception e) {
                 errorLog.append("Mirror (").append(mirror).append("): ")
                         .append(e.getMessage()).append("\n");
@@ -88,6 +149,7 @@ public class HermesInstallHelper {
             }
         }
 
+        setState(context, InstallState.FAILED);
         throw new RuntimeException("All download methods failed\n" + errorLog);
     }
 
@@ -113,9 +175,10 @@ public class HermesInstallHelper {
                     }
                     int exit = p.waitFor();
                     if (exit == 0) return;
-                } catch (Exception ignored) {
-                    // bash exists but can't run yet (missing .so), keep waiting
-                }
+                } catch (Exception ignored) {}
+            }
+            if (callback != null) {
+                callback.onStatus(context.getString(R.string.install_waiting_bootstrap, (i + 1), maxWaitAttempts));
             }
             if (callback != null) {
                 callback.onStatus(context.getString(R.string.install_waiting_bootstrap, (i + 1), maxWaitAttempts));
@@ -123,14 +186,12 @@ public class HermesInstallHelper {
             Logger.logInfo(LOG_TAG, "Bootstrap not ready, waiting... (" + (i + 1) + "/" + maxWaitAttempts + ")");
             Thread.sleep(3000);
         }
+        setState(context, InstallState.FAILED);
         throw new RuntimeException("Termux bootstrap packages are not ready after 60 seconds");
     }
 
     /**
      * Build the shell command for downloading and executing the install script.
-     *
-     * Direct mode:  curl -fsSL DIRECT_URL | bash
-     * Mirror mode:  curl -fsSL MIRROR+RAW_URL | sed 's|GITHUB_URL|MIRROR+GITHUB_URL|g' | bash
      */
     static String buildInstallCommand(boolean useMirror, String mirrorPrefix) {
         String bashPath = TermuxConstants.TERMUX_BIN_PREFIX_DIR_PATH + "/bash";
