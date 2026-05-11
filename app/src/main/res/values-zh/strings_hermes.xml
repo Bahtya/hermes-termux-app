@@ -468,6 +468,19 @@
     <string name="install_mirror_failed">镜像也失败了：%1$s</string>
     <string name="install_waiting_bootstrap">等待 Termux 基础环境就绪…（%1$d/%2$d）</string>
     <string name="install_skip">跳过</string>
+
+    <!-- Install State Card -->
+    <string name="install_state_not_installed">Hermes Agent 未安装</string>
+    <string name="install_state_bootstrapping">等待基础环境就绪…</string>
+    <string name="install_state_downloading">正在下载安装脚本…</string>
+    <string name="install_state_installing">正在安装 Hermes Agent（可能需要 10–30 分钟）…</string>
+    <string name="install_state_installed">Hermes Agent 已安装 ✓</string>
+    <string name="install_state_failed">安装失败</string>
+    <string name="install_action_install">安装</string>
+    <string name="install_action_retry">重试</string>
+    <string name="install_action_reinstall">重新安装 Hermes Agent</string>
+    <string name="install_reinstall_title">重新安装 Hermes Agent？</string>
+    <string name="install_reinstall_message">这将删除当前安装并重新下载 Hermes Agent。继续？</string>
     <string name="install_step_check">检查环境</string>
     <string name="install_step_download">下载安装</string>
     <string name="install_step_configure">配置</string>
