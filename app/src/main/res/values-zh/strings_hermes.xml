@@ -124,6 +124,7 @@
     <string name="gateway_step_starting">正在启动网关…</string>
     <string name="gateway_step_running">网关已启动</string>
     <string name="gateway_step_failed">网关启动失败</string>
+    <string name="gateway_notification_running">运行中 — %1$s</string>
 
     <!-- Gateway Log -->
     <string name="gateway_log_title">网关日志</string>

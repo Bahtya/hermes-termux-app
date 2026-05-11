@@ -102,6 +102,7 @@ public class HermesGatewayService extends Service {
                         mRestartAttempts = 0;
                         clearRestartState();
                     }
+                    updateNotification(getString(R.string.gateway_notification_running, formatDuration(uptime)));
                 }
                 mHandler.postDelayed(this, 30_000);
             }
