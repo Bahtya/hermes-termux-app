@@ -4,7 +4,9 @@ import android.content.ClipData;
 import android.content.ClipboardManager;
 import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.os.Bundle;
+import android.view.Gravity;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.AdapterView;
@@ -31,8 +33,12 @@ import java.io.InputStreamReader;
 public class HermesSetupWizardActivity extends AppCompatActivity {
 
     private static final String PREFS_NAME = "hermes_setup";
-    private static final String KEY_WIZARD_COMPLETED = "wizard_completed";
-    private static final String KEY_WIZARD_DISMISSED = "wizard_dismissed";
+    private static final String KEY_WIZARD_BASIC_DONE = "wizard_basic_done";
+    private static final String KEY_WIZARD_LAST_STEP = "wizard_last_step";
+    private static final String KEY_STEP_LLM_DONE = "step_llm_done";
+    private static final String KEY_STEP_IM_DONE = "step_im_done";
+    private static final String KEY_STEP_START_DONE = "step_start_done";
+    private static final String KEY_WELCOME_SHOWN = "welcome_shown";
 
     private HermesConfigManager mConfigManager;
     private int mCurrentStep = 0;
@@ -41,11 +47,13 @@ public class HermesSetupWizardActivity extends AppCompatActivity {
     private static final int STEP_IM = 2;
     private static final int STEP_START = 3;
     private static final int STEP_DONE = 4;
+    private static final int TOTAL_STEPS = 5;
 
     private ScrollView mScrollView;
     private LinearLayout mContentContainer;
     private Button mBtnBack;
     private Button mBtnNext;
+    private Button mBtnSkip;
     private TextView mStepIndicator;
 
     @Override
@@ -71,7 +79,7 @@ public class HermesSetupWizardActivity extends AppCompatActivity {
         mStepIndicator = new TextView(this);
         mStepIndicator.setTextSize(13);
         mStepIndicator.setTextColor(0xFF666666);
-        mStepIndicator.setGravity(android.view.Gravity.CENTER);
+        mStepIndicator.setGravity(Gravity.CENTER);
         mStepIndicator.setPadding(0, dp(8), 0, dp(4));
         root.addView(mStepIndicator);
 
@@ -89,7 +97,7 @@ public class HermesSetupWizardActivity extends AppCompatActivity {
         LinearLayout buttonBar = new LinearLayout(this);
         buttonBar.setOrientation(LinearLayout.HORIZONTAL);
         buttonBar.setPadding(dp(16), dp(8), dp(16), dp(16));
-        buttonBar.setGravity(android.view.Gravity.END);
+        buttonBar.setGravity(Gravity.END);
 
         mBtnBack = new Button(this);
         mBtnBack.setText(R.string.feishu_back);
@@ -101,6 +109,16 @@ public class HermesSetupWizardActivity extends AppCompatActivity {
         backParams.setMarginEnd(dp(8));
         mBtnBack.setLayoutParams(backParams);
 
+        mBtnSkip = new Button(this);
+        mBtnSkip.setText(R.string.hermes_setup_skip);
+        mBtnSkip.setVisibility(View.GONE);
+        mBtnSkip.setOnClickListener(v -> skipStep());
+        buttonBar.addView(mBtnSkip);
+
+        LinearLayout.LayoutParams skipParams = (LinearLayout.LayoutParams) mBtnSkip.getLayoutParams();
+        skipParams.setMarginEnd(dp(8));
+        mBtnSkip.setLayoutParams(skipParams);
+
         mBtnNext = new Button(this);
         mBtnNext.setText(R.string.feishu_next);
         mBtnNext.setOnClickListener(v -> navigateNext());
@@ -109,35 +127,91 @@ public class HermesSetupWizardActivity extends AppCompatActivity {
         root.addView(buttonBar);
         setContentView(root);
 
-        showStep(STEP_WELCOME);
+        // Resume from last step or start fresh
+        int resumeStep = loadLastStep();
+        showStep(resumeStep);
     }
 
     @Override
     public void onBackPressed() {
         if (mCurrentStep > STEP_WELCOME) {
+            saveCurrentStepProgress();
             navigateBack();
         } else {
-            markDismissed();
+            saveCurrentStepProgress();
             super.onBackPressed();
         }
     }
 
-    private void markDismissed() {
-        if (!isWizardCompleted(this)) {
-            getSharedPreferences(PREFS_NAME, MODE_PRIVATE)
-                    .edit()
-                    .putBoolean(KEY_WIZARD_DISMISSED, true)
-                    .apply();
-        }
+    // =========================================================================
+    // Step progress tracking
+    // =========================================================================
+
+    private void saveLastStep(int step) {
+        getSharedPreferences(PREFS_NAME, MODE_PRIVATE)
+                .edit()
+                .putInt(KEY_WIZARD_LAST_STEP, step)
+                .apply();
     }
+
+    private int loadLastStep() {
+        // If already basic done, start from done step
+        if (isWizardBasicDone(this)) {
+            return STEP_DONE;
+        }
+        int lastStep = getSharedPreferences(PREFS_NAME, MODE_PRIVATE)
+                .getInt(KEY_WIZARD_LAST_STEP, STEP_WELCOME);
+        return lastStep;
+    }
+
+    private void markStepDone(String stepKey) {
+        getSharedPreferences(PREFS_NAME, MODE_PRIVATE)
+                .edit()
+                .putBoolean(stepKey, true)
+                .apply();
+    }
+
+    private boolean isStepDone(String stepKey) {
+        return getSharedPreferences(PREFS_NAME, MODE_PRIVATE)
+                .getBoolean(stepKey, false);
+    }
+
+    private void saveCurrentStepProgress() {
+        if (mCurrentStep == STEP_LLM) {
+            saveLlmConfig();
+        }
+        saveLastStep(mCurrentStep);
+    }
+
+    // =========================================================================
+    // Navigation
+    // =========================================================================
 
     private void showStep(int step) {
         mCurrentStep = step;
         mContentContainer.removeAllViews();
-        mStepIndicator.setText(getString(R.string.hermes_setup_step_indicator, step + 1, STEP_DONE + 1));
 
+        // Step indicator with completion marks
+        StringBuilder indicator = new StringBuilder();
+        for (int i = 0; i < TOTAL_STEPS; i++) {
+            if (i > 0) indicator.append("  >  ");
+            if (i == step) {
+                indicator.append("[").append(i + 1).append("]");
+            } else if (isStepCompleted(i)) {
+                indicator.append("✓");
+            } else {
+                indicator.append(i + 1);
+            }
+        }
+        mStepIndicator.setText(indicator.toString());
+
+        // Button visibility
         mBtnBack.setVisibility(step > STEP_WELCOME ? View.VISIBLE : View.GONE);
         mBtnNext.setText(step < STEP_DONE ? getString(R.string.feishu_next) : getString(R.string.feishu_finish));
+
+        // Skip button: available for IM and Start steps
+        boolean canSkip = (step == STEP_IM || step == STEP_START);
+        mBtnSkip.setVisibility(canSkip ? View.VISIBLE : View.GONE);
 
         switch (step) {
             case STEP_WELCOME: showWelcomeStep(); break;
@@ -150,6 +224,95 @@ public class HermesSetupWizardActivity extends AppCompatActivity {
         mScrollView.post(() -> mScrollView.fullScroll(View.FOCUS_UP));
     }
 
+    private boolean isStepCompleted(int step) {
+        switch (step) {
+            case STEP_WELCOME: return getSharedPreferences(PREFS_NAME, MODE_PRIVATE).getBoolean(KEY_WELCOME_SHOWN, false);
+            case STEP_LLM: return isStepDone(KEY_STEP_LLM_DONE);
+            case STEP_IM: return isStepDone(KEY_STEP_IM_DONE);
+            case STEP_START: return isStepDone(KEY_STEP_START_DONE);
+            case STEP_DONE: return isWizardBasicDone(this);
+            default: return false;
+        }
+    }
+
+    private void navigateNext() {
+        if (mCurrentStep == STEP_LLM) {
+            saveLlmConfig();
+
+            // Validate: need API key (unless Ollama)
+            Spinner providerSpinner = findTaggedView("provider_spinner");
+            String[] providerValues = getResources().getStringArray(R.array.llm_provider_values);
+            String provider = null;
+            if (providerSpinner != null) {
+                int pos = providerSpinner.getSelectedItemPosition();
+                if (pos >= 0 && pos < providerValues.length) {
+                    provider = providerValues[pos];
+                }
+            }
+
+            EditText apiKeyInput = findTaggedView("api_key_input");
+            String apiKey = "";
+            if (apiKeyInput != null) {
+                apiKey = apiKeyInput.getText().toString().trim();
+            }
+            if (apiKey.isEmpty()) {
+                apiKey = mConfigManager.getApiKey(provider != null ? provider : mConfigManager.getModelProvider());
+            }
+
+            if (apiKey.isEmpty() && !"ollama".equals(provider)) {
+                Toast.makeText(this, getString(R.string.llm_test_no_key), Toast.LENGTH_SHORT).show();
+                return;
+            }
+
+            markStepDone(KEY_STEP_LLM_DONE);
+            // Mark basic done as soon as LLM is configured
+            markWizardBasicDone();
+        }
+
+        if (mCurrentStep == STEP_IM) {
+            markStepDone(KEY_STEP_IM_DONE);
+        }
+
+        if (mCurrentStep == STEP_START) {
+            markStepDone(KEY_STEP_START_DONE);
+        }
+
+        if (mCurrentStep == STEP_WELCOME) {
+            getSharedPreferences(PREFS_NAME, MODE_PRIVATE)
+                    .edit().putBoolean(KEY_WELCOME_SHOWN, true).apply();
+        }
+
+        saveLastStep(mCurrentStep + 1);
+
+        if (mCurrentStep == STEP_DONE) {
+            finish();
+            return;
+        }
+
+        showStep(mCurrentStep + 1);
+    }
+
+    private void navigateBack() {
+        if (mCurrentStep > STEP_WELCOME) {
+            saveCurrentStepProgress();
+            showStep(mCurrentStep - 1);
+        }
+    }
+
+    private void skipStep() {
+        if (mCurrentStep == STEP_IM) {
+            markStepDone(KEY_STEP_IM_DONE);
+        } else if (mCurrentStep == STEP_START) {
+            markStepDone(KEY_STEP_START_DONE);
+        }
+        saveLastStep(mCurrentStep + 1);
+        showStep(mCurrentStep + 1);
+    }
+
+    // =========================================================================
+    // Step: Welcome
+    // =========================================================================
+
     private void showWelcomeStep() {
         if (getSupportActionBar() != null) {
             getSupportActionBar().setSubtitle(R.string.hermes_setup_step_welcome);
@@ -157,7 +320,29 @@ public class HermesSetupWizardActivity extends AppCompatActivity {
 
         addTitle(R.string.hermes_setup_welcome_title);
         addParagraph(R.string.hermes_setup_welcome_text);
+
+        // Quick start with Ollama (free, no API key)
+        addSpacer(dp(16));
+        Button ollamaBtn = new Button(this);
+        ollamaBtn.setText(R.string.hermes_setup_quick_ollama);
+        ollamaBtn.setTextSize(14);
+        LinearLayout.LayoutParams ollamaParams = new LinearLayout.LayoutParams(
+                LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT);
+        ollamaBtn.setLayoutParams(ollamaParams);
+        ollamaBtn.setOnClickListener(v -> {
+            mConfigManager.setModelProvider("ollama");
+            mConfigManager.setModelName("llama3");
+            markStepDone(KEY_STEP_LLM_DONE);
+            markWizardBasicDone();
+            saveLastStep(STEP_DONE);
+            showStep(STEP_DONE);
+        });
+        mContentContainer.addView(ollamaBtn);
     }
+
+    // =========================================================================
+    // Step: LLM Configuration
+    // =========================================================================
 
     private void showLlmStep() {
         if (getSupportActionBar() != null) {
@@ -166,6 +351,9 @@ public class HermesSetupWizardActivity extends AppCompatActivity {
 
         addTitle(R.string.hermes_setup_llm_title);
         addParagraph(R.string.hermes_setup_llm_text);
+
+        String currentProvider = mConfigManager.getModelProvider();
+        String[] providerValues = getResources().getStringArray(R.array.llm_provider_values);
 
         // Provider spinner
         addLabel(getString(R.string.llm_provider_title));
@@ -177,8 +365,6 @@ public class HermesSetupWizardActivity extends AppCompatActivity {
         mContentContainer.addView(providerSpinner);
         tagView(providerSpinner, "provider_spinner");
 
-        String currentProvider = mConfigManager.getModelProvider();
-        String[] providerValues = getResources().getStringArray(R.array.llm_provider_values);
         for (int i = 0; i < providerValues.length; i++) {
             if (providerValues[i].equals(currentProvider)) {
                 providerSpinner.setSelection(i);
@@ -186,7 +372,7 @@ public class HermesSetupWizardActivity extends AppCompatActivity {
             }
         }
 
-        // Provider badge (Recommended / Free / Budget-friendly)
+        // Provider badge
         TextView providerBadge = new TextView(this);
         providerBadge.setTextSize(12);
         providerBadge.setTypeface(null, android.graphics.Typeface.BOLD);
@@ -203,7 +389,7 @@ public class HermesSetupWizardActivity extends AppCompatActivity {
                 providerValues[providerSpinner.getSelectedItemPosition()]));
         LinearLayout.LayoutParams guideBtnParams = new LinearLayout.LayoutParams(
                 LinearLayout.LayoutParams.WRAP_CONTENT, LinearLayout.LayoutParams.WRAP_CONTENT);
-        guideBtnParams.gravity = android.view.Gravity.CENTER_HORIZONTAL;
+        guideBtnParams.gravity = Gravity.CENTER_HORIZONTAL;
         setupGuideBtn.setLayoutParams(guideBtnParams);
         mContentContainer.addView(setupGuideBtn);
 
@@ -214,7 +400,8 @@ public class HermesSetupWizardActivity extends AppCompatActivity {
                 String provider = providerValues[pos];
                 updateModelSpinner(provider);
                 updateProviderBadge(providerBadge, provider);
-                updateModelDescription(getSelectedModel());
+                // Auto-save provider selection
+                mConfigManager.setModelProvider(provider);
             }
             @Override
             public void onNothingSelected(AdapterView<?> parent) {}
@@ -226,7 +413,7 @@ public class HermesSetupWizardActivity extends AppCompatActivity {
 
         LinearLayout apiKeyRow = new LinearLayout(this);
         apiKeyRow.setOrientation(LinearLayout.HORIZONTAL);
-        apiKeyRow.setGravity(android.view.Gravity.CENTER_VERTICAL);
+        apiKeyRow.setGravity(Gravity.CENTER_VERTICAL);
 
         EditText apiKeyInput = new EditText(this);
         apiKeyInput.setHint(R.string.hermes_setup_api_key_hint);
@@ -250,7 +437,7 @@ public class HermesSetupWizardActivity extends AppCompatActivity {
 
         mContentContainer.addView(apiKeyRow);
 
-        // Model spinner (dynamic)
+        // Model spinner
         addSpacer(dp(16));
         addLabel(getString(R.string.llm_model_title));
         Spinner modelSpinner = new Spinner(this);
@@ -267,12 +454,15 @@ public class HermesSetupWizardActivity extends AppCompatActivity {
         tagView(modelDesc, "model_desc");
         updateModelDescription(mConfigManager.getModelName());
 
-        // Update description when model changes
         modelSpinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
             @Override
             public void onItemSelected(AdapterView<?> parent, View view, int pos, long id) {
                 Object selected = modelSpinner.getSelectedItem();
-                if (selected != null) updateModelDescription(selected.toString());
+                if (selected != null) {
+                    updateModelDescription(selected.toString());
+                    // Auto-save model selection
+                    mConfigManager.setModelName(selected.toString());
+                }
             }
             @Override
             public void onNothingSelected(AdapterView<?> parent) {}
@@ -285,7 +475,7 @@ public class HermesSetupWizardActivity extends AppCompatActivity {
         testBtn.setOnClickListener(v -> runWizardLlmTest(testBtn));
         LinearLayout.LayoutParams testBtnParams = new LinearLayout.LayoutParams(
                 LinearLayout.LayoutParams.WRAP_CONTENT, LinearLayout.LayoutParams.WRAP_CONTENT);
-        testBtnParams.gravity = android.view.Gravity.CENTER_HORIZONTAL;
+        testBtnParams.gravity = Gravity.CENTER_HORIZONTAL;
         testBtn.setLayoutParams(testBtnParams);
         mContentContainer.addView(testBtn);
         tagView(testBtn, "test_btn");
@@ -293,8 +483,228 @@ public class HermesSetupWizardActivity extends AppCompatActivity {
         TextView testStatus = new TextView(this);
         testStatus.setPadding(0, dp(8), 0, 0);
         testStatus.setTextSize(13);
+        testStatus.setGravity(Gravity.CENTER_HORIZONTAL);
         mContentContainer.addView(testStatus);
         tagView(testStatus, "test_status");
+    }
+
+    // =========================================================================
+    // Step: IM Configuration
+    // =========================================================================
+
+    private void showImStep() {
+        if (getSupportActionBar() != null) {
+            getSupportActionBar().setSubtitle(R.string.hermes_setup_step_feishu);
+        }
+
+        addTitle(R.string.hermes_setup_im_title);
+        addParagraph(R.string.hermes_setup_im_text);
+
+        LinearLayout.LayoutParams btnParams = new LinearLayout.LayoutParams(
+                LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT);
+
+        // Feishu button
+        addSpacer(dp(8));
+        Button feishuBtn = new Button(this);
+        feishuBtn.setText(R.string.hermes_setup_open_feishu_wizard);
+        feishuBtn.setOnClickListener(v -> startActivity(new Intent(this, FeishuSetupActivity.class)));
+        feishuBtn.setLayoutParams(btnParams);
+        mContentContainer.addView(feishuBtn);
+
+        // Telegram button
+        Button telegramBtn = new Button(this);
+        telegramBtn.setText(R.string.hermes_telegram_setup_title);
+        telegramBtn.setOnClickListener(v -> {
+            Intent intent = new Intent(this, ImSetupActivity.class);
+            intent.putExtra(ImSetupActivity.EXTRA_PLATFORM, ImSetupActivity.PLATFORM_TELEGRAM);
+            startActivity(intent);
+        });
+        telegramBtn.setLayoutParams(btnParams);
+        mContentContainer.addView(telegramBtn);
+
+        // Discord button
+        Button discordBtn = new Button(this);
+        discordBtn.setText(R.string.hermes_discord_setup_title);
+        discordBtn.setOnClickListener(v -> {
+            Intent intent = new Intent(this, ImSetupActivity.class);
+            intent.putExtra(ImSetupActivity.EXTRA_PLATFORM, ImSetupActivity.PLATFORM_DISCORD);
+            startActivity(intent);
+        });
+        discordBtn.setLayoutParams(btnParams);
+        mContentContainer.addView(discordBtn);
+
+        // WhatsApp button
+        Button whatsappBtn = new Button(this);
+        whatsappBtn.setText(R.string.hermes_setup_open_whatsapp_wizard);
+        whatsappBtn.setOnClickListener(v -> startActivity(new Intent(this, WhatsAppSetupActivity.class)));
+        whatsappBtn.setLayoutParams(btnParams);
+        mContentContainer.addView(whatsappBtn);
+
+        addSpacer(dp(16));
+        TextView skipNote = new TextView(this);
+        skipNote.setText(R.string.hermes_setup_feishu_skip);
+        skipNote.setTextColor(0xFF888888);
+        skipNote.setTextSize(13);
+        mContentContainer.addView(skipNote);
+    }
+
+    // =========================================================================
+    // Step: Start Gateway
+    // =========================================================================
+
+    private void showStartStep() {
+        if (getSupportActionBar() != null) {
+            getSupportActionBar().setSubtitle(R.string.hermes_setup_step_start);
+        }
+
+        addTitle(R.string.hermes_setup_start_title);
+        addParagraph(R.string.hermes_setup_start_text);
+
+        addSpacer(dp(8));
+        Button startBtn = new Button(this);
+        startBtn.setText(R.string.gateway_start_title);
+        LinearLayout.LayoutParams btnParams = new LinearLayout.LayoutParams(
+                LinearLayout.LayoutParams.WRAP_CONTENT, LinearLayout.LayoutParams.WRAP_CONTENT);
+        btnParams.gravity = Gravity.CENTER_HORIZONTAL;
+        startBtn.setLayoutParams(btnParams);
+        mContentContainer.addView(startBtn);
+        tagView(startBtn, "start_btn");
+
+        TextView statusText = new TextView(this);
+        statusText.setPadding(0, dp(16), 0, 0);
+        statusText.setTextSize(15);
+        statusText.setGravity(Gravity.CENTER_HORIZONTAL);
+        mContentContainer.addView(statusText);
+        tagView(statusText, "start_status");
+
+        if (HermesGatewayService.isRunning()) {
+            startBtn.setEnabled(false);
+            statusText.setText(R.string.hermes_setup_start_already_running);
+            statusText.setTextColor(0xFF388E3C);
+        } else {
+            startBtn.setOnClickListener(v -> {
+                startBtn.setEnabled(false);
+                statusText.setText(R.string.gateway_started);
+                statusText.setTextColor(0xFF1565C0);
+
+                Intent startIntent = new Intent(this, HermesGatewayService.class);
+                startIntent.setAction(HermesGatewayService.ACTION_START);
+                startService(startIntent);
+
+                statusText.postDelayed(() -> {
+                    if (HermesGatewayService.isRunning()) {
+                        statusText.setText(R.string.hermes_setup_start_success);
+                        statusText.setTextColor(0xFF388E3C);
+                    } else {
+                        statusText.setText(R.string.hermes_setup_start_failed);
+                        statusText.setTextColor(0xFFD32F2F);
+                        startBtn.setEnabled(true);
+                    }
+                }, 3000);
+            });
+        }
+
+        addSpacer(dp(16));
+        TextView skipNote = new TextView(this);
+        skipNote.setText(R.string.hermes_setup_start_skip);
+        skipNote.setTextColor(0xFF888888);
+        skipNote.setTextSize(13);
+        mContentContainer.addView(skipNote);
+    }
+
+    // =========================================================================
+    // Step: Done
+    // =========================================================================
+
+    private void showDoneStep() {
+        if (getSupportActionBar() != null) {
+            getSupportActionBar().setSubtitle(R.string.hermes_setup_step_done);
+        }
+
+        addTitle(R.string.hermes_setup_done_title);
+        addParagraph(R.string.hermes_setup_done_text);
+
+        String provider = mConfigManager.getModelProvider();
+        String apiKey = mConfigManager.getApiKey(provider);
+        boolean hasLLM = apiKey != null && !apiKey.isEmpty() || "ollama".equals(provider);
+        boolean hasFeishu = mConfigManager.isFeishuConfigured();
+        boolean hasTelegram = !mConfigManager.getEnvVar("TELEGRAM_BOT_TOKEN").isEmpty();
+        boolean hasDiscord = !mConfigManager.getEnvVar("DISCORD_BOT_TOKEN").isEmpty();
+        boolean hasWhatsApp = !mConfigManager.getEnvVar("WHATSAPP_PHONE_NUMBER_ID").isEmpty();
+
+        StringBuilder summary = new StringBuilder();
+        if (hasLLM) {
+            summary.append(getString(R.string.hermes_setup_summary_ai, provider + " / " + mConfigManager.getModelName()));
+        } else {
+            summary.append(getString(R.string.hermes_setup_summary_ai_not_configured));
+        }
+        summary.append("\n");
+        summary.append(formatPlatformStatus("Feishu", hasFeishu)).append("\n");
+        summary.append(formatPlatformStatus("Telegram", hasTelegram)).append("\n");
+        summary.append(formatPlatformStatus("Discord", hasDiscord)).append("\n");
+        summary.append(formatPlatformStatus("WhatsApp", hasWhatsApp)).append("\n");
+        summary.append(HermesGatewayService.isRunning()
+                ? getString(R.string.hermes_setup_summary_gateway_running)
+                : getString(R.string.hermes_setup_summary_gateway_not_started));
+
+        TextView summaryView = new TextView(this);
+        summaryView.setText(summary.toString());
+        summaryView.setTextSize(16);
+        summaryView.setPadding(0, dp(16), 0, 0);
+        mContentContainer.addView(summaryView);
+
+        // "Reconfigure" button
+        addSpacer(dp(24));
+        Button reconfigBtn = new Button(this);
+        reconfigBtn.setText(R.string.hermes_setup_reconfigure);
+        LinearLayout.LayoutParams reconfigParams = new LinearLayout.LayoutParams(
+                LinearLayout.LayoutParams.WRAP_CONTENT, LinearLayout.LayoutParams.WRAP_CONTENT);
+        reconfigParams.gravity = Gravity.CENTER_HORIZONTAL;
+        reconfigBtn.setLayoutParams(reconfigParams);
+        reconfigBtn.setOnClickListener(v -> {
+            // Reset step tracking so wizard can be re-run
+            resetStepTracking();
+            showStep(STEP_WELCOME);
+        });
+        mContentContainer.addView(reconfigBtn);
+    }
+
+    // =========================================================================
+    // LLM helpers
+    // =========================================================================
+
+    private void saveLlmConfig() {
+        Spinner providerSpinner = findTaggedView("provider_spinner");
+        EditText apiKeyInput = findTaggedView("api_key_input");
+        Spinner modelSpinner = findTaggedView("model_spinner");
+
+        String[] providerValues = getResources().getStringArray(R.array.llm_provider_values);
+        String provider = null;
+        if (providerSpinner != null) {
+            int pos = providerSpinner.getSelectedItemPosition();
+            if (pos >= 0 && pos < providerValues.length) {
+                provider = providerValues[pos];
+                mConfigManager.setModelProvider(provider);
+            }
+        }
+
+        if (apiKeyInput != null) {
+            String key = apiKeyInput.getText().toString().trim();
+            if (!key.isEmpty()) {
+                String targetProvider = provider != null ? provider : mConfigManager.getModelProvider();
+                mConfigManager.setApiKey(targetProvider, key);
+            }
+        }
+
+        if (modelSpinner != null) {
+            Object selected = modelSpinner.getSelectedItem();
+            if (selected != null) {
+                String model = selected.toString();
+                if (!model.isEmpty()) {
+                    mConfigManager.setModelName(model);
+                }
+            }
+        }
     }
 
     private void updateModelSpinner(String provider) {
@@ -341,23 +751,23 @@ public class HermesSetupWizardActivity extends AppCompatActivity {
             case "openai":
             case "anthropic":
                 badge.setText(getString(R.string.wizard_provider_recommended) + " • " + getString(R.string.provider_setup_paid));
-                badge.setTextColor(0xFF1565C0); // blue
+                badge.setTextColor(0xFF1565C0);
                 break;
             case "ollama":
                 badge.setText(getString(R.string.wizard_provider_free));
-                badge.setTextColor(0xFF388E3C); // green
+                badge.setTextColor(0xFF388E3C);
                 break;
             case "deepseek":
                 badge.setText(getString(R.string.wizard_provider_budget) + " • " + getString(R.string.provider_setup_paid));
-                badge.setTextColor(0xFFF57C00); // orange
+                badge.setTextColor(0xFFF57C00);
                 break;
             case "google":
                 badge.setText(getString(R.string.provider_setup_free_tier) + " • " + getString(R.string.provider_setup_paid));
-                badge.setTextColor(0xFF388E3C); // green
+                badge.setTextColor(0xFF388E3C);
                 break;
             default:
                 badge.setText(getString(R.string.provider_setup_paid));
-                badge.setTextColor(0xFF888888); // gray
+                badge.setTextColor(0xFF888888);
                 break;
         }
     }
@@ -411,15 +821,6 @@ public class HermesSetupWizardActivity extends AppCompatActivity {
         }
     }
 
-    private String getSelectedModel() {
-        Spinner modelSpinner = findTaggedView("model_spinner");
-        if (modelSpinner != null) {
-            Object selected = modelSpinner.getSelectedItem();
-            if (selected != null) return selected.toString();
-        }
-        return mConfigManager.getModelName();
-    }
-
     private void showSetupGuideForProvider(String provider) {
         float density = getResources().getDisplayMetrics().density;
         ScrollView scrollView = new ScrollView(this);
@@ -428,7 +829,6 @@ public class HermesSetupWizardActivity extends AppCompatActivity {
         int pad = (int) (16 * density);
         layout.setPadding(pad, pad, pad, pad);
 
-        // Intro
         int introResId = getProviderIntroResId(provider);
         if (introResId != 0) {
             TextView intro = new TextView(this);
@@ -438,7 +838,6 @@ public class HermesSetupWizardActivity extends AppCompatActivity {
             layout.addView(intro);
         }
 
-        // Steps
         int stepsResId = getProviderStepsResId(provider);
         if (stepsResId != 0) {
             String[] steps = getString(stepsResId).split("\n");
@@ -531,12 +930,9 @@ public class HermesSetupWizardActivity extends AppCompatActivity {
     }
 
     private void runWizardLlmTest(Button testBtn) {
-        // Save first
         saveLlmConfig();
 
         String provider = mConfigManager.getModelProvider();
-
-        // Read API key directly from input field for immediate feedback
         EditText apiKeyInput = findTaggedView("api_key_input");
         String apiKey = "";
         if (apiKeyInput != null) {
@@ -640,262 +1036,62 @@ public class HermesSetupWizardActivity extends AppCompatActivity {
         }
     }
 
-    private void showImStep() {
-        if (getSupportActionBar() != null) {
-            getSupportActionBar().setSubtitle(R.string.hermes_setup_step_feishu);
-        }
+    // =========================================================================
+    // Public API
+    // =========================================================================
 
-        addTitle(R.string.hermes_setup_im_title);
-        addParagraph(R.string.hermes_setup_im_text);
-
-        // Feishu button
-        addSpacer(dp(8));
-        Button feishuBtn = new Button(this);
-        feishuBtn.setText(R.string.hermes_setup_open_feishu_wizard);
-        feishuBtn.setOnClickListener(v -> startActivity(new Intent(this, FeishuSetupActivity.class)));
-        LinearLayout.LayoutParams btnParams = new LinearLayout.LayoutParams(
-                LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT);
-        feishuBtn.setLayoutParams(btnParams);
-        mContentContainer.addView(feishuBtn);
-
-        // Telegram button
-        Button telegramBtn = new Button(this);
-        telegramBtn.setText(R.string.hermes_telegram_setup_title);
-        telegramBtn.setOnClickListener(v -> {
-            Intent intent = new Intent(this, ImSetupActivity.class);
-            intent.putExtra(ImSetupActivity.EXTRA_PLATFORM, ImSetupActivity.PLATFORM_TELEGRAM);
-            startActivity(intent);
-        });
-        telegramBtn.setLayoutParams(btnParams);
-        mContentContainer.addView(telegramBtn);
-
-        // Discord button
-        Button discordBtn = new Button(this);
-        discordBtn.setText(R.string.hermes_discord_setup_title);
-        discordBtn.setOnClickListener(v -> {
-            Intent intent = new Intent(this, ImSetupActivity.class);
-            intent.putExtra(ImSetupActivity.EXTRA_PLATFORM, ImSetupActivity.PLATFORM_DISCORD);
-            startActivity(intent);
-        });
-        discordBtn.setLayoutParams(btnParams);
-        mContentContainer.addView(discordBtn);
-
-        // WhatsApp button
-        Button whatsappBtn = new Button(this);
-        whatsappBtn.setText(R.string.hermes_setup_open_whatsapp_wizard);
-        whatsappBtn.setOnClickListener(v -> startActivity(new Intent(this, WhatsAppSetupActivity.class)));
-        whatsappBtn.setLayoutParams(btnParams);
-        mContentContainer.addView(whatsappBtn);
-
-        addSpacer(dp(16));
-        TextView skipNote = new TextView(this);
-        skipNote.setText(R.string.hermes_setup_feishu_skip);
-        skipNote.setTextColor(0xFF888888);
-        skipNote.setTextSize(13);
-        mContentContainer.addView(skipNote);
+    public static boolean isWizardBasicDone(Context context) {
+        return context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
+                .getBoolean(KEY_WIZARD_BASIC_DONE, false);
     }
 
-    private void showStartStep() {
-        if (getSupportActionBar() != null) {
-            getSupportActionBar().setSubtitle(R.string.hermes_setup_step_start);
-        }
-
-        addTitle(R.string.hermes_setup_start_title);
-        addParagraph(R.string.hermes_setup_start_text);
-
-        // Start gateway button
-        addSpacer(dp(8));
-        Button startBtn = new Button(this);
-        startBtn.setText(R.string.gateway_start_title);
-        LinearLayout.LayoutParams btnParams = new LinearLayout.LayoutParams(
-                LinearLayout.LayoutParams.WRAP_CONTENT, LinearLayout.LayoutParams.WRAP_CONTENT);
-        btnParams.gravity = android.view.Gravity.CENTER_HORIZONTAL;
-        startBtn.setLayoutParams(btnParams);
-        mContentContainer.addView(startBtn);
-        tagView(startBtn, "start_btn");
-
-        // Status text
-        TextView statusText = new TextView(this);
-        statusText.setPadding(0, dp(16), 0, 0);
-        statusText.setTextSize(15);
-        statusText.setGravity(android.view.Gravity.CENTER_HORIZONTAL);
-        mContentContainer.addView(statusText);
-        tagView(statusText, "start_status");
-
-        // Check if already running
-        if (HermesGatewayService.isRunning()) {
-            startBtn.setEnabled(false);
-            statusText.setText(R.string.hermes_setup_start_already_running);
-            statusText.setTextColor(0xFF388E3C);
-        } else {
-            startBtn.setOnClickListener(v -> {
-                startBtn.setEnabled(false);
-                statusText.setText(R.string.gateway_started);
-                statusText.setTextColor(0xFF1565C0);
-
-                Intent startIntent = new Intent(this, HermesGatewayService.class);
-                startIntent.setAction(HermesGatewayService.ACTION_START);
-                startService(startIntent);
-
-                // Update status after a short delay
-                statusText.postDelayed(() -> {
-                    if (HermesGatewayService.isRunning()) {
-                        statusText.setText(R.string.hermes_setup_start_success);
-                        statusText.setTextColor(0xFF388E3C);
-                    } else {
-                        statusText.setText(R.string.hermes_setup_start_failed);
-                        statusText.setTextColor(0xFFD32F2F);
-                        startBtn.setEnabled(true);
-                    }
-                }, 3000);
-            });
-        }
-
-        addSpacer(dp(16));
-        TextView skipNote = new TextView(this);
-        skipNote.setText(R.string.hermes_setup_start_skip);
-        skipNote.setTextColor(0xFF888888);
-        skipNote.setTextSize(13);
-        mContentContainer.addView(skipNote);
+    public static boolean needsSetup(Context context) {
+        HermesConfigManager mgr = HermesConfigManager.getInstance();
+        return mgr.getConfigStatus() == HermesConfigManager.ConfigStatus.EMPTY
+                && !isWizardBasicDone(context);
     }
 
-    private void showDoneStep() {
-        if (getSupportActionBar() != null) {
-            getSupportActionBar().setSubtitle(R.string.hermes_setup_step_done);
-        }
-
-        addTitle(R.string.hermes_setup_done_title);
-        addParagraph(R.string.hermes_setup_done_text);
-
-        String provider = mConfigManager.getModelProvider();
-        String apiKey = mConfigManager.getApiKey(provider);
-        boolean hasLLM = apiKey != null && !apiKey.isEmpty();
-        boolean hasFeishu = mConfigManager.isFeishuConfigured();
-        boolean hasTelegram = !mConfigManager.getEnvVar("TELEGRAM_BOT_TOKEN").isEmpty();
-        boolean hasDiscord = !mConfigManager.getEnvVar("DISCORD_BOT_TOKEN").isEmpty();
-        boolean hasWhatsApp = !mConfigManager.getEnvVar("WHATSAPP_PHONE_NUMBER_ID").isEmpty();
-
-        StringBuilder summary = new StringBuilder();
-        if (hasLLM) {
-            summary.append(getString(R.string.hermes_setup_summary_ai, provider + " / " + mConfigManager.getModelName()));
-        } else {
-            summary.append(getString(R.string.hermes_setup_summary_ai_not_configured));
-        }
-        summary.append("\n");
-        summary.append(formatPlatformStatus("Feishu", hasFeishu)).append("\n");
-        summary.append(formatPlatformStatus("Telegram", hasTelegram)).append("\n");
-        summary.append(formatPlatformStatus("Discord", hasDiscord)).append("\n");
-        summary.append(formatPlatformStatus("WhatsApp", hasWhatsApp)).append("\n");
-        summary.append(HermesGatewayService.isRunning()
-                ? getString(R.string.hermes_setup_summary_gateway_running)
-                : getString(R.string.hermes_setup_summary_gateway_not_started));
-
-        TextView summaryView = new TextView(this);
-        summaryView.setText(summary.toString());
-        summaryView.setTextSize(16);
-        summaryView.setPadding(0, dp(16), 0, 0);
-        mContentContainer.addView(summaryView);
-
+    private void markWizardBasicDone() {
         getSharedPreferences(PREFS_NAME, MODE_PRIVATE)
                 .edit()
-                .putBoolean(KEY_WIZARD_COMPLETED, true)
+                .putBoolean(KEY_WIZARD_BASIC_DONE, true)
                 .apply();
     }
 
-    private void navigateNext() {
-        if (mCurrentStep == STEP_LLM) {
-            saveLlmConfig();
-
-            // Read provider directly from spinner to determine if key is required
-            Spinner providerSpinner = findTaggedView("provider_spinner");
-            String[] providerValues = getResources().getStringArray(R.array.llm_provider_values);
-            String provider = null;
-            if (providerSpinner != null) {
-                int pos = providerSpinner.getSelectedItemPosition();
-                if (pos >= 0 && pos < providerValues.length) {
-                    provider = providerValues[pos];
-                }
-            }
-
-            // Read API key directly from input field, falling back to saved config
-            EditText apiKeyInput = findTaggedView("api_key_input");
-            String apiKey = "";
-            if (apiKeyInput != null) {
-                apiKey = apiKeyInput.getText().toString().trim();
-            }
-            if (apiKey.isEmpty()) {
-                apiKey = mConfigManager.getApiKey(provider != null ? provider : mConfigManager.getModelProvider());
-            }
-
-            if (apiKey.isEmpty() && !"ollama".equals(provider)) {
-                Toast.makeText(this, getString(R.string.llm_test_no_key), Toast.LENGTH_SHORT).show();
-                return;
-            }
-        }
-        if (mCurrentStep == STEP_DONE) {
-            finish();
-            return;
-        }
-        showStep(mCurrentStep + 1);
+    /** Resets all step tracking so wizard can be re-run from scratch. */
+    public static void resetStepTracking(Context context) {
+        context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
+                .edit()
+                .remove(KEY_WIZARD_BASIC_DONE)
+                .remove(KEY_WIZARD_LAST_STEP)
+                .remove(KEY_STEP_LLM_DONE)
+                .remove(KEY_STEP_IM_DONE)
+                .remove(KEY_STEP_START_DONE)
+                .remove(KEY_WELCOME_SHOWN)
+                .apply();
     }
 
-    private void navigateBack() {
-        if (mCurrentStep > STEP_WELCOME) {
-            showStep(mCurrentStep - 1);
-        }
+    private void resetStepTracking() {
+        resetStepTracking(this);
     }
 
-    private void saveLlmConfig() {
-        Spinner providerSpinner = findTaggedView("provider_spinner");
-        EditText apiKeyInput = findTaggedView("api_key_input");
-        Spinner modelSpinner = findTaggedView("model_spinner");
-
-        // Save provider FIRST so that setApiKey uses the correct provider key
-        String[] providerValues = getResources().getStringArray(R.array.llm_provider_values);
-        String provider = null;
-        if (providerSpinner != null) {
-            int pos = providerSpinner.getSelectedItemPosition();
-            if (pos >= 0 && pos < providerValues.length) {
-                provider = providerValues[pos];
-                mConfigManager.setModelProvider(provider);
-            }
-        }
-
-        if (apiKeyInput != null) {
-            String key = apiKeyInput.getText().toString().trim();
-            if (!key.isEmpty()) {
-                String targetProvider = provider != null ? provider : mConfigManager.getModelProvider();
-                mConfigManager.setApiKey(targetProvider, key);
-            }
-        }
-
-        if (modelSpinner != null) {
-            Object selected = modelSpinner.getSelectedItem();
-            if (selected != null) {
-                String model = selected.toString();
-                if (!model.isEmpty()) {
-                    mConfigManager.setModelName(model);
-                }
-            }
-        }
-    }
-
+    // Keep old API for backward compatibility during migration
     public static boolean isWizardCompleted(android.content.Context context) {
-        return context.getSharedPreferences(PREFS_NAME, android.content.Context.MODE_PRIVATE)
-                .getBoolean(KEY_WIZARD_COMPLETED, false);
+        return isWizardBasicDone(context);
     }
 
     public static boolean isWizardDismissed(android.content.Context context) {
-        return context.getSharedPreferences(PREFS_NAME, android.content.Context.MODE_PRIVATE)
-                .getBoolean(KEY_WIZARD_DISMISSED, false);
+        // No longer used - always return false
+        return false;
     }
 
     public static void clearDismissedFlag(android.content.Context context) {
-        context.getSharedPreferences(PREFS_NAME, android.content.Context.MODE_PRIVATE)
-                .edit()
-                .remove(KEY_WIZARD_DISMISSED)
-                .apply();
+        // No-op - dismissed mechanism removed
     }
+
+    // =========================================================================
+    // UI helpers
+    // =========================================================================
 
     private String getClipboardText() {
         try {
@@ -939,28 +1135,9 @@ public class HermesSetupWizardActivity extends AppCompatActivity {
         mContentContainer.addView(tv);
     }
 
-    private void addTitle(String text) {
-        TextView tv = new TextView(this);
-        tv.setText(text);
-        tv.setTextSize(22);
-        tv.setTextColor(0xFF1A1A2E);
-        tv.setTypeface(null, android.graphics.Typeface.BOLD);
-        tv.setPadding(0, 0, 0, dp(16));
-        mContentContainer.addView(tv);
-    }
-
     private void addParagraph(int textResId) {
         TextView tv = new TextView(this);
         tv.setText(textResId);
-        tv.setTextSize(15);
-        tv.setLineSpacing(dp(4), 1f);
-        tv.setPadding(0, 0, 0, dp(16));
-        mContentContainer.addView(tv);
-    }
-
-    private void addParagraph(String text) {
-        TextView tv = new TextView(this);
-        tv.setText(text);
         tv.setTextSize(15);
         tv.setLineSpacing(dp(4), 1f);
         tv.setPadding(0, 0, 0, dp(16));

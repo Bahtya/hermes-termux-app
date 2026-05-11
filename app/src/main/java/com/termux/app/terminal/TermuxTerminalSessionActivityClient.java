@@ -137,11 +137,6 @@ public class TermuxTerminalSessionActivityClient extends TermuxTerminalSessionCl
 
     @Override
     public void onSessionFinished(@NonNull TerminalSession finishedSession) {
-        HermesTabBarController tabController = mActivity.getHermesTabBarController();
-        if (tabController != null) {
-            tabController.onSessionFinished(finishedSession);
-        }
-
         TermuxService service = mActivity.getTermuxService();
 
         if (service == null || service.wantsToStop()) {
@@ -389,12 +384,6 @@ public class TermuxTerminalSessionActivityClient extends TermuxTerminalSessionCl
             TerminalSession newTerminalSession = newTermuxSession.getTerminalSession();
             setCurrentSession(newTerminalSession);
 
-            // Register as bash tab session
-            HermesTabBarController tabController = mActivity.getHermesTabBarController();
-            if (tabController != null) {
-                tabController.registerSession("bash", newTerminalSession);
-            }
-
             mActivity.getDrawer().closeDrawers();
         }
     }
@@ -407,10 +396,6 @@ public class TermuxTerminalSessionActivityClient extends TermuxTerminalSessionCl
         if (newTermuxSession == null) return;
 
         TerminalSession newTerminalSession = newTermuxSession.getTerminalSession();
-        HermesTabBarController tabController = mActivity.getHermesTabBarController();
-        if (tabController != null) {
-            tabController.registerSession("hermes", newTerminalSession);
-        }
     }
 
     public void setCurrentStoredSession() {

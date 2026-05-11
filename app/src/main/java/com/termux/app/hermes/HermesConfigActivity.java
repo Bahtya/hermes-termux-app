@@ -5,11 +5,13 @@ import android.content.ClipboardManager;
 import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
+import android.view.Gravity;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
+import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
@@ -22,6 +24,7 @@ import androidx.annotation.NonNull;
 import androidx.appcompat.app.ActionBar;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.drawerlayout.widget.DrawerLayout;
 import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentTransaction;
 import androidx.preference.EditTextPreference;
@@ -30,11 +33,13 @@ import androidx.preference.Preference;
 import androidx.preference.PreferenceFragmentCompat;
 import androidx.preference.SwitchPreferenceCompat;
 
+import com.google.android.material.navigation.NavigationView;
 import com.termux.R;
 import com.termux.app.hermes.HermesTutorialOverlay;
 import com.termux.shared.termux.TermuxConstants;
 
 import androidx.core.content.ContextCompat;
+import androidx.core.view.GravityCompat;
 
 import java.io.BufferedReader;
 import java.io.File;
@@ -43,39 +48,369 @@ import java.util.List;
 
 public class HermesConfigActivity extends AppCompatActivity {
 
+    private DrawerLayout mDrawerLayout;
+    private NavigationView mNavigationView;
+    private HermesConfigManager mConfigManager;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_hermes_config);
+        mConfigManager = HermesConfigManager.getInstance();
 
-        // Show tutorial for first-time users
-        if (!HermesTutorialOverlay.isTutorialDone(this)) {
-            View rootView = findViewById(android.R.id.content);
-            if (rootView != null) {
-                rootView.post(() -> HermesTutorialOverlay.showIfNeeded(this,
-                        (ViewGroup) rootView, null));
-            }
-        }
+        mDrawerLayout = findViewById(R.id.hermes_drawer_layout);
+        mNavigationView = findViewById(R.id.hermes_nav_view);
+
         setSupportActionBar(findViewById(R.id.hermes_config_toolbar));
 
         ActionBar actionBar = getSupportActionBar();
         if (actionBar != null) {
-            actionBar.setDisplayHomeAsUpEnabled(true);
+            actionBar.setDisplayHomeAsUpEnabled(false);
             actionBar.setTitle(R.string.hermes_config_title);
         }
 
+        // Drawer toggle via toolbar nav icon
+        androidx.appcompat.widget.Toolbar toolbar = findViewById(R.id.hermes_config_toolbar);
+        toolbar.setNavigationOnClickListener(v -> {
+            if (mDrawerLayout.isDrawerOpen(GravityCompat.START)) {
+                mDrawerLayout.closeDrawer(GravityCompat.START);
+            } else {
+                mDrawerLayout.openDrawer(GravityCompat.START);
+            }
+        });
+
+        // Handle navigation item clicks
+        mNavigationView.setNavigationItemSelectedListener(item -> {
+            int id = item.getItemId();
+            handleNavigation(id);
+            mDrawerLayout.closeDrawer(GravityCompat.START);
+            return true;
+        });
+
+        // Update drawer header status
+        updateDrawerHeader();
+
+        // Show dashboard by default
         if (savedInstanceState == null) {
-            getSupportFragmentManager()
-                    .beginTransaction()
-                    .replace(R.id.hermes_config_content, new HermesConfigFragment())
-                    .commit();
+            showDashboard();
         }
+    }
+
+    private void handleNavigation(int itemId) {
+        if (itemId == R.id.nav_dashboard) {
+            showDashboard();
+        } else if (itemId == R.id.nav_ai_config) {
+            showFragment(new LlmConfigFragment());
+        } else if (itemId == R.id.nav_im_setup) {
+            showImSetupPage();
+        } else if (itemId == R.id.nav_gateway) {
+            showFragment(new GatewayControlFragment());
+        } else if (itemId == R.id.nav_logs) {
+            startActivity(new Intent(this, GatewayLogActivity.class));
+        } else if (itemId == R.id.nav_diagnostics) {
+            startActivity(new Intent(this, HermesDiagnosticActivity.class));
+        } else if (itemId == R.id.nav_setup_wizard) {
+            startActivity(new Intent(this, HermesSetupWizardActivity.class));
+        } else if (itemId == R.id.nav_help) {
+            startActivity(new Intent(this, HermesHelpActivity.class));
+        } else if (itemId == R.id.nav_restore_backup) {
+            showRestoreBackupConfirmDialog();
+        }
+    }
+
+    private void showDashboard() {
+        ScrollView scrollView = new ScrollView(this);
+        LinearLayout layout = new LinearLayout(this);
+        layout.setOrientation(LinearLayout.VERTICAL);
+        int pad = dp(20);
+        layout.setPadding(pad, pad, pad, pad);
+
+        // Config status card
+        HermesConfigManager.ConfigStatus status = mConfigManager.getConfigStatus();
+        TextView statusTitle = new TextView(this);
+        statusTitle.setText(R.string.hermes_dashboard_status_section);
+        statusTitle.setTextSize(18);
+        statusTitle.setTypeface(null, android.graphics.Typeface.BOLD);
+        statusTitle.setTextColor(0xFF1A1A2E);
+        statusTitle.setPadding(0, 0, 0, dp(12));
+        layout.addView(statusTitle);
+
+        // Status card background
+        LinearLayout statusCard = new LinearLayout(this);
+        statusCard.setOrientation(LinearLayout.VERTICAL);
+        int cardPad = dp(16);
+        statusCard.setPadding(cardPad, cardPad, cardPad, cardPad);
+
+        TextView statusText = new TextView(this);
+        int bgColor;
+        switch (status) {
+            case READY:
+                statusText.setText(R.string.hermes_dashboard_config_ready);
+                statusText.setTextColor(0xFF388E3C);
+                bgColor = 0xFFE8F5E9;
+                break;
+            case PARTIAL:
+                statusText.setText(R.string.hermes_dashboard_config_partial);
+                statusText.setTextColor(0xFFF57C00);
+                bgColor = 0xFFFFF3E0;
+                break;
+            default:
+                statusText.setText(R.string.hermes_dashboard_config_empty);
+                statusText.setTextColor(0xFFD32F2F);
+                bgColor = 0xFFFFEBEE;
+                break;
+        }
+        statusText.setTextSize(15);
+        statusText.setPadding(0, 0, 0, dp(8));
+        statusCard.addView(statusText);
+
+        // Detail lines
+        String provider = mConfigManager.getModelProvider();
+        String apiKey = mConfigManager.getApiKey(provider);
+        boolean hasLLM = !apiKey.isEmpty() || "ollama".equals(provider);
+
+        addDetailLine(statusCard, "AI Provider:", hasLLM ? provider + " / " + mConfigManager.getModelName() : "Not configured");
+        addDetailLine(statusCard, "IM:", getImStatusSummary());
+
+        // Gateway status
+        HermesGatewayStatus.checkAsync((gwStatus, detail) -> {
+            runOnUiThread(() -> {
+                String gwText;
+                switch (gwStatus) {
+                    case RUNNING: gwText = "Running"; break;
+                    case NOT_INSTALLED: gwText = "Not installed"; break;
+                    default: gwText = "Stopped"; break;
+                }
+                addDetailLine(statusCard, "Gateway:", gwText);
+            });
+        });
+
+        statusCard.setBackgroundColor(bgColor);
+        LinearLayout.LayoutParams cardParams = new LinearLayout.LayoutParams(
+                LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT);
+        cardParams.bottomMargin = dp(16);
+        statusCard.setLayoutParams(cardParams);
+        layout.addView(statusCard);
+
+        // Quick actions section
+        if (status != HermesConfigManager.ConfigStatus.READY) {
+            Button setupBtn = new Button(this);
+            setupBtn.setText(R.string.hermes_dashboard_run_setup);
+            setupBtn.setOnClickListener(v -> startActivity(new Intent(this, HermesSetupWizardActivity.class)));
+            LinearLayout.LayoutParams btnParams = new LinearLayout.LayoutParams(
+                    LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT);
+            btnParams.bottomMargin = dp(12);
+            setupBtn.setLayoutParams(btnParams);
+            layout.addView(setupBtn);
+        }
+
+        // Quick actions
+        TextView actionsTitle = new TextView(this);
+        actionsTitle.setText(R.string.hermes_dashboard_actions_section);
+        actionsTitle.setTextSize(18);
+        actionsTitle.setTypeface(null, android.graphics.Typeface.BOLD);
+        actionsTitle.setTextColor(0xFF1A1A2E);
+        actionsTitle.setPadding(0, dp(8), 0, dp(12));
+        layout.addView(actionsTitle);
+
+        String[] actions = {
+                "Start Gateway",
+                "Open AI Settings",
+                "Configure IM",
+                "View Logs",
+                "Run Diagnostics"
+        };
+        for (String action : actions) {
+            TextView actionItem = new TextView(this);
+            actionItem.setText("  → " + action);
+            actionItem.setTextSize(15);
+            actionItem.setTextColor(0xFF1565C0);
+            actionItem.setPadding(0, dp(4), 0, dp(4));
+            actionItem.setOnClickListener(v -> {
+                // Handle based on text
+                if (action.contains("Gateway")) {
+                    Intent startIntent = new Intent(this, HermesGatewayService.class);
+                    startIntent.setAction(HermesGatewayService.ACTION_START);
+                    startService(startIntent);
+                    Toast.makeText(this, R.string.gateway_started, Toast.LENGTH_SHORT).show();
+                } else if (action.contains("AI")) {
+                    showFragment(new LlmConfigFragment());
+                } else if (action.contains("IM")) {
+                    showImSetupPage();
+                } else if (action.contains("Logs")) {
+                    startActivity(new Intent(this, GatewayLogActivity.class));
+                } else if (action.contains("Diagnostics")) {
+                    startActivity(new Intent(this, HermesDiagnosticActivity.class));
+                }
+            });
+            layout.addView(actionItem);
+        }
+
+        scrollView.addView(layout);
+
+        FrameLayout content = findViewById(R.id.hermes_config_content);
+        content.removeAllViews();
+        content.addView(scrollView);
+
+        // Check item in nav
+        mNavigationView.setCheckedItem(R.id.nav_dashboard);
+    }
+
+    private void addDetailLine(LinearLayout parent, String label, String value) {
+        LinearLayout row = new LinearLayout(this);
+        row.setOrientation(LinearLayout.HORIZONTAL);
+        TextView labelView = new TextView(this);
+        labelView.setText(label + " ");
+        labelView.setTextSize(14);
+        labelView.setTypeface(null, android.graphics.Typeface.BOLD);
+        labelView.setTextColor(0xFF333333);
+        row.addView(labelView);
+        TextView valueView = new TextView(this);
+        valueView.setText(value);
+        valueView.setTextSize(14);
+        valueView.setTextColor(0xFF666666);
+        row.addView(valueView);
+        parent.addView(row);
+    }
+
+    private String getImStatusSummary() {
+        java.util.List<String> platforms = new java.util.ArrayList<>();
+        if (mConfigManager.isFeishuConfigured()) platforms.add("Feishu");
+        if (!mConfigManager.getEnvVar("TELEGRAM_BOT_TOKEN").isEmpty()) platforms.add("Telegram");
+        if (!mConfigManager.getEnvVar("DISCORD_BOT_TOKEN").isEmpty()) platforms.add("Discord");
+        if (!mConfigManager.getEnvVar("WHATSAPP_PHONE_NUMBER_ID").isEmpty()) platforms.add("WhatsApp");
+        if (platforms.isEmpty()) return "None configured";
+        return android.text.TextUtils.join(", ", platforms);
+    }
+
+    private void showImSetupPage() {
+        ScrollView scrollView = new ScrollView(this);
+        LinearLayout layout = new LinearLayout(this);
+        layout.setOrientation(LinearLayout.VERTICAL);
+        int pad = dp(20);
+        layout.setPadding(pad, pad, pad, pad);
+
+        TextView title = new TextView(this);
+        title.setText(R.string.hermes_setup_im_title);
+        title.setTextSize(20);
+        title.setTypeface(null, android.graphics.Typeface.BOLD);
+        title.setTextColor(0xFF1A1A2E);
+        title.setPadding(0, 0, 0, dp(16));
+        layout.addView(title);
+
+        LinearLayout.LayoutParams btnParams = new LinearLayout.LayoutParams(
+                LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT);
+        btnParams.bottomMargin = dp(8);
+
+        Button feishuBtn = new Button(this);
+        feishuBtn.setText(R.string.hermes_setup_open_feishu_wizard);
+        feishuBtn.setOnClickListener(v -> startActivity(new Intent(this, FeishuSetupActivity.class)));
+        feishuBtn.setLayoutParams(btnParams);
+        layout.addView(feishuBtn);
+
+        Button telegramBtn = new Button(this);
+        telegramBtn.setText(R.string.hermes_telegram_setup_title);
+        telegramBtn.setOnClickListener(v -> {
+            Intent intent = new Intent(this, ImSetupActivity.class);
+            intent.putExtra(ImSetupActivity.EXTRA_PLATFORM, ImSetupActivity.PLATFORM_TELEGRAM);
+            startActivity(intent);
+        });
+        telegramBtn.setLayoutParams(btnParams);
+        layout.addView(telegramBtn);
+
+        Button discordBtn = new Button(this);
+        discordBtn.setText(R.string.hermes_discord_setup_title);
+        discordBtn.setOnClickListener(v -> {
+            Intent intent = new Intent(this, ImSetupActivity.class);
+            intent.putExtra(ImSetupActivity.EXTRA_PLATFORM, ImSetupActivity.PLATFORM_DISCORD);
+            startActivity(intent);
+        });
+        discordBtn.setLayoutParams(btnParams);
+        layout.addView(discordBtn);
+
+        Button whatsappBtn = new Button(this);
+        whatsappBtn.setText(R.string.hermes_setup_open_whatsapp_wizard);
+        whatsappBtn.setOnClickListener(v -> startActivity(new Intent(this, WhatsAppSetupActivity.class)));
+        whatsappBtn.setLayoutParams(btnParams);
+        layout.addView(whatsappBtn);
+
+        scrollView.addView(layout);
+
+        FrameLayout content = findViewById(R.id.hermes_config_content);
+        content.removeAllViews();
+        content.addView(scrollView);
+
+        mNavigationView.setCheckedItem(R.id.nav_im_setup);
+    }
+
+    private void showFragment(Fragment fragment) {
+        getSupportFragmentManager()
+                .beginTransaction()
+                .replace(R.id.hermes_config_content, fragment)
+                .commit();
+    }
+
+    private void updateDrawerHeader() {
+        TextView statusView = mNavigationView.getHeaderView(0).findViewById(R.id.hermes_drawer_status);
+        if (statusView != null) {
+            HermesGatewayStatus.checkAsync((status, detail) -> {
+                runOnUiThread(() -> {
+                    if (status == HermesGatewayStatus.Status.RUNNING) {
+                        statusView.setText(R.string.dashboard_gateway_running);
+                        statusView.setTextColor(0xFF4CAF50);
+                    } else if (status == HermesGatewayStatus.Status.NOT_INSTALLED) {
+                        statusView.setText(R.string.dashboard_gateway_not_installed);
+                        statusView.setTextColor(0xFFFF9800);
+                    } else {
+                        statusView.setText(R.string.dashboard_gateway_stopped);
+                        statusView.setTextColor(0xFFAAAAAA);
+                    }
+                });
+            });
+        }
+    }
+
+    private void showRestoreBackupConfirmDialog() {
+        new AlertDialog.Builder(this)
+                .setTitle(R.string.hermes_nav_restore_backup)
+                .setMessage("This will restore configuration from the last backup. Current settings will be overwritten. Continue?")
+                .setPositiveButton(android.R.string.ok, (d, w) -> {
+                    boolean restored = mConfigManager.restoreFromBackup();
+                    if (restored) {
+                        Toast.makeText(this, "Configuration restored from backup", Toast.LENGTH_SHORT).show();
+                        showDashboard();
+                        updateDrawerHeader();
+                    } else {
+                        Toast.makeText(this, "No backup found", Toast.LENGTH_SHORT).show();
+                    }
+                })
+                .setNegativeButton(android.R.string.cancel, null)
+                .show();
+    }
+
+    @Override
+    public void onBackPressed() {
+        if (mDrawerLayout.isDrawerOpen(GravityCompat.START)) {
+            mDrawerLayout.closeDrawer(GravityCompat.START);
+        } else {
+            super.onBackPressed();
+        }
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        updateDrawerHeader();
+    }
+
+    private int dp(int value) {
+        return (int) (value * getResources().getDisplayMetrics().density);
     }
 
     @Override
     public boolean onOptionsItemSelected(@NonNull MenuItem item) {
         if (item.getItemId() == android.R.id.home) {
-            finish();
+            mDrawerLayout.openDrawer(GravityCompat.START);
             return true;
         }
         return super.onOptionsItemSelected(item);
