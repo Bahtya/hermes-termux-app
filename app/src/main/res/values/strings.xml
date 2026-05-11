@@ -729,6 +729,11 @@
     <string name="hermes_setup_llm_title">Configure your AI</string>
     <string name="hermes_setup_llm_text">Select your AI provider and enter your API key. This is required for Hermes to work.</string>
     <string name="hermes_setup_api_key_hint">Paste your API key here</string>
+    <string name="wizard_setup_guide_btn">Need help? View Setup Guide</string>
+    <string name="wizard_model_desc_label">About this model:</string>
+    <string name="wizard_provider_recommended">Recommended</string>
+    <string name="wizard_provider_free">Free</string>
+    <string name="wizard_provider_budget">Budget-friendly</string>
     <string name="hermes_setup_feishu_title">Connect Feishu/Lark</string>
     <string name="hermes_setup_feishu_text">You can connect Hermes to Feishu/Lark to chat with your AI assistant directly in messages. This step is optional — you can set it up later from Hermes Settings.</string>
     <string name="hermes_setup_open_feishu_wizard">Setup Feishu/Lark</string>

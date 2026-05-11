@@ -16,6 +16,7 @@ import android.widget.Spinner;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
 
@@ -184,11 +185,35 @@ public class HermesSetupWizardActivity extends AppCompatActivity {
             }
         }
 
-        // Update model list when provider changes
+        // Provider badge (Recommended / Free / Budget-friendly)
+        TextView providerBadge = new TextView(this);
+        providerBadge.setTextSize(12);
+        providerBadge.setTypeface(null, android.graphics.Typeface.BOLD);
+        providerBadge.setPadding(0, dp(4), 0, dp(4));
+        updateProviderBadge(providerBadge, currentProvider);
+        mContentContainer.addView(providerBadge);
+        tagView(providerBadge, "provider_badge");
+
+        // Setup guide button
+        Button setupGuideBtn = new Button(this);
+        setupGuideBtn.setText(R.string.wizard_setup_guide_btn);
+        setupGuideBtn.setTextSize(13);
+        setupGuideBtn.setOnClickListener(v -> showSetupGuideForProvider(
+                providerValues[providerSpinner.getSelectedItemPosition()]));
+        LinearLayout.LayoutParams guideBtnParams = new LinearLayout.LayoutParams(
+                LinearLayout.LayoutParams.WRAP_CONTENT, LinearLayout.LayoutParams.WRAP_CONTENT);
+        guideBtnParams.gravity = android.view.Gravity.CENTER_HORIZONTAL;
+        setupGuideBtn.setLayoutParams(guideBtnParams);
+        mContentContainer.addView(setupGuideBtn);
+
+        // Update model list and badge when provider changes
         providerSpinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
             @Override
             public void onItemSelected(AdapterView<?> parent, View view, int pos, long id) {
-                updateModelSpinner(providerValues[pos]);
+                String provider = providerValues[pos];
+                updateModelSpinner(provider);
+                updateProviderBadge(providerBadge, provider);
+                updateModelDescription(getSelectedModel());
             }
             @Override
             public void onNothingSelected(AdapterView<?> parent) {}
@@ -231,6 +256,26 @@ public class HermesSetupWizardActivity extends AppCompatActivity {
         mContentContainer.addView(modelSpinner);
         tagView(modelSpinner, "model_spinner");
         updateModelSpinner(currentProvider);
+
+        // Model description
+        TextView modelDesc = new TextView(this);
+        modelDesc.setTextSize(13);
+        modelDesc.setTextColor(0xFF666666);
+        modelDesc.setPadding(dp(4), dp(4), dp(4), dp(8));
+        mContentContainer.addView(modelDesc);
+        tagView(modelDesc, "model_desc");
+        updateModelDescription(mConfigManager.getModelName());
+
+        // Update description when model changes
+        modelSpinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+            @Override
+            public void onItemSelected(AdapterView<?> parent, View view, int pos, long id) {
+                Object selected = modelSpinner.getSelectedItem();
+                if (selected != null) updateModelDescription(selected.toString());
+            }
+            @Override
+            public void onNothingSelected(AdapterView<?> parent) {}
+        });
 
         // Test connection button
         addSpacer(dp(16));
@@ -286,6 +331,201 @@ public class HermesSetupWizardActivity extends AppCompatActivity {
             case "nvidia": return R.array.llm_models_nvidia;
             case "ollama": return R.array.llm_models_ollama;
             default: return 0;
+        }
+    }
+
+    private void updateProviderBadge(TextView badge, String provider) {
+        if (badge == null) return;
+        switch (provider) {
+            case "openai":
+            case "anthropic":
+                badge.setText(getString(R.string.wizard_provider_recommended) + " • " + getString(R.string.provider_setup_paid));
+                badge.setTextColor(0xFF1565C0); // blue
+                break;
+            case "ollama":
+                badge.setText(getString(R.string.wizard_provider_free));
+                badge.setTextColor(0xFF388E3C); // green
+                break;
+            case "deepseek":
+                badge.setText(getString(R.string.wizard_provider_budget) + " • " + getString(R.string.provider_setup_paid));
+                badge.setTextColor(0xFFF57C00); // orange
+                break;
+            case "google":
+                badge.setText(getString(R.string.provider_setup_free_tier) + " • " + getString(R.string.provider_setup_paid));
+                badge.setTextColor(0xFF388E3C); // green
+                break;
+            default:
+                badge.setText(getString(R.string.provider_setup_paid));
+                badge.setTextColor(0xFF888888); // gray
+                break;
+        }
+    }
+
+    private void updateModelDescription(String model) {
+        TextView modelDesc = findTaggedView("model_desc");
+        if (modelDesc == null) return;
+        int descResId = getModelDescResId(model);
+        if (descResId != 0) {
+            modelDesc.setText(getString(R.string.wizard_model_desc_label) + " " + getString(descResId));
+            modelDesc.setVisibility(View.VISIBLE);
+        } else {
+            modelDesc.setVisibility(View.GONE);
+        }
+    }
+
+    private int getModelDescResId(String model) {
+        if (model == null) return 0;
+        switch (model) {
+            case "gpt-4o": return R.string.model_desc_gpt_4o;
+            case "gpt-4o-mini": return R.string.model_desc_gpt_4o_mini;
+            case "o1": return R.string.model_desc_o1;
+            case "o1-mini": return R.string.model_desc_o1_mini;
+            case "o3-mini": return R.string.model_desc_o3_mini;
+            case "gpt-4-turbo": return R.string.model_desc_gpt_4_turbo;
+            case "claude-sonnet-4-6": return R.string.model_desc_claude_sonnet;
+            case "claude-opus-4-7": return R.string.model_desc_claude_opus;
+            case "claude-haiku-4-5": return R.string.model_desc_claude_haiku;
+            case "gemini-2.5-pro": return R.string.model_desc_gemini_pro;
+            case "gemini-2.5-flash": return R.string.model_desc_gemini_flash;
+            case "gemini-2.0-flash": return R.string.model_desc_gemini_flash2;
+            case "deepseek-chat": return R.string.model_desc_deepseek_chat;
+            case "deepseek-reasoner": return R.string.model_desc_deepseek_reasoner;
+            case "grok-3": return R.string.model_desc_grok_3;
+            case "grok-3-mini": return R.string.model_desc_grok_3_mini;
+            case "qwen-max": return R.string.model_desc_qwen_max;
+            case "qwen-plus": return R.string.model_desc_qwen_plus;
+            case "qwen-turbo": return R.string.model_desc_qwen_turbo;
+            case "mistral-large-latest": return R.string.model_desc_mistral_large;
+            case "mistral-medium-latest": return R.string.model_desc_mistral_medium;
+            case "codestral-latest": return R.string.model_desc_codestral;
+            case "meta/llama-3.3-70b-instruct": return R.string.model_desc_llama_70b;
+            case "deepseek-ai/deepseek-r1": return R.string.model_desc_deepseek_r1_nvidia;
+            case "google/gemma-2-27b-it": return R.string.model_desc_gemma_27b;
+            case "nvidia/llama-3.1-nemotron-70b-instruct": return R.string.model_desc_nemotron_70b;
+            case "llama3": return R.string.model_desc_llama3_local;
+            case "qwen2.5": return R.string.model_desc_qwen25_local;
+            case "deepseek-r1": return R.string.model_desc_deepseek_r1_local;
+            case "gemma2": return R.string.model_desc_gemma2_local;
+            default: return 0;
+        }
+    }
+
+    private String getSelectedModel() {
+        Spinner modelSpinner = findTaggedView("model_spinner");
+        if (modelSpinner != null) {
+            Object selected = modelSpinner.getSelectedItem();
+            if (selected != null) return selected.toString();
+        }
+        return mConfigManager.getModelName();
+    }
+
+    private void showSetupGuideForProvider(String provider) {
+        float density = getResources().getDisplayMetrics().density;
+        ScrollView scrollView = new ScrollView(this);
+        LinearLayout layout = new LinearLayout(this);
+        layout.setOrientation(LinearLayout.VERTICAL);
+        int pad = (int) (16 * density);
+        layout.setPadding(pad, pad, pad, pad);
+
+        // Intro
+        int introResId = getProviderIntroResId(provider);
+        if (introResId != 0) {
+            TextView intro = new TextView(this);
+            intro.setText(introResId);
+            intro.setTextSize(14);
+            intro.setPadding(0, 0, 0, (int) (12 * density));
+            layout.addView(intro);
+        }
+
+        // Steps
+        int stepsResId = getProviderStepsResId(provider);
+        if (stepsResId != 0) {
+            String[] steps = getString(stepsResId).split("\n");
+            for (String step : steps) {
+                TextView stepView = new TextView(this);
+                stepView.setText(step);
+                stepView.setTextSize(13);
+                stepView.setPadding((int) (8 * density), (int) (4 * density), 0, (int) (4 * density));
+                layout.addView(stepView);
+            }
+        }
+
+        scrollView.addView(layout);
+
+        String providerName = getProviderDisplayName(provider);
+        new AlertDialog.Builder(this)
+                .setTitle(getString(R.string.provider_setup_guide_title, providerName))
+                .setView(scrollView)
+                .setPositiveButton(R.string.provider_setup_open_dashboard, (d, w) -> {
+                    String url = getApiKeyUrlForProvider(provider);
+                    if (url != null) {
+                        try {
+                            startActivity(new Intent(Intent.ACTION_VIEW, android.net.Uri.parse(url)));
+                        } catch (Exception ignored) {}
+                    }
+                })
+                .setNegativeButton(android.R.string.cancel, null)
+                .show();
+    }
+
+    private int getProviderIntroResId(String provider) {
+        switch (provider) {
+            case "openai": return R.string.provider_setup_openai_intro;
+            case "anthropic": return R.string.provider_setup_anthropic_intro;
+            case "google": return R.string.provider_setup_google_intro;
+            case "deepseek": return R.string.provider_setup_deepseek_intro;
+            case "openrouter": return R.string.provider_setup_openrouter_intro;
+            case "xai": return R.string.provider_setup_xai_intro;
+            case "alibaba": return R.string.provider_setup_alibaba_intro;
+            case "mistral": return R.string.provider_setup_mistral_intro;
+            case "nvidia": return R.string.provider_setup_nvidia_intro;
+            default: return R.string.provider_setup_custom_intro;
+        }
+    }
+
+    private int getProviderStepsResId(String provider) {
+        switch (provider) {
+            case "openai": return R.string.provider_setup_openai_steps;
+            case "anthropic": return R.string.provider_setup_anthropic_steps;
+            case "google": return R.string.provider_setup_google_steps;
+            case "deepseek": return R.string.provider_setup_deepseek_steps;
+            case "openrouter": return R.string.provider_setup_openrouter_steps;
+            case "xai": return R.string.provider_setup_xai_steps;
+            case "alibaba": return R.string.provider_setup_alibaba_steps;
+            case "mistral": return R.string.provider_setup_mistral_steps;
+            case "nvidia": return R.string.provider_setup_nvidia_steps;
+            default: return R.string.provider_setup_custom_steps;
+        }
+    }
+
+    private String getProviderDisplayName(String provider) {
+        switch (provider) {
+            case "openai": return "OpenAI";
+            case "anthropic": return "Anthropic";
+            case "google": return "Google AI";
+            case "deepseek": return "DeepSeek";
+            case "openrouter": return "OpenRouter";
+            case "xai": return "xAI";
+            case "alibaba": return "Alibaba Cloud";
+            case "mistral": return "Mistral AI";
+            case "nvidia": return "NVIDIA";
+            case "ollama": return "Ollama";
+            default: return provider;
+        }
+    }
+
+    private String getApiKeyUrlForProvider(String provider) {
+        switch (provider) {
+            case "openai": return "https://platform.openai.com/api-keys";
+            case "anthropic": return "https://console.anthropic.com/settings/keys";
+            case "google": return "https://aistudio.google.com/apikey";
+            case "deepseek": return "https://platform.deepseek.com/api_keys";
+            case "openrouter": return "https://openrouter.ai/keys";
+            case "xai": return "https://console.x.ai/";
+            case "alibaba": return "https://dashscope.console.aliyun.com/apiKey";
+            case "mistral": return "https://console.mistral.ai/api-keys/";
+            case "nvidia": return "https://build.nvidia.com/";
+            default: return null;
         }
     }
 

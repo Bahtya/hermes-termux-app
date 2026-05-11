@@ -329,6 +329,11 @@
     <string name="hermes_setup_llm_title">配置 AI</string>
     <string name="hermes_setup_llm_text">选择您的 AI 提供商并输入 API 密钥。这是 Hermes 正常工作所必需的。</string>
     <string name="hermes_setup_api_key_hint">在此粘贴您的 API 密钥</string>
+    <string name="wizard_setup_guide_btn">需要帮助？查看设置指南</string>
+    <string name="wizard_model_desc_label">关于此模型：</string>
+    <string name="wizard_provider_recommended">推荐</string>
+    <string name="wizard_provider_free">免费</string>
+    <string name="wizard_provider_budget">经济实惠</string>
     <string name="hermes_setup_feishu_title">连接飞书/Lark</string>
     <string name="hermes_setup_feishu_text">您可以将 Hermes 连接到飞书/Lark，直接在消息中与 AI 助手对话。此步骤为可选 — 您可以稍后在 Hermes 设置中配置。</string>
     <string name="hermes_setup_open_feishu_wizard">设置飞书/Lark</string>
