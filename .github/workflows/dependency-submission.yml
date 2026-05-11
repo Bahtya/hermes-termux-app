@@ -21,3 +21,4 @@ jobs:
         java-version: 17
     - name: Generate and submit dependency graph
       uses: gradle/actions/dependency-submission@v6
+      continue-on-error: true
