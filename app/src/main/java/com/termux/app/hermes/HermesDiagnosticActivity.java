@@ -45,19 +45,30 @@ public class HermesDiagnosticActivity extends AppCompatActivity {
 
         LinearLayout root = new LinearLayout(this);
         root.setOrientation(LinearLayout.VERTICAL);
-        root.setPadding(dp(16), dp(16), dp(16), dp(16));
 
-        setSupportActionBar(new androidx.appcompat.widget.Toolbar(this));
+        androidx.appcompat.widget.Toolbar toolbar = new androidx.appcompat.widget.Toolbar(this);
+        toolbar.setTitle(R.string.diagnostic_title);
+        toolbar.setTitleTextColor(0xFFFFFFFF);
+        toolbar.setBackgroundColor(0xFF1A1A2E);
+        int toolbarHeight = (int) (56 * getResources().getDisplayMetrics().density);
+        toolbar.setLayoutParams(new LinearLayout.LayoutParams(
+                LinearLayout.LayoutParams.MATCH_PARENT, toolbarHeight));
+        root.addView(toolbar);
+        setSupportActionBar(toolbar);
+
         ActionBar actionBar = getSupportActionBar();
         if (actionBar != null) {
             actionBar.setDisplayHomeAsUpEnabled(true);
-            actionBar.setTitle(R.string.diagnostic_title);
         }
+
+        LinearLayout content = new LinearLayout(this);
+        content.setOrientation(LinearLayout.VERTICAL);
+        content.setPadding(dp(16), dp(16), dp(16), dp(16));
 
         mProgressBar = new ProgressBar(this);
         mProgressBar.setIndeterminate(true);
         mProgressBar.setVisibility(android.view.View.GONE);
-        root.addView(mProgressBar, new LinearLayout.LayoutParams(
+        content.addView(mProgressBar, new LinearLayout.LayoutParams(
                 LinearLayout.LayoutParams.WRAP_CONTENT, LinearLayout.LayoutParams.WRAP_CONTENT));
 
         mScrollView = new ScrollView(this);
@@ -66,7 +77,7 @@ public class HermesDiagnosticActivity extends AppCompatActivity {
         mScrollView.addView(mResultsLayout);
         LinearLayout.LayoutParams scrollParams = new LinearLayout.LayoutParams(
                 LinearLayout.LayoutParams.MATCH_PARENT, 0, 1f);
-        root.addView(mScrollView, scrollParams);
+        content.addView(mScrollView, scrollParams);
 
         LinearLayout buttonBar = new LinearLayout(this);
         buttonBar.setOrientation(LinearLayout.HORIZONTAL);
@@ -100,12 +111,14 @@ public class HermesDiagnosticActivity extends AppCompatActivity {
             }
             startActivity(intent);
         });
-        root.addView(mFixButton, new LinearLayout.LayoutParams(
+        content.addView(mFixButton, new LinearLayout.LayoutParams(
                 LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT));
 
-        root.addView(buttonBar, new LinearLayout.LayoutParams(
+        content.addView(buttonBar, new LinearLayout.LayoutParams(
                 LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT));
 
+        root.addView(content, new LinearLayout.LayoutParams(
+                LinearLayout.LayoutParams.MATCH_PARENT, 0, 1f));
         setContentView(root);
     }
 
@@ -290,15 +303,20 @@ public class HermesDiagnosticActivity extends AppCompatActivity {
                     addResult("  ~ Model responded but unexpected content (" + elapsed + "ms)", 0);
                 }
             } else {
-                BufferedReader reader = new BufferedReader(new InputStreamReader(conn.getErrorStream()));
-                StringBuilder error = new StringBuilder();
-                String line;
-                while ((line = reader.readLine()) != null) error.append(line);
-                reader.close();
+                java.io.InputStream errStream = conn.getErrorStream();
+                if (errStream == null) errStream = conn.getInputStream();
+                String errMsg = "";
+                if (errStream != null) {
+                    BufferedReader reader = new BufferedReader(new InputStreamReader(errStream));
+                    StringBuilder error = new StringBuilder();
+                    String line;
+                    while ((line = reader.readLine()) != null) error.append(line);
+                    reader.close();
+                    errMsg = error.toString();
+                    if (errMsg.length() > 200) errMsg = errMsg.substring(0, 200) + "...";
+                }
                 addResult("  ✗ Inference failed: HTTP " + code + " (" + elapsed + "ms)", -1);
-                String errMsg = error.toString();
-                if (errMsg.length() > 200) errMsg = errMsg.substring(0, 200) + "...";
-                addResult("  Error: " + errMsg, -1);
+                if (!errMsg.isEmpty()) addResult("  Error: " + errMsg, -1);
             }
             conn.disconnect();
         } catch (Exception e) {
