@@ -406,4 +406,23 @@
     <string name="persona_prompt_translator">你是一位专业翻译。提供准确的语言翻译。解释细微差别、习语和文化背景。在适当的时候提供替代表达。保持原文的语气和风格。</string>
     <string name="persona_prompt_coder">你是一位编程专家助手。编写简洁、高效、文档完善的代码。解释你的方法和推理。建议最佳实践和潜在改进。系统地调试错误并给出清晰的解释。</string>
     <string name="persona_prompt_data_analyst">你是一位数据分析专家。帮助解读数据、创建可视化并得出洞察。清晰地解释统计概念。提供基于数据的可行建议。在需要时使用精确的数学语言。</string>
+
+    <!-- WhatsApp Setup -->
+    <string name="whatsapp_welcome_title">连接 WhatsApp Business</string>
+    <string name="whatsapp_welcome_desc">Hermes 可以连接 WhatsApp Business API，让你的 AI 助手回复 WhatsApp 消息。</string>
+    <string name="whatsapp_get_token_steps">如何设置 WhatsApp Business API：\n\n1. 访问 business.facebook.com 创建商务账号\n2. 进入 WhatsApp 管理器创建电话号码\n3. 从 WhatsApp 设置中获取电话号码 ID\n4. 在应用控制面板中创建永久访问令牌\n5. 在下方输入凭证</string>
+    <string name="whatsapp_phone_id_title">电话号码 ID</string>
+    <string name="whatsapp_phone_id_hint">输入 WhatsApp 电话号码 ID</string>
+    <string name="whatsapp_token_title">访问令牌</string>
+    <string name="whatsapp_token_hint">输入永久访问令牌</string>
+    <string name="whatsapp_account_id_title">商务账号 ID</string>
+    <string name="whatsapp_account_id_hint">输入 WhatsApp 商务账号 ID</string>
+    <string name="whatsapp_verify_token_title">Webhook 验证令牌</string>
+    <string name="whatsapp_verify_token_hint">用于 Webhook 验证的自定义令牌</string>
+    <string name="whatsapp_test_title">测试连接</string>
+    <string name="whatsapp_test_desc">正在测试与 WhatsApp Business API 的连接…</string>
+    <string name="whatsapp_test_success">WhatsApp API 连接成功！</string>
+    <string name="whatsapp_test_fail">连接失败，请检查凭证。</string>
+    <string name="whatsapp_complete_title">WhatsApp Business 已连接</string>
+    <string name="whatsapp_complete_next_steps">后续步骤：\n\n• 在 Meta 开发者门户中配置 Webhook URL\n• 启动 Hermes 网关\n• 向你的 WhatsApp Business 号码发送消息\n• 你可以随时从 Hermes 设置中修改配置</string>
 </resources>
