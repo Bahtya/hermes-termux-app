@@ -11,6 +11,7 @@ import android.view.ViewGroup;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.EditText;
+import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.ScrollView;
 import android.widget.Spinner;
@@ -2216,6 +2217,14 @@ public class HermesConfigActivity extends AppCompatActivity {
                 openProviderUrl(getDocsUrl());
                 return true;
             }
+            if ("llm_export_qr".equals(key)) {
+                showQrExportDialog();
+                return true;
+            }
+            if ("llm_import_qr".equals(key)) {
+                showQrImportDialog();
+                return true;
+            }
             return super.onPreferenceTreeClick(preference);
         }
 
@@ -2646,6 +2655,134 @@ public class HermesConfigActivity extends AppCompatActivity {
                 case "mistral-small-latest": return "$0.10 / $0.30 per 1M tokens";
                 default: return null;
             }
+        }
+
+        private void showQrExportDialog() {
+            String provider = mConfigManager.getModelProvider();
+            String model = mConfigManager.getModelName();
+            String apiKey = mConfigManager.getApiKey(provider);
+            // Mask API key for sharing
+            String maskedKey = apiKey.length() > 8
+                    ? apiKey.substring(0, 4) + "****" + apiKey.substring(apiKey.length() - 4)
+                    : (apiKey.isEmpty() ? "" : "****");
+
+            String qrData = "hermes-llm://config?"
+                    + "provider=" + provider
+                    + "&model=" + model
+                    + "&temp=" + mConfigManager.getModelTemperature()
+                    + "&max_tokens=" + mConfigManager.getModelMaxTokens()
+                    + (maskedKey.isEmpty() ? "" : "&key_hint=" + maskedKey);
+
+            try {
+                com.google.zxing.qrcode.QRCodeWriter writer = new com.google.zxing.qrcode.QRCodeWriter();
+                com.google.zxing.common.BitMatrix matrix = writer.encode(qrData,
+                        com.google.zxing.BarcodeFormat.QR_CODE, 512, 512);
+
+                android.graphics.Bitmap bitmap = android.graphics.Bitmap.createBitmap(512, 512,
+                        android.graphics.Bitmap.Config.RGB_565);
+                for (int x = 0; x < 512; x++) {
+                    for (int y = 0; y < 512; y++) {
+                        bitmap.setPixel(x, y, matrix.get(x, y) ? 0xFF000000 : 0xFFFFFFFF);
+                    }
+                }
+
+                ImageView qrView = new ImageView(requireContext());
+                qrView.setImageBitmap(bitmap);
+                qrView.setPadding(0, dp(16), 0, dp(8));
+
+                LinearLayout container = new LinearLayout(requireContext());
+                container.setOrientation(LinearLayout.VERTICAL);
+                container.setGravity(android.view.Gravity.CENTER_HORIZONTAL);
+
+                TextView info = new TextView(requireContext());
+                info.setText(getString(R.string.llm_qr_export_info, provider, model));
+                info.setTextSize(13);
+                info.setPadding(0, dp(8), 0, 0);
+
+                container.addView(qrView);
+                container.addView(info);
+
+                new android.app.AlertDialog.Builder(requireContext())
+                        .setTitle(R.string.llm_export_qr_title)
+                        .setView(container)
+                        .setPositiveButton(android.R.string.ok, null)
+                        .setNeutralButton(R.string.llm_qr_copy, (d, w) -> {
+                            android.content.ClipboardManager cm = (android.content.ClipboardManager)
+                                    requireContext().getSystemService(android.content.Context.CLIPBOARD_SERVICE);
+                            cm.setPrimaryClip(android.content.ClipData.newPlainText("Hermes Config", qrData));
+                            Toast.makeText(requireContext(), R.string.llm_qr_copied, Toast.LENGTH_SHORT).show();
+                        })
+                        .show();
+            } catch (Exception e) {
+                Toast.makeText(requireContext(), getString(R.string.llm_qr_error, e.getMessage()),
+                        Toast.LENGTH_SHORT).show();
+            }
+        }
+
+        private void showQrImportDialog() {
+            EditText input = new EditText(requireContext());
+            input.setHint(R.string.llm_qr_paste_hint);
+            input.setPadding(dp(16), dp(8), dp(16), dp(8));
+
+            new android.app.AlertDialog.Builder(requireContext())
+                    .setTitle(R.string.llm_import_qr_title)
+                    .setMessage(R.string.llm_qr_import_instructions)
+                    .setView(input)
+                    .setPositiveButton(R.string.llm_qr_import_apply, (d, w) -> {
+                        String data = input.getText().toString().trim();
+                        if (!data.startsWith("hermes-llm://config?")) {
+                            Toast.makeText(requireContext(), R.string.llm_qr_invalid, Toast.LENGTH_SHORT).show();
+                            return;
+                        }
+                        applyQrConfig(data);
+                    })
+                    .setNegativeButton(android.R.string.cancel, null)
+                    .show();
+        }
+
+        private void applyQrConfig(String data) {
+            String params = data.substring("hermes-llm://config?".length());
+            java.util.Map<String, String> map = new java.util.HashMap<>();
+            for (String pair : params.split("&")) {
+                String[] kv = pair.split("=", 2);
+                if (kv.length == 2) map.put(kv[0], kv[1]);
+            }
+
+            if (map.containsKey("provider")) {
+                String provider = map.get("provider");
+                mConfigManager.setModelProvider(provider);
+                ListPreference providerPref = findPreference("llm_provider");
+                if (providerPref != null) providerPref.setValue(provider);
+            }
+            if (map.containsKey("model")) {
+                String model = map.get("model");
+                mConfigManager.setModelName(model);
+                ListPreference modelPref = findPreference("llm_model");
+                if (modelPref != null) modelPref.setValue(model);
+            }
+            if (map.containsKey("temp")) {
+                try {
+                    float temp = Float.parseFloat(map.get("temp"));
+                    mConfigManager.setModelTemperature(temp);
+                    Preference tempPref = findPreference("llm_temperature");
+                    if (tempPref instanceof EditTextPreference) ((EditTextPreference) tempPref).setText(String.valueOf(temp));
+                } catch (NumberFormatException ignored) {}
+            }
+            if (map.containsKey("max_tokens")) {
+                try {
+                    int maxTokens = Integer.parseInt(map.get("max_tokens"));
+                    mConfigManager.setModelMaxTokens(maxTokens);
+                    Preference mtPref = findPreference("llm_max_tokens");
+                    if (mtPref instanceof EditTextPreference) ((EditTextPreference) mtPref).setText(String.valueOf(maxTokens));
+                } catch (NumberFormatException ignored) {}
+            }
+
+            mHasUnsavedChanges = true;
+            Toast.makeText(requireContext(), R.string.llm_qr_imported, Toast.LENGTH_SHORT).show();
+        }
+
+        private int dp(int value) {
+            return (int) (value * getResources().getDisplayMetrics().density);
         }
     }
 
