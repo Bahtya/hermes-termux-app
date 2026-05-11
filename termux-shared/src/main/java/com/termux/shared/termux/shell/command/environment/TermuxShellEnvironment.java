@@ -87,9 +87,9 @@ public class TermuxShellEnvironment extends AndroidShellEnvironment {
             } else {
                 environment.put(ENV_PATH, TermuxConstants.TERMUX_BIN_PREFIX_DIR_PATH);
             }
-            // Always set LD_LIBRARY_PATH for non-com.termux packages since bootstrap binaries
-            // have DT_RUNPATH hardcoded to /data/data/com.termux/files/usr/lib which won't
-            // match the actual install path (e.g. /data/data/com.hermes.termux/files/usr/lib).
+            // Set LD_LIBRARY_PATH since bootstrap binaries may have DT_RUNPATH hardcoded
+            // to /data/data/com.termux/files/usr/lib. The installer patches binaries on
+            // extraction, but this provides an additional safety net.
             environment.put(ENV_LD_LIBRARY_PATH, TermuxConstants.TERMUX_LIB_PREFIX_DIR_PATH);
         }
 
