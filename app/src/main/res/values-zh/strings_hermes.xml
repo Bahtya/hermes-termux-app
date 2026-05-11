@@ -184,6 +184,8 @@
     <string name="dashboard_title">状态概览</string>
     <string name="quick_start_title">快速开始 — 免费 AI</string>
     <string name="quick_start_summary">一键配置 Ollama（无需 API 密钥，本地运行）</string>
+    <string name="welcome_banner_title">欢迎使用 Hermes！</string>
+    <string name="welcome_banner_summary">点击此处运行设置向导，几分钟即可完成配置。</string>
     <string name="quick_start_progress_title">正在设置免费 AI…</string>
     <string name="quick_start_step_check">正在检查 Ollama…</string>
     <string name="quick_start_step_install">正在安装 Ollama…</string>
