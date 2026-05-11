@@ -388,16 +388,6 @@ public class TermuxTerminalSessionActivityClient extends TermuxTerminalSessionCl
         }
     }
 
-    public void addHermesSession(String executablePath, String[] arguments, String workingDirectory, String sessionName) {
-        TermuxService service = mActivity.getTermuxService();
-        if (service == null) return;
-
-        TermuxSession newTermuxSession = service.createTermuxSession(executablePath, arguments, null, workingDirectory, false, sessionName);
-        if (newTermuxSession == null) return;
-
-        TerminalSession newTerminalSession = newTermuxSession.getTerminalSession();
-    }
-
     public void setCurrentStoredSession() {
         TerminalSession currentSession = mActivity.getCurrentSession();
         if (currentSession != null)

@@ -1502,5 +1502,22 @@
     <string name="hermes_dashboard_run_setup">Run Setup Wizard</string>
     <string name="hermes_dashboard_status_section">Status</string>
     <string name="hermes_dashboard_actions_section">Quick Actions</string>
+    <string name="hermes_dashboard_label_ai_provider">AI Provider:</string>
+    <string name="hermes_dashboard_label_im">IM:</string>
+    <string name="hermes_dashboard_label_gateway">Gateway:</string>
+    <string name="hermes_dashboard_not_configured">Not configured</string>
+    <string name="hermes_dashboard_im_none">None configured</string>
+    <string name="hermes_dashboard_gw_running">Running</string>
+    <string name="hermes_dashboard_gw_not_installed">Not installed</string>
+    <string name="hermes_dashboard_gw_stopped">Stopped</string>
+    <string name="hermes_action_prefix">  → %s</string>
+    <string name="hermes_action_start_gateway">Start Gateway</string>
+    <string name="hermes_action_ai_settings">Open AI Settings</string>
+    <string name="hermes_action_im_setup">Configure IM</string>
+    <string name="hermes_action_view_logs">View Logs</string>
+    <string name="hermes_action_diagnostics">Run Diagnostics</string>
+    <string name="hermes_restore_backup_message">This will restore configuration from the last backup. Current settings will be overwritten. Continue?</string>
+    <string name="hermes_restore_success">Configuration restored from backup</string>
+    <string name="hermes_restore_no_backup">No backup found</string>
 
 </resources>

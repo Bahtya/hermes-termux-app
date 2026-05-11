@@ -1358,17 +1358,14 @@ public class HermesConfigManager {
     }
 
     private static void copyFile(String srcPath, String dstPath) {
-        try {
-            File src = new File(srcPath);
-            File dst = new File(dstPath);
-            if (!src.exists()) return;
-            java.io.InputStream in = new java.io.FileInputStream(src);
-            java.io.OutputStream out = new java.io.FileOutputStream(dst);
+        File src = new File(srcPath);
+        File dst = new File(dstPath);
+        if (!src.exists()) return;
+        try (java.io.InputStream in = new java.io.FileInputStream(src);
+             java.io.OutputStream out = new java.io.FileOutputStream(dst)) {
             byte[] buf = new byte[4096];
             int len;
             while ((len = in.read(buf)) > 0) out.write(buf, 0, len);
-            in.close();
-            out.close();
         } catch (IOException e) {
             Logger.logError(LOG_TAG, "Failed to copy " + srcPath + " to " + dstPath + ": " + e.getMessage());
         }

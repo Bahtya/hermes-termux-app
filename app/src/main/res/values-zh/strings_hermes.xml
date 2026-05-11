@@ -761,5 +761,22 @@
     <string name="hermes_dashboard_run_setup">运行设置向导</string>
     <string name="hermes_dashboard_status_section">状态</string>
     <string name="hermes_dashboard_actions_section">快捷操作</string>
+    <string name="hermes_dashboard_label_ai_provider">AI 提供商：</string>
+    <string name="hermes_dashboard_label_im">消息平台：</string>
+    <string name="hermes_dashboard_label_gateway">网关：</string>
+    <string name="hermes_dashboard_not_configured">未配置</string>
+    <string name="hermes_dashboard_im_none">未配置</string>
+    <string name="hermes_dashboard_gw_running">运行中</string>
+    <string name="hermes_dashboard_gw_not_installed">未安装</string>
+    <string name="hermes_dashboard_gw_stopped">已停止</string>
+    <string name="hermes_action_prefix">  → %s</string>
+    <string name="hermes_action_start_gateway">启动网关</string>
+    <string name="hermes_action_ai_settings">打开 AI 设置</string>
+    <string name="hermes_action_im_setup">配置消息平台</string>
+    <string name="hermes_action_view_logs">查看日志</string>
+    <string name="hermes_action_diagnostics">运行诊断</string>
+    <string name="hermes_restore_backup_message">将从最近的备份恢复配置。当前设置将被覆盖。继续？</string>
+    <string name="hermes_restore_success">已从备份恢复配置</string>
+    <string name="hermes_restore_no_backup">未找到备份</string>
 
 </resources>

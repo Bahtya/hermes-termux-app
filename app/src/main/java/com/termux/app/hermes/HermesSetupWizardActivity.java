@@ -70,7 +70,6 @@ public class HermesSetupWizardActivity extends AppCompatActivity {
             @Override void onEnter(HermesSetupWizardActivity ctx) { ctx.showLlmStep(); }
 
             @Override int validate(HermesSetupWizardActivity ctx) {
-                ctx.saveLlmConfig();
                 String provider = ctx.readCurrentProvider();
                 String apiKey = ctx.readCurrentApiKey(provider);
                 if (apiKey.isEmpty() && !"ollama".equals(provider)) {
