@@ -36,6 +36,7 @@ import androidx.preference.SwitchPreferenceCompat;
 
 import com.google.android.material.navigation.NavigationView;
 import com.termux.R;
+import com.termux.app.TermuxActivity;
 import com.termux.shared.termux.TermuxConstants;
 
 import androidx.core.content.ContextCompat;
@@ -224,6 +225,25 @@ public class HermesConfigActivity extends AppCompatActivity {
         addQuickAction(layout, R.string.hermes_action_view_logs, "action_logs", v -> startActivity(new Intent(this, GatewayLogActivity.class)));
         addQuickAction(layout, R.string.hermes_action_diagnostics, "action_diag", v -> startActivity(new Intent(this, HermesDiagnosticActivity.class)));
 
+        // Reset section
+        addSpacer(layout, dp(24));
+        TextView resetTitle = new TextView(this);
+        resetTitle.setText(R.string.hermes_dashboard_reset_section);
+        resetTitle.setTextSize(18);
+        resetTitle.setTypeface(null, android.graphics.Typeface.BOLD);
+        resetTitle.setTextColor(0xFF1A1A2E);
+        resetTitle.setPadding(0, 0, 0, dp(8));
+        layout.addView(resetTitle);
+
+        Button resetBtn = new Button(this);
+        resetBtn.setText(R.string.hermes_dashboard_reset_all);
+        resetBtn.setTextColor(0xFFD32F2F);
+        LinearLayout.LayoutParams resetBtnParams = new LinearLayout.LayoutParams(
+                LinearLayout.LayoutParams.WRAP_CONTENT, LinearLayout.LayoutParams.WRAP_CONTENT);
+        resetBtn.setLayoutParams(resetBtnParams);
+        resetBtn.setOnClickListener(v -> showResetAllConfirmDialog());
+        layout.addView(resetBtn);
+
         scrollView.addView(layout);
 
         FrameLayout content = findViewById(R.id.hermes_config_content);
@@ -377,6 +397,32 @@ public class HermesConfigActivity extends AppCompatActivity {
                 .show();
     }
 
+    private void showResetAllConfirmDialog() {
+        new AlertDialog.Builder(this)
+                .setTitle(R.string.hermes_reset_all_title)
+                .setMessage(R.string.hermes_reset_all_message)
+                .setPositiveButton(R.string.hermes_reset_all_confirm, (d, w) -> {
+                    // Stop gateway if running
+                    if (HermesGatewayService.isRunning()) {
+                        Intent stopIntent = new Intent(this, HermesGatewayService.class);
+                        stopIntent.setAction(HermesGatewayService.ACTION_STOP);
+                        startService(stopIntent);
+                    }
+                    // Reset config files to defaults
+                    mConfigManager.resetToDefaults();
+                    // Clear wizard state so first-run triggers again
+                    HermesSetupWizardActivity.resetStepTracking(this);
+                    // Relaunch to trigger welcome flow
+                    Toast.makeText(this, R.string.hermes_reset_all_done, Toast.LENGTH_SHORT).show();
+                    Intent intent = new Intent(this, TermuxActivity.class);
+                    intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_NEW_TASK);
+                    startActivity(intent);
+                    finish();
+                })
+                .setNegativeButton(android.R.string.cancel, null)
+                .show();
+    }
+
     @Override
     public void onBackPressed() {
         if (mDrawerLayout.isDrawerOpen(GravityCompat.START)) {
@@ -394,6 +440,13 @@ public class HermesConfigActivity extends AppCompatActivity {
 
     private int dp(int value) {
         return (int) (value * getResources().getDisplayMetrics().density);
+    }
+
+    private void addSpacer(LinearLayout parent, int heightPx) {
+        View spacer = new View(this);
+        spacer.setLayoutParams(new LinearLayout.LayoutParams(
+                LinearLayout.LayoutParams.MATCH_PARENT, heightPx));
+        parent.addView(spacer);
     }
 
     @Override

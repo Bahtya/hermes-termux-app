@@ -778,5 +778,11 @@
     <string name="hermes_restore_backup_message">将从最近的备份恢复配置。当前设置将被覆盖。继续？</string>
     <string name="hermes_restore_success">已从备份恢复配置</string>
     <string name="hermes_restore_no_backup">未找到备份</string>
+    <string name="hermes_dashboard_reset_section">重置</string>
+    <string name="hermes_dashboard_reset_all">重置所有配置</string>
+    <string name="hermes_reset_all_title">确认重置？</string>
+    <string name="hermes_reset_all_message">这将删除所有 Hermes 配置（API 密钥、消息平台设置、网关配置），并重新启动设置向导。此操作不可撤销。</string>
+    <string name="hermes_reset_all_confirm">重置</string>
+    <string name="hermes_reset_all_done">配置已重置。正在重新启动设置向导…</string>
 
 </resources>
