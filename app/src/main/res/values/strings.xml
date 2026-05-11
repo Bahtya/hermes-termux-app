@@ -105,6 +105,8 @@
     <string name="notification_action_exit">Exit</string>
     <string name="notification_action_wake_lock">Acquire wakelock</string>
     <string name="notification_action_wake_unlock">Release wakelock</string>
+    <string name="notification_action_restart">Restart</string>
+    <string name="notification_action_stop">Stop</string>
 
 
 
