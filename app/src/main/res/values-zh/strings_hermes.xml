@@ -182,6 +182,20 @@
 
     <!-- Dashboard -->
     <string name="dashboard_title">状态概览</string>
+    <string name="quick_start_title">快速开始 — 免费 AI</string>
+    <string name="quick_start_summary">一键配置 Ollama（无需 API 密钥，本地运行）</string>
+    <string name="quick_start_progress_title">正在设置免费 AI…</string>
+    <string name="quick_start_step_check">正在检查 Ollama…</string>
+    <string name="quick_start_step_install">正在安装 Ollama…</string>
+    <string name="quick_start_step_pull">正在下载 AI 模型…</string>
+    <string name="quick_start_step_config">正在配置…</string>
+    <string name="quick_start_step_done">准备就绪！您现在可以启动网关了。</string>
+    <string name="quick_start_already_setup">Ollama 已配置！启动网关即可开始。</string>
+    <string name="quick_start_failed">设置失败：%1$s</string>
+    <string name="quick_start_model_choice_title">选择要下载的模型</string>
+    <string name="quick_start_model_small">小型（phi3 — 2.3GB，快速）</string>
+    <string name="quick_start_model_medium">中型（llama3 — 4.7GB，均衡）</string>
+    <string name="quick_start_model_large">大型（qwen2.5 — 4.4GB，多语言）</string>
     <string name="dashboard_gateway_title">网关</string>
     <string name="dashboard_gateway_running">运行中</string>
     <string name="dashboard_gateway_stopped">已停止</string>
