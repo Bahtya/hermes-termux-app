@@ -86,6 +86,11 @@
         android:key="llm_category_model"
         android:title="@string/llm_category_model">
 
+        <Preference
+            android:key="llm_model_info"
+            android:title="@string/llm_model_info_title"
+            android:selectable="false" />
+
         <ListPreference
             android:key="llm_model"
             android:title="@string/llm_model_title"
