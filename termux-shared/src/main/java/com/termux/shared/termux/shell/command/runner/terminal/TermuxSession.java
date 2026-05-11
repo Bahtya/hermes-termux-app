@@ -124,7 +124,7 @@ public class TermuxSession {
         String[] commandArgs = shellEnvironmentClient.setupShellCommandArguments(executionCommand.executable, executionCommand.arguments);
 
         executionCommand.executable = commandArgs[0];
-        String processName = (isLoginShell ? "-" : "") + ShellUtils.getExecutableBasename(executionCommand.executable);
+        String processName = ShellUtils.getExecutableBasename(executionCommand.executable);
 
         String[] arguments = new String[commandArgs.length];
         arguments[0] = processName;
