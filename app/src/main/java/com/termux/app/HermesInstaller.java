@@ -65,7 +65,7 @@ public class HermesInstaller {
                 }
 
                 try {
-                    HermesInstallHelper.executeInstall(MAX_RETRIES, new HermesInstallHelper.ProgressCallback() {
+                    HermesInstallHelper.executeInstall(context, MAX_RETRIES, new HermesInstallHelper.ProgressCallback() {
                         @Override
                         public void onStatus(String message) {
                             showProgress(context, message, 30);

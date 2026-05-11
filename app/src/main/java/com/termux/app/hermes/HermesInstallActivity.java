@@ -207,7 +207,7 @@ public class HermesInstallActivity extends AppCompatActivity {
                     mProgressBar.setProgress(30);
                 });
 
-                HermesInstallHelper.executeInstall(MAX_RETRIES, new HermesInstallHelper.ProgressCallback() {
+                HermesInstallHelper.executeInstall(HermesInstallActivity.this, MAX_RETRIES, new HermesInstallHelper.ProgressCallback() {
                     @Override
                     public void onStatus(String message) {
                         mHandler.post(() -> mStatusText.setText(message));
