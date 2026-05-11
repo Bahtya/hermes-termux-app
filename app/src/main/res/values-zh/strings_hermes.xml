@@ -355,6 +355,35 @@
     <string name="ollama_setup_dialog_title">Ollama 设置</string>
     <string name="ollama_setup_open_terminal">打开终端</string>
 
+    <!-- Provider setup guides -->
+    <string name="provider_setup_guide_title">%1$s 设置指南</string>
+    <string name="provider_setup_step_title">设置步骤</string>
+    <string name="provider_setup_open_dashboard">打开控制台</string>
+    <string name="provider_setup_pricing_title">定价</string>
+    <string name="provider_setup_free_tier">提供免费额度</string>
+    <string name="provider_setup_paid">付费 API（按量计费）</string>
+    <string name="provider_setup_local_free">完全免费 — 本地运行</string>
+    <string name="provider_setup_openai_intro">OpenAI 提供 GPT-4o、GPT-4o-mini 等强大模型。您需要从 OpenAI 控制台获取 API 密钥。</string>
+    <string name="provider_setup_openai_steps"><![CDATA[1. 前往 platform.openai.com 注册或登录\n2. 进入设置中的 API Keys 页面\n3. 点击「创建新的密钥」\n4. 复制密钥（以 sk- 开头）\n5. 粘贴到上方的 API 密钥输入框\n6. 选择您偏好的模型（推荐 GPT-4o）]]></string>
+    <string name="provider_setup_anthropic_intro">Anthropic 提供以安全性和实用性著称的 Claude 模型。您需要从 Anthropic 控制台获取 API 密钥。</string>
+    <string name="provider_setup_anthropic_steps"><![CDATA[1. 前往 console.anthropic.com 注册或登录\n2. 进入设置中的 API Keys 页面\n3. 点击「创建密钥」\n4. 复制密钥\n5. 粘贴到上方的 API 密钥输入框\n6. 选择您偏好的模型（推荐 Claude Sonnet）]]></string>
+    <string name="provider_setup_google_intro">Google 提供具有强大多语言和推理能力的 Gemini 模型。从 Google AI Studio 获取 API 密钥。</string>
+    <string name="provider_setup_google_steps"><![CDATA[1. 前往 aistudio.google.com 使用 Google 账号登录\n2. 点击「获取 API 密钥」或进入设置\n3. 创建或选择一个项目\n4. 复制 API 密钥\n5. 粘贴到上方的 API 密钥输入框\n6. 选择您偏好的模型（推荐 Gemini 2.5 Pro）]]></string>
+    <string name="provider_setup_deepseek_intro">DeepSeek 提供高性价比的 AI 模型，在编码和推理方面表现出色。适合预算有限的用户。</string>
+    <string name="provider_setup_deepseek_steps"><![CDATA[1. 前往 platform.deepseek.com 注册\n2. 进入 API Keys 页面\n3. 点击「创建 API 密钥」\n4. 复制密钥\n5. 粘贴到上方的 API 密钥输入框\n6. 选择您偏好的模型（推荐 DeepSeek-V3）]]></string>
+    <string name="provider_setup_openrouter_intro">OpenRouter 通过单一 API 密钥提供 100 多种模型，来自多个提供商。非常适合尝试不同模型。</string>
+    <string name="provider_setup_openrouter_steps"><![CDATA[1. 前往 openrouter.ai 注册\n2. 进入设置中的 Keys 页面\n3. 点击「创建密钥」\n4. 复制密钥\n5. 粘贴到上方的 API 密钥输入框\n6. 选择任意模型 — OpenRouter 会自动路由到对应提供商]]></string>
+    <string name="provider_setup_xai_intro">xAI 提供具有实时知识和有趣个性的 Grok 模型。从 xAI 控制台获取 API 密钥。</string>
+    <string name="provider_setup_xai_steps"><![CDATA[1. 前往 console.x.ai 注册\n2. 进入 API Keys 页面\n3. 创建新的 API 密钥\n4. 复制密钥\n5. 粘贴到上方的 API 密钥输入框\n6. 选择您偏好的模型（推荐 Grok-3）]]></string>
+    <string name="provider_setup_alibaba_intro">阿里云通过 DashScope 提供通义千问（Qwen）模型，中文和多语言支持强大。</string>
+    <string name="provider_setup_alibaba_steps"><![CDATA[1. 前往 dashscope.console.aliyun.com 注册\n2. 开通 DashScope 服务\n3. 进入 API-KEY 管理页面\n4. 创建新的 API 密钥\n5. 复制密钥\n6. 粘贴到上方的 API 密钥输入框\n7. 选择您偏好的模型（推荐 Qwen-Max）]]></string>
+    <string name="provider_setup_mistral_intro">Mistral AI 提供高效的开源和商业模型，以快速推理和有竞争力的定价著称。</string>
+    <string name="provider_setup_mistral_steps"><![CDATA[1. 前往 console.mistral.ai 注册\n2. 进入 API Keys 页面\n3. 点击「创建新密钥」\n4. 复制密钥\n5. 粘贴到上方的 API 密钥输入框\n6. 选择您偏好的模型（推荐 Mistral Large）]]></string>
+    <string name="provider_setup_nvidia_intro">NVIDIA 通过其 API 平台提供热门开源模型，在 NVIDIA 基础设施上优化运行。</string>
+    <string name="provider_setup_nvidia_steps"><![CDATA[1. 前往 build.nvidia.com 注册\n2. 进入个人资料页面获取 API 密钥\n3. 复制密钥\n4. 粘贴到上方的 API 密钥输入框\n5. 从目录中选择您偏好的模型]]></string>
+    <string name="provider_setup_custom_intro">连接任何兼容 OpenAI 的 API 端点。输入您的 Base URL 和 API 密钥。</string>
+    <string name="provider_setup_custom_steps"><![CDATA[1. 搭建您的 OpenAI 兼容 API 服务器\n2. 在端点部分输入 Base URL\n3. 输入您的 API 密钥\n4. 输入模型名称\n5. 测试连接]]></string>
+
     <!-- IM Test Message -->
     <string name="im_test_message_title">发送测试消息</string>
     <string name="im_test_message_summary">通过网关发送测试消息以验证连接</string>
