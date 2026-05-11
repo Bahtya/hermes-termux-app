@@ -168,6 +168,7 @@ public class HermesInstallHelper {
                     ProcessBuilder pb = new ProcessBuilder(bashPath, "-c", "echo ok");
                     pb.redirectErrorStream(true);
                     Process p = pb.start();
+                    // Drain output to avoid blocking
                     try (java.io.InputStream is = p.getInputStream()) {
                         byte[] buf = new byte[64];
                         while (is.read(buf) != -1) {}
@@ -175,6 +176,9 @@ public class HermesInstallHelper {
                     int exit = p.waitFor();
                     if (exit == 0) return;
                 } catch (Exception ignored) {}
+            }
+            if (callback != null) {
+                callback.onStatus(context.getString(R.string.install_waiting_bootstrap, (i + 1), maxWaitAttempts));
             }
             if (callback != null) {
                 callback.onStatus(context.getString(R.string.install_waiting_bootstrap, (i + 1), maxWaitAttempts));
