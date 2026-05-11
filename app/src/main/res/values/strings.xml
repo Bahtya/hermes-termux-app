@@ -897,6 +897,9 @@
     <string name="install_step_download">Downloading</string>
     <string name="install_step_configure">Configuring</string>
     <string name="install_step_done">Done</string>
+    <string name="install_validating">Validating installation…</string>
+    <string name="install_validate_success">Installation validated</string>
+    <string name="install_validate_fail">Validation failed — installation may be incomplete</string>
     <string name="hermes_faq_copy_debug">Copy Debug Info</string>
     <string name="hermes_faq_debug_copied">Debug info copied to clipboard</string>
     <string name="hermes_faq_content"><b>Getting Started</b>\nHermes connects AI assistants to messaging platforms.\n\n<b>API Key Issues</b>\nCheck your API key is correct.\n\n<b>Gateway Troubleshooting</b>\nCheck gateway log for errors.</string>
