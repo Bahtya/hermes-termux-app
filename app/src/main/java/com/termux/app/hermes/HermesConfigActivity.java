@@ -746,8 +746,9 @@ public class HermesConfigActivity extends AppCompatActivity {
                     pullPb.redirectErrorStream(true);
                     Process pullProc = pullPb.start();
                     BufferedReader pullReader = new BufferedReader(new InputStreamReader(pullProc.getInputStream()));
-                    while ((line = pullReader.readLine()) != null) {
-                        log.append(line).append("\n");
+                    String pullLine;
+                    while ((pullLine = pullReader.readLine()) != null) {
+                        log.append(pullLine).append("\n");
                     }
                     int pullExit = pullProc.waitFor();
                     if (pullExit != 0) {
