@@ -24,6 +24,8 @@ import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
 
+import android.content.Intent;
+
 import javax.net.ssl.SSLContext;
 
 public class HermesDiagnosticActivity extends AppCompatActivity {
@@ -33,7 +35,9 @@ public class HermesDiagnosticActivity extends AppCompatActivity {
     private ProgressBar mProgressBar;
     private Button mRunButton;
     private Button mCopyButton;
+    private Button mFixButton;
     private final List<String> mReport = new ArrayList<>();
+    private String mFirstIssue = null;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -81,6 +85,24 @@ public class HermesDiagnosticActivity extends AppCompatActivity {
         buttonBar.addView(mCopyButton, new LinearLayout.LayoutParams(
                 0, LinearLayout.LayoutParams.WRAP_CONTENT, 1f));
 
+        mFixButton = new Button(this);
+        mFixButton.setText(R.string.diagnostic_fix);
+        mFixButton.setVisibility(android.view.View.GONE);
+        mFixButton.setOnClickListener(v -> {
+            Intent intent = new Intent(this, HermesConfigActivity.class);
+            if ("api_key".equals(mFirstIssue)) {
+                intent.putExtra("tab", "llm");
+            } else if ("im".equals(mFirstIssue)) {
+                intent.putExtra("tab", "hermes");
+            } else if ("install".equals(mFirstIssue)) {
+                startActivity(new Intent(this, HermesInstallActivity.class));
+                return;
+            }
+            startActivity(intent);
+        });
+        root.addView(mFixButton, new LinearLayout.LayoutParams(
+                LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT));
+
         root.addView(buttonBar, new LinearLayout.LayoutParams(
                 LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT));
 
@@ -99,9 +121,11 @@ public class HermesDiagnosticActivity extends AppCompatActivity {
     private void runDiagnostic() {
         mRunButton.setEnabled(false);
         mCopyButton.setEnabled(false);
+        mFixButton.setVisibility(android.view.View.GONE);
         mProgressBar.setVisibility(android.view.View.VISIBLE);
         mResultsLayout.removeAllViews();
         mReport.clear();
+        mFirstIssue = null;
 
         new Thread(() -> {
             HermesConfigManager config = HermesConfigManager.getInstance();
@@ -139,6 +163,9 @@ public class HermesDiagnosticActivity extends AppCompatActivity {
                 mProgressBar.setVisibility(android.view.View.GONE);
                 mRunButton.setEnabled(true);
                 mCopyButton.setEnabled(true);
+                if (mFirstIssue != null) {
+                    mFixButton.setVisibility(android.view.View.VISIBLE);
+                }
             });
         }).start();
     }
@@ -342,6 +369,12 @@ public class HermesDiagnosticActivity extends AppCompatActivity {
 
     private void addResult(String text, int status) {
         mReport.add(text);
+        if (status == -1 && mFirstIssue == null) {
+            if (text.contains("API key")) mFirstIssue = "api_key";
+            else if (text.contains("Not configured")) mFirstIssue = "im";
+            else if (text.contains("Inference failed")) mFirstIssue = "api_key";
+            else mFirstIssue = "api_key";
+        }
         runOnUiThread(() -> {
             TextView tv = new TextView(this);
             tv.setText(text);
