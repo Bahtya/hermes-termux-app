@@ -854,6 +854,13 @@
     <string name="llm_get_api_key_summary">Open provider dashboard to get or manage your API key</string>
     <string name="llm_docs_title">Provider Documentation</string>
     <string name="llm_docs_summary">View setup guides and pricing</string>
+    <string name="ollama_setup_guide_title">Ollama Setup Guide</string>
+    <string name="ollama_setup_intro">Ollama runs AI models locally on your device. No API key needed, completely free and private.</string>
+    <string name="ollama_setup_steps_title">Installation Steps</string>
+    <string name="ollama_setup_steps"><![CDATA[1. Open the Termux terminal (Bash tab)\n2. Run: curl -fsSL https://ollama.com/install.sh | sh\n3. Wait for installation to complete\n4. Start Ollama: ollama serve &\n5. Pull a model: ollama pull llama3\n6. Come back here and select your model]]></string>
+    <string name="ollama_setup_models"><![CDATA[\nPopular Models:\n• llama3 — Best general purpose (4.7GB)\n• mistral — Fast and capable (4.1GB)\n• codellama — Code generation\n• phi3 — Small and fast (2.3GB)\n• gemma2 — Google\'s open model]]></string>
+    <string name="ollama_setup_dialog_title">Ollama Setup</string>
+    <string name="ollama_setup_open_terminal">Open Terminal</string>
     <string name="hermes_help_faq_title">Help &amp; FAQ</string>
     <string name="hermes_help_faq_summary">Common questions and troubleshooting</string>
     <string name="help_what_is_hermes_title">What is Hermes?</string>
