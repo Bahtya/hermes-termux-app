@@ -2253,33 +2253,26 @@ public class HermesConfigActivity extends AppCompatActivity {
             layout.setPadding(pad, pad, pad, pad);
 
             TextView title = new TextView(requireContext());
-            title.setText("Ollama Setup Guide");
+            title.setText(R.string.ollama_setup_guide_title);
             title.setTextSize(20);
             title.setTypeface(null, android.graphics.Typeface.BOLD);
             title.setPadding(0, 0, 0, (int) (12 * density));
             layout.addView(title);
 
             TextView intro = new TextView(requireContext());
-            intro.setText("Ollama runs AI models locally on your device. No API key needed, completely free and private.");
+            intro.setText(R.string.ollama_setup_intro);
             intro.setTextSize(14);
             intro.setPadding(0, 0, 0, (int) (12 * density));
             layout.addView(intro);
 
             TextView stepsTitle = new TextView(requireContext());
-            stepsTitle.setText("Installation Steps");
+            stepsTitle.setText(R.string.ollama_setup_steps_title);
             stepsTitle.setTextSize(16);
             stepsTitle.setTypeface(null, android.graphics.Typeface.BOLD);
             stepsTitle.setPadding(0, (int) (8 * density), 0, (int) (8 * density));
             layout.addView(stepsTitle);
 
-            String[] steps = {
-                    "1. Open the Termux terminal (Bash tab)",
-                    "2. Run: curl -fsSL https://ollama.com/install.sh | sh",
-                    "3. Wait for installation to complete",
-                    "4. Start Ollama: ollama serve &",
-                    "5. Pull a model: ollama pull llama3",
-                    "6. Come back here and select your model"
-            };
+            String[] steps = getString(R.string.ollama_setup_steps).split("\n");
             for (String step : steps) {
                 TextView stepView = new TextView(requireContext());
                 stepView.setText(step);
@@ -2289,7 +2282,7 @@ public class HermesConfigActivity extends AppCompatActivity {
             }
 
             TextView popularModels = new TextView(requireContext());
-            popularModels.setText("\nPopular Models:\n• llama3 - Best general purpose (4.7GB)\n• mistral - Fast and capable (4.1GB)\n• codellama - Code generation\n• phi3 - Small and fast (2.3GB)\n• gemma2 - Google's open model");
+            popularModels.setText(R.string.ollama_setup_models);
             popularModels.setTextSize(13);
             popularModels.setPadding(0, (int) (8 * density), 0, (int) (8 * density));
             layout.addView(popularModels);
@@ -2297,9 +2290,9 @@ public class HermesConfigActivity extends AppCompatActivity {
             scrollView.addView(layout);
 
             new AlertDialog.Builder(requireContext())
-                    .setTitle("Ollama Setup")
+                    .setTitle(R.string.ollama_setup_dialog_title)
                     .setView(scrollView)
-                    .setPositiveButton("Open Terminal", (d, w) -> {
+                    .setPositiveButton(R.string.ollama_setup_open_terminal, (d, w) -> {
                         // Switch to bash tab
                         requireActivity().setResult(RESULT_FIRST_USER);
                         requireActivity().finish();
