@@ -85,6 +85,8 @@ public class HermesConfigActivity extends AppCompatActivity {
 
         private HermesConfigManager mConfigManager;
         private android.app.AlertDialog mQuickStartDialog;
+        private final android.os.Handler mDashboardHandler = new android.os.Handler(android.os.Looper.getMainLooper());
+        private Runnable mDashboardRefresh;
 
         @Override
         public void onCreatePreferences(Bundle savedInstanceState, String rootKey) {
@@ -296,6 +298,64 @@ public class HermesConfigActivity extends AppCompatActivity {
                         : getString(R.string.whatsapp_not_configured));
             }
 
+        }
+
+        @Override
+        public void onResume() {
+            super.onResume();
+            refreshDashboard();
+            mDashboardRefresh = () -> {
+                refreshDashboard();
+                mDashboardHandler.postDelayed(mDashboardRefresh, 30_000);
+            };
+            mDashboardHandler.postDelayed(mDashboardRefresh, 30_000);
+        }
+
+        @Override
+        public void onPause() {
+            super.onPause();
+            if (mDashboardRefresh != null) {
+                mDashboardHandler.removeCallbacks(mDashboardRefresh);
+            }
+        }
+
+        private void refreshDashboard() {
+            // Refresh gateway status
+            Preference dashGateway = findPreference("hermes_dashboard_gateway");
+            if (dashGateway != null) {
+                boolean running = HermesGatewayService.isRunning();
+                if (running) {
+                    String uptime = HermesGatewayService.getFormattedUptime();
+                    dashGateway.setSummary(getString(R.string.dashboard_gateway_running) + " — " + uptime);
+                } else {
+                    HermesGatewayStatus.checkAsync((status, detail) -> {
+                        if (getActivity() == null) return;
+                        getActivity().runOnUiThread(() -> {
+                            if (status == HermesGatewayStatus.Status.NOT_INSTALLED) {
+                                dashGateway.setSummary(getString(R.string.dashboard_gateway_not_installed));
+                            } else {
+                                dashGateway.setSummary(getString(R.string.dashboard_gateway_stopped));
+                            }
+                        });
+                    });
+                }
+            }
+
+            // Refresh LLM status
+            Preference dashLlm = findPreference("hermes_dashboard_llm");
+            if (dashLlm != null) {
+                String provider = mConfigManager.getModelProvider();
+                String apiKey = mConfigManager.getApiKey(provider);
+                if (apiKey != null && !apiKey.isEmpty()) {
+                    dashLlm.setSummary(getString(R.string.dashboard_llm_configured,
+                            provider, mConfigManager.getModelName()));
+                } else {
+                    dashLlm.setSummary(getString(R.string.dashboard_llm_not_configured));
+                }
+            }
+
+            // Refresh validation
+            updateValidationDisplay();
         }
 
         @Override
