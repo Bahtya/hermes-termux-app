@@ -76,10 +76,13 @@ public class HermesInstaller {
                         }
                     });
                     markInstalled();
+                    fixBinaryPermissions();
+                    HermesInstallHelper.setState(context, HermesInstallHelper.InstallState.INSTALLED);
                     HermesConfigManager.reinitialize();
                     showSuccess(context, "Hermes Agent installed successfully");
                     Logger.logInfo(LOG_TAG, "Hermes installation complete.");
                 } catch (Exception e) {
+                    HermesInstallHelper.setState(context, HermesInstallHelper.InstallState.FAILED);
                     String errorMsg = e.getMessage() != null ? e.getMessage() : "Unknown error";
                     showError(context, "Installation failed: " + errorMsg);
                     Logger.logErrorExtended(LOG_TAG, "Hermes installation failed:\n" + errorMsg);
@@ -215,6 +218,23 @@ public class HermesInstaller {
             }
         }
         return sb.toString();
+    }
+
+    /** Fix execute permissions on critical Termux binaries after hermes-agent install. */
+    private static void fixBinaryPermissions() {
+        String binDir = TermuxConstants.TERMUX_BIN_PREFIX_DIR_PATH;
+        String[] binaries = {"bash", "sh", "login", "cat", "chmod", "cp", "ls", "mkdir", "rm", "hermes"};
+        for (String name : binaries) {
+            File bin = new File(binDir, name);
+            if (bin.exists()) {
+                try {
+                    Os.chmod(bin.getAbsolutePath(), 0755);
+                } catch (Exception e) {
+                    Logger.logWarn(LOG_TAG, "Could not chmod " + bin.getAbsolutePath() + ": " + e.getMessage());
+                }
+            }
+        }
+        Logger.logInfo(LOG_TAG, "Binary permissions fixed");
     }
 
     public static class RetryReceiver extends BroadcastReceiver {

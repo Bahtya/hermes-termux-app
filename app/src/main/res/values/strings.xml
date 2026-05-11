@@ -1012,7 +1012,21 @@
     <string name="install_direct_attempt">Downloading Hermes Agent… (attempt %1$d/%2$d)</string>
     <string name="install_fallback_mirror">Direct connection failed, trying ghfast mirror…</string>
     <string name="install_mirror_failed">Mirror also failed: %1$s</string>
+    <string name="install_waiting_bootstrap">Waiting for Termux bootstrap… (%1$d/%2$d)</string>
     <string name="install_skip">Skip</string>
+
+    <!-- Install State Card -->
+    <string name="install_state_not_installed">Hermes Agent is not installed</string>
+    <string name="install_state_bootstrapping">Waiting for Termux bootstrap…</string>
+    <string name="install_state_downloading">Downloading install script…</string>
+    <string name="install_state_installing">Installing Hermes Agent (this may take 10–30 min)…</string>
+    <string name="install_state_installed">Hermes Agent installed ✓</string>
+    <string name="install_state_failed">Installation failed</string>
+    <string name="install_action_install">Install</string>
+    <string name="install_action_retry">Retry</string>
+    <string name="install_action_reinstall">Reinstall Hermes Agent</string>
+    <string name="install_reinstall_title">Reinstall Hermes Agent?</string>
+    <string name="install_reinstall_message">This will delete the current installation and download Hermes Agent again. Continue?</string>
     <string name="install_step_check">Checking</string>
     <string name="install_step_download">Downloading</string>
     <string name="install_step_configure">Configuring</string>
