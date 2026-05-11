@@ -138,6 +138,18 @@ jobs:
 
           echo "APK_DIR_PATH=$APK_DIR_PATH" >> $GITHUB_ENV
 
+      - name: Verify APK signing
+        run: |
+          for apk in ${{ env.APK_DIR_PATH }}/*.apk; do
+            echo "Verifying: $(basename $apk)"
+            if unzip -l "$apk" META-INF/\*.\* > /dev/null 2>&1; then
+              echo "  OK: Signed (META-INF found)"
+            else
+              echo "  ERROR: Unsigned APK!"
+              exit 1
+            fi
+          done
+
       - name: Upload APKs to release
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
