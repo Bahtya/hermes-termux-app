@@ -43,6 +43,7 @@ public class HermesInstaller {
             TermuxConstants.TERMUX_DATA_HOME_DIR_PATH + "/hermes-paths-patched";
     private static final String HERMES_BASH_INIT_MARKER_FILE =
             TermuxConstants.TERMUX_DATA_HOME_DIR_PATH + "/hermes-bash-init-deployed";
+    private static final String HERMES_BASH_INIT_VERSION = "2";
 
     private HermesInstaller() {}
 
@@ -75,14 +76,28 @@ public class HermesInstaller {
             }
         }
 
-        // Migration 2: Deploy bash init file to bypass compiled-in bash.bashrc path
-        if (!new File(HERMES_BASH_INIT_MARKER_FILE).exists()) {
+        // Migration 2: Deploy bash init file to bypass compiled-in bash.bashrc path.
+        // Uses versioned marker so that changes to the init file content trigger
+        // re-deployment on upgrade.
+        boolean needsBashInitDeploy = true;
+        File bashInitMarker = new File(HERMES_BASH_INIT_MARKER_FILE);
+        if (bashInitMarker.exists()) {
+            try {
+                String deployedVersion = readFile(bashInitMarker).trim();
+                if (HERMES_BASH_INIT_VERSION.equals(deployedVersion)) {
+                    needsBashInitDeploy = false;
+                }
+            } catch (Exception e) {
+                // Marker file unreadable - re-deploy
+            }
+        }
+        if (needsBashInitDeploy) {
             try {
                 deployBashInit();
                 try (FileOutputStream out = new FileOutputStream(HERMES_BASH_INIT_MARKER_FILE)) {
-                    out.write("1\n".getBytes("UTF-8"));
+                    out.write((HERMES_BASH_INIT_VERSION + "\n").getBytes("UTF-8"));
                 }
-                Logger.logInfo(LOG_TAG, "Bash init migration complete");
+                Logger.logInfo(LOG_TAG, "Bash init migration complete (v" + HERMES_BASH_INIT_VERSION + ")");
             } catch (Exception e) {
                 Logger.logErrorExtended(LOG_TAG, "Failed to deploy bash init: " + e.getMessage());
             }

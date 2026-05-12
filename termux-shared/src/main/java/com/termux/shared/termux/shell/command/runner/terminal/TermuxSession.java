@@ -124,17 +124,17 @@ public class TermuxSession {
         // Setup command args
         String[] commandArgs = shellEnvironmentClient.setupShellCommandArguments(executionCommand.executable, executionCommand.arguments);
 
-        // For interactive bash sessions, use --rcfile to bypass the compiled-in
-        // system bash.bashrc path. Bash is compiled with --prefix=/data/data/com.termux
-        // which embeds paths that cause "Permission denied" on forked packages.
-        // Binary patching can't always fix this because the replacement prefix is longer.
+        // For interactive bash sessions, use --norc to bypass the compiled-in
+        // SYS_BASHRC path (/data/data/com.termux/.../bash.bashrc). Bash reads
+        // SYS_BASHRC unconditionally for interactive shells; --rcfile only replaces
+        // ~/.bashrc, NOT SYS_BASHRC. Only --norc prevents both from being read.
+        // The correct init files are sourced via PROMPT_COMMAND set in the environment.
         if (isLoginShell && commandArgs.length > 0) {
             String basename = ShellUtils.getExecutableBasename(commandArgs[0]);
             if ("bash".equals(basename)) {
-                String[] expanded = new String[commandArgs.length + 2];
+                String[] expanded = new String[commandArgs.length + 1];
                 System.arraycopy(commandArgs, 0, expanded, 0, commandArgs.length);
-                expanded[commandArgs.length] = "--rcfile";
-                expanded[commandArgs.length + 1] = TermuxConstants.TERMUX_HOME_DIR_PATH + "/.hermes_bash_init";
+                expanded[commandArgs.length] = "--norc";
                 commandArgs = expanded;
             }
         }
@@ -156,6 +156,27 @@ public class TermuxSession {
             executionCommand);
         if (additionalEnvironment != null)
             environment.putAll(additionalEnvironment);
+
+        // For bash login shells, set PROMPT_COMMAND to source the correct init files
+        // that --norc prevented bash from reading. PROMPT_COMMAND runs before each
+        // prompt (including the first), so PS1, completions and aliases take effect
+        // before the user sees any prompt.
+        if (isLoginShell) {
+            String basename = ShellUtils.getExecutableBasename(executionCommand.executable);
+            if ("bash".equals(basename)) {
+                // _HERMES_INIT is deliberately NOT exported so that nested bash
+                // shells (which inherit PROMPT_COMMAND from the environment) also
+                // source the init files. The alias ensures nested `bash` invocations
+                // also use --norc to skip the inaccessible compiled-in SYS_BASHRC.
+                environment.put("PROMPT_COMMAND",
+                    "if [ -z \"$_HERMES_INIT\" ]; then _HERMES_INIT=1;"
+                    + " [ -f \"$PREFIX/etc/bash.bashrc\" ] && . \"$PREFIX/etc/bash.bashrc\";"
+                    + " [ -f \"$HOME/.bashrc\" ] && . \"$HOME/.bashrc\";"
+                    + " alias bash='bash --norc';"
+                    + " fi");
+            }
+        }
+
         List<String> environmentList = ShellEnvironmentUtils.convertEnvironmentToEnviron(environment);
         Collections.sort(environmentList);
         String[] environmentArray = environmentList.toArray(new String[0]);
