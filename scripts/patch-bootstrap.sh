@@ -36,9 +36,17 @@ for arch in aarch64 arm i686 x86_64; do
 
   [ -f SYMLINKS.txt ] && sed -i "s|${OLD}|${NEW}|g" SYMLINKS.txt
 
+  # Text config files
   find . -type f \( -path './etc/*' -o -path './share/*' \) \
     -exec sed -i "s|${OLD}|${NEW}|g" {} +
 
+  # dpkg database: info/*.list, info/*.postinst, info/*.prerm, status, etc.
+  # These contain com.termux paths in file lists, maintainer script shebangs,
+  # and update-alternatives calls. dpkg will fail if these aren't patched.
+  find . -type f \( -path './var/*' \) \
+    -exec sed -i "s|${OLD}|${NEW}|g" {} +
+
+  # ELF binaries
   find . -type f \( -path './bin/*' -o -path './lib/*' -o -path './libexec/*' \) | while read -r f; do
     perl -pi -e "s|/data/data/com\\.termux|/data/data/com\\.bahtya|g" "$f"
   done
