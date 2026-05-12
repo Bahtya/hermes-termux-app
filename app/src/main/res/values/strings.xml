@@ -958,6 +958,9 @@
     <string name="im_test_detail_success">Connected! Bot: %1$s</string>
     <string name="im_test_detail_fail">Failed: %1$s - %2$s</string>
     <string name="feishu_scan_qr_code">Scan QR Code</string>
+    <string name="feishu_paste">Paste</string>
+    <string name="feishu_copied">Copied!</string>
+    <string name="feishu_no_qr_scanner">No QR scanner app found. Please install one.</string>
     <string name="install_subtitle">Setting up Hermes Agent</string>
     <string name="install_checking">Checking for Hermes...</string>
     <string name="install_downloading">Downloading Hermes...</string>

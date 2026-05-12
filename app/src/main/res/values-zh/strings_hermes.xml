@@ -529,6 +529,7 @@
     <string name="feishu_event_sub_instructions">1. 打开飞书开发者控制台 → 您的应用 → 事件\n2. 点击「添加事件」\n3. 订阅：im.message.receive_v1\n4. 将请求 URL 设为上方的 Webhook URL\n5. 如果使用 WebSocket 模式，可以跳过 URL 设置\n6. 确保已启用事件权限</string>
     <string name="feishu_event_sub_title">事件订阅</string>
     <string name="feishu_no_qr_scanner">未找到二维码扫描应用，请安装一个。</string>
+    <string name="feishu_paste">粘贴</string>
     <string name="feishu_open_dev_console">打开开发者控制台</string>
     <string name="feishu_open_dev_console_url">https://open.feishu.cn/app</string>
     <string name="feishu_open_event_console">打开事件设置</string>

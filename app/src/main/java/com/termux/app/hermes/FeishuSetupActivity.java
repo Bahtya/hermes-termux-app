@@ -25,13 +25,9 @@ import com.google.zxing.EncodeHintType;
 import com.google.zxing.WriterException;
 import com.google.zxing.common.BitMatrix;
 import com.google.zxing.qrcode.QRCodeWriter;
-import com.lark.oapi.Client;
-import com.lark.oapi.core.enums.AppTypeEnum;
-import com.lark.oapi.core.model.v1.App;
 import com.lark.oapi.scene.registration.RegisterApp;
 import com.lark.oapi.scene.registration.RegisterAppOptions;
 import com.lark.oapi.scene.registration.RegisterAppResult;
-import com.lark.oapi.service.im.v1.model.GetBotInfoResp;
 import com.termux.R;
 
 import java.util.EnumMap;
@@ -529,10 +525,14 @@ public class FeishuSetupActivity extends AppCompatActivity {
 
         mRegistrationFuture = mExecutor.submit(() -> {
             try {
+                String domainUrl = "lark".equals(mDomain)
+                        ? "https://accounts.larksuite.com"
+                        : "https://accounts.feishu.cn";
+
                 RegisterAppResult result = RegisterApp.register(
                         RegisterAppOptions.newBuilder()
                                 .source("hermes-termux")
-                                .domain(mDomain)
+                                .domain(domainUrl)
                                 .onQRCode(info -> {
                                     if (mCancelled.get()) return;
                                     String url = info.getUrl();
@@ -664,27 +664,63 @@ public class FeishuSetupActivity extends AppCompatActivity {
                 if (!isFinishing()) updateScanUi(ScanState.PROBING_BOT);
             });
 
-            String domainUrl = "lark".equals(domain)
+            String baseUrl = "lark".equals(domain)
                     ? "https://open.larksuite.com"
                     : "https://open.feishu.cn";
 
-            Client client = Client.newBuilder()
-                    .app(App.newBuilder()
-                            .appType(AppTypeEnum.Internal)
-                            .appId(appId)
-                            .appSecret(appSecret)
-                            .domain(domainUrl)
-                            .build())
-                    .build();
+            // Get tenant_access_token
+            java.net.URL tokenUrl = new java.net.URL(baseUrl + "/open-apis/auth/v3/tenant_access_token/internal");
+            java.net.HttpURLConnection tokenConn = (java.net.HttpURLConnection) tokenUrl.openConnection();
+            tokenConn.setRequestMethod("POST");
+            tokenConn.setRequestProperty("Content-Type", "application/json");
+            tokenConn.setConnectTimeout(10000);
+            tokenConn.setReadTimeout(10000);
+            tokenConn.setDoOutput(true);
+            String tokenBody = "{\"app_id\":\"" + appId + "\",\"app_secret\":\"" + appSecret + "\"}";
+            tokenConn.getOutputStream().write(tokenBody.getBytes("UTF-8"));
 
-            GetBotInfoResp resp = client.im().bot().v3Info().execute();
-            if (resp != null && resp.success() && resp.getData() != null && resp.getData().getBot() != null) {
-                return resp.getData().getBot().getAppName();
+            String tokenResponse = readHttpResponse(tokenConn);
+            tokenConn.disconnect();
+
+            org.json.JSONObject tokenJson = new org.json.JSONObject(tokenResponse);
+            if (tokenJson.getInt("code") != 0) return null;
+            String accessToken = tokenJson.getString("tenant_access_token");
+
+            // Get bot info
+            java.net.URL botUrl = new java.net.URL(baseUrl + "/open-apis/bot/v3/info/");
+            java.net.HttpURLConnection botConn = (java.net.HttpURLConnection) botUrl.openConnection();
+            botConn.setRequestMethod("GET");
+            botConn.setRequestProperty("Authorization", "Bearer " + accessToken);
+            botConn.setConnectTimeout(10000);
+            botConn.setReadTimeout(10000);
+
+            String botResponse = readHttpResponse(botConn);
+            botConn.disconnect();
+
+            org.json.JSONObject botJson = new org.json.JSONObject(botResponse);
+            if (botJson.getInt("code") == 0) {
+                org.json.JSONObject bot = botJson.getJSONObject("bot");
+                return bot.optString("app_name", null);
             }
         } catch (Exception e) {
-            // Non-fatal, continue
+            // Non-fatal
         }
         return null;
+    }
+
+    private String readHttpResponse(java.net.HttpURLConnection conn) throws java.io.IOException {
+        java.io.InputStream is = conn.getResponseCode() < 400
+                ? conn.getInputStream() : conn.getErrorStream();
+        if (is == null) return "";
+        java.io.BufferedReader reader = new java.io.BufferedReader(
+                new java.io.InputStreamReader(is, "UTF-8"));
+        StringBuilder sb = new StringBuilder();
+        String line;
+        while ((line = reader.readLine()) != null) {
+            sb.append(line);
+        }
+        reader.close();
+        return sb.toString();
     }
 
     // =========================================================================
