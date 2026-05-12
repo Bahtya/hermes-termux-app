@@ -22,6 +22,7 @@ import com.termux.shared.termux.TermuxConstants;
 
 import java.io.BufferedReader;
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.InputStreamReader;
 
@@ -53,11 +54,14 @@ public class HermesInstaller {
             TermuxConstants.TERMUX_DATA_HOME_DIR_PATH + "/hermes-dpkg-conf-deployed";
     private static final String HERMES_SHELL_PROFILE_MARKER_FILE =
             TermuxConstants.TERMUX_DATA_HOME_DIR_PATH + "/hermes-shell-profile-deployed";
+    private static final String HERMES_PATH_REWRITE_MARKER_FILE =
+            TermuxConstants.TERMUX_DATA_HOME_DIR_PATH + "/hermes-path-rewrite-deployed";
     private static final String HERMES_BASH_INIT_VERSION = "2";
     private static final String HERMES_APT_CONF_VERSION = "1";
     private static final String HERMES_APT_HOOK_VERSION = "1";
     private static final String HERMES_DPKG_CONF_VERSION = "1";
     private static final String HERMES_SHELL_PROFILE_VERSION = "1";
+    private static final String HERMES_PATH_REWRITE_VERSION = "1";
 
     private HermesInstaller() {}
 
@@ -118,6 +122,16 @@ public class HermesInstaller {
         runMigration("Shell profile", HERMES_SHELL_PROFILE_VERSION,
                 HERMES_SHELL_PROFILE_MARKER_FILE, HermesInstaller::deployShellProfile,
                 TermuxConstants.TERMUX_HOME_DIR_PATH + "/.bashrc");
+    }
+
+    /**
+     * Run migrations that require a Context (e.g., accessing APK native libs).
+     * Called from TermuxApplication.onCreate() after runUpgradeMigrations().
+     */
+    static void runContextMigrations(Context context) {
+        runMigration("Path rewrite", HERMES_PATH_REWRITE_VERSION,
+                HERMES_PATH_REWRITE_MARKER_FILE, () -> deployPathRewrite(context),
+                TermuxConstants.TERMUX_LIB_PREFIX_DIR_PATH + "/libpath_rewrite.so");
     }
 
     private static void runMigration(String name, String version,
@@ -182,7 +196,7 @@ public class HermesInstaller {
                             return Thread.currentThread().isInterrupted();
                         }
                     });
-                    markInstalled();
+                    markInstalled(context);
                     fixBinaryPermissions();
                     HermesConfigManager.reinitialize();
                     showSuccess(context, "Hermes Agent installed successfully");
@@ -284,7 +298,7 @@ public class HermesInstaller {
         Logger.logInfo(LOG_TAG, "Deployed boot script to " + HERMES_BOOT_SCRIPT);
     }
 
-    private static void markInstalled() throws Exception {
+    private static void markInstalled(Context context) throws Exception {
         try (FileOutputStream out = new FileOutputStream(HERMES_MARKER_FILE)) {
             out.write("1\n".getBytes("UTF-8"));
         }
@@ -293,6 +307,7 @@ public class HermesInstaller {
         deployAptHook();
         deployDpkgConf();
         deployShellProfile();
+        deployPathRewrite(context);
     }
 
     /**
@@ -452,6 +467,39 @@ public class HermesInstaller {
             Os.chmod(bashrc.getAbsolutePath(), 0644);
             Logger.logInfo(LOG_TAG, "Created .bashrc with Hermes shell profile");
         }
+    }
+
+    /**
+     * Deploy the LD_PRELOAD path rewrite library from the APK's native libs
+     * to $PREFIX/lib/libpath_rewrite.so. This library intercepts all
+     * filesystem calls and rewrites /data/data/com.termux/ paths to
+     * /data/data/com.hermes.termux/, fixing ALL binaries with compiled-in
+     * old paths at once.
+     */
+    private static void deployPathRewrite(Context context) throws Exception {
+        String nativeLibDir = context.getApplicationInfo().nativeLibraryDir;
+        File srcFile = new File(nativeLibDir, "libpath_rewrite.so");
+        File dstFile = new File(TermuxConstants.TERMUX_LIB_PREFIX_DIR_PATH, "libpath_rewrite.so");
+
+        if (!srcFile.exists()) {
+            throw new Exception("libpath_rewrite.so not found in " + nativeLibDir);
+        }
+
+        File libDir = new File(TermuxConstants.TERMUX_LIB_PREFIX_DIR_PATH);
+        if (!libDir.exists() && !libDir.mkdirs()) {
+            throw new Exception("Failed to create " + libDir.getAbsolutePath());
+        }
+
+        try (FileInputStream fis = new FileInputStream(srcFile);
+             FileOutputStream fos = new FileOutputStream(dstFile)) {
+            byte[] buf = new byte[8192];
+            int len;
+            while ((len = fis.read(buf)) != -1) {
+                fos.write(buf, 0, len);
+            }
+        }
+        Os.chmod(dstFile.getAbsolutePath(), 0644);
+        Logger.logInfo(LOG_TAG, "Deployed path rewrite lib to " + dstFile.getAbsolutePath());
     }
 
     private static String readFile(File file) throws Exception {

@@ -106,6 +106,14 @@ public class TermuxShellEnvironment extends AndroidShellEnvironment {
             if (new java.io.File(aptConfFile).exists()) {
                 environment.put("APT_CONFIG", aptConfFile);
             }
+
+            // Set LD_PRELOAD to load the path rewrite library. This intercepts all
+            // filesystem calls and rewrites /data/data/com.termux/ to the correct path,
+            // fixing ALL binaries with compiled-in old paths (dpkg, apt, bash, etc.).
+            String pathRewriteLib = TermuxConstants.TERMUX_LIB_PREFIX_DIR_PATH + "/libpath_rewrite.so";
+            if (new java.io.File(pathRewriteLib).exists()) {
+                environment.put("LD_PRELOAD", pathRewriteLib);
+            }
         }
 
         return environment;
