@@ -524,7 +524,6 @@
     <string name="feishu_credentials_help">输入飞书开发者控制台中的应用 ID 和应用密钥。</string>
     <string name="feishu_deep_link_summary">直接打开飞书开发者控制台</string>
     <string name="feishu_deep_link_title">快速设置链接</string>
-    <string name="feishu_domain_label">选择您的平台：</string>
     <string name="feishu_event_sub_desc">配置事件订阅，使飞书能将消息发送到您的 Hermes 网关。您需要在飞书开发者控制台设置 Webhook URL。</string>
     <string name="feishu_event_sub_steps">设置说明：</string>
     <string name="feishu_event_sub_instructions">1. 打开飞书开发者控制台 → 您的应用 → 事件\n2. 点击「添加事件」\n3. 订阅：im.message.receive_v1\n4. 将请求 URL 设为上方的 Webhook URL\n5. 如果使用 WebSocket 模式，可以跳过 URL 设置\n6. 确保已启用事件权限</string>
