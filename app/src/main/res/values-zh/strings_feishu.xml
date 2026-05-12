@@ -3,48 +3,44 @@
     <!-- Activity title -->
     <string name="feishu_setup_title">飞书 / Lark 设置</string>
 
-    <!-- Step 1: Welcome -->
-    <string name="feishu_welcome_title">欢迎使用飞书集成</string>
-    <string name="feishu_welcome_description">将 Hermes 连接到飞书或 Lark 机器人，即可在聊天中接收终端通知、运行命令，以及获取手机上的实时提醒。\n\n本向导将引导您完成以下步骤：\n• 创建飞书/Lark 应用\n• 输入机器人凭证\n• 配置连接\n\n您需要拥有飞书或 Lark 开发者权限的账号。</string>
+    <!-- Step 0: Welcome -->
+    <string name="feishu_welcome_title">连接飞书 / Lark</string>
+    <string name="feishu_scan_welcome_desc">Hermes 可以连接飞书或 Lark，让您直接在聊天中与 AI 助手对话。\n\n只需用手机扫一下二维码即可，无需任何技术知识。机器人会自动创建。</string>
+    <string name="feishu_scan_welcome_steps">您需要：\n\n• 手机上的飞书或 Lark 账号\n• 大约 1 分钟\n\n只需扫描二维码即可完成！</string>
 
-    <!-- Step 2: Choose Domain -->
-    <string name="feishu_domain_title">选择平台</string>
-    <string name="feishu_domain_description">请选择您使用的版本（国内飞书或国际版 Lark）。</string>
+    <!-- Step 1: Choose Domain -->
+    <string name="feishu_step2_title">选择平台</string>
+    <string name="feishu_step2_desc">请选择您使用的版本（国内飞书或国际版 Lark）。</string>
+    <string name="feishu_domain_label">选择平台：</string>
     <string name="feishu_domain_feishu">飞书 — 中国大陆</string>
-    <string name="feishu_domain_feishu_desc">适用于中国大陆用户。使用 open.feishu.cn 接口。</string>
+    <string name="feishu_domain_feishu_hint">适用于中国大陆用户</string>
     <string name="feishu_domain_lark">Lark — 国际版</string>
-    <string name="feishu_domain_lark_desc">适用于中国大陆以外用户。使用 open.larksuite.com 接口。</string>
+    <string name="feishu_domain_lark_hint">适用于中国大陆以外用户</string>
 
-    <!-- Step 3: Create App -->
-    <string name="feishu_create_app_title">创建应用</string>
-    <string name="feishu_create_app_instructions">请按以下步骤创建机器人应用：\n\n1. 打开开发者控制台\n2. 点击\"创建自建应用\"\n3. 填写应用名称和描述\n4. 在\"权限管理\"中启用：\n   • im:message（发送消息）\n   • im:message.receive_v1（接收消息）\n5. 在\"事件订阅\"中添加消息接收事件\n6. 在凭证页面记录您的 App ID 和 App Secret</string>
-    <string name="feishu_open_console">打开开发者控制台</string>
+    <!-- Step 2: Scan QR Code -->
+    <string name="feishu_scan_step_title">扫描二维码</string>
+    <string name="feishu_scan_step_desc">打开手机上的飞书或 Lark，扫描下方二维码即可创建机器人。</string>
+    <string name="feishu_scan_connecting">正在连接飞书…</string>
+    <string name="feishu_scan_hint">打开手机上的飞书 / Lark，扫描下方二维码</string>
+    <string name="feishu_scan_waiting">等待扫码中…</string>
+    <string name="feishu_scan_countdown">剩余 %1$d 分 %2$d 秒</string>
+    <string name="feishu_scan_success">扫码成功！正在创建机器人…</string>
+    <string name="feishu_scan_probing">正在验证机器人…</string>
+    <string name="feishu_scan_complete">机器人创建成功！</string>
+    <string name="feishu_scan_complete_with_name">机器人「%1$s」创建成功！</string>
+    <string name="feishu_scan_not_ready">请等待扫码完成</string>
+    <string name="feishu_scan_timeout">二维码已过期，请重新扫码</string>
+    <string name="feishu_scan_denied">授权被拒绝，请重试</string>
+    <string name="feishu_scan_error_init">连接飞书失败，请检查网络</string>
+    <string name="feishu_scan_error_begin">无法获取二维码，请重试</string>
+    <string name="feishu_scan_error_network">网络错误，请检查网络连接</string>
+    <string name="feishu_scan_error_probe">机器人已创建，但验证未通过（不影响使用）</string>
+    <string name="feishu_rescan">重新扫码</string>
 
-    <!-- Step 4: Enter Credentials -->
-    <string name="feishu_credentials_title">输入应用凭证</string>
-    <string name="feishu_credentials_description">请输入飞书/Lark 应用凭证页面中的 App ID 和 App Secret。</string>
-    <string name="feishu_app_id_hint">App ID (cli_xxxxxxxxxxxx)</string>
-    <string name="feishu_app_secret_hint">App Secret</string>
-    <string name="feishu_app_id_label">App ID</string>
-    <string name="feishu_app_secret_label">App Secret</string>
-    <string name="feishu_credentials_error_empty">请输入 App ID 和 App Secret</string>
-    <string name="feishu_credentials_error_invalid_id">App ID 应以 \"cli_\" 开头</string>
-
-    <!-- Step 5: Configure Bot -->
-    <string name="feishu_configure_title">配置连接</string>
-    <string name="feishu_connection_mode">连接模式</string>
-    <string name="feishu_mode_websocket">WebSocket（推荐）</string>
-    <string name="feishu_mode_websocket_desc">保持持久连接。最适合实时消息。可在 NAT/防火墙后使用。</string>
-    <string name="feishu_mode_webhook">Webhook</string>
-    <string name="feishu_mode_webhook_desc">需要公网可访问的 URL。Hermes 将向您的端点 POST 事件。</string>
-    <string name="feishu_qr_code_title">机器人配对</string>
-    <string name="feishu_qr_code_description">使用飞书/Lark 扫描此二维码配对机器人，或在组织中按名称搜索机器人。</string>
-    <string name="feishu_qr_generating">正在生成二维码…</string>
-
-    <!-- Step 6: Complete -->
-    <string name="feishu_complete_title">设置完成！</string>
-    <string name="feishu_complete_summary">您的飞书/Lark 机器人已配置完成。\n\n配置已保存到 Hermes 设置。\n\n您现在可以：\n• 将终端输出发送到飞书聊天\n• 接收长时间运行命令的通知\n• 从飞书消息执行命令</string>
-    <string name="feishu_complete_save">保存并完成</string>
+    <!-- Step 3: Complete -->
+    <string name="feishu_save_success">设置完成！</string>
+    <string name="feishu_scan_complete_summary">机器人：%1$s\n平台：%2$s\nApp ID：%3$s</string>
+    <string name="feishu_complete_next_steps">下一步：\n\n• 在设置中启动 Hermes 网关以开始接收消息\n• 在飞书中给机器人发消息开始对话\n• 您可以随时在 Hermes 设置中修改这些配置</string>
 
     <!-- Navigation -->
     <string name="feishu_button_next">下一步</string>
