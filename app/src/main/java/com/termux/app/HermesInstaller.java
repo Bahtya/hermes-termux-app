@@ -196,7 +196,7 @@ public class HermesInstaller {
                             return Thread.currentThread().isInterrupted();
                         }
                     });
-                    markInstalled();
+                    markInstalled(context);
                     fixBinaryPermissions();
                     HermesConfigManager.reinitialize();
                     showSuccess(context, "Hermes Agent installed successfully");
@@ -298,7 +298,7 @@ public class HermesInstaller {
         Logger.logInfo(LOG_TAG, "Deployed boot script to " + HERMES_BOOT_SCRIPT);
     }
 
-    private static void markInstalled() throws Exception {
+    private static void markInstalled(Context context) throws Exception {
         try (FileOutputStream out = new FileOutputStream(HERMES_MARKER_FILE)) {
             out.write("1\n".getBytes("UTF-8"));
         }
@@ -307,6 +307,7 @@ public class HermesInstaller {
         deployAptHook();
         deployDpkgConf();
         deployShellProfile();
+        deployPathRewrite(context);
     }
 
     /**
