@@ -153,6 +153,7 @@ public class HermesInstallHelper {
                 }
                 Logger.logInfo(LOG_TAG, "Falling back to mirror: " + mirror);
                 runShellCommand(buildInstallCommand(true, mirror));
+                setLastError(context, null);
                 setState(context, InstallState.INSTALLED);
                 return;
             } catch (Exception e) {
@@ -192,9 +193,6 @@ public class HermesInstallHelper {
                     int exit = p.waitFor();
                     if (exit == 0) return;
                 } catch (Exception ignored) {}
-            }
-            if (callback != null) {
-                callback.onStatus(context.getString(R.string.install_waiting_bootstrap, (i + 1), maxWaitAttempts));
             }
             if (callback != null) {
                 callback.onStatus(context.getString(R.string.install_waiting_bootstrap, (i + 1), maxWaitAttempts));

@@ -270,7 +270,6 @@ public class HermesConfigActivity extends AppCompatActivity {
     private Runnable mInstallPollRunnable;
     private TextView mInstallCardText;
     private android.widget.ProgressBar mInstallCardProgress;
-    private LinearLayout mInstallCard;
 
     private void addInstallStatusCard(LinearLayout parent) {
         HermesInstallHelper.InstallState state = HermesInstallHelper.getState(this);
@@ -279,7 +278,6 @@ public class HermesConfigActivity extends AppCompatActivity {
         card.setOrientation(LinearLayout.VERTICAL);
         int cardPad = dp(16);
         card.setPadding(cardPad, cardPad, cardPad, cardPad);
-        mInstallCard = card;
 
         TextView text = new TextView(this);
         text.setTextSize(15);
