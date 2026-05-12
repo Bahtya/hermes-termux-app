@@ -603,21 +603,7 @@ public class FeishuSetupActivity extends AppCompatActivity {
 
             } catch (Exception e) {
                 if (mCancelled.get()) return;
-                String msg = e.getMessage() != null ? e.getMessage().toLowerCase() : "";
-                ScanState errorState;
-                if (msg.contains("init")) {
-                    errorState = ScanState.ERROR_INIT;
-                } else if (msg.contains("begin") || msg.contains("device_code")) {
-                    errorState = ScanState.ERROR_BEGIN;
-                } else if (msg.contains("expired")) {
-                    errorState = ScanState.ERROR_TIMEOUT;
-                } else if (msg.contains("denied")) {
-                    errorState = ScanState.ERROR_DENIED;
-                } else if (msg.contains("timeout")) {
-                    errorState = ScanState.ERROR_TIMEOUT;
-                } else {
-                    errorState = ScanState.ERROR_NETWORK;
-                }
+                ScanState errorState = classifyError(e);
                 ScanState finalError = errorState;
                 runOnUiThread(() -> {
                     if (isFinishing()) return;
@@ -676,8 +662,10 @@ public class FeishuSetupActivity extends AppCompatActivity {
             tokenConn.setConnectTimeout(10000);
             tokenConn.setReadTimeout(10000);
             tokenConn.setDoOutput(true);
-            String tokenBody = "{\"app_id\":\"" + appId + "\",\"app_secret\":\"" + appSecret + "\"}";
-            tokenConn.getOutputStream().write(tokenBody.getBytes("UTF-8"));
+            org.json.JSONObject tokenBody = new org.json.JSONObject()
+                    .put("app_id", appId)
+                    .put("app_secret", appSecret);
+            tokenConn.getOutputStream().write(tokenBody.toString().getBytes("UTF-8"));
 
             String tokenResponse = readHttpResponse(tokenConn);
             tokenConn.disconnect();
@@ -708,19 +696,47 @@ public class FeishuSetupActivity extends AppCompatActivity {
         return null;
     }
 
+    private ScanState classifyError(Exception e) {
+        if (e instanceof java.net.SocketTimeoutException) {
+            return ScanState.ERROR_TIMEOUT;
+        }
+        if (e instanceof java.net.UnknownHostException || e instanceof java.net.ConnectException) {
+            return ScanState.ERROR_NETWORK;
+        }
+        String msg = e.getMessage() != null ? e.getMessage().toLowerCase() : "";
+        String className = e.getClass().getName().toLowerCase();
+        if (className.contains("timeout") || msg.contains("expired") || msg.contains("timeout")) {
+            return ScanState.ERROR_TIMEOUT;
+        }
+        if (className.contains("connect") || className.contains("unknownhost")
+                || className.contains("socket") || msg.contains("network")) {
+            return ScanState.ERROR_NETWORK;
+        }
+        if (msg.contains("denied") || msg.contains("access_denied")) {
+            return ScanState.ERROR_DENIED;
+        }
+        if (msg.contains("abort") || msg.contains("init")) {
+            return ScanState.ERROR_INIT;
+        }
+        if (msg.contains("begin") || msg.contains("device_code") || msg.contains("invalid")) {
+            return ScanState.ERROR_BEGIN;
+        }
+        return ScanState.ERROR_NETWORK;
+    }
+
     private String readHttpResponse(java.net.HttpURLConnection conn) throws java.io.IOException {
         java.io.InputStream is = conn.getResponseCode() < 400
                 ? conn.getInputStream() : conn.getErrorStream();
         if (is == null) return "";
-        java.io.BufferedReader reader = new java.io.BufferedReader(
-                new java.io.InputStreamReader(is, "UTF-8"));
-        StringBuilder sb = new StringBuilder();
-        String line;
-        while ((line = reader.readLine()) != null) {
-            sb.append(line);
+        try (java.io.BufferedReader reader = new java.io.BufferedReader(
+                new java.io.InputStreamReader(is, "UTF-8"))) {
+            StringBuilder sb = new StringBuilder();
+            String line;
+            while ((line = reader.readLine()) != null) {
+                sb.append(line);
+            }
+            return sb.toString();
         }
-        reader.close();
-        return sb.toString();
     }
 
     // =========================================================================

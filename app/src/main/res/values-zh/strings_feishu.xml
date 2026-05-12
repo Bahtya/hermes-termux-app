@@ -43,21 +43,15 @@
     <string name="feishu_complete_next_steps">下一步：\n\n• 在设置中启动 Hermes 网关以开始接收消息\n• 在飞书中给机器人发消息开始对话\n• 您可以随时在 Hermes 设置中修改这些配置</string>
 
     <!-- Navigation -->
-    <string name="feishu_button_next">下一步</string>
-    <string name="feishu_button_back">上一步</string>
-    <string name="feishu_button_cancel">取消</string>
-    <string name="feishu_button_finish">完成</string>
-
-    <!-- Confirmation -->
-    <string name="feishu_confirm_cancel_title">取消设置？</string>
-    <string name="feishu_confirm_cancel_message">确定要取消吗？不会保存任何设置。</string>
-    <string name="feishu_confirm_cancel_yes">是，取消</string>
-    <string name="feishu_confirm_cancel_no">继续设置</string>
+    <string name="feishu_next">下一步</string>
+    <string name="feishu_back">上一步</string>
+    <string name="feishu_cancel">取消</string>
+    <string name="feishu_finish">完成</string>
 
     <!-- Toasts -->
     <string name="feishu_config_saved">飞书配置保存成功</string>
     <string name="feishu_config_error">保存配置失败</string>
 
     <!-- Content description -->
-    <string name="feishu_step_indicator">第 %1$d 步，共 %2$d 步</string>
+    <string name="feishu_step_progress">第 %1$d 步，共 %2$d 步</string>
 </resources>
