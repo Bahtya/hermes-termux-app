@@ -212,6 +212,11 @@ final class TermuxInstaller {
                         Os.symlink(symlink.first, symlink.second);
                     }
 
+                    // Fix symlink targets: SYMLINKS.txt contains absolute paths with the
+                    // upstream package name (com.termux). Rewrite them to point to the
+                    // correct location under the renamed package (com.hermes.termux).
+                    fixSymlinkTargets(symlinks);
+
                     // Patch bootstrap binaries to replace hardcoded /data/data/com.termux paths
                     // with /data/data/com.hermes.termux since upstream bootstrap is compiled
                     // with --prefix=/data/data/com.termux/files/usr.
@@ -394,6 +399,75 @@ final class TermuxInstaller {
     public static native byte[] getZip();
 
 
+
+    /**
+     * Rewrite symlink targets that point to the old package path.
+     * SYMLINKS.txt in the upstream bootstrap zip contains absolute paths
+     * like /data/data/com.termux/files/usr/bin/toybox. After the package
+     * rename these targets don't exist, so we rewrite them in-place.
+     */
+    private static void fixSymlinkTargets(List<Pair<String, String>> symlinks) {
+        final String oldPrefix = "/data/data/com.termux";
+        final String newPrefix = "/data/data/com.hermes.termux";
+        int fixed = 0;
+        for (Pair<String, String> symlink : symlinks) {
+            String linkPath = symlink.second;
+            try {
+                String target = Os.readlink(linkPath);
+                if (target != null && target.startsWith(oldPrefix)) {
+                    String newTarget = newPrefix + target.substring(oldPrefix.length());
+                    new File(linkPath).delete();
+                    Os.symlink(newTarget, linkPath);
+                    fixed++;
+                }
+            } catch (Exception e) {
+                Logger.logWarn(LOG_TAG, "Could not fix symlink " + linkPath + ": " + e.getMessage());
+            }
+        }
+        if (fixed > 0) {
+            Logger.logInfo(LOG_TAG, "Fixed " + fixed + " symlink targets from com.termux to com.hermes.termux");
+        }
+    }
+
+    /**
+     * Fix symlink targets in an already-installed prefix directory.
+     * Called from upgrade migrations to repair broken symlinks from
+     * earlier versions that didn't rewrite targets during bootstrap.
+     */
+    static void fixPrefixSymlinks(String prefixPath) {
+        final String oldPrefix = "/data/data/com.termux";
+        final String newPrefix = "/data/data/com.hermes.termux";
+        File binDir = new File(prefixPath, "bin");
+        if (!binDir.exists()) return;
+        int fixed = fixSymlinksInDirectory(binDir, oldPrefix, newPrefix);
+        if (fixed > 0) {
+            Logger.logInfo(LOG_TAG, "Upgrade: fixed " + fixed + " broken symlinks in " + binDir.getAbsolutePath());
+        }
+    }
+
+    private static int fixSymlinksInDirectory(File dir, String oldPrefix, String newPrefix) {
+        File[] files = dir.listFiles();
+        if (files == null) return 0;
+        int fixed = 0;
+        for (File file : files) {
+            try {
+                if (file.isFile() && !file.isDirectory()) {
+                    // isFile() returns true for symlinks to existing targets on Android,
+                    // so check with Os.readlink which works regardless.
+                }
+                String target = Os.readlink(file.getAbsolutePath());
+                if (target != null && target.startsWith(oldPrefix)) {
+                    String newTarget = newPrefix + target.substring(oldPrefix.length());
+                    file.delete();
+                    Os.symlink(newTarget, file.getAbsolutePath());
+                    fixed++;
+                }
+            } catch (Exception e) {
+                // Not a symlink or can't read - skip
+            }
+        }
+        return fixed;
+    }
 
     /**
      * Patch bootstrap binaries and config files to replace hardcoded
