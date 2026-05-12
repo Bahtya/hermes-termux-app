@@ -268,6 +268,9 @@ public class HermesConfigActivity extends AppCompatActivity {
 
     private android.os.Handler mInstallPollHandler;
     private Runnable mInstallPollRunnable;
+    private TextView mInstallCardText;
+    private android.widget.ProgressBar mInstallCardProgress;
+    private LinearLayout mInstallCard;
 
     private void addInstallStatusCard(LinearLayout parent) {
         HermesInstallHelper.InstallState state = HermesInstallHelper.getState(this);
@@ -276,12 +279,15 @@ public class HermesConfigActivity extends AppCompatActivity {
         card.setOrientation(LinearLayout.VERTICAL);
         int cardPad = dp(16);
         card.setPadding(cardPad, cardPad, cardPad, cardPad);
+        mInstallCard = card;
 
         TextView text = new TextView(this);
         text.setTextSize(15);
         text.setPadding(0, 0, 0, dp(4));
+        mInstallCardText = text;
 
         int bgColor;
+        boolean isInstalling = false;
         switch (state) {
             case INSTALLED:
                 text.setText(R.string.install_state_installed);
@@ -292,16 +298,19 @@ public class HermesConfigActivity extends AppCompatActivity {
                 text.setText(R.string.install_state_bootstrapping);
                 text.setTextColor(0xFF1565C0);
                 bgColor = 0xFFE3F2FD;
+                isInstalling = true;
                 break;
             case DOWNLOADING:
                 text.setText(R.string.install_state_downloading);
                 text.setTextColor(0xFF1565C0);
                 bgColor = 0xFFE3F2FD;
+                isInstalling = true;
                 break;
             case INSTALLING:
                 text.setText(R.string.install_state_installing);
                 text.setTextColor(0xFF1565C0);
                 bgColor = 0xFFE3F2FD;
+                isInstalling = true;
                 break;
             case FAILED:
                 text.setText(R.string.install_state_failed);
@@ -315,6 +324,29 @@ public class HermesConfigActivity extends AppCompatActivity {
                 break;
         }
         card.addView(text);
+
+        // Indeterminate progress bar during installation
+        mInstallCardProgress = new android.widget.ProgressBar(this, null, android.R.attr.progressBarStyleHorizontal);
+        mInstallCardProgress.setIndeterminate(true);
+        mInstallCardProgress.setVisibility(isInstalling ? View.VISIBLE : View.GONE);
+        LinearLayout.LayoutParams pbParams = new LinearLayout.LayoutParams(
+                LinearLayout.LayoutParams.MATCH_PARENT, dp(4));
+        pbParams.topMargin = dp(4);
+        pbParams.bottomMargin = dp(4);
+        card.addView(mInstallCardProgress, pbParams);
+
+        // Show error details for FAILED state
+        if (state == HermesInstallHelper.InstallState.FAILED) {
+            String lastError = HermesInstallHelper.getLastError(this);
+            if (lastError != null && !lastError.isEmpty()) {
+                TextView errorText = new TextView(this);
+                errorText.setText(lastError.length() > 200 ? lastError.substring(0, 200) + "..." : lastError);
+                errorText.setTextSize(12);
+                errorText.setTextColor(0xFF888888);
+                errorText.setPadding(0, 0, 0, dp(4));
+                card.addView(errorText);
+            }
+        }
         card.setBackgroundColor(bgColor);
 
         // Action button for NOT_INSTALLED or FAILED
@@ -340,9 +372,7 @@ public class HermesConfigActivity extends AppCompatActivity {
         parent.addView(card);
 
         // Poll for state changes while install is in progress
-        if (state == HermesInstallHelper.InstallState.BOOTSTRAPPING
-                || state == HermesInstallHelper.InstallState.DOWNLOADING
-                || state == HermesInstallHelper.InstallState.INSTALLING) {
+        if (isInstalling) {
             startInstallStatePolling();
         }
     }
@@ -361,10 +391,25 @@ public class HermesConfigActivity extends AppCompatActivity {
                     showDashboard();
                     return;
                 }
-                mInstallPollHandler.postDelayed(this, 5000);
+                // Update card text in-place for intermediate states
+                if (mInstallCardText != null) {
+                    mInstallCardText.setText(getStateString(state));
+                }
+                mInstallPollHandler.postDelayed(this, 3000);
             }
         };
-        mInstallPollHandler.postDelayed(mInstallPollRunnable, 5000);
+        mInstallPollHandler.postDelayed(mInstallPollRunnable, 3000);
+    }
+
+    private String getStateString(HermesInstallHelper.InstallState state) {
+        switch (state) {
+            case BOOTSTRAPPING: return getString(R.string.install_state_bootstrapping);
+            case DOWNLOADING: return getString(R.string.install_state_downloading);
+            case INSTALLING: return getString(R.string.install_state_installing);
+            case INSTALLED: return getString(R.string.install_state_installed);
+            case FAILED: return getString(R.string.install_state_failed);
+            default: return getString(R.string.install_state_not_installed);
+        }
     }
 
     private void showReinstallConfirmDialog() {

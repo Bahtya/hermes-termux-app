@@ -20,6 +20,7 @@ public class HermesInstallHelper {
     private static final String LOG_TAG = "HermesInstallHelper";
     private static final String PREFS_NAME = "hermes_install_state";
     private static final String KEY_INSTALL_STATE = "install_state";
+    private static final String KEY_INSTALL_ERROR = "install_error";
 
     private static final String MARKER_FILE =
             TermuxConstants.TERMUX_DATA_HOME_DIR_PATH + "/hermes-installed";
@@ -79,6 +80,17 @@ public class HermesInstallHelper {
     public static void resetInstall(Context context) {
         new File(MARKER_FILE).delete();
         setState(context, InstallState.NOT_INSTALLED);
+        setLastError(context, null);
+    }
+
+    public static void setLastError(Context context, String error) {
+        context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
+                .edit().putString(KEY_INSTALL_ERROR, error != null ? error : "").apply();
+    }
+
+    public static String getLastError(Context context) {
+        return context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
+                .getString(KEY_INSTALL_ERROR, "");
     }
 
     // =========================================================================
@@ -116,6 +128,7 @@ public class HermesInstallHelper {
                     callback.onStatus(context.getString(R.string.install_direct_attempt, attempt, maxDirectRetries));
                 }
                 runShellCommand(buildInstallCommand(false, null));
+                setLastError(context, null);
                 setState(context, InstallState.INSTALLED);
                 return;
             } catch (Exception e) {
@@ -149,8 +162,10 @@ public class HermesInstallHelper {
             }
         }
 
+        String errorMsg = "All download methods failed\n" + errorLog;
+        setLastError(context, errorMsg);
         setState(context, InstallState.FAILED);
-        throw new RuntimeException("All download methods failed\n" + errorLog);
+        throw new RuntimeException(errorMsg);
     }
 
     /**
@@ -187,8 +202,10 @@ public class HermesInstallHelper {
             Logger.logInfo(LOG_TAG, "Bootstrap not ready, waiting... (" + (i + 1) + "/" + maxWaitAttempts + ")");
             Thread.sleep(3000);
         }
+        String bootstrapError = "Termux bootstrap packages are not ready after 60 seconds";
+        setLastError(context, bootstrapError);
         setState(context, InstallState.FAILED);
-        throw new RuntimeException("Termux bootstrap packages are not ready after 60 seconds");
+        throw new RuntimeException(bootstrapError);
     }
 
     /**
