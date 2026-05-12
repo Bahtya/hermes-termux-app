@@ -85,7 +85,7 @@ int open(const char *p, int f, ...) {
     if (f & (O_CREAT | O_TMPFILE)) {
         va_list a;
         va_start(a, f);
-        m = va_arg(a, mode_t);
+        m = (mode_t)va_arg(a, int);
         va_end(a);
     }
     int (*real)(const char *, int, ...) = dlsym(RTLD_NEXT, "open");
@@ -97,7 +97,7 @@ int open64(const char *p, int f, ...) {
     if (f & (O_CREAT | O_TMPFILE)) {
         va_list a;
         va_start(a, f);
-        m = va_arg(a, mode_t);
+        m = (mode_t)va_arg(a, int);
         va_end(a);
     }
     int (*real)(const char *, int, ...) = dlsym(RTLD_NEXT, "open64");
@@ -109,7 +109,7 @@ int openat(int fd, const char *p, int f, ...) {
     if (f & (O_CREAT | O_TMPFILE)) {
         va_list a;
         va_start(a, f);
-        m = va_arg(a, mode_t);
+        m = (mode_t)va_arg(a, int);
         va_end(a);
     }
     int (*real)(int, const char *, int, ...) = dlsym(RTLD_NEXT, "openat");
