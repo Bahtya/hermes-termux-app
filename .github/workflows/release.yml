@@ -78,7 +78,7 @@ jobs:
 
           gh release create "$TAG_NAME" \
             --notes-file release_notes.md \
-            --title "Hermes Termux ${TAG_NAME#v}" \
+            --title "Bahtya Terminal ${TAG_NAME#v}" \
             --draft
 
       - name: Summary
@@ -116,6 +116,53 @@ jobs:
           key: gradle-${{ runner.os }}-${{ hashFiles('**/*.gradle*', '**/gradle-wrapper.properties') }}
           restore-keys: |
             gradle-${{ runner.os }}-
+
+      - name: Patch bootstrap (com.termux → com.bahtya)
+        shell: bash
+        run: |
+          OLD="/data/data/com.termux"
+          NEW="/data/data/com.bahtya"
+          BOOTSTRAP_DIR="app/src/main/cpp"
+
+          # Download upstream bootstrap for all architectures
+          for arch in aarch64 arm i686 x86_64; do
+            ZIP="bootstrap-${arch}.zip"
+            if [ -f "${BOOTSTRAP_DIR}/${ZIP}" ]; then
+              echo "${ZIP} already exists, skipping download"
+              continue
+            fi
+            VERSION="2026.02.12-r1%2Bapt.android-7"
+            URL="https://github.com/termux/termux-packages/releases/download/bootstrap-${VERSION}/${ZIP}"
+            echo "Downloading ${URL}"
+            curl -fSL -o "${BOOTSTRAP_DIR}/${ZIP}" "${URL}"
+          done
+
+          # Patch all bootstrap ZIPs: equal-length replacement
+          for arch in aarch64 arm i686 x86_64; do
+            ZIP="${BOOTSTRAP_DIR}/bootstrap-${arch}.zip"
+            echo "Patching ${ZIP}"
+            mkdir -p /tmp/patch-${arch} && cd /tmp/patch-${arch}
+            unzip -o "${ZIP}"
+
+            # SYMLINKS.txt
+            [ -f SYMLINKS.txt ] && sed -i "s|${OLD}|${NEW}|g" SYMLINKS.txt
+
+            # Text config files
+            find . -type f \( -path './etc/*' -o -path './share/*' \) \
+              -exec sed -i "s|${OLD}|${NEW}|g" {} +
+
+            # ELF binaries — equal length, direct replacement
+            find . -type f \( -path './bin/*' -o -path './lib/*' -o -path './libexec/*' \) | while read f; do
+              perl -pi -e "s|/data/data/com\\.termux|/data/data/com\\.bahtya|g" "$f"
+            done
+
+            # Repack
+            rm -f "${ZIP}"
+            zip -r "${ZIP}" .
+            cd - && rm -rf /tmp/patch-${arch}
+          done
+
+          echo "Pre-patched bootstrap ready"
 
       - name: Build release APK
         shell: bash

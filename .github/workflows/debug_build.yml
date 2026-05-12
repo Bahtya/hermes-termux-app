@@ -27,6 +27,30 @@ jobs:
           distribution: 'temurin'
           java-version: '17'
 
+      - name: Patch bootstrap (com.termux → com.bahtya)
+        shell: bash
+        run: |
+          OLD="/data/data/com.termux"
+          NEW="/data/data/com.bahtya"
+          BOOTSTRAP_DIR="app/src/main/cpp"
+          for arch in aarch64 arm i686 x86_64; do
+            ZIP="${BOOTSTRAP_DIR}/bootstrap-${arch}.zip"
+            if [ -f "${ZIP}" ]; then continue; fi
+            VERSION="2026.02.12-r1%2Bapt.android-7"
+            curl -fSL -o "${ZIP}" "https://github.com/termux/termux-packages/releases/download/bootstrap-${VERSION}/bootstrap-${arch}.zip"
+          done
+          for arch in aarch64 arm i686 x86_64; do
+            ZIP="${BOOTSTRAP_DIR}/bootstrap-${arch}.zip"
+            mkdir -p /tmp/patch-${arch} && cd /tmp/patch-${arch}
+            unzip -o "${ZIP}"
+            [ -f SYMLINKS.txt ] && sed -i "s|${OLD}|${NEW}|g" SYMLINKS.txt
+            find . -type f \( -path './etc/*' -o -path './share/*' \) -exec sed -i "s|${OLD}|${NEW}|g" {} +
+            find . -type f \( -path './bin/*' -o -path './lib/*' -o -path './libexec/*' \) | while read f; do
+              perl -pi -e "s|/data/data/com\\.termux|/data/data/com\\.bahtya|g" "$f"
+            done
+            rm -f "${ZIP}"; zip -r "${ZIP}" .; cd -; rm -rf /tmp/patch-${arch}
+          done
+
       - name: Build APKs
         shell: bash {0}
         env:
