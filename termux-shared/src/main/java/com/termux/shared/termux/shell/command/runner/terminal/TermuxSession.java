@@ -170,9 +170,9 @@ public class TermuxSession {
                 // also use --norc to skip the inaccessible compiled-in SYS_BASHRC.
                 environment.put("PROMPT_COMMAND",
                     "if [ -z \"$_HERMES_INIT\" ]; then _HERMES_INIT=1;"
+                    + " alias bash='bash --norc';"
                     + " [ -f \"$PREFIX/etc/bash.bashrc\" ] && . \"$PREFIX/etc/bash.bashrc\";"
                     + " [ -f \"$HOME/.bashrc\" ] && . \"$HOME/.bashrc\";"
-                    + " alias bash='bash --norc';"
                     + " fi");
             }
         }
