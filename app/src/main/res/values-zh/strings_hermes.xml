@@ -273,57 +273,7 @@
     <string name="discord_complete_title">Discord 设置完成！</string>
     <string name="discord_complete_next_steps">后续步骤：\n\n• 邀请您的机器人到 Discord 服务器\n• 从设置中启动 Hermes 网关\n• 在 Discord 中向您的机器人发送消息\n• 您可以随时从 Hermes 设置中修改这些设置</string>
 
-    <!-- Feishu Setup - strings also in strings_feishu.xml are translated there -->
-
-    <!-- Feishu welcome step strings -->
-    <string name="feishu_welcome_desc">Hermes 可以连接飞书或 Lark，让您直接在消息中与 AI 助手对话。本向导将引导您完成几个简单步骤的设置。</string>
-    <string name="feishu_welcome_steps">您将进行以下操作：\n\n1. 选择平台（飞书或 Lark）\n2. 在开发者控制台创建机器人\n3. 输入应用凭证\n4. 测试连接\n\n⏱ 大约需要 3-5 分钟</string>
-
-    <!-- Feishu step 2: Domain -->
-    <string name="feishu_step2_title">选择平台</string>
-    <string name="feishu_step2_desc">选择您使用的平台。飞书适用于中国用户，Lark 适用于国际用户。</string>
-    <string name="feishu_domain_feishu_hint">适用于中国大陆用户</string>
-    <string name="feishu_domain_lark_hint">适用于国际用户</string>
-
-    <!-- Feishu step 3: Create App -->
-    <string name="feishu_step3_title">创建机器人</string>
-    <string name="feishu_step3_desc">按照以下步骤在飞书开发者控制台创建机器人应用。</string>
-    <string name="feishu_create_app_tip">💡 提示：创建应用后，进入\"机器人\"部分并启用机器人能力。然后在凭证页面找到您的 App ID 和 App Secret。</string>
-
-    <!-- Feishu step 4: Credentials -->
-    <string name="feishu_step4_title">输入凭证</string>
-    <string name="feishu_step4_desc">用飞书扫描下方二维码打开凭证页面，或手动输入。</string>
-    <string name="feishu_qr_scan_hint">用飞书扫描此二维码打开开发者控制台：</string>
-    <string name="feishu_manual_entry_label">或手动输入凭证：</string>
-    <string name="feishu_paste">粘贴</string>
-    <string name="feishu_toggle_visibility">显示</string>
-    <string name="feishu_paste_detected">检测到 App ID！点击填入：%1$s</string>
-    <string name="feishu_app_id_format_hint">App ID 通常以 \"cli_\" 开头</string>
-    <string name="feishu_credentials_short">凭证看起来太短 — 请仔细检查</string>
-    <string name="feishu_credentials_ok">凭证看起来有效</string>
-    <string name="feishu_credentials_required">App ID 和 App Secret 为必填项</string>
-
-    <!-- Feishu step 5: Test -->
-    <string name="feishu_step5_title">测试连接</string>
-    <string name="feishu_step5_desc">在保存之前验证您的配置。这将测试凭证是否正确。</string>
-    <string name="feishu_test_config_summary">平台：%1$s\nApp ID：%2$s\n连接：%3$s</string>
-    <string name="feishu_test_ready">点击\"测试连接\"验证您的凭证</string>
-    <string name="feishu_run_test">测试连接</string>
-    <string name="feishu_test_running">正在测试连接…</string>
-    <string name="feishu_test_success">连接测试通过！机器人已就绪。</string>
-    <string name="feishu_test_warning">无法验证连接，但凭证看起来有效。您可以继续稍后再测试。</string>
-    <string name="feishu_skip_test">跳过测试</string>
-
-    <!-- Feishu step 6: Complete -->
-    <string name="feishu_save_success">设置完成！</string>
-    <string name="feishu_complete_next_steps">后续步骤：\n\n• 从设置中启动 Hermes 网关以开始接收消息\n• 在飞书中向您的机器人发送消息开始对话\n• 您可以随时从 Hermes 设置中修改这些设置</string>
-
-    <!-- Feishu navigation -->
-    <string name="feishu_next">下一步</string>
-    <string name="feishu_back">上一步</string>
-    <string name="feishu_finish">完成</string>
-    <string name="feishu_cancel">取消</string>
-    <string name="feishu_step_progress">第 %1$d 步，共 %2$d 步</string>
+    <!-- Feishu Setup - strings are translated in values-zh/strings_feishu.xml -->
 
     <!-- Hermes Web -->
     <string name="hermes_web_title">Hermes Web</string>
@@ -559,40 +509,10 @@
     <string name="validation_summary_format">%2$d 项检查中有 %1$d 项通过</string>
 
     <!-- Feishu Setup (supplementary - main translations in strings_feishu.xml) -->
-    <string name="feishu_app_id_prefix">应用 ID 以 \"cli_\" 开头</string>
-    <string name="feishu_auto_detect_desc">已从二维码检测到凭据，请确认是否正确。</string>
-    <string name="feishu_auto_detect_title">自动检测到的凭据</string>
     <string name="feishu_copied">已复制！</string>
-    <string-array name="feishu_create_app_steps">
-        <item>点击下方按钮打开开发者控制台</item>
-        <item>点击「创建应用」并选择「机器人」作为应用类型</item>
-        <item>为您的机器人输入名称（例如「我的 Hermes 机器人」）</item>
-        <item>进入「机器人」部分，启用机器人功能</item>
-        <item>从凭据页面复制应用 ID 和应用密钥</item>
-    </string-array>
-    <string name="feishu_copy_webhook">复制 Webhook URL</string>
-    <string name="feishu_credentials_help">输入飞书开发者控制台中的应用 ID 和应用密钥。</string>
-    <string name="feishu_deep_link_summary">直接打开飞书开发者控制台</string>
-    <string name="feishu_deep_link_title">快速设置链接</string>
-    <string name="feishu_domain_label">选择您的平台：</string>
-    <string name="feishu_event_sub_desc">配置事件订阅，使飞书能将消息发送到您的 Hermes 网关。您需要在飞书开发者控制台设置 Webhook URL。</string>
-    <string name="feishu_event_sub_steps">设置说明：</string>
-    <string name="feishu_event_sub_instructions">1. 打开飞书开发者控制台 → 您的应用 → 事件\n2. 点击「添加事件」\n3. 订阅：im.message.receive_v1\n4. 将请求 URL 设为上方的 Webhook URL\n5. 如果使用 WebSocket 模式，可以跳过 URL 设置\n6. 确保已启用事件权限</string>
-    <string name="feishu_event_sub_title">事件订阅</string>
     <string name="feishu_no_qr_scanner">未找到二维码扫描应用，请安装一个。</string>
-    <string name="feishu_open_dev_console">打开开发者控制台</string>
-    <string name="feishu_open_dev_console_url">https://open.feishu.cn/app</string>
-    <string name="feishu_open_event_console">打开事件设置</string>
-    <string name="feishu_qr_tip_desc">将手机摄像头对准飞书开发者控制台上的二维码，可快速复制应用 ID 和密钥。</string>
-    <string name="feishu_qr_tip_title">提示：用手机摄像头扫描</string>
-    <string name="feishu_scan_app_id_filled">已填入应用 ID：%1$s</string>
-    <string name="feishu_scan_filled">已从二维码填入凭据</string>
-    <string name="feishu_scan_prompt">扫描二维码以填入凭据</string>
+    <string name="feishu_paste">粘贴</string>
     <string name="feishu_scan_qr_code">扫描二维码</string>
-    <string name="feishu_webhook_url_label">Webhook URL（复制此链接）：</string>
-    <string name="feishu_websocket_note">注意：如果您选择了 WebSocket 连接方式，则无需配置 Webhook URL。网关将通过 WebSocket 自动连接到飞书。</string>
-    <string name="feishu_welcome_new_desc">此向导将引导您完成飞书机器人与 Hermes 的连接。您需要准备：</string>
-    <string name="feishu_welcome_new_title">欢迎使用飞书设置</string>
 
     <!-- Gateway Log -->
     <string name="gateway_log_copied">日志已复制到剪贴板</string>

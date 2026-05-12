@@ -642,35 +642,19 @@
     <string name="discord_complete_next_steps">Next steps:\n\n• Invite your bot to your Discord server\n• Start the Hermes Gateway from Settings\n• Send a message to your bot on Discord\n• You can change settings anytime from Hermes Settings</string>
 
     <!-- Feishu Setup -->
-        <!-- Feishu event subscription -->
-    <string name="feishu_event_sub_title">Event Subscription</string>
-    <string name="feishu_event_sub_desc">Configure event subscription so Feishu can send messages to your Hermes gateway. You need to set up a webhook URL in the Feishu developer console.</string>
-    <string name="feishu_webhook_url_label">Webhook URL (copy this):</string>
-    <string name="feishu_copy_webhook">Copy Webhook URL</string>
-    <string name="feishu_copied">Copied!</string>
-    <string name="feishu_event_sub_steps">Setup Instructions:</string>
-    <string name="feishu_event_sub_instructions">1. Open Feishu Developer Console → Your App → Events
-2. Click "Add Event"
-3. Subscribe to: im.message.receive_v1
-4. Set the request URL to the webhook URL above
-5. If using WebSocket mode, you can skip the URL setup
-6. Make sure event permissions are enabled</string>
-    <string name="feishu_open_event_console">Open Event Settings</string>
-    <string name="feishu_websocket_note">Note: If you selected WebSocket connection mode, you do not need to configure a webhook URL. The gateway will connect to Feishu via WebSocket automatically.</string>
     <string name="feishu_setup_title">Feishu / Lark Setup</string>
     <string name="feishu_step_progress">Step %1$d/%2$d</string>
     <string name="feishu_next">Next</string>
     <string name="feishu_back">Back</string>
     <string name="feishu_finish">Finish</string>
     <string name="feishu_cancel">Cancel</string>
-    <string name="feishu_skip_test">Skip Test</string>
 
-    <!-- Step 1: Welcome -->
+    <!-- Step 0: Welcome -->
     <string name="feishu_welcome_title">Connect to Feishu / Lark</string>
-    <string name="feishu_welcome_desc">Hermes can connect to Feishu (飞书) or Lark so you can chat with your AI assistant directly in messages. This wizard will guide you through the setup in a few simple steps.</string>
-    <string name="feishu_welcome_steps">What you\'ll do:\n\n1. Choose your platform (Feishu or Lark)\n2. Create a bot in the Developer Console\n3. Enter your App credentials\n4. Test the connection\n\n⏱ Takes about 3–5 minutes</string>
+    <string name="feishu_scan_welcome_desc">Hermes can connect to Feishu or Lark so you can chat with your AI assistant directly in messages.\n\nSimply scan a QR code with your phone — no technical knowledge needed. A bot will be created automatically.</string>
+    <string name="feishu_scan_welcome_steps">What you\'ll need:\n\n• A Feishu or Lark account on your phone\n• About 1 minute\n\nYou\'ll just scan a QR code and you\'re done!</string>
 
-    <!-- Step 2: Domain -->
+    <!-- Step 1: Domain -->
     <string name="feishu_step2_title">Choose Platform</string>
     <string name="feishu_step2_desc">Select which platform you use. Feishu is for China, Lark is for international users.</string>
     <string name="feishu_domain_label">Select your platform:</string>
@@ -679,51 +663,29 @@
     <string name="feishu_domain_lark">Lark (International)</string>
     <string name="feishu_domain_lark_hint">For international users</string>
 
-    <!-- Step 3: Create App -->
-    <string name="feishu_step3_title">Create Your Bot</string>
-    <string name="feishu_step3_desc">Follow these steps in the Feishu Developer Console to create your bot app.</string>
-    <string name="feishu_create_app_tip">💡 Tip: After creating the app, go to \"Bot\" section and enable the bot capability. Then find your App ID and App Secret on the app\'s credentials page.</string>
-    <string name="feishu_open_console">Open Developer Console</string>
+    <!-- Step 2: Scan QR -->
+    <string name="feishu_scan_step_title">Scan QR Code</string>
+    <string name="feishu_scan_step_desc">Open Feishu or Lark on your phone and scan the QR code below to create your bot.</string>
+    <string name="feishu_scan_connecting">Connecting to Feishu…</string>
+    <string name="feishu_scan_hint">Open Feishu / Lark on your phone and scan the QR code below</string>
+    <string name="feishu_scan_waiting">Waiting for scan…</string>
+    <string name="feishu_scan_countdown">%1$dm %2$ds remaining</string>
+    <string name="feishu_scan_success">Scan successful! Creating bot…</string>
+    <string name="feishu_scan_probing">Verifying bot…</string>
+    <string name="feishu_scan_complete">Bot created successfully!</string>
+    <string name="feishu_scan_complete_with_name">Bot \"%1$s\" created successfully!</string>
+    <string name="feishu_scan_not_ready">Please wait for the scan to complete</string>
+    <string name="feishu_scan_timeout">QR code expired. Please scan again.</string>
+    <string name="feishu_scan_denied">Authorization denied. Please try again.</string>
+    <string name="feishu_scan_error_init">Failed to connect to Feishu. Please check your network.</string>
+    <string name="feishu_scan_error_begin">Failed to get QR code. Please try again.</string>
+    <string name="feishu_scan_error_network">Network error. Please check your connection.</string>
+    <string name="feishu_scan_error_probe">Bot created, but verification failed (safe to continue).</string>
+    <string name="feishu_rescan">Scan Again</string>
 
-    <string-array name="feishu_create_app_steps">
-        <item>Open the Developer Console by tapping the button below</item>
-        <item>Tap \"Create App\" and choose \"Bot\" as the app type</item>
-        <item>Enter a name for your bot (e.g. \"My Hermes Bot\")</item>
-        <item>Go to \"Bot\" section and enable bot capability</item>
-        <item>Copy the App ID and App Secret from the credentials page</item>
-    </string-array>
-
-    <!-- Step 4: Credentials -->
-    <string name="feishu_step4_title">Enter Credentials</string>
-    <string name="feishu_step4_desc">Scan the QR code below with Feishu to open the credentials page, or enter them manually.</string>
-    <string name="feishu_qr_scan_hint">Scan this QR code with Feishu to open the Developer Console:</string>
-    <string name="feishu_manual_entry_label">Or enter credentials manually:</string>
-    <string name="feishu_paste">Paste</string>
-    <string name="feishu_toggle_visibility">Show</string>
-    <string name="feishu_paste_detected">App ID detected! Tap to fill: %1$s</string>
-    <string name="feishu_app_id_label">App ID</string>
-    <string name="feishu_app_secret_label">App Secret</string>
-    <string name="feishu_app_id_format_hint">App ID usually starts with \"cli_\"</string>
-    <string name="feishu_credentials_short">Credentials look too short — please double-check</string>
-    <string name="feishu_credentials_ok">Credentials look valid</string>
-    <string name="feishu_credentials_required">App ID and App Secret are required</string>
-    <string name="feishu_connection_mode">Connection Mode</string>
-    <string name="feishu_mode_websocket">WebSocket (Recommended)</string>
-    <string name="feishu_mode_webhook">Webhook</string>
-
-    <!-- Step 5: Test -->
-    <string name="feishu_step5_title">Test Connection</string>
-    <string name="feishu_step5_desc">Let\'s verify your configuration before saving. This tests that your credentials are correct.</string>
-    <string name="feishu_test_config_summary">Platform: %1$s\nApp ID: %2$s\nConnection: %3$s</string>
-    <string name="feishu_test_ready">Tap \"Test Connection\" to verify your credentials</string>
-    <string name="feishu_run_test">Test Connection</string>
-    <string name="feishu_test_running">Testing connection…</string>
-    <string name="feishu_test_success">Connection test passed! Your bot is ready.</string>
-    <string name="feishu_test_warning">Could not verify connection, but credentials look valid. You can continue and test later.</string>
-
-    <!-- Step 6: Complete -->
+    <!-- Step 3: Complete -->
     <string name="feishu_save_success">Setup Complete!</string>
-    <string name="feishu_complete_summary">Platform: %1$s\nApp ID: %2$s…\nConnection: %3$s</string>
+    <string name="feishu_scan_complete_summary">Bot: %1$s\nPlatform: %2$s\nApp ID: %3$s</string>
     <string name="feishu_complete_next_steps">Next steps:\n\n• Start the Hermes Gateway from Settings to begin receiving messages\n• Send a message to your bot on Feishu to start chatting\n• You can change these settings anytime from Hermes Settings</string>
 
     <!-- Hermes Web -->
@@ -996,9 +958,8 @@
     <string name="im_test_detail_success">Connected! Bot: %1$s</string>
     <string name="im_test_detail_fail">Failed: %1$s - %2$s</string>
     <string name="feishu_scan_qr_code">Scan QR Code</string>
-    <string name="feishu_scan_prompt">Scan a QR code to fill credentials</string>
-    <string name="feishu_scan_filled">Credentials filled from QR code</string>
-    <string name="feishu_scan_app_id_filled">App ID filled: %1$s</string>
+    <string name="feishu_paste">Paste</string>
+    <string name="feishu_copied">Copied!</string>
     <string name="feishu_no_qr_scanner">No QR scanner app found. Please install one.</string>
     <string name="install_subtitle">Setting up Hermes Agent</string>
     <string name="install_checking">Checking for Hermes...</string>
@@ -1104,24 +1065,6 @@
     <string name="config_import_confirm_message">This will overwrite your current settings. Continue?</string>
     <string name="config_import_success">Configuration imported successfully</string>
     <string name="config_import_fail">Import failed: %1$s</string>
-
-    <!-- Enhanced Feishu wizard -->
-    <string name="feishu_deep_link_title">Quick Setup Link</string>
-    <string name="feishu_deep_link_summary">Open Feishu developer console directly</string>
-    <string name="feishu_open_dev_console">Open Developer Console</string>
-    <string name="feishu_open_dev_console_url">https://open.feishu.cn/app</string>
-    <string name="feishu_qr_tip_title">Tip: Scan with your phone camera</string>
-    <string name="feishu_qr_tip_desc">Point your phone camera at the QR code on the Feishu developer console to quickly copy your App ID and Secret.</string>
-    <string name="feishu_auto_detect_title">Auto-Detected Credentials</string>
-    <string name="feishu_auto_detect_desc">Credentials detected from QR code. Please verify they are correct.</string>
-    <string name="feishu_welcome_new_title">Welcome to Feishu Setup</string>
-    <string name="feishu_welcome_new_desc">This wizard will guide you through connecting your Feishu bot to Hermes. You will need:
-
-• A Feishu/Lark account
-• Access to the Developer Console
-• Your App ID and App Secret</string>
-    <string name="feishu_credentials_help">Enter your App ID and App Secret from the Feishu Developer Console.</string>
-    <string name="feishu_app_id_prefix">App IDs start with "cli_"</string>
 
     <!-- Gateway auto-restart -->
         <!-- Gateway stats -->

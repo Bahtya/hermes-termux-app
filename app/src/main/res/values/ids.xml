@@ -5,14 +5,11 @@
     <item type="id" name="im_test_status" />
     <item type="id" name="im_test_detail" />
     <item type="id" name="im_test_retry" />
-    <item type="id" name="feishu_app_id_input" />
-    <item type="id" name="feishu_app_secret_input" />
-    <item type="id" name="feishu_validation_text" />
-    <item type="id" name="feishu_test_summary" />
-    <item type="id" name="feishu_test_result_area" />
-    <item type="id" name="feishu_test_progress" />
-    <item type="id" name="feishu_test_status" />
-    <item type="id" name="btn_feishu_test" />
+    <item type="id" name="feishu_qr_image" />
+    <item type="id" name="feishu_scan_progress" />
+    <item type="id" name="feishu_scan_status" />
+    <item type="id" name="feishu_scan_countdown" />
+    <item type="id" name="feishu_scan_action_btn" />
     <item type="id" name="im_acct_input" />
     <item type="id" name="im_verify_input" />
 </resources>
