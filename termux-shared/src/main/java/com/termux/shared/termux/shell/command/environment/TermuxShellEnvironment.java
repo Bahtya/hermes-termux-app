@@ -91,6 +91,13 @@ public class TermuxShellEnvironment extends AndroidShellEnvironment {
             // to /data/data/com.termux/files/usr/lib. The installer patches binaries on
             // extraction, but this provides an additional safety net.
             environment.put(ENV_LD_LIBRARY_PATH, TermuxConstants.TERMUX_LIB_PREFIX_DIR_PATH);
+
+            // Set TERMINFO to override ncurses compiled-in default path which points to
+            // /data/data/com.termux/files/usr/share/terminfo (the old package path).
+            environment.put("TERMINFO", TermuxConstants.TERMUX_PREFIX_DIR_PATH + "/share/terminfo");
+
+            // Set PKG_CONFIG paths to override hardcoded paths in .pc files.
+            environment.put("PKG_CONFIG_LIBDIR", TermuxConstants.TERMUX_PREFIX_DIR_PATH + "/lib/pkgconfig:" + TermuxConstants.TERMUX_PREFIX_DIR_PATH + "/share/pkgconfig");
         }
 
         return environment;

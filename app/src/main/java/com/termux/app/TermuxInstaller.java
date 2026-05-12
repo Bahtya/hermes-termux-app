@@ -422,8 +422,62 @@ final class TermuxInstaller {
 
         // Patch text config files
         patchedConfigs += patchDirectoryTextFiles(new File(prefixDir, "etc"), oldPrefix, newPrefix);
+        patchedConfigs += patchDirectoryTextFiles(new File(prefixDir, "share"), oldPrefix, newPrefix);
 
         Logger.logInfo(LOG_TAG, "Bootstrap path patching complete: " + patchedBinaries + " binaries, " + patchedConfigs + " configs patched.");
+
+        // Audit: check for remaining old path references
+        auditUnpatchedBinaries(prefixDir, oldPrefix);
+    }
+
+    private static void auditUnpatchedBinaries(File prefixDir, String oldPath) {
+        byte[] searchBytes = oldPath.getBytes(java.nio.charset.StandardCharsets.UTF_8);
+        int unpatchedCount = 0;
+        String[] dirs = {"bin", "lib", "libexec"};
+        for (String dirName : dirs) {
+            File dir = new File(prefixDir, dirName);
+            unpatchedCount += auditDirectory(dir, searchBytes);
+        }
+        if (unpatchedCount > 0) {
+            Logger.logWarn(LOG_TAG, "Audit: " + unpatchedCount + " files still contain old path '" + oldPath + "'");
+        } else {
+            Logger.logInfo(LOG_TAG, "Audit: no unpatched binaries found");
+        }
+    }
+
+    private static int auditDirectory(File dir, byte[] searchBytes) {
+        if (!dir.exists() || !dir.isDirectory()) return 0;
+        File[] files = dir.listFiles();
+        if (files == null) return 0;
+        int count = 0;
+        for (File file : files) {
+            if (file.isDirectory()) {
+                count += auditDirectory(file, searchBytes);
+            } else if (file.isFile()) {
+                if (containsBytes(file, searchBytes)) {
+                    Logger.logWarn(LOG_TAG, "Unpatched binary: " + file.getAbsolutePath());
+                    count++;
+                }
+            }
+        }
+        return count;
+    }
+
+    private static boolean containsBytes(File file, byte[] search) {
+        try {
+            byte[] content = readFileBytes(file);
+            if (content == null) return false;
+            outer:
+            for (int i = 0; i <= content.length - search.length; i++) {
+                for (int j = 0; j < search.length; j++) {
+                    if (content[i + j] != search[j]) continue outer;
+                }
+                return true;
+            }
+        } catch (Exception e) {
+            // Ignore unreadable files
+        }
+        return false;
     }
 
     private static int patchDirectoryBinaries(File dir, String oldStr, String newStr) {
@@ -503,7 +557,7 @@ final class TermuxInstaller {
             }
             return modified;
         } catch (Exception e) {
-            Logger.logVerbose(LOG_TAG, "Could not patch binary " + file.getName() + ": " + e.getMessage());
+            Logger.logWarn(LOG_TAG, "Could not patch binary " + file.getName() + ": " + e.getMessage());
             return false;
         }
     }
