@@ -56,12 +56,15 @@ public class HermesInstaller {
             TermuxConstants.TERMUX_DATA_HOME_DIR_PATH + "/hermes-shell-profile-deployed";
     private static final String HERMES_PATH_REWRITE_MARKER_FILE =
             TermuxConstants.TERMUX_DATA_HOME_DIR_PATH + "/hermes-path-rewrite-deployed";
+    private static final String HERMES_SYMLINK_FIX_MARKER_FILE =
+            TermuxConstants.TERMUX_DATA_HOME_DIR_PATH + "/hermes-symlinks-fixed";
     private static final String HERMES_BASH_INIT_VERSION = "2";
     private static final String HERMES_APT_CONF_VERSION = "1";
     private static final String HERMES_APT_HOOK_VERSION = "1";
     private static final String HERMES_DPKG_CONF_VERSION = "1";
     private static final String HERMES_SHELL_PROFILE_VERSION = "1";
     private static final String HERMES_PATH_REWRITE_VERSION = "1";
+    private static final String HERMES_SYMLINK_FIX_VERSION = "1";
 
     private HermesInstaller() {}
 
@@ -105,6 +108,13 @@ public class HermesInstaller {
             TermuxInstaller.patchBootstrapPaths(TermuxConstants.TERMUX_PREFIX_DIR_PATH);
             new File(HERMES_REPATCH_MARKER_FILE).delete();
         }
+
+        // Fix broken symlinks: bootstrap SYMLINKS.txt uses absolute paths with
+        // com.termux which don't exist after the package rename. Earlier versions
+        // didn't rewrite symlink targets, so existing installs need this fix.
+        runMigration("Symlink fix", HERMES_SYMLINK_FIX_VERSION,
+                HERMES_SYMLINK_FIX_MARKER_FILE, () ->
+                        TermuxInstaller.fixPrefixSymlinks(TermuxConstants.TERMUX_PREFIX_DIR_PATH));
 
         // Versioned migrations (with target file existence check for apt/dpkg configs)
         String prefix = TermuxConstants.TERMUX_PREFIX_DIR_PATH;
