@@ -179,6 +179,7 @@ public class HermesInstaller {
                 } catch (Exception e) {
                     HermesInstallHelper.setState(context, HermesInstallHelper.InstallState.FAILED);
                     String errorMsg = e.getMessage() != null ? e.getMessage() : "Unknown error";
+                    HermesInstallHelper.setLastError(context, errorMsg);
                     showError(context, "Installation failed: " + errorMsg);
                     Logger.logErrorExtended(LOG_TAG, "Hermes installation failed:\n" + errorMsg);
                 }
