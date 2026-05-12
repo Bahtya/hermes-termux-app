@@ -46,7 +46,8 @@ jobs:
         run: |
           OLD="/data/data/com.termux"
           NEW="/data/data/com.bahtya"
-          BOOTSTRAP_DIR="app/src/main/cpp"
+          BOOTSTRAP_DIR="$GITHUB_WORKSPACE/app/src/main/cpp"
+          mkdir -p "$BOOTSTRAP_DIR"
 
           for arch in aarch64 arm i686 x86_64; do
             ZIP="${BOOTSTRAP_DIR}/bootstrap-${arch}.zip"
