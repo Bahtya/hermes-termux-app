@@ -451,10 +451,6 @@ final class TermuxInstaller {
         int fixed = 0;
         for (File file : files) {
             try {
-                if (file.isFile() && !file.isDirectory()) {
-                    // isFile() returns true for symlinks to existing targets on Android,
-                    // so check with Os.readlink which works regardless.
-                }
                 String target = Os.readlink(file.getAbsolutePath());
                 if (target != null && target.startsWith(oldPrefix)) {
                     String newTarget = newPrefix + target.substring(oldPrefix.length());

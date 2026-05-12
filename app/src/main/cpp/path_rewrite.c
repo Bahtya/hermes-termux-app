@@ -49,13 +49,6 @@ static const char *rewrite2(const char *p) {
     return rewrite_to(p, g_buf2);
 }
 
-/* Resolve the real function via dlsym. Returns NULL only if the
- * symbol genuinely does not exist — which should never happen for
- * the standard POSIX functions we intercept. */
-#define RESOLVE(name, type) \
-    type real = (type)dlsym(RTLD_NEXT, #name); \
-    if (!real) return -1
-
 /* --- Intercepted functions --- */
 
 DIR *opendir(const char *name) {
