@@ -34,6 +34,7 @@ import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
 
 import static com.termux.shared.termux.TermuxConstants.TERMUX_PREFIX_DIR;
+import static com.termux.shared.termux.TermuxConstants.TERMUX_BIN_PREFIX_DIR_PATH;
 import static com.termux.shared.termux.TermuxConstants.TERMUX_PREFIX_DIR_PATH;
 import static com.termux.shared.termux.TermuxConstants.TERMUX_STAGING_PREFIX_DIR;
 import static com.termux.shared.termux.TermuxConstants.TERMUX_STAGING_PREFIX_DIR_PATH;
@@ -106,9 +107,11 @@ final class TermuxInstaller {
         if (FileUtils.directoryFileExists(TERMUX_PREFIX_DIR_PATH, true)) {
             if (TermuxFileUtils.isTermuxPrefixDirectoryEmpty()) {
                 Logger.logInfo(LOG_TAG, "The termux prefix directory \"" + TERMUX_PREFIX_DIR_PATH + "\" exists but is empty or only contains specific unimportant files.");
-            } else {
+            } else if (new File(TERMUX_BIN_PREFIX_DIR_PATH, "bash").exists()) {
                 whenDone.run();
                 return;
+            } else {
+                Logger.logInfo(LOG_TAG, "The termux prefix directory \"" + TERMUX_PREFIX_DIR_PATH + "\" exists but bash is missing, re-extracting bootstrap.");
             }
         } else if (FileUtils.fileExists(TERMUX_PREFIX_DIR_PATH, false)) {
             Logger.logInfo(LOG_TAG, "The termux prefix directory \"" + TERMUX_PREFIX_DIR_PATH + "\" does not exist but another file exists at its destination.");
