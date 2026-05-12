@@ -1,15 +1,15 @@
 <?xml version="1.0" encoding="utf-8"?>
 
 <!DOCTYPE resources [
-    <!ENTITY TERMUX_PACKAGE_NAME "com.hermes.termux">
-    <!ENTITY TERMUX_APP_NAME "Hermes Termux">
-    <!ENTITY TERMUX_API_APP_NAME "Hermes Termux:API">
-    <!ENTITY TERMUX_BOOT_APP_NAME "Hermes Termux:Boot">
-    <!ENTITY TERMUX_FLOAT_APP_NAME "Hermes Termux:Float">
-    <!ENTITY TERMUX_STYLING_APP_NAME "Hermes Termux:Styling">
-    <!ENTITY TERMUX_TASKER_APP_NAME "Hermes Termux:Tasker">
-    <!ENTITY TERMUX_WIDGET_APP_NAME "Hermes Termux:Widget">
-    <!ENTITY TERMUX_PREFIX_DIR_PATH "/data/data/com.hermes.termux/files/usr">
+    <!ENTITY TERMUX_PACKAGE_NAME "com.bahtya">
+    <!ENTITY TERMUX_APP_NAME "Bahtya Terminal">
+    <!ENTITY TERMUX_API_APP_NAME "Bahtya Terminal:API">
+    <!ENTITY TERMUX_BOOT_APP_NAME "Bahtya Terminal:Boot">
+    <!ENTITY TERMUX_FLOAT_APP_NAME "Bahtya Terminal:Float">
+    <!ENTITY TERMUX_STYLING_APP_NAME "Bahtya Terminal:Styling">
+    <!ENTITY TERMUX_TASKER_APP_NAME "Bahtya Terminal:Tasker">
+    <!ENTITY TERMUX_WIDGET_APP_NAME "Bahtya Terminal:Widget">
+    <!ENTITY TERMUX_PREFIX_DIR_PATH "/data/data/com.bahtya/files/usr">
     ]>
 
 <resources>

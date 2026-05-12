@@ -2,7 +2,7 @@
  * LD_PRELOAD path rewrite library for renamed Termux packages.
  *
  * Intercepts filesystem calls and rewrites paths starting with
- * /data/data/com.termux/ to /data/data/com.hermes.termux/.
+ * /data/data/com.termux/ to /data/data/com.bahtya/.
  *
  * This fixes ALL binaries with compiled-in old paths at once,
  * eliminating the need for per-tool workarounds (APT_CONFIG,
@@ -23,9 +23,9 @@
 #include <stdarg.h>
 
 #define OLD_PREFIX  "/data/data/com.termux"
-#define NEW_PREFIX  "/data/data/com.hermes.termux"
+#define NEW_PREFIX  "/data/data/com.bahtya"
 #define OLD_LEN     21
-#define NEW_LEN     28
+#define NEW_LEN     21
 
 /* Two thread-local buffers so functions that take two path arguments
  * (rename, link, symlink, etc.) don't clobber each other's result. */

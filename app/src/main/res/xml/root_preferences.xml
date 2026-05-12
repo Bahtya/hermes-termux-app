@@ -14,7 +14,7 @@
         app:icon="@drawable/ic_settings">
         <intent
             android:action="android.intent.action.MAIN"
-            android:targetPackage="com.hermes.termux"
+            android:targetPackage="com.bahtya"
             android:targetClass="com.termux.app.hermes.HermesConfigActivity" />
     </Preference>
 

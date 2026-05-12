@@ -33,10 +33,10 @@ public class HermesGatewayService extends Service {
     private static final int ERROR_NOTIFICATION_ID = 2002;
     private static final String CHANNEL_ID = "hermes_gateway_channel";
     private static final String ERROR_CHANNEL_ID = "hermes_gateway_errors";
-    public static final String ACTION_START = "com.hermes.termux.GATEWAY_START";
-    public static final String ACTION_STOP = "com.hermes.termux.GATEWAY_STOP";
-    public static final String ACTION_CHECK = "com.hermes.termux.GATEWAY_CHECK";
-    public static final String ACTION_RESTART = "com.hermes.termux.GATEWAY_RESTART";
+    public static final String ACTION_START = "com.bahtya.GATEWAY_START";
+    public static final String ACTION_STOP = "com.bahtya.GATEWAY_STOP";
+    public static final String ACTION_CHECK = "com.bahtya.GATEWAY_CHECK";
+    public static final String ACTION_RESTART = "com.bahtya.GATEWAY_RESTART";
     public static final String PREF_AUTO_START = "hermes_auto_start_gateway";
     private static final String PREF_RESTART_COUNT = "gateway_restart_count";
     private static final String PREF_LAST_CRASH_TIME = "gateway_last_crash_time";

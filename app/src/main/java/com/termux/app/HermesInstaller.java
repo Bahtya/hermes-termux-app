@@ -7,7 +7,6 @@ import android.app.PendingIntent;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
-import android.content.IntentFilter;
 import android.os.Build;
 import android.system.Os;
 
@@ -33,23 +32,17 @@ public class HermesInstaller {
     private static final int NOTIFICATION_ID = 2001;
     private static final int MAX_RETRIES = 3;
 
-    static final String ACTION_RETRY_INSTALL = "com.hermes.termux.RETRY_INSTALL";
+    static final String ACTION_RETRY_INSTALL = "com.bahtya.RETRY_INSTALL";
     static final String EXTRA_IS_RETRY = "is_retry";
 
     private static final String HERMES_MARKER_FILE =
             TermuxConstants.TERMUX_DATA_HOME_DIR_PATH + "/hermes-installed";
     private static final String HERMES_BOOT_SCRIPT =
             TermuxConstants.TERMUX_BOOT_SCRIPTS_DIR_PATH + "/hermes-gateway";
-    private static final String HERMES_PATCH_MARKER_FILE =
-            TermuxConstants.TERMUX_DATA_HOME_DIR_PATH + "/hermes-paths-patched";
-    private static final String HERMES_REPATCH_MARKER_FILE =
-            TermuxConstants.TERMUX_DATA_HOME_DIR_PATH + "/hermes-needs-repatch";
     private static final String HERMES_BASH_INIT_MARKER_FILE =
             TermuxConstants.TERMUX_DATA_HOME_DIR_PATH + "/hermes-bash-init-deployed";
     private static final String HERMES_APT_CONF_MARKER_FILE =
             TermuxConstants.TERMUX_DATA_HOME_DIR_PATH + "/hermes-apt-conf-deployed";
-    private static final String HERMES_APT_HOOK_MARKER_FILE =
-            TermuxConstants.TERMUX_DATA_HOME_DIR_PATH + "/hermes-apt-hook-deployed";
     private static final String HERMES_DPKG_CONF_MARKER_FILE =
             TermuxConstants.TERMUX_DATA_HOME_DIR_PATH + "/hermes-dpkg-conf-deployed";
     private static final String HERMES_SHELL_PROFILE_MARKER_FILE =
@@ -60,7 +53,6 @@ public class HermesInstaller {
             TermuxConstants.TERMUX_DATA_HOME_DIR_PATH + "/hermes-symlinks-fixed";
     private static final String HERMES_BASH_INIT_VERSION = "2";
     private static final String HERMES_APT_CONF_VERSION = "1";
-    private static final String HERMES_APT_HOOK_VERSION = "1";
     private static final String HERMES_DPKG_CONF_VERSION = "1";
     private static final String HERMES_SHELL_PROFILE_VERSION = "1";
     private static final String HERMES_PATH_REWRITE_VERSION = "1";
@@ -84,31 +76,9 @@ public class HermesInstaller {
     /**
      * Run upgrade migrations for existing installations. Called on every app start
      * from TermuxApplication so that users who upgrade from a previous version
-     * get their bootstrap binaries patched without needing a clean reinstall.
+     * get necessary fixes applied without needing a clean reinstall.
      */
     static void runUpgradeMigrations() {
-        // Migration 1: Patch bootstrap binary paths (non-versioned, runs once)
-        if (!new File(HERMES_PATCH_MARKER_FILE).exists()) {
-            if (new File(TermuxConstants.TERMUX_BIN_PREFIX_DIR_PATH, "bash").exists()) {
-                Logger.logInfo(LOG_TAG, "Running upgrade migration: patching bootstrap paths");
-                TermuxInstaller.patchBootstrapPaths(TermuxConstants.TERMUX_PREFIX_DIR_PATH);
-            }
-            try {
-                try (FileOutputStream out = new FileOutputStream(HERMES_PATCH_MARKER_FILE)) {
-                    out.write("1\n".getBytes("UTF-8"));
-                }
-            } catch (Exception e) {
-                Logger.logErrorExtended(LOG_TAG, "Failed to write patch marker: " + e.getMessage());
-            }
-        }
-
-        // Re-patch if apt/dpkg hook signaled that packages were updated
-        if (new File(HERMES_REPATCH_MARKER_FILE).exists()) {
-            Logger.logInfo(LOG_TAG, "Re-patching binaries after package update");
-            TermuxInstaller.patchBootstrapPaths(TermuxConstants.TERMUX_PREFIX_DIR_PATH);
-            new File(HERMES_REPATCH_MARKER_FILE).delete();
-        }
-
         // Fix broken symlinks: bootstrap SYMLINKS.txt uses absolute paths with
         // com.termux which don't exist after the package rename. Earlier versions
         // didn't rewrite symlink targets, so existing installs need this fix.
@@ -123,9 +93,6 @@ public class HermesInstaller {
         runMigration("Apt conf", HERMES_APT_CONF_VERSION,
                 HERMES_APT_CONF_MARKER_FILE, HermesInstaller::deployAptConf,
                 prefix + "/etc/apt/apt.conf.d/99hermes-paths.conf");
-        runMigration("Apt hook", HERMES_APT_HOOK_VERSION,
-                HERMES_APT_HOOK_MARKER_FILE, HermesInstaller::deployAptHook,
-                prefix + "/libexec/hermes-patch-paths");
         runMigration("Dpkg conf", HERMES_DPKG_CONF_VERSION,
                 HERMES_DPKG_CONF_MARKER_FILE, HermesInstaller::deployDpkgConf,
                 prefix + "/etc/dpkg/dpkg.cfg.d/hermes-paths");
@@ -314,7 +281,6 @@ public class HermesInstaller {
         }
         deployBashInit();
         deployAptConf();
-        deployAptHook();
         deployDpkgConf();
         deployShellProfile();
         deployPathRewrite(context);
@@ -380,53 +346,6 @@ public class HermesInstaller {
     }
 
     /**
-     * Deploy apt/dpkg post-invoke hooks that create a marker file after
-     * every package install/upgrade/remove. On next app start, the marker
-     * triggers re-patching of binaries so that newly installed packages
-     * from the upstream Termux repo (which have com.termux paths) get patched.
-     */
-    private static void deployAptHook() throws Exception {
-        String prefix = TermuxConstants.TERMUX_PREFIX_DIR_PATH;
-
-        // Deploy the hook script to libexec
-        File libexecDir = new File(prefix, "libexec");
-        if (!libexecDir.exists() && !libexecDir.mkdirs()) {
-            throw new Exception("Failed to create " + libexecDir.getAbsolutePath());
-        }
-
-        File hookScript = new File(libexecDir, "hermes-patch-paths");
-        String markerFile = HERMES_REPATCH_MARKER_FILE;
-
-        String script = "#!" + prefix + "/bin/sh\n"
-                + "# Hermes: signal that binaries need re-patching after package operations.\n"
-                + "# On next app start, the Java migration will re-run patchBootstrapPaths().\n"
-                + "touch " + markerFile + "\n";
-
-        try (FileOutputStream out = new FileOutputStream(hookScript)) {
-            out.write(script.getBytes("UTF-8"));
-        }
-        Os.chmod(hookScript.getAbsolutePath(), 0755);
-        Logger.logInfo(LOG_TAG, "Deployed apt hook script to " + hookScript.getAbsolutePath());
-
-        // Deploy the apt.conf.d hook configuration
-        File aptConfDir = new File(prefix, "etc/apt/apt.conf.d");
-        if (!aptConfDir.exists() && !aptConfDir.mkdirs()) {
-            throw new Exception("Failed to create " + aptConfDir.getAbsolutePath());
-        }
-
-        File hookConf = new File(aptConfDir, "98hermes-post-invoke");
-        String hookContent = "// Hermes: trigger re-patching after package operations\n"
-                + "DPkg::Post-Invoke { \"" + hookScript.getAbsolutePath() + "\"; };\n"
-                + "APT::Update::Post-Invoke-Success { \"" + hookScript.getAbsolutePath() + "\"; };\n";
-
-        try (FileOutputStream out = new FileOutputStream(hookConf)) {
-            out.write(hookContent.getBytes("UTF-8"));
-        }
-        Os.chmod(hookConf.getAbsolutePath(), 0644);
-        Logger.logInfo(LOG_TAG, "Deployed apt hook config to " + hookConf.getAbsolutePath());
-    }
-
-    /**
      * Deploy dpkg configuration to override compiled-in admindir path.
      * dpkg has /data/data/com.termux/files/usr/var/lib/dpkg baked in,
      * and binary patching may fail for the same null-padding reasons as apt.
@@ -483,7 +402,7 @@ public class HermesInstaller {
      * Deploy the LD_PRELOAD path rewrite library from the APK's native libs
      * to $PREFIX/lib/libpath_rewrite.so. This library intercepts all
      * filesystem calls and rewrites /data/data/com.termux/ paths to
-     * /data/data/com.hermes.termux/, fixing ALL binaries with compiled-in
+     * /data/data/com.bahtya/, fixing ALL binaries with compiled-in
      * old paths at once.
      */
     private static void deployPathRewrite(Context context) throws Exception {
