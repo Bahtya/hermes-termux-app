@@ -130,6 +130,9 @@ android {
         jniLibs {
             useLegacyPackaging true
         }
+        resources {
+            excludes += ['META-INF/DEPENDENCIES']
+        }
     }
 
     applicationVariants.all { variant ->
