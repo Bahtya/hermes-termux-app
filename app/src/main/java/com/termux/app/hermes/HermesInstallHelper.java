@@ -239,12 +239,31 @@ public class HermesInstallHelper {
         }
 
         ProcessBuilder pb = new ProcessBuilder(bashPath, "-c", bashCommand);
+        String prefix = TermuxConstants.TERMUX_PREFIX_DIR_PATH;
         pb.environment().put("HOME", TermuxConstants.TERMUX_HOME_DIR_PATH);
         pb.environment().put("PATH", TermuxConstants.TERMUX_BIN_PREFIX_DIR_PATH
                 + ":/system/bin:/system/xbin");
-        pb.environment().put("PREFIX", TermuxConstants.TERMUX_PREFIX_DIR_PATH);
+        pb.environment().put("PREFIX", prefix);
+        pb.environment().put("TMPDIR", TermuxConstants.TERMUX_TMP_PREFIX_DIR_PATH);
         pb.environment().put("LD_LIBRARY_PATH", TermuxConstants.TERMUX_LIB_PREFIX_DIR_PATH);
         pb.environment().put("TERMUX_VERSION", com.termux.BuildConfig.VERSION_NAME);
+        pb.environment().put("TERMINFO", prefix + "/share/terminfo");
+
+        // LD_PRELOAD rewrites /data/data/com.termux/ → /data/data/com.bahtya/
+        // at runtime. Without it, dpkg/apt cannot find their config files or
+        // admindir (compiled-in as com.termux paths that don't exist).
+        String pathRewriteLib = TermuxConstants.TERMUX_LIB_PREFIX_DIR_PATH + "/libpath_rewrite.so";
+        if (new File(pathRewriteLib).exists()) {
+            pb.environment().put("LD_PRELOAD", pathRewriteLib);
+        }
+
+        // APT_CONFIG overrides compiled-in Dir paths so apt can find its
+        // sources.list and method binaries under the renamed package path.
+        String aptConfFile = prefix + "/etc/apt/apt.conf.d/99hermes-paths.conf";
+        if (new File(aptConfFile).exists()) {
+            pb.environment().put("APT_CONFIG", aptConfFile);
+        }
+
         pb.redirectErrorStream(true);
 
         Process p = pb.start();
