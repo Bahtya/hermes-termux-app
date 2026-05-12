@@ -91,6 +91,12 @@ public class TermuxShellEnvironment extends AndroidShellEnvironment {
             // to /data/data/com.termux/files/usr/lib. The installer patches binaries on
             // extraction, but this provides an additional safety net.
             environment.put(ENV_LD_LIBRARY_PATH, TermuxConstants.TERMUX_LIB_PREFIX_DIR_PATH);
+
+            // Set TERMINFO to override ncurses compiled-in default path which points to
+            // /data/data/com.termux/files/usr/share/terminfo (the old package path).
+            // Without this, nano and other ncurses programs fail with:
+            // "ncurses: cannot initialize terminal type"
+            environment.put("TERMINFO", TermuxConstants.TERMUX_PREFIX_DIR_PATH + "/share/terminfo");
         }
 
         return environment;

@@ -43,7 +43,10 @@ public class HermesInstaller {
             TermuxConstants.TERMUX_DATA_HOME_DIR_PATH + "/hermes-paths-patched";
     private static final String HERMES_BASH_INIT_MARKER_FILE =
             TermuxConstants.TERMUX_DATA_HOME_DIR_PATH + "/hermes-bash-init-deployed";
+    private static final String HERMES_APT_CONF_MARKER_FILE =
+            TermuxConstants.TERMUX_DATA_HOME_DIR_PATH + "/hermes-apt-conf-deployed";
     private static final String HERMES_BASH_INIT_VERSION = "2";
+    private static final String HERMES_APT_CONF_VERSION = "1";
 
     private HermesInstaller() {}
 
@@ -100,6 +103,35 @@ public class HermesInstaller {
                 Logger.logInfo(LOG_TAG, "Bash init migration complete (v" + HERMES_BASH_INIT_VERSION + ")");
             } catch (Exception e) {
                 Logger.logErrorExtended(LOG_TAG, "Failed to deploy bash init: " + e.getMessage());
+            }
+        }
+
+        // Migration 3: Deploy apt.conf to override compiled-in directory paths.
+        // The apt binary has compiled-in paths pointing to /data/data/com.termux/...
+        // which cannot always be patched due to insufficient null-byte padding in
+        // ELF binaries. Deploying an explicit apt.conf overrides these defaults and
+        // fixes "Permission denied" errors when apt tries to access sources.list.d.
+        boolean needsAptConfDeploy = true;
+        File aptConfMarker = new File(HERMES_APT_CONF_MARKER_FILE);
+        if (aptConfMarker.exists()) {
+            try {
+                String deployedVersion = readFile(aptConfMarker).trim();
+                if (HERMES_APT_CONF_VERSION.equals(deployedVersion)) {
+                    needsAptConfDeploy = false;
+                }
+            } catch (Exception e) {
+                // Marker file unreadable - re-deploy
+            }
+        }
+        if (needsAptConfDeploy) {
+            try {
+                deployAptConf();
+                try (FileOutputStream out = new FileOutputStream(HERMES_APT_CONF_MARKER_FILE)) {
+                    out.write((HERMES_APT_CONF_VERSION + "\n").getBytes("UTF-8"));
+                }
+                Logger.logInfo(LOG_TAG, "Apt conf migration complete (v" + HERMES_APT_CONF_VERSION + ")");
+            } catch (Exception e) {
+                Logger.logErrorExtended(LOG_TAG, "Failed to deploy apt conf: " + e.getMessage());
             }
         }
     }
@@ -235,6 +267,7 @@ public class HermesInstaller {
             out.write("1\n".getBytes("UTF-8"));
         }
         deployBashInit();
+        deployAptConf();
         deployShellProfile();
     }
 
@@ -262,6 +295,40 @@ public class HermesInstaller {
         }
         Os.chmod(initFile.getAbsolutePath(), 0644);
         Logger.logInfo(LOG_TAG, "Deployed bash init file to " + initFile.getAbsolutePath());
+    }
+
+    /**
+     * Deploy apt.conf with explicit directory paths to override compiled-in defaults.
+     * The upstream apt binary has paths like Dir::Etc compiled in as
+     * /data/data/com.termux/files/usr/etc/apt. Binary patching can fail silently
+     * when there isn't enough null-byte padding after the old string, so this
+     * config file forces apt to use the correct paths regardless of patching result.
+     */
+    private static void deployAptConf() throws Exception {
+        String prefix = TermuxConstants.TERMUX_PREFIX_DIR_PATH;
+        File aptConfDir = new File(prefix, "etc/apt/apt.conf.d");
+        if (!aptConfDir.exists()) {
+            aptConfDir.mkdirs();
+        }
+
+        // 99hermes-paths.conf is processed last and overrides everything
+        File confFile = new File(aptConfDir, "99hermes-paths.conf");
+
+        String content = "// Hermes: override compiled-in directory paths for renamed package\n"
+                + "Dir \"" + prefix + "\";\n"
+                + "Dir::State \"" + prefix + "/var/lib/apt\";\n"
+                + "Dir::State::status \"" + prefix + "/var/lib/dpkg/status\";\n"
+                + "Dir::Cache \"" + prefix + "/var/cache/apt\";\n"
+                + "Dir::Etc \"" + prefix + "/etc/apt\";\n"
+                + "Dir::Bin::methods \"" + prefix + "/lib/apt/methods\";\n"
+                + "Dir::Bin::dpkg \"" + prefix + "/bin/dpkg\";\n"
+                + "Dir::Log \"" + prefix + "/var/log/apt\";\n";
+
+        try (FileOutputStream out = new FileOutputStream(confFile)) {
+            out.write(content.getBytes("UTF-8"));
+        }
+        Os.chmod(confFile.getAbsolutePath(), 0644);
+        Logger.logInfo(LOG_TAG, "Deployed apt.conf to " + confFile.getAbsolutePath());
     }
 
     private static void deployShellProfile() throws Exception {

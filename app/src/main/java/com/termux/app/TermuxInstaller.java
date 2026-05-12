@@ -423,6 +423,10 @@ final class TermuxInstaller {
         // Patch text config files
         patchedConfigs += patchDirectoryTextFiles(new File(prefixDir, "etc"), oldPrefix, newPrefix);
 
+        // Patch text files in share/ (may contain hardcoded paths in man pages,
+        // pkg-config files, cmake configs, etc.)
+        patchedConfigs += patchDirectoryTextFiles(new File(prefixDir, "share"), oldPrefix, newPrefix);
+
         Logger.logInfo(LOG_TAG, "Bootstrap path patching complete: " + patchedBinaries + " binaries, " + patchedConfigs + " configs patched.");
     }
 
