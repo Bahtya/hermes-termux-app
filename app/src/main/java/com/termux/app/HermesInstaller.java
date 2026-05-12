@@ -94,19 +94,28 @@ public class HermesInstaller {
             new File(HERMES_REPATCH_MARKER_FILE).delete();
         }
 
-        // Versioned migrations
+        // Versioned migrations (with target file existence check for apt/dpkg configs)
+        String prefix = TermuxConstants.TERMUX_PREFIX_DIR_PATH;
         runMigration("Bash init", HERMES_BASH_INIT_VERSION,
                 HERMES_BASH_INIT_MARKER_FILE, HermesInstaller::deployBashInit);
         runMigration("Apt conf", HERMES_APT_CONF_VERSION,
-                HERMES_APT_CONF_MARKER_FILE, HermesInstaller::deployAptConf);
+                HERMES_APT_CONF_MARKER_FILE, HermesInstaller::deployAptConf,
+                prefix + "/etc/apt/apt.conf.d/99hermes-paths.conf");
         runMigration("Apt hook", HERMES_APT_HOOK_VERSION,
-                HERMES_APT_HOOK_MARKER_FILE, HermesInstaller::deployAptHook);
+                HERMES_APT_HOOK_MARKER_FILE, HermesInstaller::deployAptHook,
+                prefix + "/libexec/hermes-patch-paths");
         runMigration("Dpkg conf", HERMES_DPKG_CONF_VERSION,
-                HERMES_DPKG_CONF_MARKER_FILE, HermesInstaller::deployDpkgConf);
+                HERMES_DPKG_CONF_MARKER_FILE, HermesInstaller::deployDpkgConf,
+                prefix + "/etc/dpkg/dpkg.cfg.d/hermes-paths");
     }
 
     private static void runMigration(String name, String version,
             String markerPath, Runnable deployAction) {
+        runMigration(name, version, markerPath, deployAction, null);
+    }
+
+    private static void runMigration(String name, String version,
+            String markerPath, Runnable deployAction, String targetFilePath) {
         boolean needsDeploy = true;
         File marker = new File(markerPath);
         if (marker.exists()) {
@@ -114,6 +123,11 @@ public class HermesInstaller {
                 String deployedVersion = readFile(marker).trim();
                 if (version.equals(deployedVersion)) {
                     needsDeploy = false;
+                    // If target file was deleted (e.g. by apt upgrade), redeploy
+                    if (targetFilePath != null && !new File(targetFilePath).exists()) {
+                        needsDeploy = true;
+                        Logger.logInfo(LOG_TAG, name + " target file missing, redeploying");
+                    }
                 }
             } catch (Exception e) {
                 // Marker file unreadable - re-deploy
@@ -344,8 +358,7 @@ public class HermesInstaller {
         }
 
         File hookScript = new File(libexecDir, "hermes-patch-paths");
-        String home = TermuxConstants.TERMUX_HOME_DIR_PATH;
-        String markerFile = home + "/.hermes-needs-repatch";
+        String markerFile = HERMES_REPATCH_MARKER_FILE;
 
         String script = "#!" + prefix + "/bin/sh\n"
                 + "# Hermes: signal that binaries need re-patching after package operations.\n"
