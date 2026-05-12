@@ -51,17 +51,25 @@ public class HermesInstaller {
             TermuxConstants.TERMUX_DATA_HOME_DIR_PATH + "/hermes-apt-hook-deployed";
     private static final String HERMES_DPKG_CONF_MARKER_FILE =
             TermuxConstants.TERMUX_DATA_HOME_DIR_PATH + "/hermes-dpkg-conf-deployed";
+    private static final String HERMES_SHELL_PROFILE_MARKER_FILE =
+            TermuxConstants.TERMUX_DATA_HOME_DIR_PATH + "/hermes-shell-profile-deployed";
     private static final String HERMES_BASH_INIT_VERSION = "2";
     private static final String HERMES_APT_CONF_VERSION = "1";
     private static final String HERMES_APT_HOOK_VERSION = "1";
     private static final String HERMES_DPKG_CONF_VERSION = "1";
+    private static final String HERMES_SHELL_PROFILE_VERSION = "1";
 
     private HermesInstaller() {}
 
     static void installIfNeeded(Context context) {
         if (new File(HERMES_MARKER_FILE).exists()) {
-            Logger.logInfo(LOG_TAG, "Hermes already installed, skipping.");
-            return;
+            if (!new File(TermuxConstants.TERMUX_BIN_PREFIX_DIR_PATH, "hermes").exists()) {
+                Logger.logWarn(LOG_TAG, "hermes-installed marker exists but binary missing, retrying install");
+                new File(HERMES_MARKER_FILE).delete();
+            } else {
+                Logger.logInfo(LOG_TAG, "Hermes already installed, skipping.");
+                return;
+            }
         }
         startInstallThread(context, false);
     }
@@ -107,6 +115,9 @@ public class HermesInstaller {
         runMigration("Dpkg conf", HERMES_DPKG_CONF_VERSION,
                 HERMES_DPKG_CONF_MARKER_FILE, HermesInstaller::deployDpkgConf,
                 prefix + "/etc/dpkg/dpkg.cfg.d/hermes-paths");
+        runMigration("Shell profile", HERMES_SHELL_PROFILE_VERSION,
+                HERMES_SHELL_PROFILE_MARKER_FILE, HermesInstaller::deployShellProfile,
+                TermuxConstants.TERMUX_HOME_DIR_PATH + "/.bashrc");
     }
 
     private static void runMigration(String name, String version,
