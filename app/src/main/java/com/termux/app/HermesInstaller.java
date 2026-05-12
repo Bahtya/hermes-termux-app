@@ -110,12 +110,12 @@ public class HermesInstaller {
     }
 
     private static void runMigration(String name, String version,
-            String markerPath, Runnable deployAction) {
+            String markerPath, ThrowingRunnable deployAction) {
         runMigration(name, version, markerPath, deployAction, null);
     }
 
     private static void runMigration(String name, String version,
-            String markerPath, Runnable deployAction, String targetFilePath) {
+            String markerPath, ThrowingRunnable deployAction, String targetFilePath) {
         boolean needsDeploy = true;
         File marker = new File(markerPath);
         if (marker.exists()) {
@@ -480,5 +480,10 @@ public class HermesInstaller {
                 retryInstall(context.getApplicationContext());
             }
         }
+    }
+
+    @FunctionalInterface
+    private interface ThrowingRunnable {
+        void run() throws Exception;
     }
 }
