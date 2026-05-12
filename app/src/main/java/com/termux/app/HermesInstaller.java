@@ -116,7 +116,8 @@ public class HermesInstaller {
                 HERMES_DPKG_CONF_MARKER_FILE, HermesInstaller::deployDpkgConf,
                 prefix + "/etc/dpkg/dpkg.cfg.d/hermes-paths");
         runMigration("Shell profile", HERMES_SHELL_PROFILE_VERSION,
-                HERMES_SHELL_PROFILE_MARKER_FILE, HermesInstaller::deployShellProfile);
+                HERMES_SHELL_PROFILE_MARKER_FILE, HermesInstaller::deployShellProfile,
+                TermuxConstants.TERMUX_HOME_DIR_PATH + "/.bashrc");
     }
 
     private static void runMigration(String name, String version,

@@ -102,7 +102,10 @@ public class TermuxShellEnvironment extends AndroidShellEnvironment {
             // Set APT_CONFIG to override compiled-in Dir paths. apt reads config from
             // the compiled-in Dir::Etc path before applying overrides, causing a crash
             // when that path is inaccessible after package rename.
-            environment.put("APT_CONFIG", TermuxConstants.TERMUX_PREFIX_DIR_PATH + "/etc/apt/apt.conf.d/99hermes-paths.conf");
+            String aptConfFile = TermuxConstants.TERMUX_PREFIX_DIR_PATH + "/etc/apt/apt.conf.d/99hermes-paths.conf";
+            if (new java.io.File(aptConfFile).exists()) {
+                environment.put("APT_CONFIG", aptConfFile);
+            }
         }
 
         return environment;
