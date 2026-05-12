@@ -54,12 +54,12 @@ public class HermesInstaller {
     private static final String HERMES_DPKG_DB_FIX_MARKER_FILE =
             TermuxConstants.TERMUX_DATA_HOME_DIR_PATH + "/hermes-dpkg-db-patched";
     private static final String HERMES_BASH_INIT_VERSION = "2";
-    private static final String HERMES_APT_CONF_VERSION = "1";
+    private static final String HERMES_APT_CONF_VERSION = "2";
     private static final String HERMES_DPKG_CONF_VERSION = "1";
     private static final String HERMES_SHELL_PROFILE_VERSION = "1";
     private static final String HERMES_PATH_REWRITE_VERSION = "1";
     private static final String HERMES_SYMLINK_FIX_VERSION = "2";
-    private static final String HERMES_DPKG_DB_FIX_VERSION = "1";
+    private static final String HERMES_DPKG_DB_FIX_VERSION = "2";
 
     private HermesInstaller() {}
 
@@ -158,6 +158,28 @@ public class HermesInstaller {
         startInstallThread(context, true);
     }
 
+    /**
+     * Deploy apt.conf, dpkg.conf, LD_PRELOAD library, and patch the dpkg database.
+     * Called from the install thread AFTER bootstrap is complete but BEFORE the
+     * install script runs. Bootstrap extraction wipes $PREFIX, so configs deployed
+     * during app.onCreate() no longer exist.
+     */
+    private static void deployInstallPrerequisites(Context context) {
+        String prefix = TermuxConstants.TERMUX_PREFIX_DIR_PATH;
+        try { deployAptConf(); } catch (Exception e) {
+            Logger.logWarn(LOG_TAG, "Pre-install apt.conf deploy: " + e.getMessage());
+        }
+        try { deployDpkgConf(); } catch (Exception e) {
+            Logger.logWarn(LOG_TAG, "Pre-install dpkg.conf deploy: " + e.getMessage());
+        }
+        try { deployPathRewrite(context); } catch (Exception e) {
+            Logger.logWarn(LOG_TAG, "Pre-install path-rewrite deploy: " + e.getMessage());
+        }
+        try { patchDpkgDatabase(prefix); } catch (Exception e) {
+            Logger.logWarn(LOG_TAG, "Pre-install dpkg db patch: " + e.getMessage());
+        }
+    }
+
     private static void startInstallThread(Context context, boolean isRetry) {
         Thread t = new Thread(() -> {
             try {
@@ -167,6 +189,13 @@ public class HermesInstaller {
                 if (!isRetry) {
                     deployBootScript();
                 }
+
+                // Deploy critical configs BEFORE the install script runs.
+                // Bootstrap extraction (TermuxInstaller line 137) deletes $PREFIX,
+                // wiping any configs deployed by runUpgradeMigrations() during
+                // app.onCreate(). Without these, dpkg/apt cannot find their
+                // databases or config files and fail with error code (1).
+                deployInstallPrerequisites(context);
 
                 try {
                     HermesInstallHelper.executeInstall(context, MAX_RETRIES, new HermesInstallHelper.ProgressCallback() {
@@ -342,7 +371,8 @@ public class HermesInstaller {
                 + "Dir::Etc \"" + prefix + "/etc/apt\";\n"
                 + "Dir::Bin::methods \"" + prefix + "/lib/apt/methods\";\n"
                 + "Dir::Bin::dpkg \"" + prefix + "/bin/dpkg\";\n"
-                + "Dir::Log \"" + prefix + "/var/log/apt\";\n";
+                + "Dir::Log \"" + prefix + "/var/log/apt\";\n"
+                + "Dpkg::Options { \"--admindir=" + prefix + "/var/lib/dpkg\"; };\n";
 
         try (FileOutputStream out = new FileOutputStream(confFile)) {
             out.write(content.getBytes("UTF-8"));
