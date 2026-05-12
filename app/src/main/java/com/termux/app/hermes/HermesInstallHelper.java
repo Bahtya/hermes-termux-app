@@ -183,6 +183,10 @@ public class HermesInstallHelper {
                 try {
                     ProcessBuilder pb = new ProcessBuilder(bashPath, "-c", "echo ok");
                     pb.environment().put("LD_LIBRARY_PATH", TermuxConstants.TERMUX_LIB_PREFIX_DIR_PATH);
+                    String pathRewriteLib = TermuxConstants.TERMUX_LIB_PREFIX_DIR_PATH + "/libpath_rewrite.so";
+                    if (new java.io.File(pathRewriteLib).exists()) {
+                        pb.environment().put("LD_PRELOAD", pathRewriteLib);
+                    }
                     pb.redirectErrorStream(true);
                     Process p = pb.start();
                     // Drain output to avoid blocking
