@@ -166,6 +166,7 @@ public class HermesInstallHelper {
             if (new File(bashPath).exists()) {
                 try {
                     ProcessBuilder pb = new ProcessBuilder(bashPath, "-c", "echo ok");
+                    pb.environment().put("LD_LIBRARY_PATH", TermuxConstants.TERMUX_LIB_PREFIX_DIR_PATH);
                     pb.redirectErrorStream(true);
                     Process p = pb.start();
                     // Drain output to avoid blocking
@@ -222,6 +223,9 @@ public class HermesInstallHelper {
         pb.environment().put("HOME", TermuxConstants.TERMUX_HOME_DIR_PATH);
         pb.environment().put("PATH", TermuxConstants.TERMUX_BIN_PREFIX_DIR_PATH
                 + ":/system/bin:/system/xbin");
+        pb.environment().put("PREFIX", TermuxConstants.TERMUX_PREFIX_DIR_PATH);
+        pb.environment().put("LD_LIBRARY_PATH", TermuxConstants.TERMUX_LIB_PREFIX_DIR_PATH);
+        pb.environment().put("TERMUX_VERSION", com.termux.BuildConfig.VERSION_NAME);
         pb.redirectErrorStream(true);
 
         Process p = pb.start();

@@ -41,9 +41,20 @@ public class HermesInstaller {
             TermuxConstants.TERMUX_BOOT_SCRIPTS_DIR_PATH + "/hermes-gateway";
     private static final String HERMES_PATCH_MARKER_FILE =
             TermuxConstants.TERMUX_DATA_HOME_DIR_PATH + "/hermes-paths-patched";
+    private static final String HERMES_REPATCH_MARKER_FILE =
+            TermuxConstants.TERMUX_DATA_HOME_DIR_PATH + "/hermes-needs-repatch";
     private static final String HERMES_BASH_INIT_MARKER_FILE =
             TermuxConstants.TERMUX_DATA_HOME_DIR_PATH + "/hermes-bash-init-deployed";
+    private static final String HERMES_APT_CONF_MARKER_FILE =
+            TermuxConstants.TERMUX_DATA_HOME_DIR_PATH + "/hermes-apt-conf-deployed";
+    private static final String HERMES_APT_HOOK_MARKER_FILE =
+            TermuxConstants.TERMUX_DATA_HOME_DIR_PATH + "/hermes-apt-hook-deployed";
+    private static final String HERMES_DPKG_CONF_MARKER_FILE =
+            TermuxConstants.TERMUX_DATA_HOME_DIR_PATH + "/hermes-dpkg-conf-deployed";
     private static final String HERMES_BASH_INIT_VERSION = "2";
+    private static final String HERMES_APT_CONF_VERSION = "1";
+    private static final String HERMES_APT_HOOK_VERSION = "1";
+    private static final String HERMES_DPKG_CONF_VERSION = "1";
 
     private HermesInstaller() {}
 
@@ -61,7 +72,7 @@ public class HermesInstaller {
      * get their bootstrap binaries patched without needing a clean reinstall.
      */
     static void runUpgradeMigrations() {
-        // Migration 1: Patch bootstrap binary paths
+        // Migration 1: Patch bootstrap binary paths (non-versioned, runs once)
         if (!new File(HERMES_PATCH_MARKER_FILE).exists()) {
             if (new File(TermuxConstants.TERMUX_BIN_PREFIX_DIR_PATH, "bash").exists()) {
                 Logger.logInfo(LOG_TAG, "Running upgrade migration: patching bootstrap paths");
@@ -76,30 +87,61 @@ public class HermesInstaller {
             }
         }
 
-        // Migration 2: Deploy bash init file to bypass compiled-in bash.bashrc path.
-        // Uses versioned marker so that changes to the init file content trigger
-        // re-deployment on upgrade.
-        boolean needsBashInitDeploy = true;
-        File bashInitMarker = new File(HERMES_BASH_INIT_MARKER_FILE);
-        if (bashInitMarker.exists()) {
+        // Re-patch if apt/dpkg hook signaled that packages were updated
+        if (new File(HERMES_REPATCH_MARKER_FILE).exists()) {
+            Logger.logInfo(LOG_TAG, "Re-patching binaries after package update");
+            TermuxInstaller.patchBootstrapPaths(TermuxConstants.TERMUX_PREFIX_DIR_PATH);
+            new File(HERMES_REPATCH_MARKER_FILE).delete();
+        }
+
+        // Versioned migrations (with target file existence check for apt/dpkg configs)
+        String prefix = TermuxConstants.TERMUX_PREFIX_DIR_PATH;
+        runMigration("Bash init", HERMES_BASH_INIT_VERSION,
+                HERMES_BASH_INIT_MARKER_FILE, HermesInstaller::deployBashInit);
+        runMigration("Apt conf", HERMES_APT_CONF_VERSION,
+                HERMES_APT_CONF_MARKER_FILE, HermesInstaller::deployAptConf,
+                prefix + "/etc/apt/apt.conf.d/99hermes-paths.conf");
+        runMigration("Apt hook", HERMES_APT_HOOK_VERSION,
+                HERMES_APT_HOOK_MARKER_FILE, HermesInstaller::deployAptHook,
+                prefix + "/libexec/hermes-patch-paths");
+        runMigration("Dpkg conf", HERMES_DPKG_CONF_VERSION,
+                HERMES_DPKG_CONF_MARKER_FILE, HermesInstaller::deployDpkgConf,
+                prefix + "/etc/dpkg/dpkg.cfg.d/hermes-paths");
+    }
+
+    private static void runMigration(String name, String version,
+            String markerPath, ThrowingRunnable deployAction) {
+        runMigration(name, version, markerPath, deployAction, null);
+    }
+
+    private static void runMigration(String name, String version,
+            String markerPath, ThrowingRunnable deployAction, String targetFilePath) {
+        boolean needsDeploy = true;
+        File marker = new File(markerPath);
+        if (marker.exists()) {
             try {
-                String deployedVersion = readFile(bashInitMarker).trim();
-                if (HERMES_BASH_INIT_VERSION.equals(deployedVersion)) {
-                    needsBashInitDeploy = false;
+                String deployedVersion = readFile(marker).trim();
+                if (version.equals(deployedVersion)) {
+                    needsDeploy = false;
+                    // If target file was deleted (e.g. by apt upgrade), redeploy
+                    if (targetFilePath != null && !new File(targetFilePath).exists()) {
+                        needsDeploy = true;
+                        Logger.logInfo(LOG_TAG, name + " target file missing, redeploying");
+                    }
                 }
             } catch (Exception e) {
                 // Marker file unreadable - re-deploy
             }
         }
-        if (needsBashInitDeploy) {
+        if (needsDeploy) {
             try {
-                deployBashInit();
-                try (FileOutputStream out = new FileOutputStream(HERMES_BASH_INIT_MARKER_FILE)) {
-                    out.write((HERMES_BASH_INIT_VERSION + "\n").getBytes("UTF-8"));
+                deployAction.run();
+                try (FileOutputStream out = new FileOutputStream(markerPath)) {
+                    out.write((version + "\n").getBytes("UTF-8"));
                 }
-                Logger.logInfo(LOG_TAG, "Bash init migration complete (v" + HERMES_BASH_INIT_VERSION + ")");
+                Logger.logInfo(LOG_TAG, name + " migration complete (v" + version + ")");
             } catch (Exception e) {
-                Logger.logErrorExtended(LOG_TAG, "Failed to deploy bash init: " + e.getMessage());
+                Logger.logErrorExtended(LOG_TAG, "Failed " + name + " migration: " + e.getMessage());
             }
         }
     }
@@ -235,6 +277,9 @@ public class HermesInstaller {
             out.write("1\n".getBytes("UTF-8"));
         }
         deployBashInit();
+        deployAptConf();
+        deployAptHook();
+        deployDpkgConf();
         deployShellProfile();
     }
 
@@ -262,6 +307,110 @@ public class HermesInstaller {
         }
         Os.chmod(initFile.getAbsolutePath(), 0644);
         Logger.logInfo(LOG_TAG, "Deployed bash init file to " + initFile.getAbsolutePath());
+    }
+
+    /**
+     * Deploy apt.conf with explicit directory paths to override compiled-in defaults.
+     * The upstream apt binary has paths like Dir::Etc compiled in as
+     * /data/data/com.termux/files/usr/etc/apt. Binary patching can fail silently
+     * when there isn't enough null-byte padding after the old string, so this
+     * config file forces apt to use the correct paths regardless of patching result.
+     */
+    private static void deployAptConf() throws Exception {
+        String prefix = TermuxConstants.TERMUX_PREFIX_DIR_PATH;
+        File aptConfDir = new File(prefix, "etc/apt/apt.conf.d");
+        if (!aptConfDir.exists() && !aptConfDir.mkdirs()) {
+            throw new Exception("Failed to create " + aptConfDir.getAbsolutePath());
+        }
+
+        File confFile = new File(aptConfDir, "99hermes-paths.conf");
+
+        String content = "// Hermes: override compiled-in directory paths for renamed package\n"
+                + "Dir \"" + prefix + "\";\n"
+                + "Dir::State \"" + prefix + "/var/lib/apt\";\n"
+                + "Dir::State::status \"" + prefix + "/var/lib/dpkg/status\";\n"
+                + "Dir::Cache \"" + prefix + "/var/cache/apt\";\n"
+                + "Dir::Etc \"" + prefix + "/etc/apt\";\n"
+                + "Dir::Bin::methods \"" + prefix + "/lib/apt/methods\";\n"
+                + "Dir::Bin::dpkg \"" + prefix + "/bin/dpkg\";\n"
+                + "Dir::Log \"" + prefix + "/var/log/apt\";\n";
+
+        try (FileOutputStream out = new FileOutputStream(confFile)) {
+            out.write(content.getBytes("UTF-8"));
+        }
+        Os.chmod(confFile.getAbsolutePath(), 0644);
+        Logger.logInfo(LOG_TAG, "Deployed apt.conf to " + confFile.getAbsolutePath());
+    }
+
+    /**
+     * Deploy apt/dpkg post-invoke hooks that create a marker file after
+     * every package install/upgrade/remove. On next app start, the marker
+     * triggers re-patching of binaries so that newly installed packages
+     * from the upstream Termux repo (which have com.termux paths) get patched.
+     */
+    private static void deployAptHook() throws Exception {
+        String prefix = TermuxConstants.TERMUX_PREFIX_DIR_PATH;
+
+        // Deploy the hook script to libexec
+        File libexecDir = new File(prefix, "libexec");
+        if (!libexecDir.exists() && !libexecDir.mkdirs()) {
+            throw new Exception("Failed to create " + libexecDir.getAbsolutePath());
+        }
+
+        File hookScript = new File(libexecDir, "hermes-patch-paths");
+        String markerFile = HERMES_REPATCH_MARKER_FILE;
+
+        String script = "#!" + prefix + "/bin/sh\n"
+                + "# Hermes: signal that binaries need re-patching after package operations.\n"
+                + "# On next app start, the Java migration will re-run patchBootstrapPaths().\n"
+                + "touch " + markerFile + "\n";
+
+        try (FileOutputStream out = new FileOutputStream(hookScript)) {
+            out.write(script.getBytes("UTF-8"));
+        }
+        Os.chmod(hookScript.getAbsolutePath(), 0755);
+        Logger.logInfo(LOG_TAG, "Deployed apt hook script to " + hookScript.getAbsolutePath());
+
+        // Deploy the apt.conf.d hook configuration
+        File aptConfDir = new File(prefix, "etc/apt/apt.conf.d");
+        if (!aptConfDir.exists() && !aptConfDir.mkdirs()) {
+            throw new Exception("Failed to create " + aptConfDir.getAbsolutePath());
+        }
+
+        File hookConf = new File(aptConfDir, "98hermes-post-invoke");
+        String hookContent = "// Hermes: trigger re-patching after package operations\n"
+                + "DPkg::Post-Invoke { \"" + hookScript.getAbsolutePath() + "\"; };\n"
+                + "APT::Update::Post-Invoke-Success { \"" + hookScript.getAbsolutePath() + "\"; };\n";
+
+        try (FileOutputStream out = new FileOutputStream(hookConf)) {
+            out.write(hookContent.getBytes("UTF-8"));
+        }
+        Os.chmod(hookConf.getAbsolutePath(), 0644);
+        Logger.logInfo(LOG_TAG, "Deployed apt hook config to " + hookConf.getAbsolutePath());
+    }
+
+    /**
+     * Deploy dpkg configuration to override compiled-in admindir path.
+     * dpkg has /data/data/com.termux/files/usr/var/lib/dpkg baked in,
+     * and binary patching may fail for the same null-padding reasons as apt.
+     */
+    private static void deployDpkgConf() throws Exception {
+        String prefix = TermuxConstants.TERMUX_PREFIX_DIR_PATH;
+        File dpkgCfgDir = new File(prefix, "etc/dpkg/dpkg.cfg.d");
+        if (!dpkgCfgDir.exists() && !dpkgCfgDir.mkdirs()) {
+            throw new Exception("Failed to create " + dpkgCfgDir.getAbsolutePath());
+        }
+
+        File confFile = new File(dpkgCfgDir, "hermes-paths");
+
+        String content = "# Hermes: override compiled-in dpkg directory paths\n"
+                + "admindir " + prefix + "/var/lib/dpkg\n";
+
+        try (FileOutputStream out = new FileOutputStream(confFile)) {
+            out.write(content.getBytes("UTF-8"));
+        }
+        Os.chmod(confFile.getAbsolutePath(), 0644);
+        Logger.logInfo(LOG_TAG, "Deployed dpkg.conf to " + confFile.getAbsolutePath());
     }
 
     private static void deployShellProfile() throws Exception {
@@ -331,5 +480,10 @@ public class HermesInstaller {
                 retryInstall(context.getApplicationContext());
             }
         }
+    }
+
+    @FunctionalInterface
+    private interface ThrowingRunnable {
+        void run() throws Exception;
     }
 }
