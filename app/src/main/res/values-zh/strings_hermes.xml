@@ -509,40 +509,10 @@
     <string name="validation_summary_format">%2$d 项检查中有 %1$d 项通过</string>
 
     <!-- Feishu Setup (supplementary - main translations in strings_feishu.xml) -->
-    <string name="feishu_app_id_prefix">应用 ID 以 \"cli_\" 开头</string>
-    <string name="feishu_auto_detect_desc">已从二维码检测到凭据，请确认是否正确。</string>
-    <string name="feishu_auto_detect_title">自动检测到的凭据</string>
     <string name="feishu_copied">已复制！</string>
-    <string-array name="feishu_create_app_steps">
-        <item>点击下方按钮打开开发者控制台</item>
-        <item>点击「创建应用」并选择「机器人」作为应用类型</item>
-        <item>为您的机器人输入名称（例如「我的 Hermes 机器人」）</item>
-        <item>进入「机器人」部分，启用机器人功能</item>
-        <item>从凭据页面复制应用 ID 和应用密钥</item>
-    </string-array>
-    <string name="feishu_copy_webhook">复制 Webhook URL</string>
-    <string name="feishu_credentials_help">输入飞书开发者控制台中的应用 ID 和应用密钥。</string>
-    <string name="feishu_deep_link_summary">直接打开飞书开发者控制台</string>
-    <string name="feishu_deep_link_title">快速设置链接</string>
-    <string name="feishu_event_sub_desc">配置事件订阅，使飞书能将消息发送到您的 Hermes 网关。您需要在飞书开发者控制台设置 Webhook URL。</string>
-    <string name="feishu_event_sub_steps">设置说明：</string>
-    <string name="feishu_event_sub_instructions">1. 打开飞书开发者控制台 → 您的应用 → 事件\n2. 点击「添加事件」\n3. 订阅：im.message.receive_v1\n4. 将请求 URL 设为上方的 Webhook URL\n5. 如果使用 WebSocket 模式，可以跳过 URL 设置\n6. 确保已启用事件权限</string>
-    <string name="feishu_event_sub_title">事件订阅</string>
     <string name="feishu_no_qr_scanner">未找到二维码扫描应用，请安装一个。</string>
     <string name="feishu_paste">粘贴</string>
-    <string name="feishu_open_dev_console">打开开发者控制台</string>
-    <string name="feishu_open_dev_console_url">https://open.feishu.cn/app</string>
-    <string name="feishu_open_event_console">打开事件设置</string>
-    <string name="feishu_qr_tip_desc">将手机摄像头对准飞书开发者控制台上的二维码，可快速复制应用 ID 和密钥。</string>
-    <string name="feishu_qr_tip_title">提示：用手机摄像头扫描</string>
-    <string name="feishu_scan_app_id_filled">已填入应用 ID：%1$s</string>
-    <string name="feishu_scan_filled">已从二维码填入凭据</string>
-    <string name="feishu_scan_prompt">扫描二维码以填入凭据</string>
     <string name="feishu_scan_qr_code">扫描二维码</string>
-    <string name="feishu_webhook_url_label">Webhook URL（复制此链接）：</string>
-    <string name="feishu_websocket_note">注意：如果您选择了 WebSocket 连接方式，则无需配置 Webhook URL。网关将通过 WebSocket 自动连接到飞书。</string>
-    <string name="feishu_welcome_new_desc">此向导将引导您完成飞书机器人与 Hermes 的连接。您需要准备：</string>
-    <string name="feishu_welcome_new_title">欢迎使用飞书设置</string>
 
     <!-- Gateway Log -->
     <string name="gateway_log_copied">日志已复制到剪贴板</string>

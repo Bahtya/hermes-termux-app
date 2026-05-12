@@ -48,10 +48,6 @@
     <string name="feishu_cancel">取消</string>
     <string name="feishu_finish">完成</string>
 
-    <!-- Toasts -->
-    <string name="feishu_config_saved">飞书配置保存成功</string>
-    <string name="feishu_config_error">保存配置失败</string>
-
     <!-- Content description -->
     <string name="feishu_step_progress">第 %1$d 步，共 %2$d 步</string>
 </resources>
