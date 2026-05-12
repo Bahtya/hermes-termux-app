@@ -64,6 +64,7 @@ public class TermuxApplication extends Application {
 
             // Run upgrade migrations (e.g. patch bootstrap paths for existing installs)
             HermesInstaller.runUpgradeMigrations();
+            HermesInstaller.runContextMigrations(context);
         } else {
             Logger.logErrorExtended(LOG_TAG, "Termux files directory is not accessible\n" + error);
         }
