@@ -343,6 +343,14 @@ public class HermesConfigActivity extends AppCompatActivity {
         }
         card.setBackgroundColor(bgColor);
 
+        // Make card clickable to open install details
+        if (state != HermesInstallHelper.InstallState.INSTALLED) {
+            card.setClickable(true);
+            card.setFocusable(true);
+            card.setOnClickListener(v ->
+                    startActivity(new Intent(this, HermesInstallActivity.class)));
+        }
+
         LinearLayout.LayoutParams cardParams = new LinearLayout.LayoutParams(
                 LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT);
         cardParams.bottomMargin = dp(16);

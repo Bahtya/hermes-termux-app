@@ -25,6 +25,26 @@ public class HermesInstallHelper {
     private static final String MARKER_FILE =
             TermuxConstants.TERMUX_DATA_HOME_DIR_PATH + "/hermes-installed";
 
+    private static volatile boolean sInstallRunning = false;
+    private static final StringBuilder sOutputBuffer = new StringBuilder();
+    private static final int MAX_BUFFER_SIZE = 50000;
+
+    public static boolean isInstallRunning() {
+        return sInstallRunning;
+    }
+
+    public static String getOutputBuffer() {
+        synchronized (sOutputBuffer) {
+            return sOutputBuffer.toString();
+        }
+    }
+
+    public static void clearOutputBuffer() {
+        synchronized (sOutputBuffer) {
+            sOutputBuffer.setLength(0);
+        }
+    }
+
     static final String INSTALL_URL_DIRECT =
             "https://hermes-agent.nousresearch.com/install.sh";
 
@@ -122,6 +142,21 @@ public class HermesInstallHelper {
      * Phase 2: each mirror in MIRROR_PREFIXES (1 attempt per mirror, last resort).
      */
     public static void executeInstall(Context context,
+            ProgressCallback callback, PostBootstrapHook postBootstrap) throws Exception {
+        if (sInstallRunning) {
+            Logger.logWarn(LOG_TAG, "Install already running, skipping duplicate call");
+            return;
+        }
+        sInstallRunning = true;
+        clearOutputBuffer();
+        try {
+            executeInstallInternal(context, callback, postBootstrap);
+        } finally {
+            sInstallRunning = false;
+        }
+    }
+
+    private static void executeInstallInternal(Context context,
             ProgressCallback callback, PostBootstrapHook postBootstrap) throws Exception {
         StringBuilder errorLog = new StringBuilder();
 
@@ -467,6 +502,12 @@ public class HermesInstallHelper {
             while ((line = reader.readLine()) != null) {
                 output.append(line).append("\n");
                 if (callback != null) callback.onOutput(line);
+                synchronized (sOutputBuffer) {
+                    sOutputBuffer.append(line).append("\n");
+                    if (sOutputBuffer.length() > MAX_BUFFER_SIZE) {
+                        sOutputBuffer.delete(0, sOutputBuffer.length() - MAX_BUFFER_SIZE / 2);
+                    }
+                }
             }
         }
 
