@@ -28,8 +28,10 @@ public class HermesInstallHelper {
     static final String INSTALL_URL_DIRECT =
             "https://hermes-agent.nousresearch.com/install.sh";
 
+    static final String HERMES_AGENT_COMMIT = "486b692ddd801f8f665d3fff023149fb1cb6509e";
+
     static final String INSTALL_URL_GITHUB_RAW =
-            "https://raw.githubusercontent.com/NousResearch/hermes-agent/main/scripts/install.sh";
+            "https://raw.githubusercontent.com/NousResearch/hermes-agent/" + HERMES_AGENT_COMMIT + "/scripts/install.sh";
 
     static final String GITHUB_REPO_URL =
             "https://github.com/NousResearch/hermes-agent.git";
@@ -259,13 +261,15 @@ public class HermesInstallHelper {
     static String buildInstallCommand(boolean useMirror, String mirrorPrefix) {
         String bashPath = TermuxConstants.TERMUX_BIN_PREFIX_DIR_PATH + "/bash";
 
+        String curlTimeout = "--connect-timeout 30 --max-time 300";
+
         if (!useMirror) {
-            return "curl -fsSL " + INSTALL_URL_DIRECT + " | " + bashPath;
+            return "curl -fsSL " + curlTimeout + " " + INSTALL_URL_DIRECT + " | " + bashPath;
         }
 
         String mirrorScriptUrl = mirrorPrefix + INSTALL_URL_GITHUB_RAW;
         String mirrorRepoUrl = mirrorPrefix + GITHUB_REPO_URL;
-        return "curl -fsSL " + mirrorScriptUrl
+        return "curl -fsSL " + curlTimeout + " " + mirrorScriptUrl
                 + " | sed 's|" + GITHUB_REPO_URL + "|" + mirrorRepoUrl + "|g'"
                 + " | " + bashPath;
     }
