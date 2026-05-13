@@ -211,6 +211,10 @@ public class HermesInstaller {
                         // earlier (e.g. during app.onCreate()) no longer exist.
                         deployInstallPrerequisites(context);
                     });
+                    // Validate hermes binary before marking installed
+                    if (!validateHermesBinary()) {
+                        throw new RuntimeException("Hermes binary validation failed — hermes --help did not succeed");
+                    }
                     markInstalled(context);
                     fixBinaryPermissions();
                     HermesConfigManager.reinitialize();
@@ -622,6 +626,42 @@ public class HermesInstaller {
             }
         }
         Logger.logInfo(LOG_TAG, "Binary permissions fixed");
+    }
+
+    private static boolean validateHermesBinary() {
+        try {
+            String binPath = TermuxConstants.TERMUX_BIN_PREFIX_DIR_PATH;
+            String prefix = TermuxConstants.TERMUX_PREFIX_DIR_PATH;
+            File hermesBin = new File(binPath, "hermes");
+            if (!hermesBin.exists()) {
+                Logger.logWarn(LOG_TAG, "Validation: hermes binary not found");
+                return false;
+            }
+            ProcessBuilder pb = new ProcessBuilder(hermesBin.getAbsolutePath(), "--help");
+            pb.environment().put("HOME", TermuxConstants.TERMUX_HOME_DIR_PATH);
+            pb.environment().put("PATH", binPath + ":/system/bin");
+            pb.environment().put("PREFIX", prefix);
+            pb.environment().put("LD_LIBRARY_PATH", TermuxConstants.TERMUX_LIB_PREFIX_DIR_PATH);
+            String pathRewriteLib = TermuxConstants.TERMUX_LIB_PREFIX_DIR_PATH + "/libpath_rewrite.so";
+            if (new File(pathRewriteLib).exists()) {
+                pb.environment().put("LD_PRELOAD", pathRewriteLib);
+            }
+            pb.redirectErrorStream(true);
+            Process p = pb.start();
+            try (BufferedReader reader = new BufferedReader(new InputStreamReader(p.getInputStream()))) {
+                while (reader.readLine() != null) {}
+            }
+            int exit = p.waitFor();
+            if (exit != 0) {
+                Logger.logWarn(LOG_TAG, "Validation: hermes --help exited with code " + exit);
+                return false;
+            }
+            Logger.logInfo(LOG_TAG, "Hermes binary validated successfully");
+            return true;
+        } catch (Exception e) {
+            Logger.logWarn(LOG_TAG, "Validation exception: " + e.getMessage());
+            return false;
+        }
     }
 
     public static class RetryReceiver extends BroadcastReceiver {

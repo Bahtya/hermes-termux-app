@@ -280,14 +280,23 @@ public class HermesInstallHelper {
      * Failures are logged but non-fatal — the install script may still succeed.
      */
     private static void prepareAptEnvironment(ProgressCallback callback) {
-        // Retry apt update to handle lock contention from concurrent processes.
+        // Retry apt update, then upgrade all packages to prevent partial upgrade breakage.
+        // When the install script later runs "pkg install X", apt won't trigger inconsistent
+        // upgrades (e.g. libcurl upgraded but libngtcp2 not, causing linking failures).
         String diag = "echo '=== apt update (with retry) ==='; "
                 + "_ok=false; for _i in $(seq 1 6); do "
                 + "echo 'Attempt '$_i'...'; "
                 + "if apt update 2>&1; then _ok=true; break; fi; "
                 + "echo 'Retrying in 10s...'; sleep 10; "
                 + "done; "
-                + "if [ \"$_ok\" = false ]; then echo 'WARNING: apt update failed after 6 attempts'; fi";
+                + "if [ \"$_ok\" = false ]; then echo 'WARNING: apt update failed after 6 attempts'; fi; "
+                + "echo '=== apt upgrade ==='; "
+                + "_ug=false; for _i in $(seq 1 3); do "
+                + "echo 'Upgrade attempt '$_i'...'; "
+                + "if apt upgrade -y 2>&1; then _ug=true; break; fi; "
+                + "echo 'Retrying in 10s...'; sleep 10; "
+                + "done; "
+                + "if [ \"$_ug\" = false ]; then echo 'WARNING: apt upgrade failed'; fi";
         try {
             if (callback != null) callback.onOutput("Preparing apt environment...");
             runShellCommand(diag, callback);
