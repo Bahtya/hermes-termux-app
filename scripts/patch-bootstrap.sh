@@ -46,9 +46,14 @@ for arch in aarch64 arm i686 x86_64; do
   find . -type f \( -path './var/*' \) \
     -exec sed -i "s|${OLD}|${NEW}|g" {} +
 
-  # ELF binaries
+  # ELF binaries — verify each patched file is still a valid ELF
   find . -type f \( -path './bin/*' -o -path './lib/*' -o -path './libexec/*' \) | while read -r f; do
     perl -pi -e "s|/data/data/com\\.termux|/data/data/com\\.bahtya|g" "$f"
+    # Verify ELF magic (0x7F 'E' 'L' 'F') is intact after patching
+    magic=$(dd if="$f" bs=4 count=1 2>/dev/null | od -A n -t x1 | tr -d ' \n')
+    if [ "$magic" != "7f454c46" ]; then
+      echo "WARNING: $f may be corrupted after ELF patching (magic=$magic)"
+    fi
   done
 
   rm -f "${ZIP}"

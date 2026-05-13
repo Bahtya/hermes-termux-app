@@ -451,18 +451,21 @@ public class HermesInstaller {
             }
         }
 
-        File statusFile = new File(prefixPath, "var/lib/dpkg/status");
-        if (statusFile.exists()) {
-            if (patchTextFileSafe(statusFile, oldPrefix, newPrefix)) patched++;
+        for (String name : new String[]{"status", "available", "statoverride", "diversions"}) {
+            File f = new File(prefixPath, "var/lib/dpkg/" + name);
+            if (f.exists()) {
+                if (patchTextFileSafe(f, oldPrefix, newPrefix)) patched++;
+            }
         }
 
-        // Also patch the alternatives directory if present
-        File altDir = new File(prefixPath, "var/lib/dpkg/alternatives");
-        if (altDir.isDirectory()) {
-            File[] files = altDir.listFiles();
-            if (files != null) {
-                for (File f : files) {
-                    if (patchTextFileSafe(f, oldPrefix, newPrefix)) patched++;
+        for (String sub : new String[]{"alternatives", "triggers", "methods"}) {
+            File dir = new File(prefixPath, "var/lib/dpkg/" + sub);
+            if (dir.isDirectory()) {
+                File[] files = dir.listFiles();
+                if (files != null) {
+                    for (File f : files) {
+                        if (patchTextFileSafe(f, oldPrefix, newPrefix)) patched++;
+                    }
                 }
             }
         }

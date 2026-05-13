@@ -54,6 +54,30 @@ static const char *rewrite2(const char *p) {
 
 /* --- execve shebang patching --- */
 
+/* Clean up stale temp files from previous execve calls.
+ * Runs once per thread (via __thread guard). */
+static void cleanup_stale_temps(void) {
+    static __thread int cleaned = 0;
+    if (cleaned) return;
+    cleaned = 1;
+
+    const char *tmpdir = getenv("TMPDIR");
+    if (!tmpdir || tmpdir[0] == '\0')
+        tmpdir = NEW_PREFIX "/files/usr/tmp";
+
+    DIR *d = opendir(tmpdir);
+    if (!d) return;
+    struct dirent *ent;
+    char p[PATH_MAX];
+    while ((ent = readdir(d)) != NULL) {
+        if (strncmp(ent->d_name, ".rw_", 4) == 0) {
+            snprintf(p, sizeof(p), "%s/%s", tmpdir, ent->d_name);
+            unlink(p);
+        }
+    }
+    closedir(d);
+}
+
 /*
  * Check if the file at 'path' is a script whose shebang contains OLD_PREFIX.
  * If so, create a temp file with the shebang patched and return its path.
@@ -62,6 +86,8 @@ static const char *rewrite2(const char *p) {
  */
 static const char *patch_shebang_if_needed(const char *path) {
     static __thread char tmpbuf[PATH_MAX];
+
+    cleanup_stale_temps();
 
     int fd = open(path, O_RDONLY);
     if (fd < 0) return NULL;
