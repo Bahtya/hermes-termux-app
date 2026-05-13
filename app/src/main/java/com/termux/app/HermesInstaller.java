@@ -57,7 +57,7 @@ public class HermesInstaller {
     private static final String HERMES_APT_CONF_VERSION = "2";
     private static final String HERMES_DPKG_CONF_VERSION = "1";
     private static final String HERMES_SHELL_PROFILE_VERSION = "1";
-    private static final String HERMES_PATH_REWRITE_VERSION = "2";
+    private static final String HERMES_PATH_REWRITE_VERSION = "3";
     private static final String HERMES_SYMLINK_FIX_VERSION = "2";
     private static final String HERMES_DPKG_DB_FIX_VERSION = "2";
 
@@ -428,25 +428,25 @@ public class HermesInstaller {
     }
 
     /**
-     * Replace the default Termux apt source with TUNA mirror for faster
-     * downloads in regions where packages.termux.dev is slow.
+     * Overwrite sources.list with TUNA mirror for faster downloads in China.
+     * The bootstrap may contain any arbitrary mirror URL that we can't predict,
+     * so we directly write the TUNA source instead of pattern-matching.
+     * Packages are identical regardless of mirror — path_rewrite.so handles
+     * the com.termux → com.bahtya translation at runtime.
      */
     private static void deployAptMirror(String prefix) throws Exception {
         File sourcesList = new File(prefix, "etc/apt/sources.list");
-        if (!sourcesList.exists()) {
-            Logger.logWarn(LOG_TAG, "sources.list not found, skipping mirror deploy");
-            return;
+        File sourcesDir = sourcesList.getParentFile();
+        if (sourcesDir != null && !sourcesDir.exists() && !sourcesDir.mkdirs()) {
+            throw new Exception("Failed to create " + sourcesDir.getAbsolutePath());
         }
-        String content = readFile(sourcesList);
-        String replaced = content.replace("packages.termux.dev/apt/",
-                "mirrors.tuna.tsinghua.edu.cn/termux/apt/");
-        if (!content.equals(replaced)) {
-            try (FileOutputStream out = new FileOutputStream(sourcesList)) {
-                out.write(replaced.getBytes("UTF-8"));
-            }
-            Os.chmod(sourcesList.getAbsolutePath(), 0644);
-            Logger.logInfo(LOG_TAG, "Replaced apt sources with TUNA mirror");
+        String tunaSource = "deb https://mirrors.tuna.tsinghua.edu.cn/termux/apt/termux-main stable main\n";
+        try (FileOutputStream out = new FileOutputStream(sourcesList)) {
+            out.write(tunaSource.getBytes("UTF-8"));
         }
+        Os.chmod(sourcesList.getAbsolutePath(), 0644);
+        Logger.logInfo(LOG_TAG, "Set apt source to TUNA mirror");
+    }
     }
 
     /**
