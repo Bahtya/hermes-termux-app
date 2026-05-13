@@ -54,7 +54,7 @@ public class HermesInstaller {
     private static final String HERMES_DPKG_DB_FIX_MARKER_FILE =
             TermuxConstants.TERMUX_DATA_HOME_DIR_PATH + "/hermes-dpkg-db-patched";
     private static final String HERMES_BASH_INIT_VERSION = "2";
-    private static final String HERMES_APT_CONF_VERSION = "2";
+    private static final String HERMES_APT_CONF_VERSION = "3";
     private static final String HERMES_DPKG_CONF_VERSION = "1";
     private static final String HERMES_SHELL_PROFILE_VERSION = "1";
     private static final String HERMES_PATH_REWRITE_VERSION = "3";
@@ -94,7 +94,10 @@ public class HermesInstaller {
         runMigration("Bash init", HERMES_BASH_INIT_VERSION,
                 HERMES_BASH_INIT_MARKER_FILE, HermesInstaller::deployBashInit);
         runMigration("Apt conf", HERMES_APT_CONF_VERSION,
-                HERMES_APT_CONF_MARKER_FILE, HermesInstaller::deployAptConf,
+                HERMES_APT_CONF_MARKER_FILE, () -> {
+                    HermesInstaller.deployAptConf();
+                    HermesInstaller.deployAptPreInstallHook();
+                },
                 prefix + "/etc/apt/apt.conf.d/99hermes-paths.conf");
         runMigration("Dpkg conf", HERMES_DPKG_CONF_VERSION,
                 HERMES_DPKG_CONF_MARKER_FILE, HermesInstaller::deployDpkgConf,
@@ -167,6 +170,9 @@ public class HermesInstaller {
         String prefix = TermuxConstants.TERMUX_PREFIX_DIR_PATH;
         try { deployAptConf(); } catch (Exception e) {
             Logger.logWarn(LOG_TAG, "Pre-install apt.conf deploy: " + e.getMessage());
+        }
+        try { deployAptPreInstallHook(); } catch (Exception e) {
+            Logger.logWarn(LOG_TAG, "Pre-install apt hook deploy: " + e.getMessage());
         }
         try { deployDpkgConf(); } catch (Exception e) {
             Logger.logWarn(LOG_TAG, "Pre-install dpkg.conf deploy: " + e.getMessage());
@@ -323,6 +329,7 @@ public class HermesInstaller {
         }
         deployBashInit();
         deployAptConf();
+        deployAptPreInstallHook();
         deployDpkgConf();
         deployShellProfile();
         deployPathRewrite(context);
@@ -370,6 +377,7 @@ public class HermesInstaller {
 
         File confFile = new File(aptConfDir, "99hermes-paths.conf");
 
+        String hookScript = prefix + "/lib/hermes/apt-pre-install-patch";
         String content = "// Hermes: override compiled-in directory paths for renamed package\n"
                 + "Dir \"" + prefix + "\";\n"
                 + "Dir::State \"" + prefix + "/var/lib/apt\";\n"
@@ -379,13 +387,90 @@ public class HermesInstaller {
                 + "Dir::Bin::methods \"" + prefix + "/lib/apt/methods\";\n"
                 + "Dir::Bin::dpkg \"" + prefix + "/bin/dpkg\";\n"
                 + "Dir::Log \"" + prefix + "/var/log/apt\";\n"
-                + "Dpkg::Options { \"--admindir=" + prefix + "/var/lib/dpkg\"; };\n";
+                + "Dpkg::Options { \"--admindir=" + prefix + "/var/lib/dpkg\"; };\n"
+                + "DPkg::Pre-Install-Pkgs { \"" + hookScript + "\"; };\n";
 
         try (FileOutputStream out = new FileOutputStream(confFile)) {
             out.write(content.getBytes("UTF-8"));
         }
         Os.chmod(confFile.getAbsolutePath(), 0644);
         Logger.logInfo(LOG_TAG, "Deployed apt.conf to " + confFile.getAbsolutePath());
+    }
+
+    /**
+     * Deploy the apt-pre-install-patch script that patches .deb files between
+     * APT hash verification and dpkg installation. This runs as a
+     * DPkg::Pre-Install-Pkgs hook, so APT's hash check passes first, then
+     * we rewrite maintainer scripts and ELF binary paths from
+     * com.termux → com.hermux before dpkg sees the package.
+     */
+    private static void deployAptPreInstallHook() throws Exception {
+        String prefix = TermuxConstants.TERMUX_PREFIX_DIR_PATH;
+        File hookDir = new File(prefix, "lib/hermes");
+        if (!hookDir.exists() && !hookDir.mkdirs()) {
+            throw new Exception("Failed to create " + hookDir.getAbsolutePath());
+        }
+
+        File script = new File(hookDir, "apt-pre-install-patch");
+
+        String content = "#!" + prefix + "/bin/sh\n"
+                + "# Hermes: DPkg::Pre-Install-Pkgs hook\n"
+                + "# Patches .deb files between APT hash verification and dpkg install.\n"
+                + "# stdin: one .deb path per line.\n"
+                + "\n"
+                + "OLD='/data/data/com.termux'\n"
+                + "NEW='/data/data/com.hermux'\n"
+                + "\n"
+                + "patch_deb() {\n"
+                + "  deb=\"$1\"\n"
+                + "  tmpdir=$(mktemp -d)\n"
+                + "  if ! dpkg-deb -R \"$deb\" \"$tmpdir\" 2>/dev/null; then\n"
+                + "    rm -rf \"$tmpdir\"\n"
+                + "    return\n"
+                + "  fi\n"
+                + "\n"
+                + "  # Patch maintainer scripts (postinst, prerm, etc.)\n"
+                + "  if [ -d \"$tmpdir/DEBIAN\" ]; then\n"
+                + "    for f in \"$tmpdir/DEBIAN/\"*; do\n"
+                + "      [ -f \"$f\" ] && sed -i \"s|$OLD|$NEW|g\" \"$f\" 2>/dev/null\n"
+                + "    done\n"
+                + "  fi\n"
+                + "\n"
+                + "  # Patch text files and ELF binaries in the data payload.\n"
+                + "  # OLD and NEW are equal length (21 bytes), so binary patching is safe.\n"
+                + "  find \"$tmpdir\" -path \"$tmpdir/DEBIAN\" -prune -o -type f -print | while read -r f; do\n"
+                + "    case \"$(dd if=\"$f\" bs=4 count=1 2>/dev/null | od -A n -t x1 | tr -d ' \\n')\" in\n"
+                + "      7f454c46)\n"
+                + "        # ELF binary: same-length byte replacement is safe\n"
+                + "        if sed -i \"s|$OLD|$NEW|g\" \"$f\" 2>/dev/null; then\n"
+                + "          magic=$(dd if=\"$f\" bs=4 count=1 2>/dev/null | od -A n -t x1 | tr -d ' \\n')\n"
+                + "          if [ \"$magic\" != \"7f454c46\" ]; then\n"
+                + "            echo \"hermes-hook: WARNING: $f ELF corrupted after patching\" >&2\n"
+                + "          fi\n"
+                + "        fi\n"
+                + "        ;;\n"
+                + "      *)\n"
+                + "        # Text or other: safe to sed\n"
+                + "        sed -i \"s|$OLD|$NEW|g\" \"$f\" 2>/dev/null || true\n"
+                + "        ;;\n"
+                + "    esac\n"
+                + "  done\n"
+                + "\n"
+                + "  dpkg-deb -b \"$tmpdir\" \"$deb\" 2>/dev/null\n"
+                + "  rm -rf \"$tmpdir\"\n"
+                + "}\n"
+                + "\n"
+                + "while IFS= read -r deb_path; do\n"
+                + "  case \"$deb_path\" in\n"
+                + "    *.deb) patch_deb \"$deb_path\" ;;\n"
+                + "  esac\n"
+                + "done\n";
+
+        try (FileOutputStream out = new FileOutputStream(script)) {
+            out.write(content.getBytes("UTF-8"));
+        }
+        Os.chmod(script.getAbsolutePath(), 0755);
+        Logger.logInfo(LOG_TAG, "Deployed apt pre-install hook to " + script.getAbsolutePath());
     }
 
     /**
