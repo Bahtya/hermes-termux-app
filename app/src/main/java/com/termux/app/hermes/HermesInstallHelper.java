@@ -138,6 +138,10 @@ public class HermesInstallHelper {
             postBootstrap.onBootstrapReady();
         }
 
+        // Phase 0.7: prepare apt environment
+        // dpkg may have half-configured packages from bootstrap; apt has no package lists.
+        prepareAptEnvironment(callback);
+
         // Phase 1: direct attempts
         setState(context, InstallState.DOWNLOADING);
         for (int attempt = 1; attempt <= maxDirectRetries; attempt++) {
@@ -266,6 +270,34 @@ public class HermesInstallHelper {
             runShellCommand(cmd, null);
         } catch (Exception e) {
             Logger.logWarn(LOG_TAG, "apt readiness check failed (non-fatal): " + e.getMessage());
+        }
+    }
+
+    /**
+     * Prepare the apt/dpkg environment before running the install script.
+     * - dpkg --configure -a: fix half-configured packages from bootstrap
+     * - apt update: fetch package lists (TUNA mirror already deployed)
+     * Failures are logged but non-fatal — the install script may still succeed.
+     */
+    private static void prepareAptEnvironment(ProgressCallback callback) {
+        // Retry apt update up to 6 times with 5s sleep to handle lock contention
+        // from Termux's own background apt processes during bootstrap.
+        String diag = "echo '=== sources.list ==='; "
+                + "cat $PREFIX/etc/apt/sources.list 2>&1 || echo 'missing'; "
+                + "echo '=== apt update (with retry) ==='; "
+                + "_ok=false; for _i in $(seq 1 6); do "
+                + "echo 'Attempt '$_i'...'; "
+                + "if apt update 2>&1; then _ok=true; break; fi; "
+                + "echo 'apt update failed, waiting 5s...'; sleep 5; "
+                + "done; "
+                + "if [ \"$_ok\" = false ]; then echo 'WARNING: apt update failed after 6 attempts'; fi; "
+                + "echo '=== installing python ==='; "
+                + "apt install -y python -o Dpkg::Options='--debug=2' 2>&1 || true";
+        try {
+            if (callback != null) callback.onOutput("Preparing apt environment...");
+            runShellCommand(diag, callback);
+        } catch (Exception e) {
+            Logger.logWarn(LOG_TAG, "apt env preparation failed (non-fatal): " + e.getMessage());
         }
     }
 
