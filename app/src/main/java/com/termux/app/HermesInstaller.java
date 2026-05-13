@@ -53,7 +53,7 @@ public class HermesInstaller {
     private static final String HERMES_DPKG_DB_FIX_MARKER_FILE =
             TermuxConstants.TERMUX_DATA_HOME_DIR_PATH + "/hermes-dpkg-db-patched";
     private static final String HERMES_BASH_INIT_VERSION = "2";
-    private static final String HERMES_APT_CONF_VERSION = "3";
+    private static final String HERMES_APT_CONF_VERSION = "4";
     private static final String HERMES_DPKG_CONF_VERSION = "1";
     private static final String HERMES_SHELL_PROFILE_VERSION = "1";
     private static final String HERMES_PATH_REWRITE_VERSION = "3";
@@ -488,7 +488,7 @@ public class HermesInstaller {
                 + "  deb_base=$(basename \"$deb\")\n"
                 + "  echo \"hermes-hook: patching $deb_base...\" >&2\n"
                 + "\n"
-                + "  if ! dpkg-deb -R \"$deb\" \"$tmpdir\" 2>&1; then\n"
+                + "  if ! dpkg-deb -R \"$deb\" \"$tmpdir\" >/dev/null 2>&1; then\n"
                 + "    echo \"hermes-hook: WARNING: failed to extract $deb_base, skipping\" >&2\n"
                 + "    rm -rf \"$tmpdir\"\n"
                 + "    return\n"
@@ -514,7 +514,7 @@ public class HermesInstaller {
                 + "  fi\n"
                 + "\n"
                 + "  # Patch non-ELF text files (configs, data files).\n"
-                + "  grep -rl -- \"$OLD\" \"$tmpdir\" 2>/dev/null | grep -v '/DEBIAN/' | while read -r f; do\n"
+                + "  grep -rl -- \"$OLD\" \"$tmpdir\"/etc \"$tmpdir\"/share \"$tmpdir\"/var 2>/dev/null | while read -r f; do\n"
                 + "    case \"$(dd if=\"$f\" bs=4 count=1 2>/dev/null | od -A n -t x1 | tr -d ' \\n')\" in\n"
                 + "      7f454c46) ;; # ELF: skip, handled by path_rewrite.so at runtime\n"
                 + "      *)\n"
