@@ -30,7 +30,6 @@ public class HermesInstaller {
     private static final String LOG_TAG = "HermesInstaller";
     private static final String NOTIFICATION_CHANNEL_ID = "hermes_install";
     private static final int NOTIFICATION_ID = 2001;
-    private static final int MAX_RETRIES = 3;
 
     static final String ACTION_RETRY_INSTALL = "com.hermux.RETRY_INSTALL";
     static final String EXTRA_IS_RETRY = "is_retry";
@@ -196,7 +195,7 @@ public class HermesInstaller {
                 }
 
                 try {
-                    HermesInstallHelper.executeInstall(context, MAX_RETRIES, new HermesInstallHelper.ProgressCallback() {
+                    HermesInstallHelper.executeInstall(context, new HermesInstallHelper.ProgressCallback() {
                         @Override
                         public void onStatus(String message) {
                             showProgress(context, message, 30);
