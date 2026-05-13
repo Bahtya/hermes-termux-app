@@ -158,7 +158,7 @@ public class HermesInstallActivity extends AppCompatActivity {
 
         if (new File(MARKER_FILE).exists()) {
             mSuccess = true;
-            proceedToNext();
+            showAlreadyInstalled();
             return;
         }
 
@@ -202,6 +202,7 @@ public class HermesInstallActivity extends AppCompatActivity {
 
     private void startInstallation() {
         mRetryButton.setVisibility(View.GONE);
+        mRetryButton.setOnClickListener(v -> startInstallation());
         mProgressBar.setProgress(0);
         mTerminalBuffer.setLength(0);
         mHandler.post(() -> mTerminalOutput.setText(""));
@@ -300,7 +301,7 @@ public class HermesInstallActivity extends AppCompatActivity {
                 Thread.sleep(800);
 
                 mSuccess = true;
-                mHandler.post(this::proceedToNext);
+                mHandler.post(this::showInstallSuccess);
 
             } catch (Exception e) {
                 String error = e.getMessage() != null ? e.getMessage() : "Unknown error";
@@ -385,6 +386,39 @@ public class HermesInstallActivity extends AppCompatActivity {
         } catch (Exception e) {
             return false;
         }
+    }
+
+    private void showAlreadyInstalled() {
+        updateStepIndicators(4);
+        mStatusText.setText(R.string.install_state_installed);
+        mStatusText.setTextColor(0xFF388E3C);
+        mProgressBar.setProgress(100);
+        mSkipButton.setVisibility(View.GONE);
+        setupReinstallButton();
+        mTerminalBuffer.setLength(0);
+        mTerminalBuffer.append("Hermes Agent is already installed.\n");
+        mTerminalOutput.setText(mTerminalBuffer.toString());
+    }
+
+    private void showInstallSuccess() {
+        mSkipButton.setVisibility(View.GONE);
+        setupReinstallButton();
+        appendTerminal("\nInstallation complete! Use the Setup Wizard to finish configuration.");
+    }
+
+    private void setupReinstallButton() {
+        mRetryButton.setText(R.string.install_action_reinstall);
+        mRetryButton.setVisibility(View.VISIBLE);
+        mRetryButton.setOnClickListener(v -> {
+            mSuccess = false;
+            if (HermesGatewayService.isRunning()) {
+                Intent stopIntent = new Intent(this, HermesGatewayService.class);
+                stopIntent.setAction(HermesGatewayService.ACTION_STOP);
+                startService(stopIntent);
+            }
+            HermesInstallHelper.resetInstall(this);
+            startInstallation();
+        });
     }
 
     private void proceedToNext() {

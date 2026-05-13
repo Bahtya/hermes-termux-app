@@ -52,6 +52,7 @@ public class HermesConfigActivity extends AppCompatActivity {
     private DrawerLayout mDrawerLayout;
     private NavigationView mNavigationView;
     private HermesConfigManager mConfigManager;
+    private boolean mDashboardVisible = false;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -100,6 +101,8 @@ public class HermesConfigActivity extends AppCompatActivity {
     private void handleNavigation(int itemId) {
         if (itemId == R.id.nav_dashboard) {
             showDashboard();
+        } else if (itemId == R.id.nav_install) {
+            startActivity(new Intent(this, HermesInstallActivity.class));
         } else if (itemId == R.id.nav_ai_config) {
             showFragment(new LlmConfigFragment());
         } else if (itemId == R.id.nav_im_setup) {
@@ -253,6 +256,8 @@ public class HermesConfigActivity extends AppCompatActivity {
         content.removeAllViews();
         content.addView(scrollView);
 
+        mDashboardVisible = true;
+
         // Check item in nav
         mNavigationView.setCheckedItem(R.id.nav_dashboard);
     }
@@ -314,24 +319,6 @@ public class HermesConfigActivity extends AppCompatActivity {
         }
         card.addView(text);
 
-        // For INSTALLED state: compact red "Reinstall" link on the right
-        if (state == HermesInstallHelper.InstallState.INSTALLED) {
-            LinearLayout row = new LinearLayout(this);
-            row.setOrientation(LinearLayout.HORIZONTAL);
-            row.setGravity(android.view.Gravity.END);
-
-            TextView reinstallLink = new TextView(this);
-            reinstallLink.setText(R.string.install_action_reinstall);
-            reinstallLink.setTextSize(13);
-            reinstallLink.setTextColor(0xFFD32F2F);
-            reinstallLink.setPadding(0, dp(4), 0, 0);
-            reinstallLink.setClickable(true);
-            reinstallLink.setFocusable(true);
-            reinstallLink.setOnClickListener(v -> showReinstallConfirmDialog());
-            row.addView(reinstallLink);
-            card.addView(row);
-        }
-
         // Indeterminate progress bar during installation
         mInstallCardProgress = new android.widget.ProgressBar(this, null, android.R.attr.progressBarStyleHorizontal);
         mInstallCardProgress.setIndeterminate(true);
@@ -355,22 +342,6 @@ public class HermesConfigActivity extends AppCompatActivity {
             }
         }
         card.setBackgroundColor(bgColor);
-
-        // Action button for NOT_INSTALLED or FAILED
-        if (state == HermesInstallHelper.InstallState.NOT_INSTALLED
-                || state == HermesInstallHelper.InstallState.FAILED) {
-            Button actionBtn = new Button(this);
-            actionBtn.setText(state == HermesInstallHelper.InstallState.NOT_INSTALLED
-                    ? R.string.install_action_install : R.string.install_action_retry);
-            actionBtn.setOnClickListener(v -> {
-                startActivity(new Intent(this, HermesInstallActivity.class));
-            });
-            LinearLayout.LayoutParams btnParams = new LinearLayout.LayoutParams(
-                    LinearLayout.LayoutParams.WRAP_CONTENT, LinearLayout.LayoutParams.WRAP_CONTENT);
-            btnParams.topMargin = dp(8);
-            actionBtn.setLayoutParams(btnParams);
-            card.addView(actionBtn);
-        }
 
         LinearLayout.LayoutParams cardParams = new LinearLayout.LayoutParams(
                 LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT);
@@ -419,23 +390,6 @@ public class HermesConfigActivity extends AppCompatActivity {
         }
     }
 
-    private void showReinstallConfirmDialog() {
-        new AlertDialog.Builder(this)
-                .setTitle(R.string.install_reinstall_title)
-                .setMessage(R.string.install_reinstall_message)
-                .setPositiveButton(android.R.string.ok, (d, w) -> {
-                    if (HermesGatewayService.isRunning()) {
-                        Intent stopIntent = new Intent(this, HermesGatewayService.class);
-                        stopIntent.setAction(HermesGatewayService.ACTION_STOP);
-                        startService(stopIntent);
-                    }
-                    HermesInstallHelper.resetInstall(this);
-                    startActivity(new Intent(this, HermesInstallActivity.class));
-                })
-                .setNegativeButton(android.R.string.cancel, null)
-                .show();
-    }
-
     private void addQuickAction(LinearLayout parent, int textResId, String tag, View.OnClickListener listener) {
         TextView actionItem = new TextView(this);
         actionItem.setText(getString(R.string.hermes_action_prefix, getString(textResId)));
@@ -475,6 +429,7 @@ public class HermesConfigActivity extends AppCompatActivity {
     }
 
     private void showImSetupPage() {
+        mDashboardVisible = false;
         ScrollView scrollView = new ScrollView(this);
         LinearLayout layout = new LinearLayout(this);
         layout.setOrientation(LinearLayout.VERTICAL);
@@ -535,6 +490,7 @@ public class HermesConfigActivity extends AppCompatActivity {
     }
 
     private void showFragment(Fragment fragment) {
+        mDashboardVisible = false;
         getSupportFragmentManager()
                 .beginTransaction()
                 .replace(R.id.hermes_config_content, fragment)
@@ -626,6 +582,9 @@ public class HermesConfigActivity extends AppCompatActivity {
     protected void onResume() {
         super.onResume();
         updateDrawerHeader();
+        if (mDashboardVisible) {
+            showDashboard();
+        }
     }
 
     private int dp(int value) {

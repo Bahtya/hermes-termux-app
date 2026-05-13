@@ -683,6 +683,7 @@
 
     <!-- Hermes Drawer Navigation -->
     <string name="hermes_nav_dashboard">仪表盘</string>
+    <string name="hermes_nav_install">Hermes 安装</string>
     <string name="hermes_nav_ai_config">AI 配置</string>
     <string name="hermes_nav_im_setup">IM 接入</string>
     <string name="hermes_nav_gateway">网关控制</string>

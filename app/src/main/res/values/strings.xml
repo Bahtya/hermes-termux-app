@@ -1447,6 +1447,7 @@
 
     <!-- Hermes Drawer Navigation -->
     <string name="hermes_nav_dashboard">Dashboard</string>
+    <string name="hermes_nav_install">Hermes Installation</string>
     <string name="hermes_nav_ai_config">AI Configuration</string>
     <string name="hermes_nav_im_setup">IM Integration</string>
     <string name="hermes_nav_gateway">Gateway Control</string>

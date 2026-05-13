@@ -6,6 +6,9 @@
             android:id="@+id/nav_dashboard"
             android:title="@string/hermes_nav_dashboard" />
         <item
+            android:id="@+id/nav_install"
+            android:title="@string/hermes_nav_install" />
+        <item
             android:id="@+id/nav_ai_config"
             android:title="@string/hermes_nav_ai_config" />
         <item
