@@ -178,6 +178,9 @@ public class HermesInstaller {
         try { patchDpkgDatabase(prefix); } catch (Exception e) {
             Logger.logWarn(LOG_TAG, "Pre-install dpkg db patch: " + e.getMessage());
         }
+        try { ensureAptDirectories(prefix); } catch (Exception e) {
+            Logger.logWarn(LOG_TAG, "Pre-install apt dirs ensure: " + e.getMessage());
+        }
     }
 
     private static void startInstallThread(Context context, boolean isRetry) {
@@ -403,6 +406,25 @@ public class HermesInstaller {
         }
         Os.chmod(confFile.getAbsolutePath(), 0644);
         Logger.logInfo(LOG_TAG, "Deployed dpkg.conf to " + confFile.getAbsolutePath());
+    }
+
+    /**
+     * Ensure apt's required working directories exist. Bootstrap extraction
+     * wipes $PREFIX and the ZIP doesn't include empty cache directories,
+     * causing apt to fail with "Archives directory …/partial is missing".
+     */
+    private static void ensureAptDirectories(String prefix) {
+        String[] dirs = {
+            "/var/cache/apt/archives/partial",
+            "/var/lib/apt/lists/partial",
+            "/var/log/apt"
+        };
+        for (String suffix : dirs) {
+            File dir = new File(prefix + suffix);
+            if (!dir.exists() && !dir.mkdirs()) {
+                Logger.logWarn(LOG_TAG, "Could not create apt directory: " + dir.getAbsolutePath());
+            }
+        }
     }
 
     /**

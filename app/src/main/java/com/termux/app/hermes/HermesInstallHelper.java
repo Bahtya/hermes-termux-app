@@ -119,6 +119,9 @@ public class HermesInstallHelper {
         setState(context, InstallState.BOOTSTRAPPING);
         ensureBashReady(context, callback);
 
+        // Phase 0.5: wait for any apt/dpkg processes to finish and clean stale locks
+        waitForAptReady();
+
         // Phase 1: direct attempts
         setState(context, InstallState.DOWNLOADING);
         for (int attempt = 1; attempt <= maxDirectRetries; attempt++) {
@@ -208,6 +211,46 @@ public class HermesInstallHelper {
         setLastError(context, bootstrapError);
         setState(context, InstallState.FAILED);
         throw new RuntimeException(bootstrapError);
+    }
+
+    /**
+     * Wait for any running apt/dpkg processes to finish and remove stale
+     * lock files. Bootstrap extraction or app initialization may trigger
+     * apt commands that hold locks, causing the install script's
+     * "pkg install python" to fail with lock errors.
+     */
+    private static void waitForAptReady() {
+        String prefix = TermuxConstants.TERMUX_PREFIX_DIR_PATH;
+        String bashPath = TermuxConstants.TERMUX_BIN_PREFIX_DIR_PATH + "/bash";
+
+        if (!new File(bashPath).exists()) return;
+
+        // Shell snippet: wait up to 30s for apt/dpkg processes to exit.
+        // Only remove lock files if no apt/dpkg process is still running,
+        // to avoid corrupting a running transaction.
+        String cmd = "_cleaned=false; "
+            + "for _i in $(seq 1 30); do "
+            + "_r=false; "
+            + "for _p in /proc/[0-9]*/cmdline; do "
+            + "[ -r \"$_p\" ] && { cat \"$_p\" 2>/dev/null | tr '\\0' ' ' "
+            + "| grep -qE '/apt|/dpkg' && _r=true && break; }; "
+            + "done; "
+            + "if [ \"$_r\" = false ]; then "
+            + "rm -f " + prefix + "/var/lib/apt/lists/lock "
+            + prefix + "/var/cache/apt/archives/lock "
+            + prefix + "/var/lib/dpkg/lock-frontend "
+            + prefix + "/var/lib/dpkg/lock; "
+            + "_cleaned=true; break; "
+            + "fi; "
+            + "sleep 1; "
+            + "done; "
+            + "[ \"$_cleaned\" = true ]";
+
+        try {
+            runShellCommand(cmd);
+        } catch (Exception e) {
+            Logger.logWarn(LOG_TAG, "apt readiness check failed (non-fatal): " + e.getMessage());
+        }
     }
 
     /**
