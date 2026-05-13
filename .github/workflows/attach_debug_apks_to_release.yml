@@ -44,7 +44,7 @@ jobs:
           fi
 
           APK_DIR_PATH="./app/build/outputs/apk/debug"
-          APK_VERSION_TAG="$RELEASE_VERSION_NAME+${{ env.PACKAGE_VARIANT }}-github-debug"
+          APK_VERSION_TAG="$RELEASE_VERSION_NAME+${{ env.PACKAGE_VARIANT == 'apt-android-5' && 'android5' || 'android7' }}"
           APK_BASENAME_PREFIX="hermux_$APK_VERSION_TAG"
 
           echo "Building APKs for 'APK_VERSION_TAG' release"

@@ -70,7 +70,7 @@ jobs:
           **Full Changelog**: https://github.com/${{ github.repository }}/compare/${PREVIOUS_TAG}...${TAG_NAME}
 
           ### Installation
-          1. Download the APK for your device (apt-android-7 for Android 7+, apt-android-5 for Android 5+)
+          1. Download the APK for your device (`apt-android-7` for Android 7+, `apt-android-5` for Android 5+)
           2. Enable "Install from unknown sources" in your device settings
           3. Install the APK
           4. Open the app and follow the setup wizard
@@ -129,7 +129,8 @@ jobs:
         run: |
           TAG_NAME="${{ needs.create-release.outputs.tag_name }}"
           APK_DIR_PATH="./app/build/outputs/apk/release"
-          APK_VERSION_TAG="$TAG_NAME+${{ matrix.package_variant }}-github-release"
+          VARIANT_SUFFIX="${{ matrix.package_variant == 'apt-android-5' && 'android5' || 'android7' }}"
+          APK_VERSION_TAG="$TAG_NAME+$VARIANT_SUFFIX"
           APK_BASENAME_PREFIX="hermux_$APK_VERSION_TAG"
 
           export TERMUX_APP_VERSION_NAME="${TAG_NAME#v}"
