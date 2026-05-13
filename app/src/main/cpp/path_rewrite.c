@@ -24,6 +24,8 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <errno.h>
+#include <utime.h>
+#include <sys/time.h>
 #include <linux/stat.h>
 
 #define OLD_PREFIX  "/data/data/com.termux"
@@ -414,4 +416,26 @@ int remove(const char *p) {
     int (*real)(const char *) = dlsym(RTLD_NEXT, "remove");
     if (!real) return -1;
     return real(rewrite(p));
+}
+
+/* --- Timestamp syscalls (needed by dpkg) --- */
+
+int utime(const char *p, const struct utimbuf *t) {
+    int (*real)(const char *, const struct utimbuf *) = dlsym(RTLD_NEXT, "utime");
+    if (!real) return -1;
+    return real(rewrite(p), t);
+}
+
+int utimes(const char *p, const struct timeval t[2]) {
+    int (*real)(const char *, const struct timeval [2]) = dlsym(RTLD_NEXT, "utimes");
+    if (!real) return -1;
+    return real(rewrite(p), t);
+}
+
+int utimensat(int fd, const char *p, const struct timespec t[2], int flags) {
+    int (*real)(int, const char *, const struct timespec [2], int) = dlsym(RTLD_NEXT, "utimensat");
+    if (!real) return -1;
+    if (p && (p[0] == '/' || fd == AT_FDCWD))
+        return real(fd, rewrite(p), t, flags);
+    return real(fd, p, t, flags);
 }
