@@ -280,15 +280,32 @@ public class HermesInstallHelper {
      * Failures are logged but non-fatal — the install script may still succeed.
      */
     private static void prepareAptEnvironment(ProgressCallback callback) {
-        // Retry apt update up to 6 times with 5s sleep to handle lock contention
-        // from Termux's own background apt processes during bootstrap.
+        String prefix = TermuxConstants.TERMUX_PREFIX_DIR_PATH;
+        // Diagnose who holds apt/dpkg locks, then retry apt update with backoff.
         String diag = "echo '=== sources.list ==='; "
                 + "cat $PREFIX/etc/apt/sources.list 2>&1 || echo 'missing'; "
+                // Show processes holding apt/dpkg locks
+                + "echo '=== lock holders ==='; "
+                + "for _lock in " + prefix + "/var/lib/apt/lists/lock "
+                + prefix + "/var/cache/apt/archives/lock "
+                + prefix + "/var/lib/dpkg/lock-frontend "
+                + prefix + "/var/lib/dpkg/lock; do "
+                + "if [ -f \"$_lock\" ]; then "
+                + "_pid=$(fuser \"$_lock\" 2>/dev/null | tr -d ' '); "
+                + "if [ -n \"$_pid\" ]; then "
+                + "echo \"$_lock held by PID $_pid: $(cat /proc/$_pid/cmdline 2>/dev/null | tr '\\0' ' ')\"; "
+                + "fi; fi; done; "
+                // Show all apt/dpkg processes
+                + "echo '=== apt/dpkg processes ==='; "
+                + "for _p in /proc/[0-9]*/cmdline; do "
+                + "[ -r \"$_p\" ] && { _c=$(cat \"$_p\" 2>/dev/null | tr '\\0' ' '); "
+                + "echo \"$_c\" | grep -qE 'apt|dpkg|pkg' && echo \"PID $(echo $_p | grep -o '[0-9]*') $_c\"; }; done; "
+                // Retry apt update
                 + "echo '=== apt update (with retry) ==='; "
                 + "_ok=false; for _i in $(seq 1 6); do "
                 + "echo 'Attempt '$_i'...'; "
                 + "if apt update 2>&1; then _ok=true; break; fi; "
-                + "echo 'apt update failed, waiting 5s...'; sleep 5; "
+                + "echo 'Retrying in 10s...'; sleep 10; "
                 + "done; "
                 + "if [ \"$_ok\" = false ]; then echo 'WARNING: apt update failed after 6 attempts'; fi; "
                 + "echo '=== installing python ==='; "
