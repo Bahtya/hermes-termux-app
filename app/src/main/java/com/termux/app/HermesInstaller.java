@@ -32,7 +32,7 @@ public class HermesInstaller {
     private static final int NOTIFICATION_ID = 2001;
     private static final int MAX_RETRIES = 3;
 
-    static final String ACTION_RETRY_INSTALL = "com.bahtya.RETRY_INSTALL";
+    static final String ACTION_RETRY_INSTALL = "com.hermux.RETRY_INSTALL";
     static final String EXTRA_IS_RETRY = "is_retry";
 
     private static final String HERMES_MARKER_FILE =
@@ -432,7 +432,7 @@ public class HermesInstaller {
      * The bootstrap may contain any arbitrary mirror URL that we can't predict,
      * so we directly write the TUNA source instead of pattern-matching.
      * Packages are identical regardless of mirror — path_rewrite.so handles
-     * the com.termux → com.bahtya translation at runtime.
+     * the com.termux → com.hermux translation at runtime.
      */
     private static void deployAptMirror(String prefix) throws Exception {
         File sourcesList = new File(prefix, "etc/apt/sources.list");
@@ -460,7 +460,7 @@ public class HermesInstaller {
      */
     private static void patchDpkgDatabase(String prefixPath) {
         final String oldPrefix = "/data/data/com.termux";
-        final String newPrefix = "/data/data/com.bahtya";
+        final String newPrefix = "/data/data/com.hermux";
         int patched = 0;
 
         File dpkgInfo = new File(prefixPath, "var/lib/dpkg/info");
@@ -567,7 +567,7 @@ public class HermesInstaller {
      * Deploy the LD_PRELOAD path rewrite library from the APK's native libs
      * to $PREFIX/lib/libpath_rewrite.so. This library intercepts all
      * filesystem calls and rewrites /data/data/com.termux/ paths to
-     * /data/data/com.bahtya/, fixing ALL binaries with compiled-in
+     * /data/data/com.hermux/, fixing ALL binaries with compiled-in
      * old paths at once.
      */
     private static void deployPathRewrite(Context context) throws Exception {

@@ -172,7 +172,7 @@ final class TermuxInstaller {
                                         throw new RuntimeException("Malformed symlink line: " + line);
                                     String oldPath = parts[0];
                                     if (oldPath.startsWith("/data/data/com.termux")) {
-                                        oldPath = "/data/data/com.bahtya" + oldPath.substring("/data/data/com.termux".length());
+                                        oldPath = "/data/data/com.hermux" + oldPath.substring("/data/data/com.termux".length());
                                     }
                                     String newPath = TERMUX_STAGING_PREFIX_DIR_PATH + "/" + parts[1];
                                     symlinks.add(Pair.create(oldPath, newPath));
@@ -401,7 +401,7 @@ final class TermuxInstaller {
      */
     static void fixPrefixSymlinks(String prefixPath) {
         final String oldPrefix = "/data/data/com.termux";
-        final String newPrefix = "/data/data/com.bahtya";
+        final String newPrefix = "/data/data/com.hermux";
         File prefixDir = new File(prefixPath);
         if (!prefixDir.exists()) return;
         int fixed = fixSymlinksRecursive(prefixDir, oldPrefix, newPrefix);

@@ -60,7 +60,7 @@ public class HermesHelpActivity extends AppCompatActivity {
 
         addLink(content, getString(R.string.help_link_github), "https://github.com/nousresearch/hermes-agent");
         addLink(content, getString(R.string.help_link_docs), "https://hermes-agent.nousresearch.com/docs");
-        addLink(content, getString(R.string.help_link_issues), "https://github.com/Bahtya/hermes-termux-app/issues");
+        addLink(content, getString(R.string.help_link_issues), "https://github.com/Bahtya/hermux/issues");
 
         root.addView(content);
         ScrollView sv = new ScrollView(this);

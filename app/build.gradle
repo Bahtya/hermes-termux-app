@@ -41,7 +41,7 @@ android {
     }
 
     defaultConfig {
-        applicationId "com.bahtya"
+        applicationId "com.hermux"
         minSdkVersion project.properties.minSdkVersion.toInteger()
         targetSdkVersion project.properties.targetSdkVersion.toInteger()
         versionCode 156
@@ -52,14 +52,14 @@ android {
 
         buildConfigField "String", "TERMUX_PACKAGE_VARIANT", "\"" + project.ext.packageVariant + "\"" // Used by TermuxApplication class
 
-        manifestPlaceholders.TERMUX_PACKAGE_NAME = "com.bahtya"
-        manifestPlaceholders.TERMUX_APP_NAME = "Bahtya Terminal"
-        manifestPlaceholders.TERMUX_API_APP_NAME = "Bahtya Terminal:API"
-        manifestPlaceholders.TERMUX_BOOT_APP_NAME = "Bahtya Terminal:Boot"
-        manifestPlaceholders.TERMUX_FLOAT_APP_NAME = "Bahtya Terminal:Float"
-        manifestPlaceholders.TERMUX_STYLING_APP_NAME = "Bahtya Terminal:Styling"
-        manifestPlaceholders.TERMUX_TASKER_APP_NAME = "Bahtya Terminal:Tasker"
-        manifestPlaceholders.TERMUX_WIDGET_APP_NAME = "Bahtya Terminal:Widget"
+        manifestPlaceholders.TERMUX_PACKAGE_NAME = "com.hermux"
+        manifestPlaceholders.TERMUX_APP_NAME = "Hermux"
+        manifestPlaceholders.TERMUX_API_APP_NAME = "Hermux:API"
+        manifestPlaceholders.TERMUX_BOOT_APP_NAME = "Hermux:Boot"
+        manifestPlaceholders.TERMUX_FLOAT_APP_NAME = "Hermux:Float"
+        manifestPlaceholders.TERMUX_STYLING_APP_NAME = "Hermux:Styling"
+        manifestPlaceholders.TERMUX_TASKER_APP_NAME = "Hermux:Tasker"
+        manifestPlaceholders.TERMUX_WIDGET_APP_NAME = "Hermux:Widget"
 
         externalNativeBuild {
             ndkBuild {
@@ -139,10 +139,10 @@ android {
         variant.outputs.all { output ->
             if (variant.buildType.name == "debug") {
                 def abi = output.getFilter(com.android.build.OutputFile.ABI)
-                outputFileName = new File("hermes-termux-app_" + (apkVersionTag ? apkVersionTag : project.ext.packageVariant + "-" + "debug") + "_" + (abi ? abi : "universal") + ".apk")
+                outputFileName = new File("hermux_" + (apkVersionTag ? apkVersionTag : project.ext.packageVariant + "-" + "debug") + "_" + (abi ? abi : "universal") + ".apk")
             } else if (variant.buildType.name == "release") {
                 def abi = output.getFilter(com.android.build.OutputFile.ABI)
-                outputFileName = new File("hermes-termux-app_" + (apkVersionTag ? apkVersionTag : project.ext.packageVariant + "-" + "release") + "_" + (abi ? abi : "universal") + ".apk")
+                outputFileName = new File("hermux_" + (apkVersionTag ? apkVersionTag : project.ext.packageVariant + "-" + "release") + "_" + (abi ? abi : "universal") + ".apk")
             }
         }
     }

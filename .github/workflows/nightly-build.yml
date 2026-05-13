@@ -41,7 +41,7 @@ jobs:
           restore-keys: |
             gradle-${{ runner.os }}-${{ matrix.package_variant }}-
 
-      - name: Patch bootstrap (com.termux → com.bahtya)
+      - name: Patch bootstrap (com.termux → com.hermux)
         shell: bash
         run: bash scripts/patch-bootstrap.sh "$GITHUB_WORKSPACE/app/src/main/cpp"
 
@@ -55,7 +55,7 @@ jobs:
           TAG_NAME="nightly-${DATE}"
           APK_VERSION_TAG="nightly-${DATE}-${SHORT_SHA}+${{ matrix.package_variant }}-github-debug"
           APK_DIR_PATH="./app/build/outputs/apk/debug"
-          APK_BASENAME_PREFIX="hermes-termux-app_${APK_VERSION_TAG}"
+          APK_BASENAME_PREFIX="hermux_${APK_VERSION_TAG}"
 
           export TERMUX_APP_VERSION_NAME="0.0.0-nightly"
           export TERMUX_APK_VERSION_TAG="$APK_VERSION_TAG"

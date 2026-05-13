@@ -1,16 +1,16 @@
-# Bahtya Terminal
+# Hermux
 
-[![Build](https://github.com/Bahtya/hermes-termux-app/actions/workflows/build-apk.yml/badge.svg)](https://github.com/Bahtya/hermes-termux-app/actions/workflows/build-apk.yml)
-[![Tests](https://github.com/Bahtya/hermes-termux-app/actions/workflows/run_tests.yml/badge.svg)](https://github.com/Bahtya/hermes-termux-app/actions/workflows/run_tests.yml)
-[![Release](https://github.com/Bahtya/hermes-termux-app/actions/workflows/release.yml/badge.svg)](https://github.com/Bahtya/hermes-termux-app/actions/workflows/release.yml)
+[![Build](https://github.com/Bahtya/hermux/actions/workflows/build-apk.yml/badge.svg)](https://github.com/Bahtya/hermux/actions/workflows/build-apk.yml)
+[![Tests](https://github.com/Bahtya/hermux/actions/workflows/run_tests.yml/badge.svg)](https://github.com/Bahtya/hermux/actions/workflows/run_tests.yml)
+[![Release](https://github.com/Bahtya/hermux/actions/workflows/release.yml/badge.svg)](https://github.com/Bahtya/hermux/actions/workflows/release.yml)
 
 > **Status: Work in Progress** — This project is under active development and not yet ready for production use.
 
-Bahtya Terminal 是一款 Android 终端模拟器，内置 [Hermes Agent](https://github.com/NousResearch/hermes-agent)，开箱即用。基于 [Termux](https://github.com/termux/termux-app) 二开，面向国内用户做了网络和体验定制。
+Hermux 是一款 Android 终端模拟器，内置 [Hermes Agent](https://github.com/NousResearch/hermes-agent)，开箱即用。基于 [Termux](https://github.com/termux/termux-app) 二开，面向国内用户做了网络和体验定制。
 
 ## 它能做什么
 
-Hermes Agent 是一个 AI 助手网关，将大语言模型连接到即时通讯平台。Bahtya Terminal 将它打包进 Termux 终端，首次启动自动安装，无需手动配置 Linux 环境。
+Hermes Agent 是一个 AI 助手网关，将大语言模型连接到即时通讯平台。Hermux 将它打包进 Termux 终端，首次启动自动安装，无需手动配置 Linux 环境。
 
 **支持的消息平台：**
 - 飞书 / Lark（支持扫码建应用）
@@ -27,18 +27,18 @@ Hermes Agent 是一个 AI 助手网关，将大语言模型连接到即时通讯
 
 ## 安装
 
-从 [GitHub Releases](https://github.com/Bahtya/hermes-termux-app/releases) 下载 APK。
+从 [GitHub Releases](https://github.com/Bahtya/hermux/releases) 下载 APK。
 
 - Android >= 7：下载 `apt-android-7` 变体
 - Android 5/6：下载 `apt-android-5` 变体
 
-也可从 [Nightly Build](https://github.com/Bahtya/hermes-termux-app/actions/workflows/nightly-build.yml) 获取最新开发版（需登录 GitHub）。
+也可从 [Nightly Build](https://github.com/Bahtya/hermux/actions/workflows/nightly-build.yml) 获取最新开发版（需登录 GitHub）。
 
-> **注意：** 本项目与原版 Termux（`com.termux`）使用不同的包名（`com.bahtya`）和签名，不可混装。
+> **注意：** 本项目与原版 Termux（`com.termux`）使用不同的包名（`com.hermux`）和签名，不可混装。
 
 ## 快速开始
 
-1. 安装并打开 Bahtya Terminal
+1. 安装并打开 Hermux
 2. 等待 Hermes Agent 自动安装完成（状态卡片会显示进度）
 3. 点击工具栏 Hermes 图标，进入 Setup Wizard
 4. 配置 LLM 提供商和 API Key
@@ -49,7 +49,7 @@ Hermes Agent 是一个 AI 助手网关，将大语言模型连接到即时通讯
 
 ```
 ┌─────────────────────────────────────────┐
-│           Bahtya Terminal (App)          │
+│           Hermux (App)          │
 ├──────────┬──────────┬───────────────────┤
 │ Termux   │ Hermes   │ Hermes Gateway    │
 │ Terminal │ Config   │ Service           │
@@ -60,7 +60,7 @@ Hermes Agent 是一个 AI 助手网关，将大语言模型连接到即时通讯
 │    ~/.hermes/config.yaml · .env          │
 ├─────────────────────────────────────────┤
 │   LD_PRELOAD path_rewrite.so             │
-│   (com.termux → com.bahtya runtime)      │
+│   (com.termux → com.hermux runtime)      │
 └─────────────────────────────────────────┘
 ```
 
@@ -78,8 +78,8 @@ Hermes Agent 是一个 AI 助手网关，将大语言模型连接到即时通讯
 
 ```bash
 # 1. 克隆仓库
-git clone https://github.com/Bahtya/hermes-termux-app.git
-cd hermes-termux-app
+git clone https://github.com/Bahtya/hermux.git
+cd hermux
 
 # 2. 补丁 bootstrap（替换包名路径）
 bash scripts/patch-bootstrap.sh app/src/main/cpp
@@ -98,7 +98,7 @@ bash scripts/patch-bootstrap.sh app/src/main/cpp
 | Termux | [termux/termux-app](https://github.com/termux/termux-app) | Android 终端模拟器和 Linux 环境 |
 
 本仓库在 Termux 基础上：
-- 包名从 `com.termux` 改为 `com.bahtya`
+- 包名从 `com.termux` 改为 `com.hermux`
 - 内嵌 Hermes Agent 自动安装和管理
 - 添加 Gateway 前台服务、配置管理、Setup Wizard 等
 - 针对国内网络环境添加 GitHub 镜像加速

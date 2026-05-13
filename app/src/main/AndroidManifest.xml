@@ -307,7 +307,7 @@
             android:name=".app.HermesInstaller$RetryReceiver"
             android:exported="false">
             <intent-filter>
-                <action android:name="com.bahtya.RETRY_INSTALL" />
+                <action android:name="com.hermux.RETRY_INSTALL" />
             </intent-filter>
         </receiver>
 
