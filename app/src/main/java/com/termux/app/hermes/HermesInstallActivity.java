@@ -23,6 +23,7 @@ import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 
 import com.termux.R;
+import com.termux.app.HermesInstaller;
 import com.termux.shared.termux.TermuxConstants;
 
 import java.io.BufferedReader;
