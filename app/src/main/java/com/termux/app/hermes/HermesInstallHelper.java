@@ -120,7 +120,7 @@ public class HermesInstallHelper {
         ensureBashReady(context, callback);
 
         // Phase 1: direct attempts
-        setState(context, InstallState.INSTALLING);
+        setState(context, InstallState.DOWNLOADING);
         for (int attempt = 1; attempt <= maxDirectRetries; attempt++) {
             if (callback != null && callback.isCancelled()) return;
             try {
