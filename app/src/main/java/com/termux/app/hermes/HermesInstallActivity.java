@@ -216,6 +216,8 @@ public class HermesInstallActivity extends AppCompatActivity {
                     public boolean isCancelled() {
                         return isFinishing() || isDestroyed();
                     }
+                }, () -> {
+                    HermesInstaller.deployPrerequisitesForActivity(HermesInstallActivity.this);
                 });
 
                 // Step 3: Mark installed

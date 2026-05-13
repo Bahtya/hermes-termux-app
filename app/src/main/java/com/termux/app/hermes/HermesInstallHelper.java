@@ -104,17 +104,23 @@ public class HermesInstallHelper {
         boolean isCancelled();
     }
 
+    /** Runs after Phase 0 (bootstrap ready) but before download attempts. */
+    public interface PostBootstrapHook {
+        void onBootstrapReady() throws Exception;
+    }
+
     // =========================================================================
     // Install execution
     // =========================================================================
 
     /**
      * Run the install script with automatic mirror fallback.
-     * Phase 0: wait for bootstrap.
+     * Phase 0: wait for bootstrap, then run postBootstrapHook.
      * Phase 1: direct connection (up to maxDirectRetries attempts, 5s delay).
      * Phase 2: each mirror in MIRROR_PREFIXES (1 attempt per mirror).
      */
-    public static void executeInstall(Context context, int maxDirectRetries, ProgressCallback callback) throws Exception {
+    public static void executeInstall(Context context, int maxDirectRetries,
+            ProgressCallback callback, PostBootstrapHook postBootstrap) throws Exception {
         StringBuilder errorLog = new StringBuilder();
 
         // Phase 0: wait for Termux bootstrap to finish
@@ -123,6 +129,12 @@ public class HermesInstallHelper {
 
         // Phase 0.5: wait for any apt/dpkg processes to finish and clean stale locks
         waitForAptReady();
+
+        // Deploy apt/dpkg configs AFTER bootstrap is ready.
+        // Bootstrap extraction wipes $PREFIX, so configs deployed earlier are gone.
+        if (postBootstrap != null) {
+            postBootstrap.onBootstrapReady();
+        }
 
         // Phase 1: direct attempts
         setState(context, InstallState.DOWNLOADING);
