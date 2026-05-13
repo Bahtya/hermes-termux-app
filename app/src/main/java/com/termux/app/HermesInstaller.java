@@ -448,7 +448,7 @@ public class HermesInstaller {
                 + "Dir::Bin::methods \"" + prefix + "/lib/apt/methods\";\n"
                 + "Dir::Bin::dpkg \"" + prefix + "/bin/dpkg\";\n"
                 + "Dir::Log \"" + prefix + "/var/log/apt\";\n"
-                + "Dpkg::Options { \"--admindir=" + prefix + "/var/lib/dpkg\"; };\n"
+                + "Dpkg::Options { \"--admindir=" + prefix + "/var/lib/dpkg\"; \"--force-confold\"; };\n"
                 + "DPkg::Pre-Install-Pkgs { \"" + hookScript + "\"; };\n";
 
         try (FileOutputStream out = new FileOutputStream(confFile)) {
