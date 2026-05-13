@@ -335,7 +335,7 @@ public class HermesInstallHelper {
      */
     static String buildLocalInstallScript() {
         String prefix = TermuxConstants.TERMUX_PREFIX_DIR_PATH;
-        String mirror = MIRROR_PREFIXES[0];
+        String mirror = MIRROR_PREFIXES.length > 0 ? MIRROR_PREFIXES[0] : "";
         return "set -e\n"
             + "\n"
             + "HERMES_DIR=\"$HOME/.hermes/hermes-agent\"\n"
@@ -384,7 +384,9 @@ public class HermesInstallHelper {
             + "| tar xz\n"
             + "cd \"psutil-${PSUTIL_VER}\"\n"
             + "sed -i 's/platform android is not supported/platform android - building with Termux toolchain/g' pyproject.toml\n"
+            + "grep -q 'Termux toolchain' pyproject.toml || echo 'WARNING: psutil pyproject.toml patch may not have applied'\n"
             + "sed -i 's/LINUX = sys.platform.startswith(\"linux\")/LINUX = sys.platform.startswith((\"linux\", \"android\"))/g' psutil/_common.py\n"
+            + "grep -q '\"android\"' psutil/_common.py || echo 'WARNING: psutil _common.py patch may not have applied'\n"
             + "\"$VENV_DIR/bin/pip\" install --no-build-isolation .\n"
             + "\n"
             + "echo '=== Step 6: Install hermes-agent ==='\n"
@@ -392,9 +394,11 @@ public class HermesInstallHelper {
             + "\"$VENV_DIR/bin/pip\" install -e '.[termux-all]' --no-deps || \\\n"
             + "  \"$VENV_DIR/bin/pip\" install -e '.[termux]' --no-deps || \\\n"
             + "  \"$VENV_DIR/bin/pip\" install -e . --no-deps\n"
-            + "\"$VENV_DIR/bin/pip\" install -e '.[termux-all]' || \\\n"
-            + "  \"$VENV_DIR/bin/pip\" install -e '.[termux]' || \\\n"
-            + "  \"$VENV_DIR/bin/pip\" install -e . || true\n"
+            // Install remaining deps with --no-build-isolation to avoid path_rewrite
+            // issues in isolated build envs. psutil is already installed so pip skips it.
+            + "\"$VENV_DIR/bin/pip\" install --no-build-isolation -e '.[termux-all]' || \\\n"
+            + "  \"$VENV_DIR/bin/pip\" install --no-build-isolation -e '.[termux]' || \\\n"
+            + "  \"$VENV_DIR/bin/pip\" install --no-build-isolation -e . || true\n"
             + "\n"
             + "echo '=== Step 7: Setup hermes command ==='\n"
             + "HERMES_BIN=\"$PREFIX/bin/hermes\"\n"
