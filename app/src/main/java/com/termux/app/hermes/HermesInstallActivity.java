@@ -285,10 +285,10 @@ public class HermesInstallActivity extends AppCompatActivity {
             if (currentStep == -1) {
                 stepTv.setText(steps[i]);
                 stepTv.setTextColor(0xFF999999);
-            } else if (i < currentStep) {
+            } else if (i < currentStep - 1) {
                 stepTv.setText("✓ " + steps[i]);
                 stepTv.setTextColor(0xFF4CAF50);
-            } else if (i == currentStep) {
+            } else if (i == currentStep - 1) {
                 stepTv.setText("● " + steps[i]);
                 stepTv.setTextColor(0xFF2196F3);
             } else {

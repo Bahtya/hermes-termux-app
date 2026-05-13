@@ -979,7 +979,7 @@
     <!-- Install State Card -->
     <string name="install_state_not_installed">Hermes Agent is not installed</string>
     <string name="install_state_bootstrapping">Waiting for Termux bootstrap…</string>
-    <string name="install_state_downloading">Downloading install script…</string>
+    <string name="install_state_downloading">Downloading Hermes Agent…</string>
     <string name="install_state_installing">Installing Hermes Agent (this may take 10–30 min)…</string>
     <string name="install_state_installed">Hermes Agent installed ✓</string>
     <string name="install_state_failed">Installation failed</string>
