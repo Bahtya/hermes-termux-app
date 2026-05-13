@@ -282,14 +282,12 @@ public class HermesInstallHelper {
     private static void prepareAptEnvironment(ProgressCallback callback) {
         String diag = "echo '=== dpkg audit ==='; "
                 + "dpkg --audit 2>&1 || true; "
-                + "echo '=== half-configured packages ==='; "
-                + "dpkg -l 2>&1 | grep -E '^.H|^..U' || echo 'none'; "
                 + "echo '=== sources.list ==='; "
                 + "cat $PREFIX/etc/apt/sources.list 2>&1 || echo 'missing'; "
-                + "echo '=== dpkg --configure -a ==='; "
-                + "dpkg --configure -a 2>&1 || true; "
                 + "echo '=== apt update ==='; "
-                + "apt update 2>&1 || true";
+                + "apt update 2>&1 || true; "
+                + "echo '=== test apt install (tree) ==='; "
+                + "apt install -y tree -o Dpkg::Options='--debug=2' 2>&1 || true";
         try {
             if (callback != null) callback.onOutput("Preparing apt environment...");
             runShellCommand(diag, callback);
