@@ -160,11 +160,10 @@ public class HermesInstaller {
 
     /**
      * Deploy apt.conf, dpkg.conf, LD_PRELOAD library, and patch the dpkg database.
-     * Called from the install thread AFTER bootstrap is complete but BEFORE the
-     * install script runs. Bootstrap extraction wipes $PREFIX, so configs deployed
-     * during app.onCreate() no longer exist.
+     * Must be called AFTER bootstrap is complete (prefix directory exists).
+     * Called via PostBootstrapHook from HermesInstallHelper.executeInstall().
      */
-    private static void deployInstallPrerequisites(Context context) {
+    public static void deployInstallPrerequisites(Context context) {
         String prefix = TermuxConstants.TERMUX_PREFIX_DIR_PATH;
         try { deployAptConf(); } catch (Exception e) {
             Logger.logWarn(LOG_TAG, "Pre-install apt.conf deploy: " + e.getMessage());
@@ -193,13 +192,6 @@ public class HermesInstaller {
                     deployBootScript();
                 }
 
-                // Deploy critical configs BEFORE the install script runs.
-                // Bootstrap extraction (TermuxInstaller line 137) deletes $PREFIX,
-                // wiping any configs deployed by runUpgradeMigrations() during
-                // app.onCreate(). Without these, dpkg/apt cannot find their
-                // databases or config files and fail with error code (1).
-                deployInstallPrerequisites(context);
-
                 try {
                     HermesInstallHelper.executeInstall(context, MAX_RETRIES, new HermesInstallHelper.ProgressCallback() {
                         @Override
@@ -210,6 +202,11 @@ public class HermesInstaller {
                         public boolean isCancelled() {
                             return Thread.currentThread().isInterrupted();
                         }
+                    }, () -> {
+                        // Deploy critical configs AFTER bootstrap is ready.
+                        // Bootstrap extraction wipes $PREFIX, so configs deployed
+                        // earlier (e.g. during app.onCreate()) no longer exist.
+                        deployInstallPrerequisites(context);
                     });
                     markInstalled(context);
                     fixBinaryPermissions();

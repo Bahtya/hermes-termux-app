@@ -247,15 +247,6 @@ public class HermesConfigActivity extends AppCompatActivity {
         resetBtn.setOnClickListener(v -> showResetAllConfirmDialog());
         layout.addView(resetBtn);
 
-        Button reinstallBtn = new Button(this);
-        reinstallBtn.setText(R.string.install_action_reinstall);
-        LinearLayout.LayoutParams reinstallBtnParams = new LinearLayout.LayoutParams(
-                LinearLayout.LayoutParams.WRAP_CONTENT, LinearLayout.LayoutParams.WRAP_CONTENT);
-        reinstallBtnParams.topMargin = dp(8);
-        reinstallBtn.setLayoutParams(reinstallBtnParams);
-        reinstallBtn.setOnClickListener(v -> showReinstallConfirmDialog());
-        layout.addView(reinstallBtn);
-
         scrollView.addView(layout);
 
         FrameLayout content = findViewById(R.id.hermes_config_content);
@@ -322,6 +313,24 @@ public class HermesConfigActivity extends AppCompatActivity {
                 break;
         }
         card.addView(text);
+
+        // For INSTALLED state: compact red "Reinstall" link on the right
+        if (state == HermesInstallHelper.InstallState.INSTALLED) {
+            LinearLayout row = new LinearLayout(this);
+            row.setOrientation(LinearLayout.HORIZONTAL);
+            row.setGravity(android.view.Gravity.END);
+
+            TextView reinstallLink = new TextView(this);
+            reinstallLink.setText(R.string.install_action_reinstall);
+            reinstallLink.setTextSize(13);
+            reinstallLink.setTextColor(0xFFD32F2F);
+            reinstallLink.setPadding(0, dp(4), 0, 0);
+            reinstallLink.setClickable(true);
+            reinstallLink.setFocusable(true);
+            reinstallLink.setOnClickListener(v -> showReinstallConfirmDialog());
+            row.addView(reinstallLink);
+            card.addView(row);
+        }
 
         // Indeterminate progress bar during installation
         mInstallCardProgress = new android.widget.ProgressBar(this, null, android.R.attr.progressBarStyleHorizontal);

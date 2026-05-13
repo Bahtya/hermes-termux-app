@@ -418,6 +418,8 @@
     <string name="install_mirror_failed">镜像也失败了：%1$s</string>
     <string name="install_waiting_bootstrap">等待 Termux 基础环境就绪…（%1$d/%2$d）</string>
     <string name="install_skip">跳过</string>
+    <string name="install_copy_log">复制日志</string>
+    <string name="install_copied">已复制到剪贴板</string>
 
     <!-- Install State Card -->
     <string name="install_state_not_installed">Hermes Agent 未安装</string>

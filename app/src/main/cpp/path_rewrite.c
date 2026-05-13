@@ -24,6 +24,7 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <errno.h>
+#include <linux/stat.h>
 
 #define OLD_PREFIX  "/data/data/com.termux"
 #define NEW_PREFIX  "/data/data/com.bahtya"
@@ -375,4 +376,42 @@ char *realpath(const char *p, char *r) {
     char *(*real)(const char *, char *) = dlsym(RTLD_NEXT, "realpath");
     if (!real) return NULL;
     return real(rewrite(p), r);
+}
+
+FILE *fopen(const char *p, const char *m) {
+    FILE *(*real)(const char *, const char *) = dlsym(RTLD_NEXT, "fopen");
+    if (!real) return NULL;
+    return real(rewrite(p), m);
+}
+
+FILE *fopen64(const char *p, const char *m) {
+    FILE *(*real)(const char *, const char *) = dlsym(RTLD_NEXT, "fopen64");
+    if (!real) return NULL;
+    return real(rewrite(p), m);
+}
+
+FILE *freopen(const char *p, const char *m, FILE *s) {
+    FILE *(*real)(const char *, const char *, FILE *) = dlsym(RTLD_NEXT, "freopen");
+    if (!real) return NULL;
+    return real(rewrite(p), m, s);
+}
+
+/* statx requires Linux 4.11+ / API 28+. On older devices dlsym returns NULL
+ * and the call is safely skipped. */
+int statx(int dirfd, const char *p, int flags, unsigned mask, struct statx *s) {
+    int (*real)(int, const char *, int, unsigned, struct statx *) = dlsym(RTLD_NEXT, "statx");
+    if (!real) return -1;
+    return real(dirfd, rewrite(p), flags, mask, s);
+}
+
+int rmdir(const char *p) {
+    int (*real)(const char *) = dlsym(RTLD_NEXT, "rmdir");
+    if (!real) return -1;
+    return real(rewrite(p));
+}
+
+int remove(const char *p) {
+    int (*real)(const char *) = dlsym(RTLD_NEXT, "remove");
+    if (!real) return -1;
+    return real(rewrite(p));
 }

@@ -28,8 +28,10 @@ public class HermesInstallHelper {
     static final String INSTALL_URL_DIRECT =
             "https://hermes-agent.nousresearch.com/install.sh";
 
+    static final String HERMES_AGENT_COMMIT = "486b692ddd801f8f665d3fff023149fb1cb6509e";
+
     static final String INSTALL_URL_GITHUB_RAW =
-            "https://raw.githubusercontent.com/NousResearch/hermes-agent/main/scripts/install.sh";
+            "https://raw.githubusercontent.com/NousResearch/hermes-agent/" + HERMES_AGENT_COMMIT + "/scripts/install.sh";
 
     static final String GITHUB_REPO_URL =
             "https://github.com/NousResearch/hermes-agent.git";
@@ -100,6 +102,13 @@ public class HermesInstallHelper {
     public interface ProgressCallback {
         void onStatus(String message);
         boolean isCancelled();
+        /** Called for each line of output from the install script. */
+        default void onOutput(String line) {}
+    }
+
+    /** Runs after Phase 0 (bootstrap ready) but before download attempts. */
+    public interface PostBootstrapHook {
+        void onBootstrapReady() throws Exception;
     }
 
     // =========================================================================
@@ -108,11 +117,12 @@ public class HermesInstallHelper {
 
     /**
      * Run the install script with automatic mirror fallback.
-     * Phase 0: wait for bootstrap.
+     * Phase 0: wait for bootstrap, then run postBootstrapHook.
      * Phase 1: direct connection (up to maxDirectRetries attempts, 5s delay).
      * Phase 2: each mirror in MIRROR_PREFIXES (1 attempt per mirror).
      */
-    public static void executeInstall(Context context, int maxDirectRetries, ProgressCallback callback) throws Exception {
+    public static void executeInstall(Context context, int maxDirectRetries,
+            ProgressCallback callback, PostBootstrapHook postBootstrap) throws Exception {
         StringBuilder errorLog = new StringBuilder();
 
         // Phase 0: wait for Termux bootstrap to finish
@@ -122,6 +132,12 @@ public class HermesInstallHelper {
         // Phase 0.5: wait for any apt/dpkg processes to finish and clean stale locks
         waitForAptReady();
 
+        // Deploy apt/dpkg configs AFTER bootstrap is ready.
+        // Bootstrap extraction wipes $PREFIX, so configs deployed earlier are gone.
+        if (postBootstrap != null) {
+            postBootstrap.onBootstrapReady();
+        }
+
         // Phase 1: direct attempts
         setState(context, InstallState.DOWNLOADING);
         for (int attempt = 1; attempt <= maxDirectRetries; attempt++) {
@@ -130,7 +146,7 @@ public class HermesInstallHelper {
                 if (callback != null) {
                     callback.onStatus(context.getString(R.string.install_direct_attempt, attempt, maxDirectRetries));
                 }
-                runShellCommand(buildInstallCommand(false, null));
+                runShellCommand(buildInstallCommand(false, null), callback);
                 setLastError(context, null);
                 setState(context, InstallState.INSTALLED);
                 return;
@@ -155,7 +171,7 @@ public class HermesInstallHelper {
                     callback.onStatus(context.getString(R.string.install_fallback_mirror));
                 }
                 Logger.logInfo(LOG_TAG, "Falling back to mirror: " + mirror);
-                runShellCommand(buildInstallCommand(true, mirror));
+                runShellCommand(buildInstallCommand(true, mirror), callback);
                 setLastError(context, null);
                 setState(context, InstallState.INSTALLED);
                 return;
@@ -247,7 +263,7 @@ public class HermesInstallHelper {
             + "[ \"$_cleaned\" = true ]";
 
         try {
-            runShellCommand(cmd);
+            runShellCommand(cmd, null);
         } catch (Exception e) {
             Logger.logWarn(LOG_TAG, "apt readiness check failed (non-fatal): " + e.getMessage());
         }
@@ -259,21 +275,24 @@ public class HermesInstallHelper {
     static String buildInstallCommand(boolean useMirror, String mirrorPrefix) {
         String bashPath = TermuxConstants.TERMUX_BIN_PREFIX_DIR_PATH + "/bash";
 
+        String curlTimeout = "--connect-timeout 30 --max-time 300";
+
         if (!useMirror) {
-            return "curl -fsSL " + INSTALL_URL_DIRECT + " | " + bashPath;
+            return "curl -fsSL " + curlTimeout + " " + INSTALL_URL_DIRECT + " | " + bashPath;
         }
 
         String mirrorScriptUrl = mirrorPrefix + INSTALL_URL_GITHUB_RAW;
         String mirrorRepoUrl = mirrorPrefix + GITHUB_REPO_URL;
-        return "curl -fsSL " + mirrorScriptUrl
+        return "curl -fsSL " + curlTimeout + " " + mirrorScriptUrl
                 + " | sed 's|" + GITHUB_REPO_URL + "|" + mirrorRepoUrl + "|g'"
                 + " | " + bashPath;
     }
 
     /**
      * Execute a bash command in the Termux environment.
+     * Streams each line of output to callback.onOutput() in real time.
      */
-    static void runShellCommand(String bashCommand) throws Exception {
+    static void runShellCommand(String bashCommand, ProgressCallback callback) throws Exception {
         String bashPath = TermuxConstants.TERMUX_BIN_PREFIX_DIR_PATH + "/bash";
         String curlPath = TermuxConstants.TERMUX_BIN_PREFIX_DIR_PATH + "/curl";
 
@@ -315,6 +334,7 @@ public class HermesInstallHelper {
             String line;
             while ((line = reader.readLine()) != null) {
                 output.append(line).append("\n");
+                if (callback != null) callback.onOutput(line);
             }
         }
 
