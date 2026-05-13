@@ -118,10 +118,10 @@ public class HermesInstallHelper {
     /**
      * Run the install script with automatic mirror fallback.
      * Phase 0: wait for bootstrap, then run postBootstrapHook.
-     * Phase 1: direct connection (up to maxDirectRetries attempts, 5s delay).
-     * Phase 2: each mirror in MIRROR_PREFIXES (1 attempt per mirror).
+     * Phase 1: local inline install script (clones repo, builds psutil, installs hermes).
+     * Phase 2: each mirror in MIRROR_PREFIXES (1 attempt per mirror, last resort).
      */
-    public static void executeInstall(Context context, int maxDirectRetries,
+    public static void executeInstall(Context context,
             ProgressCallback callback, PostBootstrapHook postBootstrap) throws Exception {
         StringBuilder errorLog = new StringBuilder();
 
@@ -142,32 +142,25 @@ public class HermesInstallHelper {
         // dpkg may have half-configured packages from bootstrap; apt has no package lists.
         prepareAptEnvironment(callback);
 
-        // Phase 1: direct attempts
-        setState(context, InstallState.DOWNLOADING);
-        for (int attempt = 1; attempt <= maxDirectRetries; attempt++) {
-            if (callback != null && callback.isCancelled()) return;
-            try {
-                if (callback != null) {
-                    callback.onStatus(context.getString(R.string.install_direct_attempt, attempt, maxDirectRetries));
-                }
-                runShellCommand(buildInstallCommand(false, null), callback);
-                setLastError(context, null);
-                setState(context, InstallState.INSTALLED);
-                return;
-            } catch (Exception e) {
-                errorLog.append("Direct attempt ").append(attempt).append(": ")
-                        .append(e.getMessage()).append("\n");
-                Logger.logWarn(LOG_TAG, "Direct install attempt " + attempt + " failed: " + e.getMessage());
-                if (attempt < maxDirectRetries) {
-                    if (callback != null) {
-                        callback.onStatus(context.getString(R.string.install_retrying, attempt, maxDirectRetries));
-                    }
-                    Thread.sleep(5000);
-                }
+        // Phase 1: local install script (primary method)
+        setState(context, InstallState.INSTALLING);
+        if (callback != null && callback.isCancelled()) return;
+        try {
+            if (callback != null) {
+                callback.onStatus("Installing Hermes Agent...");
             }
+            Logger.logInfo(LOG_TAG, "Starting local install script");
+            runShellCommand(buildLocalInstallScript(), callback);
+            setLastError(context, null);
+            setState(context, InstallState.INSTALLED);
+            return;
+        } catch (Exception e) {
+            errorLog.append("Local: ").append(e.getMessage()).append("\n");
+            Logger.logWarn(LOG_TAG, "Local install failed: " + e.getMessage());
         }
 
-        // Phase 2: mirror fallback
+        // Phase 2: mirror fallback (last resort)
+        setState(context, InstallState.DOWNLOADING);
         for (String mirror : MIRROR_PREFIXES) {
             if (callback != null && callback.isCancelled()) return;
             try {
@@ -186,7 +179,7 @@ public class HermesInstallHelper {
             }
         }
 
-        String errorMsg = "All download methods failed\n" + errorLog;
+        String errorMsg = "All install methods failed\n" + errorLog;
         setLastError(context, errorMsg);
         setState(context, InstallState.FAILED);
         throw new RuntimeException(errorMsg);
@@ -280,6 +273,7 @@ public class HermesInstallHelper {
      * Failures are logged but non-fatal — the install script may still succeed.
      */
     private static void prepareAptEnvironment(ProgressCallback callback) {
+        String prefix = TermuxConstants.TERMUX_PREFIX_DIR_PATH;
         // Retry apt update, then upgrade all packages to prevent partial upgrade breakage.
         // When the install script later runs "pkg install X", apt won't trigger inconsistent
         // upgrades (e.g. libcurl upgraded but libngtcp2 not, causing linking failures).
@@ -296,7 +290,17 @@ public class HermesInstallHelper {
                 + "if apt upgrade -y 2>&1; then _ug=true; break; fi; "
                 + "echo 'Retrying in 10s...'; sleep 10; "
                 + "done; "
-                + "if [ \"$_ug\" = false ]; then echo 'WARNING: apt upgrade failed'; fi";
+                + "if [ \"$_ug\" = false ]; then echo 'WARNING: apt upgrade failed'; fi; "
+                // TMPDIR symlinks: path_rewrite's shebang patching creates .rw_* temp files
+                // that break $0-based path resolution. Pre-create symlinks so tools are found.
+                + "echo '=== Preparing TMPDIR symlinks ==='; "
+                + "for _t in clang clang++ cc c++ ld.lld; do "
+                + "[ -x " + prefix + "/bin/$_t ] && ln -sf " + prefix + "/bin/$_t $TMPDIR/$_t; "
+                + "done; "
+                + "for _w in " + prefix + "/bin/*-android-*; do "
+                + "[ -e \"$_w\" ] || continue; "
+                + "ln -sf \"$_w\" \"$TMPDIR/$(basename \"$_w\")\"; "
+                + "done";
         try {
             if (callback != null) callback.onOutput("Preparing apt environment...");
             runShellCommand(diag, callback);
@@ -322,6 +326,98 @@ public class HermesInstallHelper {
         return "curl -fsSL " + curlTimeout + " " + mirrorScriptUrl
                 + " | sed 's|" + GITHUB_REPO_URL + "|" + mirrorRepoUrl + "|g'"
                 + " | " + bashPath;
+    }
+
+    /**
+     * Build the local install script that installs Hermes Agent without
+     * relying on the upstream install.sh (which fails under path_rewrite
+     * due to $0-based path resolution breaking in .rw_* temp files).
+     */
+    static String buildLocalInstallScript() {
+        String prefix = TermuxConstants.TERMUX_PREFIX_DIR_PATH;
+        String mirror = MIRROR_PREFIXES.length > 0 ? MIRROR_PREFIXES[0] : "";
+        return "set -e\n"
+            + "\n"
+            + "HERMES_DIR=\"$HOME/.hermes/hermes-agent\"\n"
+            + "VENV_DIR=\"$HERMES_DIR/venv\"\n"
+            + "HERMES_COMMIT=\"" + HERMES_AGENT_COMMIT + "\"\n"
+            + "MIRROR_REPO_URL=\"" + mirror + GITHUB_REPO_URL + "\"\n"
+            + "PREFIX=\"" + prefix + "\"\n"
+            + "\n"
+            + "echo '=== Step 1: Install system packages ==='\n"
+            + "pkg install -y python git nodejs clang rust make pkg-config "
+            + "libffi openssl ca-certificates curl ripgrep ffmpeg\n"
+            + "\n"
+            + "echo '=== Step 2: Clone hermes-agent source ==='\n"
+            + "if [ -d \"$HERMES_DIR/.git\" ]; then\n"
+            + "  cd \"$HERMES_DIR\"\n"
+            + "  git fetch origin main || true\n"
+            + "  git reset --hard \"$HERMES_COMMIT\" || true\n"
+            + "else\n"
+            + "  rm -rf \"$HERMES_DIR\"\n"
+            + "  git clone \"$MIRROR_REPO_URL\" \"$HERMES_DIR\"\n"
+            + "  cd \"$HERMES_DIR\"\n"
+            + "  git checkout \"$HERMES_COMMIT\" || true\n"
+            + "fi\n"
+            + "\n"
+            + "echo '=== Step 3: Create venv ==='\n"
+            + "rm -rf \"$VENV_DIR\"\n"
+            + "python -m venv \"$VENV_DIR\"\n"
+            + "\n"
+            + "echo '=== Step 4: Workaround path_rewrite $0 issue ==='\n"
+            + "for _tool in clang clang++ cc c++ ld.lld; do\n"
+            + "  [ -e \"$PREFIX/bin/$_tool\" ] && ln -sf \"$PREFIX/bin/$_tool\" \"$TMPDIR/$_tool\"\n"
+            + "done\n"
+            + "for _wrapper in \"$PREFIX/bin\"/*-android-*; do\n"
+            + "  [ -e \"$_wrapper\" ] || continue\n"
+            + "  ln -sf \"$_wrapper\" \"$TMPDIR/$(basename \"$_wrapper\")\"\n"
+            + "done\n"
+            + "\n"
+            + "echo '=== Step 5: Build psutil from patched source ==='\n"
+            + "PSUTIL_VER=\"7.2.2\"\n"
+            + "PSUTIL_TMP=\"$TMPDIR/psutil-build\"\n"
+            + "rm -rf \"$PSUTIL_TMP\"\n"
+            + "mkdir -p \"$PSUTIL_TMP\"\n"
+            + "cd \"$PSUTIL_TMP\"\n"
+            + "curl -fsSL --connect-timeout 30 --max-time 300 "
+            + "\"https://files.pythonhosted.org/packages/source/p/psutil/psutil-${PSUTIL_VER}.tar.gz\" "
+            + "| tar xz\n"
+            + "cd \"psutil-${PSUTIL_VER}\"\n"
+            + "sed -i 's/platform android is not supported/platform android - building with Termux toolchain/g' pyproject.toml\n"
+            + "grep -q 'Termux toolchain' pyproject.toml || echo 'WARNING: psutil pyproject.toml patch may not have applied'\n"
+            + "sed -i 's/LINUX = sys.platform.startswith(\"linux\")/LINUX = sys.platform.startswith((\"linux\", \"android\"))/g' psutil/_common.py\n"
+            + "grep -q '\"android\"' psutil/_common.py || echo 'WARNING: psutil _common.py patch may not have applied'\n"
+            + "\"$VENV_DIR/bin/pip\" install --no-build-isolation .\n"
+            + "\n"
+            + "echo '=== Step 6: Install hermes-agent ==='\n"
+            + "cd \"$HERMES_DIR\"\n"
+            + "\"$VENV_DIR/bin/pip\" install -e '.[termux-all]' --no-deps || \\\n"
+            + "  \"$VENV_DIR/bin/pip\" install -e '.[termux]' --no-deps || \\\n"
+            + "  \"$VENV_DIR/bin/pip\" install -e . --no-deps\n"
+            // Install remaining deps with --no-build-isolation to avoid path_rewrite
+            // issues in isolated build envs. psutil is already installed so pip skips it.
+            + "\"$VENV_DIR/bin/pip\" install --no-build-isolation -e '.[termux-all]' || \\\n"
+            + "  \"$VENV_DIR/bin/pip\" install --no-build-isolation -e '.[termux]' || \\\n"
+            + "  \"$VENV_DIR/bin/pip\" install --no-build-isolation -e . || true\n"
+            + "\n"
+            + "echo '=== Step 7: Setup hermes command ==='\n"
+            + "HERMES_BIN=\"$PREFIX/bin/hermes\"\n"
+            + "VENV_HERMES=\"$VENV_DIR/bin/hermes\"\n"
+            + "if [ -f \"$VENV_HERMES\" ]; then\n"
+            + "  ln -sf \"$VENV_HERMES\" \"$HERMES_BIN\"\n"
+            + "elif [ -f \"$HERMES_DIR/hermes_cli.py\" ]; then\n"
+            + "  echo \"#!$VENV_DIR/bin/python\" > \"$HERMES_BIN\"\n"
+            + "  echo \"import sys; sys.path.insert(0, '$HERMES_DIR'); from hermes_cli import main; main()\" >> \"$HERMES_BIN\"\n"
+            + "  chmod 755 \"$HERMES_BIN\"\n"
+            + "fi\n"
+            + "\n"
+            + "echo '=== Step 8: Copy config templates ==='\n"
+            + "if [ -d \"$HERMES_DIR/config_templates\" ]; then\n"
+            + "  mkdir -p \"$HOME/.hermes\"\n"
+            + "  cp -n \"$HERMES_DIR/config_templates/\"* \"$HOME/.hermes/\" 2>/dev/null || true\n"
+            + "fi\n"
+            + "\n"
+            + "echo '=== Local install complete ==='\n";
     }
 
     /**

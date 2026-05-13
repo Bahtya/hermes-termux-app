@@ -35,7 +35,6 @@ public class HermesInstallActivity extends AppCompatActivity {
 
     private static final String MARKER_FILE =
             TermuxConstants.TERMUX_DATA_HOME_DIR_PATH + "/hermes-installed";
-    private static final int MAX_RETRIES = 3;
     private static final Pattern ANSI_PATTERN = Pattern.compile("\\[[0-9;]*[a-zA-Z]");
 
     private TextView mStatusText;
@@ -241,7 +240,7 @@ public class HermesInstallActivity extends AppCompatActivity {
                     mProgressBar.setProgress(30);
                 });
 
-                HermesInstallHelper.executeInstall(HermesInstallActivity.this, MAX_RETRIES, new HermesInstallHelper.ProgressCallback() {
+                HermesInstallHelper.executeInstall(HermesInstallActivity.this, new HermesInstallHelper.ProgressCallback() {
                     @Override
                     public void onStatus(String message) {
                         mHandler.post(() -> mStatusText.setText(message));
