@@ -249,6 +249,10 @@ public class HermesInstaller {
     }
 
     private static void startInstallThread(Context context, boolean isRetry) {
+        if (HermesInstallHelper.isInstallRunning()) {
+            Logger.logInfo(LOG_TAG, "Install already running, skipping duplicate");
+            return;
+        }
         Thread t = new Thread(() -> {
             try {
                 createNotificationChannel(context);

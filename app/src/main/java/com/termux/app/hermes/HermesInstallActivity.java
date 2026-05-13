@@ -200,6 +200,13 @@ public class HermesInstallActivity extends AppCompatActivity {
     }
 
     private void startInstallation() {
+        // If an install is already running in background (e.g. auto-install),
+        // attach to it instead of starting a new one.
+        if (HermesInstallHelper.isInstallRunning()) {
+            showOngoingInstall();
+            return;
+        }
+
         mRetryButton.setVisibility(View.GONE);
         mProgressBar.setProgress(0);
         mTerminalBuffer.setLength(0);
@@ -304,6 +311,101 @@ public class HermesInstallActivity extends AppCompatActivity {
                 });
             }
         }, "HermesInstaller").start();
+    }
+
+    /**
+     * Attach to an already-running background install.
+     * Shows buffered output and polls until the install completes.
+     */
+    private int mLastBufferPos = 0;
+
+    private void showOngoingInstall() {
+        mRetryButton.setVisibility(View.GONE);
+        mProgressBar.setProgress(30);
+        mTerminalBuffer.setLength(0);
+        mLastBufferPos = 0;
+
+        appendTerminal("$ Installation already in progress, attaching...\n", false);
+        appendTerminal("", false);
+        updateStepIndicators(2);
+        mStatusText.setText(R.string.install_downloading);
+
+        // Load output accumulated so far
+        String buffered = HermesInstallHelper.getOutputBuffer();
+        if (!buffered.isEmpty()) {
+            for (String line : buffered.split("\n")) {
+                appendTerminal(line, false);
+                mTerminalBuffer.append("\n");
+            }
+            mLastBufferPos = buffered.length();
+            mHandler.post(() -> {
+                mTerminalOutput.setText(mTerminalBuffer.toString());
+                mTerminalScroll.post(() -> mTerminalScroll.fullScroll(View.FOCUS_DOWN));
+            });
+        }
+
+        // Poll until install finishes
+        Runnable poll = new Runnable() {
+            @Override
+            public void run() {
+                if (isFinishing() || isDestroyed()) return;
+
+                // Append any new output using length-based offset
+                String current = HermesInstallHelper.getOutputBuffer();
+                int pos = Math.min(mLastBufferPos, current.length());
+                if (current.length() > pos) {
+                    String newOutput = current.substring(pos);
+                    for (String line : newOutput.split("\n")) {
+                        if (!line.isEmpty()) appendTerminal(line, false);
+                    }
+                    mLastBufferPos = current.length();
+                }
+
+                if (!HermesInstallHelper.isInstallRunning()) {
+                    // Install finished — run validation in background
+                    new Thread(() -> {
+                        HermesInstallHelper.InstallState state = HermesInstallHelper.getState(HermesInstallActivity.this);
+                        if (state == HermesInstallHelper.InstallState.INSTALLED) {
+                            mHandler.post(() -> {
+                                updateStepIndicators(3);
+                                mStatusText.setText(R.string.install_validating);
+                                mProgressBar.setProgress(80);
+                            });
+                            boolean validated = validateInstallation();
+                            if (validated) {
+                                appendTerminal("Hermes binary validated successfully");
+                                mSuccess = true;
+                                mHandler.post(() -> {
+                                    updateStepIndicators(4);
+                                    mStatusText.setText(R.string.install_complete);
+                                    mProgressBar.setProgress(100);
+                                    showInstallSuccess();
+                                });
+                            } else {
+                                mHandler.post(() -> {
+                                    updateStepIndicators(-1);
+                                    mStatusText.setText(getString(R.string.install_failed, "validation failed"));
+                                    mRetryButton.setVisibility(View.VISIBLE);
+                                    mProgressBar.setProgress(0);
+                                });
+                            }
+                        } else {
+                            String error = HermesInstallHelper.getLastError(HermesInstallActivity.this);
+                            appendTerminal("\nFATAL: " + (error.isEmpty() ? "Install failed" : error));
+                            mHandler.post(() -> {
+                                updateStepIndicators(-1);
+                                mStatusText.setText(getString(R.string.install_failed, "see log above"));
+                                mRetryButton.setVisibility(View.VISIBLE);
+                                mProgressBar.setProgress(0);
+                            });
+                        }
+                    }, "HermesValidator").start();
+                    return;
+                }
+                mHandler.postDelayed(this, 2000);
+            }
+        };
+        mHandler.postDelayed(poll, 2000);
     }
 
     private void updateStepIndicators(int currentStep) {
