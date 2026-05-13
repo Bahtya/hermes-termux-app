@@ -447,7 +447,6 @@ public class HermesInstaller {
         Os.chmod(sourcesList.getAbsolutePath(), 0644);
         Logger.logInfo(LOG_TAG, "Set apt source to TUNA mirror");
     }
-    }
 
     /**
      * Patch the dpkg database files to replace /data/data/com.termux paths.
