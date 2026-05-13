@@ -280,14 +280,19 @@ public class HermesInstallHelper {
      * Failures are logged but non-fatal — the install script may still succeed.
      */
     private static void prepareAptEnvironment(ProgressCallback callback) {
-        String diag = "echo '=== dpkg audit ==='; "
-                + "dpkg --audit 2>&1 || true; "
-                + "echo '=== sources.list ==='; "
+        // Retry apt update up to 6 times with 5s sleep to handle lock contention
+        // from Termux's own background apt processes during bootstrap.
+        String diag = "echo '=== sources.list ==='; "
                 + "cat $PREFIX/etc/apt/sources.list 2>&1 || echo 'missing'; "
-                + "echo '=== apt update ==='; "
-                + "apt update 2>&1 || true; "
-                + "echo '=== test apt install (tree) ==='; "
-                + "apt install -y tree -o Dpkg::Options='--debug=2' 2>&1 || true";
+                + "echo '=== apt update (with retry) ==='; "
+                + "_ok=false; for _i in $(seq 1 6); do "
+                + "echo 'Attempt '$_i'...'; "
+                + "if apt update 2>&1; then _ok=true; break; fi; "
+                + "echo 'apt update failed, waiting 5s...'; sleep 5; "
+                + "done; "
+                + "if [ \"$_ok\" = false ]; then echo 'WARNING: apt update failed after 6 attempts'; fi; "
+                + "echo '=== installing python ==='; "
+                + "apt install -y python -o Dpkg::Options='--debug=2' 2>&1 || true";
         try {
             if (callback != null) callback.onOutput("Preparing apt environment...");
             runShellCommand(diag, callback);
