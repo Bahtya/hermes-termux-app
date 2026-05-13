@@ -62,6 +62,63 @@ public class HermesInstaller {
 
     private HermesInstaller() {}
 
+    /**
+     * Check critical config files on every app start and auto-heal if tampered.
+     * These files are small (total ~3KB), re-deploying is negligible overhead.
+     */
+    static void runIntegrityCheck() {
+        String prefix = TermuxConstants.TERMUX_PREFIX_DIR_PATH;
+        int healed = 0;
+
+        // sources.list must contain TUNA mirror
+        File sourcesList = new File(prefix, "etc/apt/sources.list");
+        if (!fileContains(sourcesList, "mirrors.tuna.tsinghua.edu.cn")) {
+            try { deployAptMirror(prefix); healed++; }
+            catch (Exception e) { Logger.logWarn(LOG_TAG, "Integrity: failed to heal sources.list: " + e.getMessage()); }
+        }
+
+        // apt.conf must contain DPkg hook directive
+        File aptConf = new File(prefix, "etc/apt/apt.conf.d/99hermes-paths.conf");
+        if (!fileContains(aptConf, "DPkg::Pre-Install-Pkgs")) {
+            try { deployAptConf(); deployAptPreInstallHook(); healed++; }
+            catch (Exception e) { Logger.logWarn(LOG_TAG, "Integrity: failed to heal apt.conf: " + e.getMessage()); }
+        }
+
+        // hook script must exist and be executable
+        File hookScript = new File(prefix, "lib/hermes/apt-pre-install-patch");
+        if (!hookScript.canExecute()) {
+            try { deployAptPreInstallHook(); healed++; }
+            catch (Exception e) { Logger.logWarn(LOG_TAG, "Integrity: failed to heal hook script: " + e.getMessage()); }
+        }
+
+        // dpkg conf must contain admindir
+        File dpkgConf = new File(prefix, "etc/dpkg/dpkg.cfg.d/hermes-paths");
+        if (!fileContains(dpkgConf, "admindir")) {
+            try { deployDpkgConf(); healed++; }
+            catch (Exception e) { Logger.logWarn(LOG_TAG, "Integrity: failed to heal dpkg.conf: " + e.getMessage()); }
+        }
+
+        // libpath_rewrite.so must exist (context-dependent deploy handled in runContextMigrations)
+        File pathRewrite = new File(TermuxConstants.TERMUX_LIB_PREFIX_DIR_PATH, "libpath_rewrite.so");
+        if (!pathRewrite.exists()) {
+            Logger.logWarn(LOG_TAG, "Integrity: libpath_rewrite.so missing, will be healed in runContextMigrations");
+        }
+
+        if (healed > 0) {
+            Logger.logInfo(LOG_TAG, "Integrity check: " + healed + " files healed");
+        }
+    }
+
+    private static boolean fileContains(File file, String keyword) {
+        if (!file.exists()) return false;
+        try {
+            String content = readFile(file);
+            return content.contains(keyword);
+        } catch (Exception e) {
+            return false;
+        }
+    }
+
     static void installIfNeeded(Context context) {
         if (new File(HERMES_MARKER_FILE).exists()) {
             if (!new File(TermuxConstants.TERMUX_BIN_PREFIX_DIR_PATH, "hermes").exists()) {
@@ -81,6 +138,7 @@ public class HermesInstaller {
      * get necessary fixes applied without needing a clean reinstall.
      */
     static void runUpgradeMigrations() {
+        runIntegrityCheck();
         // Fix broken symlinks: bootstrap SYMLINKS.txt uses absolute paths with
         // com.termux which don't exist after the package rename. Earlier versions
         // didn't rewrite symlink targets, so existing installs need this fix.
@@ -636,6 +694,11 @@ public class HermesInstaller {
                 + "fi\n"
                 + "export USER=hermes\n"
                 + "export LOGNAME=hermes\n"
+                + "\n"
+                + "# Ensure path rewrite is always active\n"
+                + "if [ -z \"$LD_PRELOAD\" ] && [ -f \"$PREFIX/lib/libpath_rewrite.so\" ]; then\n"
+                + "    export LD_PRELOAD=\"$PREFIX/lib/libpath_rewrite.so\"\n"
+                + "fi\n"
                 + "export PS1='\\[\\e[1;32m\\]hermes@hermes\\[\\e[0m\\]:\\[\\e[1;34m\\]\\w\\[\\e[0m\\]\\$ '\n";
 
         if (bashrc.exists()) {
