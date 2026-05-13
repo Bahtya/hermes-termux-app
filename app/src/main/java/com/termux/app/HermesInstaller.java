@@ -51,12 +51,15 @@ public class HermesInstaller {
             TermuxConstants.TERMUX_DATA_HOME_DIR_PATH + "/hermes-path-rewrite-deployed";
     private static final String HERMES_SYMLINK_FIX_MARKER_FILE =
             TermuxConstants.TERMUX_DATA_HOME_DIR_PATH + "/hermes-symlinks-fixed";
+    private static final String HERMES_DPKG_DB_FIX_MARKER_FILE =
+            TermuxConstants.TERMUX_DATA_HOME_DIR_PATH + "/hermes-dpkg-db-patched";
     private static final String HERMES_BASH_INIT_VERSION = "2";
-    private static final String HERMES_APT_CONF_VERSION = "1";
+    private static final String HERMES_APT_CONF_VERSION = "2";
     private static final String HERMES_DPKG_CONF_VERSION = "1";
     private static final String HERMES_SHELL_PROFILE_VERSION = "1";
-    private static final String HERMES_PATH_REWRITE_VERSION = "1";
+    private static final String HERMES_PATH_REWRITE_VERSION = "2";
     private static final String HERMES_SYMLINK_FIX_VERSION = "2";
+    private static final String HERMES_DPKG_DB_FIX_VERSION = "2";
 
     private HermesInstaller() {}
 
@@ -96,6 +99,9 @@ public class HermesInstaller {
         runMigration("Dpkg conf", HERMES_DPKG_CONF_VERSION,
                 HERMES_DPKG_CONF_MARKER_FILE, HermesInstaller::deployDpkgConf,
                 prefix + "/etc/dpkg/dpkg.cfg.d/hermes-paths");
+        runMigration("Dpkg db fix", HERMES_DPKG_DB_FIX_VERSION,
+                HERMES_DPKG_DB_FIX_MARKER_FILE, () ->
+                        patchDpkgDatabase(TermuxConstants.TERMUX_PREFIX_DIR_PATH));
         runMigration("Shell profile", HERMES_SHELL_PROFILE_VERSION,
                 HERMES_SHELL_PROFILE_MARKER_FILE, HermesInstaller::deployShellProfile,
                 TermuxConstants.TERMUX_HOME_DIR_PATH + "/.bashrc");
@@ -152,6 +158,31 @@ public class HermesInstaller {
         startInstallThread(context, true);
     }
 
+    /**
+     * Deploy apt.conf, dpkg.conf, LD_PRELOAD library, and patch the dpkg database.
+     * Called from the install thread AFTER bootstrap is complete but BEFORE the
+     * install script runs. Bootstrap extraction wipes $PREFIX, so configs deployed
+     * during app.onCreate() no longer exist.
+     */
+    private static void deployInstallPrerequisites(Context context) {
+        String prefix = TermuxConstants.TERMUX_PREFIX_DIR_PATH;
+        try { deployAptConf(); } catch (Exception e) {
+            Logger.logWarn(LOG_TAG, "Pre-install apt.conf deploy: " + e.getMessage());
+        }
+        try { deployDpkgConf(); } catch (Exception e) {
+            Logger.logWarn(LOG_TAG, "Pre-install dpkg.conf deploy: " + e.getMessage());
+        }
+        try { deployPathRewrite(context); } catch (Exception e) {
+            Logger.logWarn(LOG_TAG, "Pre-install path-rewrite deploy: " + e.getMessage());
+        }
+        try { patchDpkgDatabase(prefix); } catch (Exception e) {
+            Logger.logWarn(LOG_TAG, "Pre-install dpkg db patch: " + e.getMessage());
+        }
+        try { ensureAptDirectories(prefix); } catch (Exception e) {
+            Logger.logWarn(LOG_TAG, "Pre-install apt dirs ensure: " + e.getMessage());
+        }
+    }
+
     private static void startInstallThread(Context context, boolean isRetry) {
         Thread t = new Thread(() -> {
             try {
@@ -161,6 +192,13 @@ public class HermesInstaller {
                 if (!isRetry) {
                     deployBootScript();
                 }
+
+                // Deploy critical configs BEFORE the install script runs.
+                // Bootstrap extraction (TermuxInstaller line 137) deletes $PREFIX,
+                // wiping any configs deployed by runUpgradeMigrations() during
+                // app.onCreate(). Without these, dpkg/apt cannot find their
+                // databases or config files and fail with error code (1).
+                deployInstallPrerequisites(context);
 
                 try {
                     HermesInstallHelper.executeInstall(context, MAX_RETRIES, new HermesInstallHelper.ProgressCallback() {
@@ -336,7 +374,8 @@ public class HermesInstaller {
                 + "Dir::Etc \"" + prefix + "/etc/apt\";\n"
                 + "Dir::Bin::methods \"" + prefix + "/lib/apt/methods\";\n"
                 + "Dir::Bin::dpkg \"" + prefix + "/bin/dpkg\";\n"
-                + "Dir::Log \"" + prefix + "/var/log/apt\";\n";
+                + "Dir::Log \"" + prefix + "/var/log/apt\";\n"
+                + "Dpkg::Options { \"--admindir=" + prefix + "/var/lib/dpkg\"; };\n";
 
         try (FileOutputStream out = new FileOutputStream(confFile)) {
             out.write(content.getBytes("UTF-8"));
@@ -367,6 +406,110 @@ public class HermesInstaller {
         }
         Os.chmod(confFile.getAbsolutePath(), 0644);
         Logger.logInfo(LOG_TAG, "Deployed dpkg.conf to " + confFile.getAbsolutePath());
+    }
+
+    /**
+     * Ensure apt's required working directories exist. Bootstrap extraction
+     * wipes $PREFIX and the ZIP doesn't include empty cache directories,
+     * causing apt to fail with "Archives directory …/partial is missing".
+     */
+    private static void ensureAptDirectories(String prefix) {
+        String[] dirs = {
+            "/var/cache/apt/archives/partial",
+            "/var/lib/apt/lists/partial",
+            "/var/log/apt"
+        };
+        for (String suffix : dirs) {
+            File dir = new File(prefix + suffix);
+            if (!dir.exists() && !dir.mkdirs()) {
+                Logger.logWarn(LOG_TAG, "Could not create apt directory: " + dir.getAbsolutePath());
+            }
+        }
+    }
+
+    /**
+     * Patch the dpkg database files to replace /data/data/com.termux paths.
+     * The bootstrap ZIP's var/lib/dpkg/ directory contains:
+     * - info/*.list files with com.termux file paths
+     * - info/*.postinst/prerm scripts with com.termux shebangs and paths
+     * - status file with package metadata
+     * These were NOT patched by earlier CI scripts, causing dpkg to fail
+     * with error code (1) when running maintainer scripts or checking files.
+     */
+    private static void patchDpkgDatabase(String prefixPath) {
+        final String oldPrefix = "/data/data/com.termux";
+        final String newPrefix = "/data/data/com.bahtya";
+        int patched = 0;
+
+        File dpkgInfo = new File(prefixPath, "var/lib/dpkg/info");
+        if (dpkgInfo.isDirectory()) {
+            File[] files = dpkgInfo.listFiles();
+            if (files != null) {
+                for (File f : files) {
+                    if (patchTextFileSafe(f, oldPrefix, newPrefix)) patched++;
+                }
+            }
+        }
+
+        for (String name : new String[]{"status", "available", "statoverride", "diversions"}) {
+            File f = new File(prefixPath, "var/lib/dpkg/" + name);
+            if (f.exists()) {
+                if (patchTextFileSafe(f, oldPrefix, newPrefix)) patched++;
+            }
+        }
+
+        for (String sub : new String[]{"alternatives", "triggers", "methods"}) {
+            File dir = new File(prefixPath, "var/lib/dpkg/" + sub);
+            if (dir.isDirectory()) {
+                File[] files = dir.listFiles();
+                if (files != null) {
+                    for (File f : files) {
+                        if (patchTextFileSafe(f, oldPrefix, newPrefix)) patched++;
+                    }
+                }
+            }
+        }
+
+        // Patch apt's own data directories
+        File aptListsDir = new File(prefixPath, "var/lib/apt/lists");
+        if (aptListsDir.isDirectory()) {
+            File[] files = aptListsDir.listFiles();
+            if (files != null) {
+                for (File f : files) {
+                    if (patchTextFileSafe(f, oldPrefix, newPrefix)) patched++;
+                }
+            }
+        }
+
+        Logger.logInfo(LOG_TAG, "Dpkg database patching: " + patched + " files patched");
+    }
+
+    private static boolean patchTextFileSafe(File file, String oldStr, String newStr) {
+        try {
+            byte[] raw = readFileBytes(file);
+            if (raw == null) return false;
+            String content = new String(raw, "UTF-8");
+            if (!content.contains(oldStr)) return false;
+            content = content.replace(oldStr, newStr);
+            try (FileOutputStream fos = new FileOutputStream(file)) {
+                fos.write(content.getBytes("UTF-8"));
+            }
+            return true;
+        } catch (Exception e) {
+            return false;
+        }
+    }
+
+    private static byte[] readFileBytes(File file) {
+        try (java.io.FileInputStream fis = new java.io.FileInputStream(file);
+             java.io.ByteArrayOutputStream bos = new java.io.ByteArrayOutputStream()) {
+            byte[] buf = new byte[8192];
+            int len;
+            while ((len = fis.read(buf)) != -1) bos.write(buf, 0, len);
+            return bos.toByteArray();
+        } catch (Exception e) {
+            return null;
+        }
     }
 
     private static void deployShellProfile() throws Exception {

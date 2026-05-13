@@ -119,8 +119,11 @@ public class HermesInstallHelper {
         setState(context, InstallState.BOOTSTRAPPING);
         ensureBashReady(context, callback);
 
+        // Phase 0.5: wait for any apt/dpkg processes to finish and clean stale locks
+        waitForAptReady();
+
         // Phase 1: direct attempts
-        setState(context, InstallState.INSTALLING);
+        setState(context, InstallState.DOWNLOADING);
         for (int attempt = 1; attempt <= maxDirectRetries; attempt++) {
             if (callback != null && callback.isCancelled()) return;
             try {
@@ -211,6 +214,46 @@ public class HermesInstallHelper {
     }
 
     /**
+     * Wait for any running apt/dpkg processes to finish and remove stale
+     * lock files. Bootstrap extraction or app initialization may trigger
+     * apt commands that hold locks, causing the install script's
+     * "pkg install python" to fail with lock errors.
+     */
+    private static void waitForAptReady() {
+        String prefix = TermuxConstants.TERMUX_PREFIX_DIR_PATH;
+        String bashPath = TermuxConstants.TERMUX_BIN_PREFIX_DIR_PATH + "/bash";
+
+        if (!new File(bashPath).exists()) return;
+
+        // Shell snippet: wait up to 30s for apt/dpkg processes to exit.
+        // Only remove lock files if no apt/dpkg process is still running,
+        // to avoid corrupting a running transaction.
+        String cmd = "_cleaned=false; "
+            + "for _i in $(seq 1 30); do "
+            + "_r=false; "
+            + "for _p in /proc/[0-9]*/cmdline; do "
+            + "[ -r \"$_p\" ] && { cat \"$_p\" 2>/dev/null | tr '\\0' ' ' "
+            + "| grep -qE '/apt|/dpkg' && _r=true && break; }; "
+            + "done; "
+            + "if [ \"$_r\" = false ]; then "
+            + "rm -f " + prefix + "/var/lib/apt/lists/lock "
+            + prefix + "/var/cache/apt/archives/lock "
+            + prefix + "/var/lib/dpkg/lock-frontend "
+            + prefix + "/var/lib/dpkg/lock; "
+            + "_cleaned=true; break; "
+            + "fi; "
+            + "sleep 1; "
+            + "done; "
+            + "[ \"$_cleaned\" = true ]";
+
+        try {
+            runShellCommand(cmd);
+        } catch (Exception e) {
+            Logger.logWarn(LOG_TAG, "apt readiness check failed (non-fatal): " + e.getMessage());
+        }
+    }
+
+    /**
      * Build the shell command for downloading and executing the install script.
      */
     static String buildInstallCommand(boolean useMirror, String mirrorPrefix) {
@@ -239,12 +282,31 @@ public class HermesInstallHelper {
         }
 
         ProcessBuilder pb = new ProcessBuilder(bashPath, "-c", bashCommand);
+        String prefix = TermuxConstants.TERMUX_PREFIX_DIR_PATH;
         pb.environment().put("HOME", TermuxConstants.TERMUX_HOME_DIR_PATH);
         pb.environment().put("PATH", TermuxConstants.TERMUX_BIN_PREFIX_DIR_PATH
                 + ":/system/bin:/system/xbin");
-        pb.environment().put("PREFIX", TermuxConstants.TERMUX_PREFIX_DIR_PATH);
+        pb.environment().put("PREFIX", prefix);
+        pb.environment().put("TMPDIR", TermuxConstants.TERMUX_TMP_PREFIX_DIR_PATH);
         pb.environment().put("LD_LIBRARY_PATH", TermuxConstants.TERMUX_LIB_PREFIX_DIR_PATH);
         pb.environment().put("TERMUX_VERSION", com.termux.BuildConfig.VERSION_NAME);
+        pb.environment().put("TERMINFO", prefix + "/share/terminfo");
+
+        // LD_PRELOAD rewrites /data/data/com.termux/ → /data/data/com.bahtya/
+        // at runtime. Without it, dpkg/apt cannot find their config files or
+        // admindir (compiled-in as com.termux paths that don't exist).
+        String pathRewriteLib = TermuxConstants.TERMUX_LIB_PREFIX_DIR_PATH + "/libpath_rewrite.so";
+        if (new File(pathRewriteLib).exists()) {
+            pb.environment().put("LD_PRELOAD", pathRewriteLib);
+        }
+
+        // APT_CONFIG overrides compiled-in Dir paths so apt can find its
+        // sources.list and method binaries under the renamed package path.
+        String aptConfFile = prefix + "/etc/apt/apt.conf.d/99hermes-paths.conf";
+        if (new File(aptConfFile).exists()) {
+            pb.environment().put("APT_CONFIG", aptConfFile);
+        }
+
         pb.redirectErrorStream(true);
 
         Process p = pb.start();

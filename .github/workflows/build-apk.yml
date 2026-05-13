@@ -38,6 +38,10 @@ jobs:
           restore-keys: |
             gradle-${{ runner.os }}-
 
+      - name: Patch bootstrap (com.termux → com.bahtya)
+        shell: bash
+        run: bash scripts/patch-bootstrap.sh "$GITHUB_WORKSPACE/app/src/main/cpp"
+
       - name: Build debug APK
         env:
           TERMUX_PACKAGE_VARIANT: ${{ matrix.package_variant }}

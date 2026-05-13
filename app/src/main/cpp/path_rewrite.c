@@ -21,6 +21,9 @@
 #include <fcntl.h>
 #include <unistd.h>
 #include <stdarg.h>
+#include <stdlib.h>
+#include <stdio.h>
+#include <errno.h>
 
 #define OLD_PREFIX  "/data/data/com.termux"
 #define NEW_PREFIX  "/data/data/com.bahtya"
@@ -47,6 +50,158 @@ static const char *rewrite(const char *p) {
 
 static const char *rewrite2(const char *p) {
     return rewrite_to(p, g_buf2);
+}
+
+/* --- execve shebang patching --- */
+
+/* Clean up stale temp files from previous execve calls.
+ * Runs once per thread (via __thread guard). */
+static void cleanup_stale_temps(void) {
+    static __thread int cleaned = 0;
+    if (cleaned) return;
+    cleaned = 1;
+
+    const char *tmpdir = getenv("TMPDIR");
+    if (!tmpdir || tmpdir[0] == '\0')
+        tmpdir = NEW_PREFIX "/files/usr/tmp";
+
+    DIR *d = opendir(tmpdir);
+    if (!d) return;
+    struct dirent *ent;
+    char p[PATH_MAX];
+    while ((ent = readdir(d)) != NULL) {
+        if (strncmp(ent->d_name, ".rw_", 4) == 0) {
+            snprintf(p, sizeof(p), "%s/%s", tmpdir, ent->d_name);
+            unlink(p);
+        }
+    }
+    closedir(d);
+}
+
+/*
+ * Check if the file at 'path' is a script whose shebang contains OLD_PREFIX.
+ * If so, create a temp file with the shebang patched and return its path.
+ * Returns NULL if no patching needed or on failure.
+ * Caller must not free the returned pointer (points to thread-local buffer).
+ */
+static const char *patch_shebang_if_needed(const char *path) {
+    static __thread char tmpbuf[PATH_MAX];
+
+    cleanup_stale_temps();
+
+    int fd = open(path, O_RDONLY);
+    if (fd < 0) return NULL;
+
+    char head[512];
+    ssize_t n = read(fd, head, sizeof(head));
+    close(fd);
+
+    if (n < 2 || head[0] != '#' || head[1] != '!') return NULL;
+
+    /* Check if shebang line contains OLD_PREFIX */
+    int found = 0;
+    for (int i = 0; i <= n - OLD_LEN; i++) {
+        if (head[i] == '\n') break;
+        if (memcmp(head + i, OLD_PREFIX, OLD_LEN) == 0) {
+            found = 1;
+            break;
+        }
+    }
+    if (!found) return NULL;
+
+    /* Patch OLD_PREFIX → NEW_PREFIX in the first chunk */
+    char patched[512];
+    int plen = 0;
+    for (int i = 0; i < n; ) {
+        if (i <= n - OLD_LEN && memcmp(head + i, OLD_PREFIX, OLD_LEN) == 0) {
+            memcpy(patched + plen, NEW_PREFIX, NEW_LEN);
+            plen += NEW_LEN;
+            i += OLD_LEN;
+        } else {
+            patched[plen++] = head[i++];
+        }
+    }
+
+    /* Create temp file */
+    const char *tmpdir = getenv("TMPDIR");
+    if (!tmpdir || tmpdir[0] == '\0')
+        tmpdir = NEW_PREFIX "/files/usr/tmp";
+
+    snprintf(tmpbuf, sizeof(tmpbuf), "%s/.rw_XXXXXX", tmpdir);
+    int tmpfd = mkstemp(tmpbuf);
+    if (tmpfd < 0) return NULL;
+
+    /* Write patched first chunk */
+    if (write(tmpfd, patched, plen) != plen) {
+        close(tmpfd);
+        unlink(tmpbuf);
+        return NULL;
+    }
+
+    /* Copy the rest of the file unchanged.
+     * Body references to old paths are handled by recursive execve
+     * interception and other intercepted filesystem calls. */
+    fd = open(path, O_RDONLY);
+    if (fd >= 0) {
+        /* Skip the bytes we already wrote */
+        char skipbuf[512];
+        read(fd, skipbuf, n);
+
+        char copybuf[4096];
+        ssize_t r;
+        while ((r = read(fd, copybuf, sizeof(copybuf))) > 0) {
+            write(tmpfd, copybuf, r);
+        }
+        close(fd);
+    }
+
+    close(tmpfd);
+    chmod(tmpbuf, 0700);
+    return tmpbuf;
+}
+
+int execve(const char *pathname, char *const argv[], char *const envp[]) {
+    int (*real_execve)(const char *, char *const [], char *const []) =
+        dlsym(RTLD_NEXT, "execve");
+    if (!real_execve) { errno = ENOSYS; return -1; }
+
+    const char *rewritten = rewrite(pathname);
+
+    /* Check if the target file is a script with a shebang needing patching */
+    const char *patched = patch_shebang_if_needed(rewritten);
+    if (patched) {
+        int ret = real_execve(patched, argv, envp);
+        int saved = errno;
+        unlink(patched);
+        errno = saved;
+        return ret;
+    }
+
+    return real_execve(rewritten, argv, envp);
+}
+
+int execveat(int dirfd, const char *pathname, char *const argv[],
+             char *const envp[], int flags) {
+    int (*real_execveat)(int, const char *, char *const [], char *const [], int) =
+        dlsym(RTLD_NEXT, "execveat");
+    if (!real_execveat) { errno = ENOSYS; return -1; }
+
+    if (pathname[0] == '/' || dirfd == AT_FDCWD) {
+        const char *rewritten = rewrite(pathname);
+
+        const char *patched = patch_shebang_if_needed(rewritten);
+        if (patched) {
+            int ret = real_execveat(dirfd, patched, argv, envp, flags);
+            int saved = errno;
+            unlink(patched);
+            errno = saved;
+            return ret;
+        }
+
+        return real_execveat(dirfd, rewritten, argv, envp, flags);
+    }
+
+    return real_execveat(dirfd, pathname, argv, envp, flags);
 }
 
 /* --- Intercepted functions --- */
