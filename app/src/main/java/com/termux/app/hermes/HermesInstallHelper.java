@@ -138,6 +138,10 @@ public class HermesInstallHelper {
             postBootstrap.onBootstrapReady();
         }
 
+        // Phase 0.7: prepare apt environment
+        // dpkg may have half-configured packages from bootstrap; apt has no package lists.
+        prepareAptEnvironment(callback);
+
         // Phase 1: direct attempts
         setState(context, InstallState.DOWNLOADING);
         for (int attempt = 1; attempt <= maxDirectRetries; attempt++) {
@@ -266,6 +270,51 @@ public class HermesInstallHelper {
             runShellCommand(cmd, null);
         } catch (Exception e) {
             Logger.logWarn(LOG_TAG, "apt readiness check failed (non-fatal): " + e.getMessage());
+        }
+    }
+
+    /**
+     * Prepare the apt/dpkg environment before running the install script.
+     * - dpkg --configure -a: fix half-configured packages from bootstrap
+     * - apt update: fetch package lists (TUNA mirror already deployed)
+     * Failures are logged but non-fatal — the install script may still succeed.
+     */
+    private static void prepareAptEnvironment(ProgressCallback callback) {
+        String prefix = TermuxConstants.TERMUX_PREFIX_DIR_PATH;
+        // Diagnose who holds apt/dpkg locks, then retry apt update with backoff.
+        String diag = "echo '=== sources.list ==='; "
+                + "cat $PREFIX/etc/apt/sources.list 2>&1 || echo 'missing'; "
+                // Show processes holding apt/dpkg locks
+                + "echo '=== lock holders ==='; "
+                + "for _lock in " + prefix + "/var/lib/apt/lists/lock "
+                + prefix + "/var/cache/apt/archives/lock "
+                + prefix + "/var/lib/dpkg/lock-frontend "
+                + prefix + "/var/lib/dpkg/lock; do "
+                + "if [ -f \"$_lock\" ]; then "
+                + "_pid=$(fuser \"$_lock\" 2>/dev/null | tr -d ' '); "
+                + "if [ -n \"$_pid\" ]; then "
+                + "echo \"$_lock held by PID $_pid: $(cat /proc/$_pid/cmdline 2>/dev/null | tr '\\0' ' ')\"; "
+                + "fi; fi; done; "
+                // Show all apt/dpkg processes
+                + "echo '=== apt/dpkg processes ==='; "
+                + "for _p in /proc/[0-9]*/cmdline; do "
+                + "[ -r \"$_p\" ] && { _c=$(cat \"$_p\" 2>/dev/null | tr '\\0' ' '); "
+                + "echo \"$_c\" | grep -qE 'apt|dpkg|pkg' && echo \"PID $(echo $_p | grep -o '[0-9]*') $_c\"; }; done; "
+                // Retry apt update
+                + "echo '=== apt update (with retry) ==='; "
+                + "_ok=false; for _i in $(seq 1 6); do "
+                + "echo 'Attempt '$_i'...'; "
+                + "if apt update 2>&1; then _ok=true; break; fi; "
+                + "echo 'Retrying in 10s...'; sleep 10; "
+                + "done; "
+                + "if [ \"$_ok\" = false ]; then echo 'WARNING: apt update failed after 6 attempts'; fi; "
+                + "echo '=== installing python ==='; "
+                + "apt install -y python -o Dpkg::Options='--debug=2' 2>&1 || true";
+        try {
+            if (callback != null) callback.onOutput("Preparing apt environment...");
+            runShellCommand(diag, callback);
+        } catch (Exception e) {
+            Logger.logWarn(LOG_TAG, "apt env preparation failed (non-fatal): " + e.getMessage());
         }
     }
 
