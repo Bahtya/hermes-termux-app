@@ -146,7 +146,8 @@ public class HermesInstallHelper {
                 if (callback != null) {
                     callback.onStatus(context.getString(R.string.install_direct_attempt, attempt, maxDirectRetries));
                 }
-                runShellCommand(buildInstallCommand(false, null), callback);                setLastError(context, null);
+                runShellCommand(buildInstallCommand(false, null), callback);
+                setLastError(context, null);
                 setState(context, InstallState.INSTALLED);
                 return;
             } catch (Exception e) {
@@ -170,7 +171,8 @@ public class HermesInstallHelper {
                     callback.onStatus(context.getString(R.string.install_fallback_mirror));
                 }
                 Logger.logInfo(LOG_TAG, "Falling back to mirror: " + mirror);
-                runShellCommand(buildInstallCommand(true, mirror), callback);                setLastError(context, null);
+                runShellCommand(buildInstallCommand(true, mirror), callback);
+                setLastError(context, null);
                 setState(context, InstallState.INSTALLED);
                 return;
             } catch (Exception e) {

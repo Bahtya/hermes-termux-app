@@ -35,7 +35,7 @@ public class HermesInstallActivity extends AppCompatActivity {
     private static final String MARKER_FILE =
             TermuxConstants.TERMUX_DATA_HOME_DIR_PATH + "/hermes-installed";
     private static final int MAX_RETRIES = 3;
-    private static final Pattern ANSI_PATTERN = Pattern.compile("\\[[0-9;]*[a-zA-Z]|\\[0;[0-9]+m|\\[[0-9]+m");
+    private static final Pattern ANSI_PATTERN = Pattern.compile("\\[[0-9;]*[a-zA-Z]");
 
     private TextView mStatusText;
     private TextView mTerminalOutput;
@@ -174,17 +174,13 @@ public class HermesInstallActivity extends AppCompatActivity {
     }
 
     private void appendTerminal(String text) {
-        String clean = stripAnsi(text);
-        mTerminalBuffer.append(clean).append("\n");
-        mHandler.post(() -> {
-            mTerminalOutput.setText(mTerminalBuffer.toString());
-            mTerminalScroll.post(() -> mTerminalScroll.fullScroll(View.FOCUS_DOWN));
-        });
+        appendTerminal(text, true);
     }
 
-    private void appendTerminalDirect(String text) {
+    private void appendTerminal(String text, boolean newLine) {
         String clean = stripAnsi(text);
         mTerminalBuffer.append(clean);
+        if (newLine) mTerminalBuffer.append("\n");
         mHandler.post(() -> {
             mTerminalOutput.setText(mTerminalBuffer.toString());
             mTerminalScroll.post(() -> mTerminalScroll.fullScroll(View.FOCUS_DOWN));
@@ -209,7 +205,8 @@ public class HermesInstallActivity extends AppCompatActivity {
         mTerminalBuffer.setLength(0);
         mHandler.post(() -> mTerminalOutput.setText(""));
 
-        appendTerminalDirect("$ Starting Hermes installation...\n\n");
+        appendTerminal("$ Starting Hermes installation...\n", false);
+        appendTerminal("", false);
         updateStepIndicators(1);
         mStatusText.setText(R.string.install_checking);
 
@@ -260,7 +257,7 @@ public class HermesInstallActivity extends AppCompatActivity {
                     }
                 }, () -> {
                     appendTerminal("Deploying apt/dpkg configurations...");
-                    HermesInstaller.deployPrerequisitesForActivity(HermesInstallActivity.this);
+                    HermesInstaller.deployInstallPrerequisites(HermesInstallActivity.this);
                     appendTerminal("Configuration deployed OK");
                 });
 

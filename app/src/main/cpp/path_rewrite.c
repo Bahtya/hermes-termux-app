@@ -396,6 +396,8 @@ FILE *freopen(const char *p, const char *m, FILE *s) {
     return real(rewrite(p), m, s);
 }
 
+/* statx requires Linux 4.11+ / API 28+. On older devices dlsym returns NULL
+ * and the call is safely skipped. */
 int statx(int dirfd, const char *p, int flags, unsigned mask, struct statx *s) {
     int (*real)(int, const char *, int, unsigned, struct statx *) = dlsym(RTLD_NEXT, "statx");
     if (!real) return -1;
