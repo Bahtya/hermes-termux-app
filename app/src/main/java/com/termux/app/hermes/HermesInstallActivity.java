@@ -262,33 +262,25 @@ public class HermesInstallActivity extends AppCompatActivity {
                     appendTerminal("Configuration deployed OK");
                 });
 
-                // Step 3: Mark installed
+                // Step 3: Validate before marking installed
                 mHandler.post(() -> {
                     updateStepIndicators(3);
-                    mStatusText.setText(R.string.install_configuring);
-                    mProgressBar.setProgress(80);
-                });
-
-                markInstalled();
-                HermesConfigManager.reinitialize();
-                Thread.sleep(500);
-
-                // Step 3b: Validate
-                mHandler.post(() -> {
                     mStatusText.setText(R.string.install_validating);
-                    mProgressBar.setProgress(90);
+                    mProgressBar.setProgress(80);
                 });
 
                 boolean validated = validateInstallation();
                 if (!validated) {
-                    appendTerminal("WARNING: Hermes binary validation failed, but install completed");
-                    mHandler.post(() -> mStatusText.setText(R.string.install_validate_fail));
-                    Thread.sleep(1500);
-                } else {
-                    appendTerminal("Hermes binary validated successfully");
+                    throw new RuntimeException("Hermes binary validation failed — hermes --help did not succeed");
                 }
+                appendTerminal("Hermes binary validated successfully");
 
-                // Step 4: Done
+                // Step 4: Mark installed and finish
+                mHandler.post(() -> mProgressBar.setProgress(90));
+
+                markInstalled();
+                HermesConfigManager.reinitialize();
+
                 mHandler.post(() -> {
                     updateStepIndicators(4);
                     mStatusText.setText(R.string.install_complete);
@@ -369,20 +361,47 @@ public class HermesInstallActivity extends AppCompatActivity {
     private boolean validateInstallation() {
         try {
             String binPath = TermuxConstants.TERMUX_BIN_PREFIX_DIR_PATH;
-            if (!new File(MARKER_FILE).exists()) return false;
+            String prefix = TermuxConstants.TERMUX_PREFIX_DIR_PATH;
+            File hermesBin = new File(binPath, "hermes");
+            if (!hermesBin.exists()) {
+                appendTerminal("Validation: hermes binary not found at " + hermesBin.getAbsolutePath());
+                return false;
+            }
             File configDir = new File(TermuxConstants.TERMUX_HOME_DIR_PATH + "/.hermes");
-            if (!configDir.exists() || !configDir.isDirectory()) return false;
-            ProcessBuilder pb = new ProcessBuilder(binPath + "/hermes", "--version");
+            if (!configDir.exists() || !configDir.isDirectory()) {
+                appendTerminal("Validation: .hermes config directory not found");
+                return false;
+            }
+            ProcessBuilder pb = new ProcessBuilder(hermesBin.getAbsolutePath(), "--help");
             pb.environment().put("HOME", TermuxConstants.TERMUX_HOME_DIR_PATH);
             pb.environment().put("PATH", binPath + ":/system/bin");
+            pb.environment().put("PREFIX", prefix);
+            pb.environment().put("LD_LIBRARY_PATH", TermuxConstants.TERMUX_LIB_PREFIX_DIR_PATH);
+            String pathRewriteLib = TermuxConstants.TERMUX_LIB_PREFIX_DIR_PATH + "/libpath_rewrite.so";
+            if (new File(pathRewriteLib).exists()) {
+                pb.environment().put("LD_PRELOAD", pathRewriteLib);
+            }
             pb.redirectErrorStream(true);
             Process p = pb.start();
-            BufferedReader reader = new BufferedReader(new InputStreamReader(p.getInputStream()));
-            String firstLine = reader.readLine();
-            p.waitFor();
-            reader.close();
-            return firstLine != null && !firstLine.isEmpty();
+            StringBuilder output = new StringBuilder();
+            try (BufferedReader reader = new BufferedReader(new InputStreamReader(p.getInputStream()))) {
+                String line;
+                while ((line = reader.readLine()) != null) {
+                    output.append(line).append("\n");
+                }
+            }
+            int exit = p.waitFor();
+            if (exit != 0) {
+                appendTerminal("Validation: hermes --help exited with code " + exit);
+                return false;
+            }
+            if (output.length() == 0) {
+                appendTerminal("Validation: hermes --help produced no output");
+                return false;
+            }
+            return true;
         } catch (Exception e) {
+            appendTerminal("Validation exception: " + e.getMessage());
             return false;
         }
     }
