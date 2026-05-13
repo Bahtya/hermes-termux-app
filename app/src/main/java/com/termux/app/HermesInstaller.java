@@ -163,7 +163,7 @@ public class HermesInstaller {
      * Must be called AFTER bootstrap is complete (prefix directory exists).
      * Called via PostBootstrapHook from HermesInstallHelper.executeInstall().
      */
-    static void deployInstallPrerequisites(Context context) {
+    public static void deployInstallPrerequisites(Context context) {
         String prefix = TermuxConstants.TERMUX_PREFIX_DIR_PATH;
         try { deployAptConf(); } catch (Exception e) {
             Logger.logWarn(LOG_TAG, "Pre-install apt.conf deploy: " + e.getMessage());
