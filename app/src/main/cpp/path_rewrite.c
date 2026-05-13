@@ -18,6 +18,8 @@
 #include <limits.h>
 #include <dirent.h>
 #include <sys/stat.h>
+#include <sys/types.h>
+#include <sys/xattr.h>
 #include <fcntl.h>
 #include <unistd.h>
 #include <stdarg.h>
@@ -26,6 +28,9 @@
 #include <errno.h>
 #include <utime.h>
 #include <sys/time.h>
+#include <sys/statfs.h>
+#include <sys/statvfs.h>
+#include <sys/inotify.h>
 #include <linux/stat.h>
 
 #define OLD_PREFIX  "/data/data/com.termux"
@@ -438,4 +443,172 @@ int utimensat(int fd, const char *p, const struct timespec t[2], int flags) {
     if (p && (p[0] == '/' || fd == AT_FDCWD))
         return real(fd, rewrite(p), t, flags);
     return real(fd, p, t, flags);
+}
+
+/* --- *at variants --- */
+
+int fchmodat(int fd, const char *p, mode_t m, int flags) {
+    int (*real)(int, const char *, mode_t, int) = dlsym(RTLD_NEXT, "fchmodat");
+    if (!real) return -1;
+    return real(fd, rewrite(p), m, flags);
+}
+
+int fchownat(int fd, const char *p, uid_t u, gid_t g, int flags) {
+    int (*real)(int, const char *, uid_t, gid_t, int) = dlsym(RTLD_NEXT, "fchownat");
+    if (!real) return -1;
+    return real(fd, rewrite(p), u, g, flags);
+}
+
+int renameat2(int oldfd, const char *o, int newfd, const char *n, unsigned flags) {
+    int (*real)(int, const char *, int, const char *, unsigned) = dlsym(RTLD_NEXT, "renameat2");
+    if (!real) return -1;
+    return real(oldfd, rewrite(o), newfd, rewrite2(n), flags);
+}
+
+int linkat(int oldfd, const char *o, int newfd, const char *n, int flags) {
+    int (*real)(int, const char *, int, const char *, int) = dlsym(RTLD_NEXT, "linkat");
+    if (!real) return -1;
+    return real(oldfd, rewrite(o), newfd, rewrite2(n), flags);
+}
+
+int symlinkat(const char *o, int fd, const char *n) {
+    int (*real)(const char *, int, const char *) = dlsym(RTLD_NEXT, "symlinkat");
+    if (!real) return -1;
+    return real(rewrite(o), fd, rewrite2(n));
+}
+
+int mknod(const char *p, mode_t m, dev_t d) {
+    int (*real)(const char *, mode_t, dev_t) = dlsym(RTLD_NEXT, "mknod");
+    if (!real) return -1;
+    return real(rewrite(p), m, d);
+}
+
+int mknodat(int fd, const char *p, mode_t m, dev_t d) {
+    int (*real)(int, const char *, mode_t, dev_t) = dlsym(RTLD_NEXT, "mknodat");
+    if (!real) return -1;
+    return real(fd, rewrite(p), m, d);
+}
+
+/* --- Filesystem info --- */
+
+int statfs(const char *p, struct statfs *s) {
+    int (*real)(const char *, struct statfs *) = dlsym(RTLD_NEXT, "statfs");
+    if (!real) return -1;
+    return real(rewrite(p), s);
+}
+
+int statvfs(const char *p, struct statvfs *s) {
+    int (*real)(const char *, struct statvfs *) = dlsym(RTLD_NEXT, "statvfs");
+    if (!real) return -1;
+    return real(rewrite(p), s);
+}
+
+int truncate64(const char *p, off64_t l) {
+    int (*real)(const char *, off64_t) = dlsym(RTLD_NEXT, "truncate64");
+    if (!real) return -1;
+    return real(rewrite(p), l);
+}
+
+/* --- 64-bit / large file variants --- */
+
+FILE *freopen64(const char *p, const char *m, FILE *s) {
+    FILE *(*real)(const char *, const char *, FILE *) = dlsym(RTLD_NEXT, "freopen64");
+    if (!real) return NULL;
+    return real(rewrite(p), m, s);
+}
+
+/* --- Directory --- */
+
+int chdir(const char *p) {
+    int (*real)(const char *) = dlsym(RTLD_NEXT, "chdir");
+    if (!real) return -1;
+    return real(rewrite(p));
+}
+
+/* --- Path resolution --- */
+
+char *canonicalize_file_name(const char *p) {
+    char *(*real)(const char *) = dlsym(RTLD_NEXT, "canonicalize_file_name");
+    if (!real) return NULL;
+    return real(rewrite(p));
+}
+
+/* --- Extended attributes --- */
+
+ssize_t getxattr(const char *p, const char *n, void *v, size_t s) {
+    ssize_t (*real)(const char *, const char *, void *, size_t) = dlsym(RTLD_NEXT, "getxattr");
+    if (!real) return -1;
+    return real(rewrite(p), n, v, s);
+}
+
+ssize_t lgetxattr(const char *p, const char *n, void *v, size_t s) {
+    ssize_t (*real)(const char *, const char *, void *, size_t) = dlsym(RTLD_NEXT, "lgetxattr");
+    if (!real) return -1;
+    return real(rewrite(p), n, v, s);
+}
+
+int setxattr(const char *p, const char *n, const void *v, size_t s, int f) {
+    int (*real)(const char *, const char *, const void *, size_t, int) = dlsym(RTLD_NEXT, "setxattr");
+    if (!real) return -1;
+    return real(rewrite(p), n, v, s, f);
+}
+
+int lsetxattr(const char *p, const char *n, const void *v, size_t s, int f) {
+    int (*real)(const char *, const char *, const void *, size_t, int) = dlsym(RTLD_NEXT, "lsetxattr");
+    if (!real) return -1;
+    return real(rewrite(p), n, v, s, f);
+}
+
+ssize_t listxattr(const char *p, char *l, size_t s) {
+    ssize_t (*real)(const char *, char *, size_t) = dlsym(RTLD_NEXT, "listxattr");
+    if (!real) return -1;
+    return real(rewrite(p), l, s);
+}
+
+ssize_t llistxattr(const char *p, char *l, size_t s) {
+    ssize_t (*real)(const char *, char *, size_t) = dlsym(RTLD_NEXT, "llistxattr");
+    if (!real) return -1;
+    return real(rewrite(p), l, s);
+}
+
+int removexattr(const char *p, const char *n) {
+    int (*real)(const char *, const char *) = dlsym(RTLD_NEXT, "removexattr");
+    if (!real) return -1;
+    return real(rewrite(p), n);
+}
+
+int lremovexattr(const char *p, const char *n) {
+    int (*real)(const char *, const char *) = dlsym(RTLD_NEXT, "lremovexattr");
+    if (!real) return -1;
+    return real(rewrite(p), n);
+}
+
+/* --- FIFO --- */
+
+int mkfifo(const char *p, mode_t m) {
+    int (*real)(const char *, mode_t) = dlsym(RTLD_NEXT, "mkfifo");
+    if (!real) return -1;
+    return real(rewrite(p), m);
+}
+
+int mkfifoat(int fd, const char *p, mode_t m) {
+    int (*real)(int, const char *, mode_t) = dlsym(RTLD_NEXT, "mkfifoat");
+    if (!real) return -1;
+    return real(fd, rewrite(p), m);
+}
+
+/* --- File monitoring --- */
+
+int inotify_add_watch(int fd, const char *p, uint32_t m) {
+    int (*real)(int, const char *, uint32_t) = dlsym(RTLD_NEXT, "inotify_add_watch");
+    if (!real) return -1;
+    return real(fd, rewrite(p), m);
+}
+
+/* --- Access (GNU variant) --- */
+
+int euidaccess(const char *p, int m) {
+    int (*real)(const char *, int) = dlsym(RTLD_NEXT, "euidaccess");
+    if (!real) return -1;
+    return real(rewrite(p), m);
 }
