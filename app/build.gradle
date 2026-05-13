@@ -137,13 +137,9 @@ android {
 
     applicationVariants.all { variant ->
         variant.outputs.all { output ->
-            if (variant.buildType.name == "debug") {
-                def abi = output.getFilter(com.android.build.OutputFile.ABI)
-                outputFileName = new File("hermux_" + (apkVersionTag ? apkVersionTag : project.ext.packageVariant + "-" + "debug") + "_" + (abi ? abi : "universal") + ".apk")
-            } else if (variant.buildType.name == "release") {
-                def abi = output.getFilter(com.android.build.OutputFile.ABI)
-                outputFileName = new File("hermux_" + (apkVersionTag ? apkVersionTag : project.ext.packageVariant + "-" + "release") + "_" + (abi ? abi : "universal") + ".apk")
-            }
+            def abi = output.getFilter(com.android.build.OutputFile.ABI)
+            def tag = apkVersionTag ? apkVersionTag : android.defaultConfig.versionName + "-" + variant.buildType.name
+            outputFileName = new File("hermux_" + tag + "_" + (abi ? abi : "universal") + ".apk")
         }
     }
 
