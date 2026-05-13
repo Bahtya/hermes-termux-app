@@ -10,6 +10,7 @@ import com.termux.shared.termux.TermuxConstants;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.InputStreamReader;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
  * Shared installation logic with automatic mirror fallback for regions
@@ -25,12 +26,12 @@ public class HermesInstallHelper {
     private static final String MARKER_FILE =
             TermuxConstants.TERMUX_DATA_HOME_DIR_PATH + "/hermes-installed";
 
-    private static volatile boolean sInstallRunning = false;
+    private static final AtomicBoolean sInstallRunning = new AtomicBoolean(false);
     private static final StringBuilder sOutputBuffer = new StringBuilder();
     private static final int MAX_BUFFER_SIZE = 50000;
 
     public static boolean isInstallRunning() {
-        return sInstallRunning;
+        return sInstallRunning.get();
     }
 
     public static String getOutputBuffer() {
@@ -143,16 +144,15 @@ public class HermesInstallHelper {
      */
     public static void executeInstall(Context context,
             ProgressCallback callback, PostBootstrapHook postBootstrap) throws Exception {
-        if (sInstallRunning) {
+        if (!sInstallRunning.compareAndSet(false, true)) {
             Logger.logWarn(LOG_TAG, "Install already running, skipping duplicate call");
             return;
         }
-        sInstallRunning = true;
         clearOutputBuffer();
         try {
             executeInstallInternal(context, callback, postBootstrap);
         } finally {
-            sInstallRunning = false;
+            sInstallRunning.set(false);
         }
     }
 
