@@ -102,6 +102,8 @@ public class HermesInstallHelper {
     public interface ProgressCallback {
         void onStatus(String message);
         boolean isCancelled();
+        /** Called for each line of output from the install script. */
+        default void onOutput(String line) {}
     }
 
     /** Runs after Phase 0 (bootstrap ready) but before download attempts. */
@@ -144,8 +146,7 @@ public class HermesInstallHelper {
                 if (callback != null) {
                     callback.onStatus(context.getString(R.string.install_direct_attempt, attempt, maxDirectRetries));
                 }
-                runShellCommand(buildInstallCommand(false, null));
-                setLastError(context, null);
+                runShellCommand(buildInstallCommand(false, null), callback);                setLastError(context, null);
                 setState(context, InstallState.INSTALLED);
                 return;
             } catch (Exception e) {
@@ -169,8 +170,7 @@ public class HermesInstallHelper {
                     callback.onStatus(context.getString(R.string.install_fallback_mirror));
                 }
                 Logger.logInfo(LOG_TAG, "Falling back to mirror: " + mirror);
-                runShellCommand(buildInstallCommand(true, mirror));
-                setLastError(context, null);
+                runShellCommand(buildInstallCommand(true, mirror), callback);                setLastError(context, null);
                 setState(context, InstallState.INSTALLED);
                 return;
             } catch (Exception e) {
@@ -261,7 +261,7 @@ public class HermesInstallHelper {
             + "[ \"$_cleaned\" = true ]";
 
         try {
-            runShellCommand(cmd);
+            runShellCommand(cmd, null);
         } catch (Exception e) {
             Logger.logWarn(LOG_TAG, "apt readiness check failed (non-fatal): " + e.getMessage());
         }
@@ -288,8 +288,9 @@ public class HermesInstallHelper {
 
     /**
      * Execute a bash command in the Termux environment.
+     * Streams each line of output to callback.onOutput() in real time.
      */
-    static void runShellCommand(String bashCommand) throws Exception {
+    static void runShellCommand(String bashCommand, ProgressCallback callback) throws Exception {
         String bashPath = TermuxConstants.TERMUX_BIN_PREFIX_DIR_PATH + "/bash";
         String curlPath = TermuxConstants.TERMUX_BIN_PREFIX_DIR_PATH + "/curl";
 
@@ -331,6 +332,7 @@ public class HermesInstallHelper {
             String line;
             while ((line = reader.readLine()) != null) {
                 output.append(line).append("\n");
+                if (callback != null) callback.onOutput(line);
             }
         }
 
