@@ -180,6 +180,9 @@ public class HermesInstaller {
         try { ensureAptDirectories(prefix); } catch (Exception e) {
             Logger.logWarn(LOG_TAG, "Pre-install apt dirs ensure: " + e.getMessage());
         }
+        try { deployAptMirror(prefix); } catch (Exception e) {
+            Logger.logWarn(LOG_TAG, "Pre-install apt mirror: " + e.getMessage());
+        }
     }
 
     private static void startInstallThread(Context context, boolean isRetry) {
@@ -421,6 +424,28 @@ public class HermesInstaller {
             if (!dir.exists() && !dir.mkdirs()) {
                 Logger.logWarn(LOG_TAG, "Could not create apt directory: " + dir.getAbsolutePath());
             }
+        }
+    }
+
+    /**
+     * Replace the default Termux apt source with TUNA mirror for faster
+     * downloads in regions where packages.termux.dev is slow.
+     */
+    private static void deployAptMirror(String prefix) throws Exception {
+        File sourcesList = new File(prefix, "etc/apt/sources.list");
+        if (!sourcesList.exists()) {
+            Logger.logWarn(LOG_TAG, "sources.list not found, skipping mirror deploy");
+            return;
+        }
+        String content = readFile(sourcesList);
+        String replaced = content.replace("packages.termux.dev/apt/",
+                "mirrors.tuna.tsinghua.edu.cn/termux/apt/");
+        if (!content.equals(replaced)) {
+            try (FileOutputStream out = new FileOutputStream(sourcesList)) {
+                out.write(replaced.getBytes("UTF-8"));
+            }
+            Os.chmod(sourcesList.getAbsolutePath(), 0644);
+            Logger.logInfo(LOG_TAG, "Replaced apt sources with TUNA mirror");
         }
     }
 
