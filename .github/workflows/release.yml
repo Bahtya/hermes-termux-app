@@ -78,7 +78,7 @@ jobs:
 
           gh release create "$TAG_NAME" \
             --notes-file release_notes.md \
-            --title "Bahtya Terminal ${TAG_NAME#v}" \
+            --title "Hermux ${TAG_NAME#v}" \
             --draft
 
       - name: Summary
@@ -117,7 +117,7 @@ jobs:
           restore-keys: |
             gradle-${{ runner.os }}-
 
-      - name: Patch bootstrap (com.termux → com.bahtya)
+      - name: Patch bootstrap (com.termux → com.hermux)
         shell: bash
         run: bash scripts/patch-bootstrap.sh "$GITHUB_WORKSPACE/app/src/main/cpp"
 
@@ -130,7 +130,7 @@ jobs:
           TAG_NAME="${{ needs.create-release.outputs.tag_name }}"
           APK_DIR_PATH="./app/build/outputs/apk/release"
           APK_VERSION_TAG="$TAG_NAME+${{ matrix.package_variant }}-github-release"
-          APK_BASENAME_PREFIX="hermes-termux-app_$APK_VERSION_TAG"
+          APK_BASENAME_PREFIX="hermux_$APK_VERSION_TAG"
 
           export TERMUX_APP_VERSION_NAME="${TAG_NAME#v}"
           export TERMUX_APK_VERSION_TAG="$APK_VERSION_TAG"

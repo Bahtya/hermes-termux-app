@@ -338,7 +338,7 @@ public class HermesInstallHelper {
         pb.environment().put("TERMUX_VERSION", com.termux.BuildConfig.VERSION_NAME);
         pb.environment().put("TERMINFO", prefix + "/share/terminfo");
 
-        // LD_PRELOAD rewrites /data/data/com.termux/ → /data/data/com.bahtya/
+        // LD_PRELOAD rewrites /data/data/com.termux/ → /data/data/com.hermux/
         // at runtime. Without it, dpkg/apt cannot find their config files or
         // admindir (compiled-in as com.termux paths that don't exist).
         String pathRewriteLib = TermuxConstants.TERMUX_LIB_PREFIX_DIR_PATH + "/libpath_rewrite.so";

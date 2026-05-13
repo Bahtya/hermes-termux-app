@@ -1,14 +1,14 @@
 <?xml version="1.0" encoding="utf-8"?>
 
 <!DOCTYPE resources [
-    <!ENTITY TERMUX_PACKAGE_NAME "com.bahtya">
-    <!ENTITY TERMUX_APP_NAME "Bahtya Terminal">
-    <!ENTITY TERMUX_API_APP_NAME "Bahtya Terminal:API">
-    <!ENTITY TERMUX_BOOT_APP_NAME "Bahtya Terminal:Boot">
-    <!ENTITY TERMUX_FLOAT_APP_NAME "Bahtya Terminal:Float">
-    <!ENTITY TERMUX_STYLING_APP_NAME "Bahtya Terminal:Styling">
-    <!ENTITY TERMUX_TASKER_APP_NAME "Bahtya Terminal:Tasker">
-    <!ENTITY TERMUX_WIDGET_APP_NAME "Bahtya Terminal:Widget">
+    <!ENTITY TERMUX_PACKAGE_NAME "com.hermux">
+    <!ENTITY TERMUX_APP_NAME "Hermux">
+    <!ENTITY TERMUX_API_APP_NAME "Hermux:API">
+    <!ENTITY TERMUX_BOOT_APP_NAME "Hermux:Boot">
+    <!ENTITY TERMUX_FLOAT_APP_NAME "Hermux:Float">
+    <!ENTITY TERMUX_STYLING_APP_NAME "Hermux:Styling">
+    <!ENTITY TERMUX_TASKER_APP_NAME "Hermux:Tasker">
+    <!ENTITY TERMUX_WIDGET_APP_NAME "Hermux:Widget">
     ]>
 
 <resources>

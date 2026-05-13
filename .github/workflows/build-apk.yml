@@ -38,7 +38,7 @@ jobs:
           restore-keys: |
             gradle-${{ runner.os }}-
 
-      - name: Patch bootstrap (com.termux → com.bahtya)
+      - name: Patch bootstrap (com.termux → com.hermux)
         shell: bash
         run: bash scripts/patch-bootstrap.sh "$GITHUB_WORKSPACE/app/src/main/cpp"
 

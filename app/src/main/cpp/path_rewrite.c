@@ -2,7 +2,7 @@
  * LD_PRELOAD path rewrite library for renamed Termux packages.
  *
  * Intercepts filesystem calls and rewrites paths starting with
- * /data/data/com.termux/ to /data/data/com.bahtya/.
+ * /data/data/com.termux/ to /data/data/com.hermux/.
  *
  * This fixes ALL binaries with compiled-in old paths at once,
  * eliminating the need for per-tool workarounds (APT_CONFIG,
@@ -34,7 +34,7 @@
 #include <linux/stat.h>
 
 #define OLD_PREFIX  "/data/data/com.termux"
-#define NEW_PREFIX  "/data/data/com.bahtya"
+#define NEW_PREFIX  "/data/data/com.hermux"
 #define OLD_LEN     21
 #define NEW_LEN     21
 
