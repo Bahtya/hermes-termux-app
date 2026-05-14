@@ -80,15 +80,20 @@ public class HermesInstaller {
         // apt.conf must contain DPkg hook directive
         File aptConf = new File(prefix, "etc/apt/apt.conf.d/99hermes-paths.conf");
         if (!fileContains(aptConf, "DPkg::Pre-Install-Pkgs")) {
-            try { deployAptConf(); deployAptPreInstallHook(); healed++; }
+            try { deployAptConf(); deployAptPreInstallHook(); deployAptPostInvokeHook(); healed++; }
             catch (Exception e) { Logger.logWarn(LOG_TAG, "Integrity: failed to heal apt.conf: " + e.getMessage()); }
         }
 
-        // hook script must exist and be executable
+        // hook scripts must exist and be executable
         File hookScript = new File(prefix, "lib/hermes/apt-pre-install-patch");
         if (!hookScript.canExecute()) {
             try { deployAptPreInstallHook(); healed++; }
             catch (Exception e) { Logger.logWarn(LOG_TAG, "Integrity: failed to heal hook script: " + e.getMessage()); }
+        }
+        File postInvokeScript = new File(prefix, "lib/hermes/apt-post-invoke-fix-paths");
+        if (!postInvokeScript.canExecute()) {
+            try { deployAptPostInvokeHook(); healed++; }
+            catch (Exception e) { Logger.logWarn(LOG_TAG, "Integrity: failed to heal post-invoke script: " + e.getMessage()); }
         }
 
         // dpkg conf must contain admindir
@@ -154,6 +159,7 @@ public class HermesInstaller {
                 HERMES_APT_CONF_MARKER_FILE, () -> {
                     HermesInstaller.deployAptConf();
                     HermesInstaller.deployAptPreInstallHook();
+                    HermesInstaller.deployAptPostInvokeHook();
                 },
                 prefix + "/etc/apt/apt.conf.d/99hermes-paths.conf");
         runMigration("Dpkg conf", HERMES_DPKG_CONF_VERSION,
@@ -230,6 +236,9 @@ public class HermesInstaller {
         }
         try { deployAptPreInstallHook(); } catch (Exception e) {
             Logger.logWarn(LOG_TAG, "Pre-install apt hook deploy: " + e.getMessage());
+        }
+        try { deployAptPostInvokeHook(); } catch (Exception e) {
+            Logger.logWarn(LOG_TAG, "Pre-install post-invoke hook deploy: " + e.getMessage());
         }
         try { deployDpkgConf(); } catch (Exception e) {
             Logger.logWarn(LOG_TAG, "Pre-install dpkg.conf deploy: " + e.getMessage());
@@ -391,6 +400,7 @@ public class HermesInstaller {
         deployBashInit();
         deployAptConf();
         deployAptPreInstallHook();
+        deployAptPostInvokeHook();
         deployDpkgConf();
         deployShellProfile();
         deployPathRewrite(context);
@@ -439,6 +449,7 @@ public class HermesInstaller {
         File confFile = new File(aptConfDir, "99hermes-paths.conf");
 
         String hookScript = prefix + "/lib/hermes/apt-pre-install-patch";
+        String postInvokeScript = prefix + "/lib/hermes/apt-post-invoke-fix-paths";
         String content = "// Hermes: override compiled-in directory paths for renamed package\n"
                 + "Dir \"" + prefix + "\";\n"
                 + "Dir::State \"" + prefix + "/var/lib/apt\";\n"
@@ -449,7 +460,8 @@ public class HermesInstaller {
                 + "Dir::Bin::dpkg \"" + prefix + "/bin/dpkg\";\n"
                 + "Dir::Log \"" + prefix + "/var/log/apt\";\n"
                 + "Dpkg::Options { \"--admindir=" + prefix + "/var/lib/dpkg\"; \"--force-confold\"; };\n"
-                + "DPkg::Pre-Install-Pkgs { \"" + hookScript + "\"; };\n";
+                + "DPkg::Pre-Install-Pkgs { \"" + hookScript + "\"; };\n"
+                + "DPkg::Post-Invoke { \"" + postInvokeScript + "\"; };\n";
 
         try (FileOutputStream out = new FileOutputStream(confFile)) {
             out.write(content.getBytes("UTF-8"));
@@ -567,6 +579,43 @@ public class HermesInstaller {
         }
         Os.chmod(script.getAbsolutePath(), 0755);
         Logger.logInfo(LOG_TAG, "Deployed apt pre-install hook to " + script.getAbsolutePath());
+    }
+
+    /**
+     * Deploy the apt-post-invoke-fix-paths script that rewrites dpkg's file
+     * tracking database (.list files) from com.termux to com.hermux paths.
+     * Without this, dpkg can't find old files during upgrades, causing
+     * "unable to delete old directory: Directory not empty" warnings.
+     */
+    private static void deployAptPostInvokeHook() throws Exception {
+        String prefix = TermuxConstants.TERMUX_PREFIX_DIR_PATH;
+        File script = new File(prefix, "lib/hermes/apt-post-invoke-fix-paths");
+        File scriptDir = script.getParentFile();
+        if (scriptDir != null && !scriptDir.exists() && !scriptDir.mkdirs()) {
+            throw new Exception("Failed to create " + scriptDir.getAbsolutePath());
+        }
+
+        String oldPath = "/data/data/com.termux";
+        String newPath = "/data/data/com.hermux";
+        String infoDir = prefix + "/var/lib/dpkg/info";
+
+        String content = "#!/system/bin/sh\n"
+                + "# Hermes: fix dpkg file tracking after install/upgrade\n"
+                + "# Rewrite com.termux paths in .list files to com.hermux\n"
+                + "cd '" + infoDir + "' 2>/dev/null || exit 0\n"
+                + "for _f in *.list; do\n"
+                + "  [ -f \"$_f\" ] || continue\n"
+                + "  case \"$(grep -c '" + oldPath + "' \"$_f\" 2>/dev/null)\" in\n"
+                + "    0|'') continue ;;\n"
+                + "  esac\n"
+                + "  sed -i 's|" + oldPath + "|" + newPath + "|g' \"$_f\"\n"
+                + "done\n";
+
+        try (FileOutputStream out = new FileOutputStream(script)) {
+            out.write(content.getBytes("UTF-8"));
+        }
+        Os.chmod(script.getAbsolutePath(), 0755);
+        Logger.logInfo(LOG_TAG, "Deployed apt post-invoke hook to " + script.getAbsolutePath());
     }
 
     /**
