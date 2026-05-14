@@ -40,9 +40,10 @@ jobs:
           # Install cmdline-tools
           CMDLINE_TOOLS_URL="https://dl.google.com/android/repository/commandlinetools-linux-11076708_latest.zip"
           curl -fsSL "$CMDLINE_TOOLS_URL" -o /tmp/cmdline-tools.zip
-          unzip -q /tmp/cmdline-tools.zip -d $HOME/android-sdk
-          mkdir -p $HOME/android-sdk/cmdline-tools
-          mv $HOME/android-sdk/cmdline-tools $HOME/android-sdk/cmdline-tools/latest 2>/dev/null || true
+          mkdir -p $HOME/android-sdk/cmdline-tools/latest
+          unzip -q /tmp/cmdline-tools.zip -d $HOME/android-sdk/cmdline-tools/latest
+          # zip extracts as cmdline-tools/bin/..., move up one level
+          mv $HOME/android-sdk/cmdline-tools/latest/cmdline-tools/* $HOME/android-sdk/cmdline-tools/latest/ 2>/dev/null || true
           echo "ANDROID_HOME=$HOME/android-sdk" >> $GITHUB_ENV
           echo "$HOME/android-sdk/cmdline-tools/latest/bin" >> $GITHUB_PATH
           echo "$HOME/android-sdk/emulator" >> $GITHUB_PATH
