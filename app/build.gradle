@@ -44,8 +44,8 @@ android {
         applicationId "com.hermux"
         minSdkVersion project.properties.minSdkVersion.toInteger()
         targetSdkVersion project.properties.targetSdkVersion.toInteger()
-        versionCode 166
-        versionName "1.3.40"
+        versionCode 167
+        versionName "1.3.41"
 
         if (appVersionName) versionName = appVersionName
         validateVersionName(versionName)
