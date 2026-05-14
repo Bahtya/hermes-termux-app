@@ -108,6 +108,10 @@ android {
         targetCompatibility JavaVersion.VERSION_1_8
     }
 
+    aaptOptions {
+        noCompress 'tar.gz'
+    }
+
     externalNativeBuild {
         ndkBuild {
             path "src/main/cpp/Android.mk"
