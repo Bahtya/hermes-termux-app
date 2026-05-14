@@ -232,6 +232,7 @@ public class HermesInstallHelper {
             Logger.logWarn(LOG_TAG, "Lock cleanup failed (non-fatal): " + e.getMessage());
         }
 
+
     }
 
     /**
