@@ -116,7 +116,31 @@ public class VenvExtractor {
         }
 
         // Verify
-        if (!new File(venvDir + "/bin/python").exists()) {
+        File pythonBin = new File(venvDir + "/bin/python");
+        File venvDirFile = new File(venvDir);
+        File binDir = new File(venvDir + "/bin");
+        Logger.logInfo(LOG_TAG, "Verify: venvDir exists=" + venvDirFile.exists()
+            + " bin exists=" + binDir.exists() + " python exists=" + pythonBin.exists());
+        if (binDir.exists()) {
+            String[] binContents = binDir.list();
+            if (binContents != null && binContents.length > 0) {
+                StringBuilder sb = new StringBuilder("bin/ (first 10): ");
+                for (int i = 0; i < Math.min(10, binContents.length); i++) sb.append(binContents[i]).append(" ");
+                Logger.logInfo(LOG_TAG, sb.toString());
+            } else {
+                Logger.logError(LOG_TAG, "bin/ is empty or null");
+            }
+        } else if (venvDirFile.exists()) {
+            String[] venvContents = venvDirFile.list();
+            if (venvContents != null && venvContents.length > 0) {
+                StringBuilder sb = new StringBuilder("venvDir contents: ");
+                for (String s : venvContents) sb.append(s).append(" ");
+                Logger.logInfo(LOG_TAG, sb.toString());
+            } else {
+                Logger.logError(LOG_TAG, "venvDir is empty or doesn't exist");
+            }
+        }
+        if (!pythonBin.exists()) {
             Logger.logError(LOG_TAG, "venv/bin/python not found after extraction");
             return false;
         }
