@@ -70,7 +70,7 @@ Hermes Agent 是一个 AI 助手网关，将大语言模型连接到即时通讯
 |------|------|
 | `scripts/patch-bootstrap.sh` | CI 阶段批量替换 bootstrap 中的 `com.termux` 路径 |
 | `app/src/main/cpp/path_rewrite.c` | LD_PRELOAD 库，运行时拦截文件操作，重写编译期硬编码路径 |
-| `HermesInstallHelper` | 安装逻辑，支持直连和 GitHub 镜像 fallback |
+| `HermesInstallHelper` | 安装逻辑：解压预构建 venv + 路径修正 + `hermes --help` 验证 |
 | `HermesGatewayService` | 前台服务管理 Hermes Agent 进程，自动重启和崩溃保护 |
 | `HermesConfigManager` | 管理 `~/.hermes/config.yaml` 和 `.env` 配置文件 |
 
@@ -84,11 +84,30 @@ cd hermux
 # 2. 补丁 bootstrap（替换包名路径）
 bash scripts/patch-bootstrap.sh app/src/main/cpp
 
-# 3. 构建 APK
+# 3. 构建 APK（自动下载最新 venv）
 ./gradlew assembleRelease
 ```
 
 构建需要 Android SDK 和 NDK。CI 会自动执行 bootstrap patching，本地构建需手动运行。
+
+### 预构建 Python venv
+
+APK 内置完整的 Python venv（psutil、cryptography、jiter 等原生扩展），首次启动仅解压和路径修正，不再需要设备端编译。
+
+**构建方式：** 通过 SSH 连接 Termux ARM64 真机，使用 `scripts/build-venv-device.py` 构建。
+
+```bash
+pip install paramiko
+python scripts/build-venv-device.py \
+    --host 127.0.0.1 --port 8022 \
+    --user <termux-user> --password <password> \
+    --hermes-commit <commit-hash> \
+    --output venv-aarch64.tar.gz
+```
+
+前置条件：ADB 端口转发（`adb forward tcp:8022 tcp:8022`），Termux 设备安装 `python rust make clang pkg-config libffi openssl ca-certificates git`。
+
+构建完成后发布到 [hermux-venv releases](https://github.com/Bahtya/hermux-venv/releases)（版本号跟随 hermes-agent），APK 构建时 `downloadVenvs` 自动拉取最新版。
 
 ## 上游项目
 
