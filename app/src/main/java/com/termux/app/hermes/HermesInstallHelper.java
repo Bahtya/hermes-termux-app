@@ -148,6 +148,9 @@ public class HermesInstallHelper {
             postBootstrap.onBootstrapReady();
         }
 
+        // Clean stale apt/dpkg locks left by bootstrap initialization
+        cleanStaleLocks();
+
         // Phase 1: extract pre-built venv from APK assets
         if (!VenvExtractor.hasPrebuiltVenv(context)) {
             String msg = "No pre-built venv found in APK assets";
@@ -203,6 +206,31 @@ public class HermesInstallHelper {
             + "echo '=== Validate hermes ==='\n"
             + "hermes --help > /dev/null 2>&1 || { echo 'FATAL: hermes --help failed'; exit 1; }\n"
             + "echo '=== Hermes installed successfully ==='\n";
+    }
+
+    /**
+     * Remove stale apt/dpkg lock files left by bootstrap initialization.
+     * Non-fatal — only cleans if no apt/dpkg process is running.
+     */
+    private static void cleanStaleLocks() {
+        String prefix = TermuxConstants.TERMUX_PREFIX_DIR_PATH;
+        String bashPath = TermuxConstants.TERMUX_BIN_PREFIX_DIR_PATH + "/bash";
+        if (!new File(bashPath).exists()) return;
+
+        String cmd = "for _p in /proc/[0-9]*/cmdline; do "
+            + "[ -r \"$_p\" ] && cat \"$_p\" 2>/dev/null | tr '\\0' ' ' "
+            + "| grep -qE '/apt|/dpkg' && exit 0; "
+            + "done; "
+            + "rm -f " + prefix + "/var/lib/apt/lists/lock "
+            + prefix + "/var/cache/apt/archives/lock "
+            + prefix + "/var/lib/dpkg/lock-frontend "
+            + prefix + "/var/lib/dpkg/lock";
+
+        try {
+            runShellCommand(cmd, null);
+        } catch (Exception e) {
+            Logger.logWarn(LOG_TAG, "Lock cleanup failed (non-fatal): " + e.getMessage());
+        }
     }
 
     /**

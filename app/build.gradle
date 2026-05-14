@@ -248,11 +248,37 @@ def downloadVenv(String arch) {
     logger.quiet("Downloading " + remoteUrl + " ...")
 
     file.parentFile.mkdirs()
-    def out = new BufferedOutputStream(new FileOutputStream(file))
-    def connection = new URL(remoteUrl).openConnection()
-    connection.setInstanceFollowRedirects(true)
-    out << connection.inputStream
-    out.close()
+    try {
+        // Follow redirects manually — Java HttpURLConnection won't follow
+        // cross-host redirects (github.com → objects.githubusercontent.com)
+        def url = new URL(remoteUrl)
+        def maxRedirects = 5
+        for (int i = 0; i < maxRedirects; i++) {
+            def conn = url.openConnection()
+            conn.setInstanceFollowRedirects(false)
+            conn.setRequestProperty("Accept", "application/octet-stream")
+            switch (conn.getResponseCode()) {
+                case 200:
+                    def out = new BufferedOutputStream(new FileOutputStream(file))
+                    out << conn.inputStream
+                    out.close()
+                    logger.quiet("Downloaded venv ${arch} (${file.length() / 1024 / 1024} MB)")
+                    return
+                case 301: case 302: case 303: case 307: case 308:
+                    url = new URL(conn.getHeaderField("Location"))
+                    continue
+                default:
+                    throw new IOException("HTTP ${conn.getResponseCode()} for ${remoteUrl}")
+            }
+        }
+        throw new IOException("Too many redirects for ${remoteUrl}")
+    } catch (Exception e) {
+        // Non-fatal: PR builds and local dev don't need the venv.
+        // It's only required for release APKs.
+        logger.warn("Failed to download venv ${arch}: ${e.message}")
+        logger.warn("Build will continue without pre-built venv")
+        file.delete()
+    }
 }
 
 task downloadVenvs() {

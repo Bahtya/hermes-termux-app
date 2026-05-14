@@ -27,7 +27,6 @@ The script will:
 import argparse
 import os
 import sys
-import time
 
 import paramiko
 
