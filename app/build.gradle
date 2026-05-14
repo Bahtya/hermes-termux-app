@@ -243,9 +243,8 @@ def downloadVenv(String arch) {
         return
     }
 
-    // Download from hermux-venv GitHub Release
-    def apkVersion = android.defaultConfig.versionName
-    def remoteUrl = "https://github.com/Bahtya/hermux-venv/releases/download/v${apkVersion}/venv-${arch}.tar.gz"
+    // Download latest venv from hermux-venv GitHub Release
+    def remoteUrl = "https://github.com/Bahtya/hermux-venv/releases/latest/download/venv-${arch}.tar.gz"
     logger.quiet("Downloading " + remoteUrl + " ...")
 
     file.parentFile.mkdirs()
