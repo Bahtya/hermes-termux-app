@@ -1,0 +1,48 @@
+name: Build Python venv
+
+on:
+  workflow_dispatch:
+    inputs:
+      hermes_agent_commit:
+        description: 'Hermes-agent git commit hash'
+        required: false
+        default: '486b692ddd801f8f665d3fff023149fb1cb6509e'
+      upload_to_release:
+        description: 'Upload to GitHub Release (tag name, e.g. v1.3.43)'
+        required: false
+        default: ''
+
+jobs:
+  build-venv:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v3
+
+      - name: Build venv in Termux Docker (arm64)
+        run: |
+          docker run --platform linux/arm64 --rm \
+            -v "$PWD:/output" \
+            -e HERMES_COMMIT="${{ github.event.inputs.hermes_agent_commit }}" \
+            termux/termux-docker:latest \
+            bash /output/scripts/build-venv-termux.sh
+
+      - name: Verify output
+        run: |
+          ls -lh venv-aarch64.tar.gz
+          echo "venv-aarch64.tar.gz size: $(du -h venv-aarch64.tar.gz | cut -f1)"
+
+      - name: Upload venv artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: venv-aarch64
+          path: venv-aarch64.tar.gz
+          retention-days: 30
+
+      - name: Upload to release
+        if: github.event.inputs.upload_to_release != ''
+        run: |
+          gh release upload "${{ github.event.inputs.upload_to_release }}" \
+            venv-aarch64.tar.gz --clobber
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
