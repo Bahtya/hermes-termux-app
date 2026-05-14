@@ -52,6 +52,8 @@ public class HermesInstaller {
             TermuxConstants.TERMUX_DATA_HOME_DIR_PATH + "/hermes-symlinks-fixed";
     private static final String HERMES_DPKG_DB_FIX_MARKER_FILE =
             TermuxConstants.TERMUX_DATA_HOME_DIR_PATH + "/hermes-dpkg-db-patched";
+    private static final String HERMES_SSH_SETUP_MARKER_FILE =
+            TermuxConstants.TERMUX_DATA_HOME_DIR_PATH + "/hermes-ssh-setup-deployed";
     private static final String HERMES_BASH_INIT_VERSION = "2";
     private static final String HERMES_APT_CONF_VERSION = "4";
     private static final String HERMES_DPKG_CONF_VERSION = "1";
@@ -59,6 +61,13 @@ public class HermesInstaller {
     private static final String HERMES_PATH_REWRITE_VERSION = "3";
     private static final String HERMES_SYMLINK_FIX_VERSION = "2";
     private static final String HERMES_DPKG_DB_FIX_VERSION = "2";
+    private static final String HERMES_SSH_SETUP_VERSION = "1";
+
+    private static final String SSH_BOOT_SCRIPT =
+            TermuxConstants.TERMUX_BOOT_SCRIPTS_DIR_PATH + "/hermes-sshd";
+    private static final String SSHD_CONFIG_PATH =
+            TermuxConstants.TERMUX_PREFIX_DIR_PATH + "/etc/ssh/sshd_config";
+    private static final int SSH_DEFAULT_PORT = 8022;
 
     private HermesInstaller() {}
 
@@ -131,6 +140,7 @@ public class HermesInstaller {
                 new File(HERMES_MARKER_FILE).delete();
             } else {
                 Logger.logInfo(LOG_TAG, "Hermes already installed, skipping.");
+                ensureSshSetup(context);
                 return;
             }
         }
@@ -171,6 +181,9 @@ public class HermesInstaller {
         runMigration("Shell profile", HERMES_SHELL_PROFILE_VERSION,
                 HERMES_SHELL_PROFILE_MARKER_FILE, HermesInstaller::deployShellProfile,
                 TermuxConstants.TERMUX_HOME_DIR_PATH + "/.bashrc");
+        runMigration("SSH setup", HERMES_SSH_SETUP_VERSION,
+                HERMES_SSH_SETUP_MARKER_FILE, HermesInstaller::deploySshConfig,
+                SSHD_CONFIG_PATH);
     }
 
     /**
@@ -294,6 +307,8 @@ public class HermesInstaller {
                     markInstalled(context);
                     fixBinaryPermissions();
                     HermesConfigManager.reinitialize();
+                    // Setup SSH after Hermes install completes (openssh was installed as part of pkg install)
+                    setupSshInBackground(context);
                     showSuccess(context, "Hermes Agent installed successfully");
                     Logger.logInfo(LOG_TAG, "Hermes installation complete.");
                 } catch (Exception e) {
@@ -767,6 +782,200 @@ public class HermesInstaller {
         }
     }
 
+    /**
+     * Fast config-only SSH migration. Called from runUpgradeMigrations() on main thread.
+     * Only deploys config files (sshd_config, passwd entry, boot script).
+     * Skips if sshd binary is not installed (will be picked up by background setup).
+     */
+    private static void deploySshConfig() throws Exception {
+        File sshd = new File(TermuxConstants.TERMUX_BIN_PREFIX_DIR_PATH, "sshd");
+        if (!sshd.exists()) {
+            Logger.logInfo(LOG_TAG, "SSH config: sshd not found, skipping");
+            throw new Exception("sshd not installed yet, deferring SSH migration");
+        }
+        deploySshdConfig();
+        deploySshPassword();
+        deploySshBootScript();
+        Logger.logInfo(LOG_TAG, "SSH config deployed (migration)");
+    }
+
+    /**
+     * Full SSH setup in background thread. Installs openssh if needed, generates host keys,
+     * deploys config, sets password, and starts sshd.
+     */
+    static void setupSshInBackground(Context context) {
+        new Thread(() -> {
+            try {
+                setupSshInternal();
+            } catch (Exception e) {
+                Logger.logErrorExtended(LOG_TAG, "SSH background setup failed: " + e.getMessage());
+            }
+        }, "SSH-Setup").start();
+    }
+
+    /**
+     * Check if SSH setup is needed for existing installations and run it in background.
+     * Called from installIfNeeded() when Hermes is already installed.
+     */
+    static void ensureSshSetup(Context context) {
+        File sshd = new File(TermuxConstants.TERMUX_BIN_PREFIX_DIR_PATH, "sshd");
+        File marker = new File(HERMES_SSH_SETUP_MARKER_FILE);
+        if (!sshd.exists() || !marker.exists()) {
+            Logger.logInfo(LOG_TAG, "SSH not set up, scheduling background setup");
+            setupSshInBackground(context);
+        }
+    }
+
+    private static void setupSshInternal() throws Exception {
+        String prefix = TermuxConstants.TERMUX_PREFIX_DIR_PATH;
+        File sshd = new File(TermuxConstants.TERMUX_BIN_PREFIX_DIR_PATH, "sshd");
+
+        if (!sshd.exists()) {
+            Logger.logInfo(LOG_TAG, "SSH: installing openssh...");
+            runShellCommand("pkg install -y openssh");
+        }
+
+        // Generate host keys if missing
+        File sshHostKey = new File(prefix, "etc/ssh/ssh_host_rsa_key");
+        if (!sshHostKey.exists()) {
+            Logger.logInfo(LOG_TAG, "SSH: generating host keys...");
+            runShellCommand("ssh-keygen -A");
+            // Fix permissions on host keys
+            File sshDir = new File(prefix, "etc/ssh");
+            File[] keyFiles = sshDir.listFiles((dir, name) -> name.startsWith("ssh_host_") && name.endsWith("_key"));
+            if (keyFiles != null) {
+                for (File kf : keyFiles) {
+                    Os.chmod(kf.getAbsolutePath(), 0600);
+                }
+            }
+        }
+
+        deploySshdConfig();
+        deploySshPassword();
+        deploySshBootScript();
+
+        // Start sshd if not already running
+        try {
+            runShellCommand("pgrep -x sshd >/dev/null 2>&1 || " + TermuxConstants.TERMUX_BIN_PREFIX_DIR_PATH + "/sshd");
+        } catch (Exception e) {
+            Logger.logWarn(LOG_TAG, "SSH: failed to start sshd (non-fatal): " + e.getMessage());
+        }
+
+        // Write marker
+        try (FileOutputStream out = new FileOutputStream(HERMES_SSH_SETUP_MARKER_FILE)) {
+            out.write((HERMES_SSH_SETUP_VERSION + "\n").getBytes("UTF-8"));
+        }
+        Logger.logInfo(LOG_TAG, "SSH setup complete (background)");
+    }
+
+    private static void deploySshdConfig() throws Exception {
+        String prefix = TermuxConstants.TERMUX_PREFIX_DIR_PATH;
+        File sshDir = new File(prefix, "etc/ssh");
+        if (!sshDir.exists() && !sshDir.mkdirs()) {
+            throw new Exception("Failed to create " + sshDir.getAbsolutePath());
+        }
+
+        File configFile = new File(sshDir, "sshd_config");
+        String binPath = TermuxConstants.TERMUX_BIN_PREFIX_DIR_PATH;
+        String homePath = TermuxConstants.TERMUX_HOME_DIR_PATH;
+        String libPath = TermuxConstants.TERMUX_LIB_PREFIX_DIR_PATH;
+        String pathRewriteLib = libPath + "/libpath_rewrite.so";
+
+        String content = "# Hermes SSH Server Configuration\n"
+                + "Port " + SSH_DEFAULT_PORT + "\n"
+                + "PasswordAuthentication yes\n"
+                + "PrintMotd yes\n"
+                + "SetEnv PATH=" + binPath + ":/system/bin:/system/xbin\n"
+                + "SetEnv HOME=" + homePath + "\n"
+                + "SetEnv PREFIX=" + prefix + "\n"
+                + "SetEnv LD_LIBRARY_PATH=" + libPath + "\n"
+                + "SetEnv LD_PRELOAD=" + pathRewriteLib + "\n"
+                + "SetEnv TERMUX_VERSION=" + com.termux.BuildConfig.VERSION_NAME + "\n"
+                + "Subsystem sftp " + prefix + "/libexec/sftp-server\n";
+
+        try (FileOutputStream out = new FileOutputStream(configFile)) {
+            out.write(content.getBytes("UTF-8"));
+        }
+        Os.chmod(configFile.getAbsolutePath(), 0644);
+        Logger.logInfo(LOG_TAG, "Deployed sshd_config to " + configFile.getAbsolutePath());
+    }
+
+    private static void deploySshPassword() throws Exception {
+        String prefix = TermuxConstants.TERMUX_PREFIX_DIR_PATH;
+        String passwdFile = prefix + "/etc/passwd";
+
+        // Generate password hash using openssl
+        String hash = runShellCommandCapture("openssl passwd -6 hermes");
+        if (hash == null || hash.isEmpty() || hash.startsWith("$0$") || hash.contains("error")) {
+            // Fallback: try crypt format
+            hash = runShellCommandCapture("openssl passwd -1 hermes");
+        }
+        if (hash == null || hash.isEmpty()) {
+            Logger.logWarn(LOG_TAG, "SSH: failed to generate password hash, using openssl in shell");
+            // Last resort: set password via shell passwd command
+            try {
+                runShellCommand("printf 'hermes\\nhermes\\n' | passwd 2>/dev/null || true");
+            } catch (Exception ignored) {}
+            return;
+        }
+
+        // Determine current user
+        String user = runShellCommandCapture("whoami 2>/dev/null || id -un 2>/dev/null");
+        if (user == null || user.isEmpty()) user = "u0_a" + android.os.Process.myUid();
+
+        String uid = runShellCommandCapture("id -u");
+        String gid = runShellCommandCapture("id -g");
+        if (uid == null || uid.isEmpty()) uid = String.valueOf(android.os.Process.myUid());
+        if (gid == null || gid.isEmpty()) gid = uid;
+
+        String entry = user + ":" + hash.trim() + ":" + uid.trim() + ":" + gid.trim()
+                + "::" + TermuxConstants.TERMUX_HOME_DIR_PATH + ":"
+                + TermuxConstants.TERMUX_BIN_PREFIX_DIR_PATH + "/sh\n";
+
+        File passwd = new File(passwdFile);
+        boolean userExists = false;
+        if (passwd.exists()) {
+            String content = readFile(passwd);
+            if (content.contains(user + ":")) {
+                userExists = true;
+            }
+        }
+
+        if (userExists) {
+            // Update password hash for existing user
+            runShellCommand("sed -i 's|^" + user + ":[^:]*:|" + user + ":"
+                    + hash.trim() + ":|' " + passwdFile);
+        } else {
+            try (FileOutputStream out = new FileOutputStream(passwdFile, true)) {
+                out.write(entry.getBytes("UTF-8"));
+            }
+        }
+        Logger.logInfo(LOG_TAG, "SSH password configured for user " + user);
+    }
+
+    private static void deploySshBootScript() throws Exception {
+        File bootDir = TermuxConstants.TERMUX_BOOT_SCRIPTS_DIR;
+        FileUtils.createDirectoryFile(bootDir.getAbsolutePath());
+        String prefix = TermuxConstants.TERMUX_PREFIX_DIR_PATH;
+
+        String script = "#!" + TermuxConstants.TERMUX_BIN_PREFIX_DIR_PATH + "/sh\n"
+                + "# Auto-start SSH daemon on boot\n"
+                + "if [ -f " + TermuxConstants.TERMUX_BIN_PREFIX_DIR_PATH + "/sshd ]; then\n"
+                + "    export LD_LIBRARY_PATH=" + TermuxConstants.TERMUX_LIB_PREFIX_DIR_PATH + "\n"
+                + "    if [ -f " + prefix + "/lib/libpath_rewrite.so ]; then\n"
+                + "        export LD_PRELOAD=" + prefix + "/lib/libpath_rewrite.so\n"
+                + "    fi\n"
+                + "    " + TermuxConstants.TERMUX_BIN_PREFIX_DIR_PATH + "/sshd\n"
+                + "fi\n";
+
+        File scriptFile = new File(SSH_BOOT_SCRIPT);
+        try (FileOutputStream out = new FileOutputStream(scriptFile)) {
+            out.write(script.getBytes("UTF-8"));
+        }
+        Os.chmod(scriptFile.getAbsolutePath(), 0700);
+        Logger.logInfo(LOG_TAG, "Deployed SSH boot script to " + SSH_BOOT_SCRIPT);
+    }
+
     private static void deployShellProfile() throws Exception {
         String home = TermuxConstants.TERMUX_HOME_DIR_PATH;
         String prefix = TermuxConstants.TERMUX_PREFIX_DIR_PATH;
@@ -913,5 +1122,72 @@ public class HermesInstaller {
     @FunctionalInterface
     private interface ThrowingRunnable {
         void run() throws Exception;
+    }
+
+    /** Run a shell command in the Termux environment, throwing on non-zero exit. */
+    public static void runShellCommand(String command) throws Exception {
+        String bashPath = TermuxConstants.TERMUX_BIN_PREFIX_DIR_PATH + "/bash";
+        if (!new File(bashPath).exists()) {
+            throw new RuntimeException("bash not available");
+        }
+        ProcessBuilder pb = new ProcessBuilder(bashPath, "-c", command);
+        String prefix = TermuxConstants.TERMUX_PREFIX_DIR_PATH;
+        pb.environment().put("HOME", TermuxConstants.TERMUX_HOME_DIR_PATH);
+        pb.environment().put("PATH", TermuxConstants.TERMUX_BIN_PREFIX_DIR_PATH + ":/system/bin");
+        pb.environment().put("PREFIX", prefix);
+        pb.environment().put("TMPDIR", TermuxConstants.TERMUX_TMP_PREFIX_DIR_PATH);
+        pb.environment().put("LD_LIBRARY_PATH", TermuxConstants.TERMUX_LIB_PREFIX_DIR_PATH);
+        pb.environment().put("TERMUX_VERSION", com.termux.BuildConfig.VERSION_NAME);
+        pb.environment().put("TERMINFO", prefix + "/share/terminfo");
+        String pathRewriteLib = TermuxConstants.TERMUX_LIB_PREFIX_DIR_PATH + "/libpath_rewrite.so";
+        if (new File(pathRewriteLib).exists()) {
+            pb.environment().put("LD_PRELOAD", pathRewriteLib);
+        }
+        String aptConfFile = prefix + "/etc/apt/apt.conf.d/99hermes-paths.conf";
+        if (new File(aptConfFile).exists()) {
+            pb.environment().put("APT_CONFIG", aptConfFile);
+        }
+        pb.redirectErrorStream(true);
+        Process p = pb.start();
+        try (BufferedReader reader = new BufferedReader(new InputStreamReader(p.getInputStream()))) {
+            while (reader.readLine() != null) {}
+        }
+        int exit = p.waitFor();
+        if (exit != 0) {
+            throw new RuntimeException("Shell command failed (" + exit + "): " + command);
+        }
+    }
+
+    /** Run a shell command and capture the first line of stdout. */
+    static String runShellCommandCapture(String command) {
+        try {
+            String bashPath = TermuxConstants.TERMUX_BIN_PREFIX_DIR_PATH + "/bash";
+            if (!new File(bashPath).exists()) return null;
+            ProcessBuilder pb = new ProcessBuilder(bashPath, "-c", command);
+            String prefix = TermuxConstants.TERMUX_PREFIX_DIR_PATH;
+            pb.environment().put("HOME", TermuxConstants.TERMUX_HOME_DIR_PATH);
+            pb.environment().put("PATH", TermuxConstants.TERMUX_BIN_PREFIX_DIR_PATH + ":/system/bin");
+            pb.environment().put("PREFIX", prefix);
+            pb.environment().put("TMPDIR", TermuxConstants.TERMUX_TMP_PREFIX_DIR_PATH);
+            pb.environment().put("LD_LIBRARY_PATH", TermuxConstants.TERMUX_LIB_PREFIX_DIR_PATH);
+            String pathRewriteLib = TermuxConstants.TERMUX_LIB_PREFIX_DIR_PATH + "/libpath_rewrite.so";
+            if (new File(pathRewriteLib).exists()) {
+                pb.environment().put("LD_PRELOAD", pathRewriteLib);
+            }
+            pb.redirectErrorStream(false);
+            Process p = pb.start();
+            String result;
+            try (BufferedReader reader = new BufferedReader(new InputStreamReader(p.getInputStream()))) {
+                result = reader.readLine();
+            }
+            // Drain stderr
+            try (BufferedReader reader = new BufferedReader(new InputStreamReader(p.getErrorStream()))) {
+                while (reader.readLine() != null) {}
+            }
+            p.waitFor();
+            return result;
+        } catch (Exception e) {
+            return null;
+        }
     }
 }

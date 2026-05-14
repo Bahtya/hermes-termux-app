@@ -381,7 +381,7 @@ public class HermesInstallHelper {
             + "\n"
             + "echo '=== Step 1: Install system packages ==='\n"
             + "apt install -y python git nodejs clang rust make pkg-config "
-            + "libffi openssl ca-certificates curl ripgrep ffmpeg\n"
+            + "libffi openssl openssh ca-certificates curl ripgrep ffmpeg\n"
             + "\n"
             + "echo '=== Step 2: Clone hermes-agent source ==='\n"
             + "if [ -d \"$HERMES_DIR/.git\" ]; then\n"

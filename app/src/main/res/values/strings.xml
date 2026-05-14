@@ -1489,4 +1489,33 @@
     <string name="hermes_reset_all_confirm">Reset</string>
     <string name="hermes_reset_all_done">Configuration reset. Restarting setup wizard…</string>
 
+    <!-- SSH Server -->
+    <string name="ssh_category_title">SSH Server</string>
+    <string name="ssh_enabled_title">Enable SSH Server</string>
+    <string name="ssh_enabled_summary">Allow remote SSH connections to this device</string>
+    <string name="ssh_port_title">SSH Port</string>
+    <string name="ssh_port_summary">Default: 8022 (non-privileged port)</string>
+    <string name="ssh_password_title">SSH Password</string>
+    <string name="ssh_password_summary">Set password for SSH authentication</string>
+    <string name="ssh_auto_start_title">Auto-start on Boot</string>
+    <string name="ssh_auto_start_summary">Start SSH server when device boots</string>
+    <string name="ssh_start_title">Start SSH</string>
+    <string name="ssh_start_summary">Start the SSH daemon now</string>
+    <string name="ssh_stop_title">Stop SSH</string>
+    <string name="ssh_stop_summary">Stop the SSH daemon</string>
+    <string name="ssh_status_title">SSH Status</string>
+    <string name="ssh_status_running">SSH running on port %1$d</string>
+    <string name="ssh_status_stopped">SSH stopped</string>
+    <string name="ssh_status_not_installed">OpenSSH not installed</string>
+    <string name="ssh_warning_security">Default password is \"hermes\" — change it for security</string>
+    <string name="ssh_password_changed">SSH password updated</string>
+    <string name="ssh_password_change_failed">Failed to update SSH password</string>
+    <string name="ssh_started">SSH server started</string>
+    <string name="ssh_stopped">SSH server stopped</string>
+    <string name="ssh_start_failed">Failed to start SSH server</string>
+    <string name="ssh_info_title">Connection Info</string>
+    <string name="ssh_info_summary">View SSH connection details</string>
+    <string name="ssh_info_dialog_title">SSH Connection Info</string>
+    <string name="ssh_info_dialog_message">Connect via:\n\nssh -p %1$d %2$s@&lt;device-ip&gt;\n\nDefault password: hermes</string>
+
 </resources>
