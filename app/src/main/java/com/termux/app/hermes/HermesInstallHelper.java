@@ -192,6 +192,10 @@ public class HermesInstallHelper {
             + "VENV_DIR=\"$HERMES_DIR/venv\"\n"
             + "PREFIX=\"" + prefix + "\"\n"
             + "\n"
+            // venv's bin/python is a symlink to $PREFIX/bin/python — install it
+            + "echo '=== Install Python ==='\n"
+            + "apt install -y --force-confold python 2>&1 | tail -3\n"
+            + "\n"
             + "echo '=== Setup hermes command ==='\n"
             + "HERMES_BIN=\"$PREFIX/bin/hermes\"\n"
             + "VENV_HERMES=\"$VENV_DIR/bin/hermes\"\n"
