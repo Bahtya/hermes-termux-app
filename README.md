@@ -116,25 +116,6 @@ gh workflow run release.yml --ref main --field tag=v1.3.44
 
 CI 自动：下载最新 venv → 构建 APK（android-7 + android-5 两个变体）→ 创建 GitHub Release → 上传 APK。
 
-### 预构建 Python venv
-
-APK 内置完整的 Python venv（psutil、cryptography、jiter 等原生扩展），首次启动仅解压和路径修正，不再需要设备端编译。
-
-**构建方式：** 通过 SSH 连接 Termux ARM64 真机，使用 `scripts/build-venv-device.py` 构建。
-
-```bash
-pip install paramiko
-python scripts/build-venv-device.py \
-    --host 127.0.0.1 --port 8022 \
-    --user <termux-user> --password <password> \
-    --hermes-commit <commit-hash> \
-    --output venv-aarch64.tar.gz
-```
-
-前置条件：ADB 端口转发（`adb forward tcp:8022 tcp:8022`），Termux 设备安装 `python rust make clang pkg-config libffi openssl ca-certificates git`。
-
-构建完成后发布到 [hermux-venv releases](https://github.com/Bahtya/hermux-venv/releases)（版本号跟随 hermes-agent），APK 构建时 `downloadVenvs` 自动拉取最新版。
-
 ## 上游项目
 
 | 项目 | 仓库 | 说明 |
