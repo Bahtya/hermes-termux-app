@@ -13,8 +13,12 @@ import java.io.InputStreamReader;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
- * Shared installation logic with automatic mirror fallback for regions
- * where direct GitHub access is unreliable (e.g. mainland China).
+ * Hermes installation logic.
+ * With pre-built venv bundled in the APK, the install flow is:
+ * 1. Wait for Termux bootstrap
+ * 2. Extract pre-built venv from APK assets (VenvExtractor)
+ * 3. Setup hermes command symlink
+ * 4. Validate with `hermes --help`
  */
 public class HermesInstallHelper {
 
@@ -46,25 +50,9 @@ public class HermesInstallHelper {
         }
     }
 
-    static final String INSTALL_URL_DIRECT =
-            "https://hermes-agent.nousresearch.com/install.sh";
-
-    static final String HERMES_AGENT_COMMIT = "486b692ddd801f8f665d3fff023149fb1cb6509e";
-
-    static final String INSTALL_URL_GITHUB_RAW =
-            "https://raw.githubusercontent.com/NousResearch/hermes-agent/" + HERMES_AGENT_COMMIT + "/scripts/install.sh";
-
-    static final String GITHUB_REPO_URL =
-            "https://github.com/NousResearch/hermes-agent.git";
-
-    static final String[] MIRROR_PREFIXES = {
-            "https://ghfast.top/",
-    };
-
     public enum InstallState {
         NOT_INSTALLED,
         BOOTSTRAPPING,
-        DOWNLOADING,
         INSTALLING,
         INSTALLED,
         FAILED
@@ -91,7 +79,6 @@ public class HermesInstallHelper {
         return getCurrentState(context);
     }
 
-    /** Determine actual state from filesystem (marker file + bash availability). */
     public static InstallState getCurrentState(Context context) {
         if (new File(MARKER_FILE).exists()) {
             return InstallState.INSTALLED;
@@ -99,7 +86,6 @@ public class HermesInstallHelper {
         return InstallState.NOT_INSTALLED;
     }
 
-    /** Delete marker file and reset state to allow reinstallation. */
     public static void resetInstall(Context context) {
         new File(MARKER_FILE).delete();
         setState(context, InstallState.NOT_INSTALLED);
@@ -123,11 +109,9 @@ public class HermesInstallHelper {
     public interface ProgressCallback {
         void onStatus(String message);
         boolean isCancelled();
-        /** Called for each line of output from the install script. */
         default void onOutput(String line) {}
     }
 
-    /** Runs after Phase 0 (bootstrap ready) but before download attempts. */
     public interface PostBootstrapHook {
         void onBootstrapReady() throws Exception;
     }
@@ -137,10 +121,7 @@ public class HermesInstallHelper {
     // =========================================================================
 
     /**
-     * Run the install script with automatic mirror fallback.
-     * Phase 0: wait for bootstrap, then run postBootstrapHook.
-     * Phase 1: local inline install script (clones repo, builds psutil, installs hermes).
-     * Phase 2: each mirror in MIRROR_PREFIXES (1 attempt per mirror, last resort).
+     * Install hermes: wait for bootstrap, extract pre-built venv, validate.
      */
     public static void executeInstall(Context context,
             ProgressCallback callback, PostBootstrapHook postBootstrap) throws Exception {
@@ -158,83 +139,102 @@ public class HermesInstallHelper {
 
     private static void executeInstallInternal(Context context,
             ProgressCallback callback, PostBootstrapHook postBootstrap) throws Exception {
-        StringBuilder errorLog = new StringBuilder();
 
         // Phase 0: wait for Termux bootstrap to finish
         setState(context, InstallState.BOOTSTRAPPING);
         ensureBashReady(context, callback);
 
-        // Phase 0.5: wait for any apt/dpkg processes to finish and clean stale locks
-        waitForAptReady();
-
-        // Deploy apt/dpkg configs AFTER bootstrap is ready.
-        // Bootstrap extraction wipes $PREFIX, so configs deployed earlier are gone.
         if (postBootstrap != null) {
             postBootstrap.onBootstrapReady();
         }
 
-        // Phase 0.7: prepare apt environment
-        // dpkg may have half-configured packages from bootstrap; apt has no package lists.
-        prepareAptEnvironment(callback);
+        // Clean stale apt/dpkg locks left by bootstrap initialization
+        cleanStaleLocks();
 
-        // Phase 0.8: extract pre-built venv from APK assets
-        if (VenvExtractor.hasPrebuiltVenv(context)) {
-            if (callback != null) callback.onStatus("Extracting pre-built environment...");
-            Logger.logInfo(LOG_TAG, "Extracting pre-built venv from APK assets");
-            if (!VenvExtractor.extractVenv(context)) {
-                Logger.logError(LOG_TAG, "Pre-built venv extraction failed");
-                throw new RuntimeException("Pre-built venv extraction failed");
-            }
-        } else {
-            Logger.logWarn(LOG_TAG, "No pre-built venv in APK assets");
+        // Phase 1: extract pre-built venv from APK assets
+        if (!VenvExtractor.hasPrebuiltVenv(context)) {
+            String msg = "No pre-built venv found in APK assets";
+            Logger.logError(LOG_TAG, msg);
+            setLastError(context, msg);
+            setState(context, InstallState.FAILED);
+            throw new RuntimeException(msg);
         }
 
-        // Phase 1: local install script (primary method)
+        if (callback != null) callback.onStatus("Extracting pre-built environment...");
+        Logger.logInfo(LOG_TAG, "Extracting pre-built venv from APK assets");
+        if (!VenvExtractor.extractVenv(context)) {
+            String msg = "Pre-built venv extraction failed";
+            Logger.logError(LOG_TAG, msg);
+            setLastError(context, msg);
+            setState(context, InstallState.FAILED);
+            throw new RuntimeException(msg);
+        }
+
+        // Phase 2: setup hermes command and validate
         setState(context, InstallState.INSTALLING);
         if (callback != null && callback.isCancelled()) return;
+        if (callback != null) callback.onStatus("Setting up Hermes...");
+        Logger.logInfo(LOG_TAG, "Setting up hermes command and validating");
+        runShellCommand(buildSetupScript(), callback);
+
+        setLastError(context, null);
+        setState(context, InstallState.INSTALLED);
+    }
+
+    /**
+     * Build the setup script: symlink hermes command, validate with --help.
+     */
+    static String buildSetupScript() {
+        String prefix = TermuxConstants.TERMUX_PREFIX_DIR_PATH;
+        return "set -e\n"
+            + "\n"
+            + "HERMES_DIR=\"$HOME/.hermes/hermes-agent\"\n"
+            + "VENV_DIR=\"$HERMES_DIR/venv\"\n"
+            + "PREFIX=\"" + prefix + "\"\n"
+            + "\n"
+            + "echo '=== Setup hermes command ==='\n"
+            + "HERMES_BIN=\"$PREFIX/bin/hermes\"\n"
+            + "VENV_HERMES=\"$VENV_DIR/bin/hermes\"\n"
+            + "if [ -f \"$VENV_HERMES\" ]; then\n"
+            + "  ln -sf \"$VENV_HERMES\" \"$HERMES_BIN\"\n"
+            + "elif [ -f \"$VENV_DIR/bin/python\" ]; then\n"
+            + "  echo \"#!$VENV_DIR/bin/python\" > \"$HERMES_BIN\"\n"
+            + "  echo \"import sys; sys.path.insert(0, '$HERMES_DIR'); from hermes_cli import main; main()\" >> \"$HERMES_BIN\"\n"
+            + "  chmod 755 \"$HERMES_BIN\"\n"
+            + "fi\n"
+            + "\n"
+            + "echo '=== Validate hermes ==='\n"
+            + "hermes --help > /dev/null 2>&1 || { echo 'FATAL: hermes --help failed'; exit 1; }\n"
+            + "echo '=== Hermes installed successfully ==='\n";
+    }
+
+    /**
+     * Remove stale apt/dpkg lock files left by bootstrap initialization.
+     * Non-fatal — only cleans if no apt/dpkg process is running.
+     */
+    private static void cleanStaleLocks() {
+        String prefix = TermuxConstants.TERMUX_PREFIX_DIR_PATH;
+        String bashPath = TermuxConstants.TERMUX_BIN_PREFIX_DIR_PATH + "/bash";
+        if (!new File(bashPath).exists()) return;
+
+        String cmd = "for _p in /proc/[0-9]*/cmdline; do "
+            + "[ -r \"$_p\" ] && cat \"$_p\" 2>/dev/null | tr '\\0' ' ' "
+            + "| grep -qE '/apt|/dpkg' && exit 0; "
+            + "done; "
+            + "rm -f " + prefix + "/var/lib/apt/lists/lock "
+            + prefix + "/var/cache/apt/archives/lock "
+            + prefix + "/var/lib/dpkg/lock-frontend "
+            + prefix + "/var/lib/dpkg/lock";
+
         try {
-            if (callback != null) {
-                callback.onStatus("Installing Hermes Agent...");
-            }
-            Logger.logInfo(LOG_TAG, "Starting local install script");
-            runShellCommand(buildLocalInstallScript(), callback);
-            setLastError(context, null);
-            setState(context, InstallState.INSTALLED);
-            return;
+            runShellCommand(cmd, null);
         } catch (Exception e) {
-            errorLog.append("Local: ").append(e.getMessage()).append("\n");
-            Logger.logWarn(LOG_TAG, "Local install failed: " + e.getMessage());
+            Logger.logWarn(LOG_TAG, "Lock cleanup failed (non-fatal): " + e.getMessage());
         }
-
-        // Phase 2: mirror fallback (last resort)
-        setState(context, InstallState.DOWNLOADING);
-        for (String mirror : MIRROR_PREFIXES) {
-            if (callback != null && callback.isCancelled()) return;
-            try {
-                if (callback != null) {
-                    callback.onStatus(context.getString(R.string.install_fallback_mirror));
-                }
-                Logger.logInfo(LOG_TAG, "Falling back to mirror: " + mirror);
-                runShellCommand(buildInstallCommand(true, mirror), callback);
-                setLastError(context, null);
-                setState(context, InstallState.INSTALLED);
-                return;
-            } catch (Exception e) {
-                errorLog.append("Mirror (").append(mirror).append("): ")
-                        .append(e.getMessage()).append("\n");
-                Logger.logWarn(LOG_TAG, "Mirror " + mirror + " failed: " + e.getMessage());
-            }
-        }
-
-        String errorMsg = "All install methods failed\n" + errorLog;
-        setLastError(context, errorMsg);
-        setState(context, InstallState.FAILED);
-        throw new RuntimeException(errorMsg);
     }
 
     /**
      * Wait until bash can actually execute (bootstrap packages fully installed).
-     * Retries every 3 seconds for up to 60 seconds.
      */
     private static void ensureBashReady(Context context, ProgressCallback callback) throws Exception {
         String bashPath = TermuxConstants.TERMUX_BIN_PREFIX_DIR_PATH + "/bash";
@@ -252,7 +252,6 @@ public class HermesInstallHelper {
                     }
                     pb.redirectErrorStream(true);
                     Process p = pb.start();
-                    // Drain output to avoid blocking
                     try (java.io.InputStream is = p.getInputStream()) {
                         byte[] buf = new byte[64];
                         while (is.read(buf) != -1) {}
@@ -274,180 +273,13 @@ public class HermesInstallHelper {
     }
 
     /**
-     * Wait for any running apt/dpkg processes to finish and remove stale
-     * lock files. Bootstrap extraction or app initialization may trigger
-     * apt commands that hold locks, causing the install script's
-     * "pkg install python" to fail with lock errors.
-     */
-    private static void waitForAptReady() {
-        String prefix = TermuxConstants.TERMUX_PREFIX_DIR_PATH;
-        String bashPath = TermuxConstants.TERMUX_BIN_PREFIX_DIR_PATH + "/bash";
-
-        if (!new File(bashPath).exists()) return;
-
-        // Shell snippet: wait up to 30s for apt/dpkg processes to exit.
-        // Only remove lock files if no apt/dpkg process is still running,
-        // to avoid corrupting a running transaction.
-        String cmd = "_cleaned=false; "
-            + "for _i in $(seq 1 30); do "
-            + "_r=false; "
-            + "for _p in /proc/[0-9]*/cmdline; do "
-            + "[ -r \"$_p\" ] && { cat \"$_p\" 2>/dev/null | tr '\\0' ' ' "
-            + "| grep -qE '/apt|/dpkg' && _r=true && break; }; "
-            + "done; "
-            + "if [ \"$_r\" = false ]; then "
-            + "rm -f " + prefix + "/var/lib/apt/lists/lock "
-            + prefix + "/var/cache/apt/archives/lock "
-            + prefix + "/var/lib/dpkg/lock-frontend "
-            + prefix + "/var/lib/dpkg/lock; "
-            + "_cleaned=true; break; "
-            + "fi; "
-            + "sleep 1; "
-            + "done; "
-            + "[ \"$_cleaned\" = true ]";
-
-        try {
-            runShellCommand(cmd, null);
-        } catch (Exception e) {
-            Logger.logWarn(LOG_TAG, "apt readiness check failed (non-fatal): " + e.getMessage());
-        }
-    }
-
-    /**
-     * Prepare the apt/dpkg environment before running the install script.
-     * - dpkg --configure -a: fix half-configured packages from bootstrap
-     * - apt update: fetch package lists (TUNA mirror already deployed)
-     * Failures are logged but non-fatal — the install script may still succeed.
-     */
-    private static void prepareAptEnvironment(ProgressCallback callback) {
-        String prefix = TermuxConstants.TERMUX_PREFIX_DIR_PATH;
-        // Retry apt update, then upgrade all packages to prevent partial upgrade breakage.
-        // When the install script later runs "pkg install X", apt won't trigger inconsistent
-        // upgrades (e.g. libcurl upgraded but libngtcp2 not, causing linking failures).
-        String diag = "echo '=== apt update (with retry) ==='; "
-                + "_ok=false; for _i in $(seq 1 6); do "
-                + "echo 'Attempt '$_i'...'; "
-                + "if apt update 2>&1; then _ok=true; break; fi; "
-                + "echo 'Retrying in 10s...'; sleep 10; "
-                + "done; "
-                + "if [ \"$_ok\" = false ]; then echo 'WARNING: apt update failed after 6 attempts'; fi; "
-                + "echo '=== apt upgrade ==='; "
-                + "_ug=false; for _i in $(seq 1 3); do "
-                + "echo 'Upgrade attempt '$_i'...'; "
-                + "if apt upgrade -y 2>&1; then _ug=true; break; fi; "
-                + "echo 'Retrying in 10s...'; sleep 10; "
-                + "done; "
-                + "if [ \"$_ug\" = false ]; then echo 'WARNING: apt upgrade failed'; fi; "
-                // TMPDIR symlinks: path_rewrite's shebang patching creates .rw_* temp files
-                // that break $0-based path resolution. Pre-create symlinks so tools are found.
-                + "echo '=== Preparing TMPDIR symlinks ==='; "
-                + "for _t in clang clang++ cc c++ ld.lld; do "
-                + "[ -x " + prefix + "/bin/$_t ] && ln -sf " + prefix + "/bin/$_t $TMPDIR/$_t; "
-                + "done; "
-                + "for _w in " + prefix + "/bin/*-android-*; do "
-                + "[ -e \"$_w\" ] || continue; "
-                + "ln -sf \"$_w\" \"$TMPDIR/$(basename \"$_w\")\"; "
-                + "done";
-        try {
-            if (callback != null) callback.onOutput("Preparing apt environment...");
-            runShellCommand(diag, callback);
-        } catch (Exception e) {
-            Logger.logWarn(LOG_TAG, "apt env preparation failed (non-fatal): " + e.getMessage());
-        }
-    }
-
-    /**
-     * Build the shell command for downloading and executing the install script.
-     */
-    static String buildInstallCommand(boolean useMirror, String mirrorPrefix) {
-        String bashPath = TermuxConstants.TERMUX_BIN_PREFIX_DIR_PATH + "/bash";
-
-        String curlTimeout = "--connect-timeout 30 --max-time 300";
-
-        if (!useMirror) {
-            return "curl -fsSL " + curlTimeout + " " + INSTALL_URL_DIRECT + " | " + bashPath;
-        }
-
-        String mirrorScriptUrl = mirrorPrefix + INSTALL_URL_GITHUB_RAW;
-        String mirrorRepoUrl = mirrorPrefix + GITHUB_REPO_URL;
-        return "curl -fsSL " + curlTimeout + " " + mirrorScriptUrl
-                + " | sed 's|" + GITHUB_REPO_URL + "|" + mirrorRepoUrl + "|g'"
-                + " | " + bashPath;
-    }
-
-    /**
-     * Build the local install script that installs Hermes Agent without
-     * relying on the upstream install.sh (which fails under path_rewrite
-     * due to $0-based path resolution breaking in .rw_* temp files).
-     */
-    static String buildLocalInstallScript() {
-        String prefix = TermuxConstants.TERMUX_PREFIX_DIR_PATH;
-        String mirror = MIRROR_PREFIXES.length > 0 ? MIRROR_PREFIXES[0] : "";
-        return "set -e\n"
-            + "\n"
-            + "HERMES_DIR=\"$HOME/.hermes/hermes-agent\"\n"
-            + "VENV_DIR=\"$HERMES_DIR/venv\"\n"
-            + "HERMES_COMMIT=\"" + HERMES_AGENT_COMMIT + "\"\n"
-            + "MIRROR_REPO_URL=\"" + mirror + GITHUB_REPO_URL + "\"\n"
-            + "PREFIX=\"" + prefix + "\"\n"
-            + "\n"
-            + "echo '=== Step 1: Install system packages ==='\n"
-            + "apt install -y python git nodejs ripgrep ffmpeg\n"
-            + "\n"
-            + "echo '=== Step 2: Clone hermes-agent source ==='\n"
-            + "if [ -d \"$HERMES_DIR/.git\" ]; then\n"
-            + "  cd \"$HERMES_DIR\"\n"
-            + "  git fetch origin main || true\n"
-            + "  git reset --hard \"$HERMES_COMMIT\" || true\n"
-            + "else\n"
-            + "  rm -rf \"$HERMES_DIR\"\n"
-            + "  git clone \"$MIRROR_REPO_URL\" \"$HERMES_DIR\"\n"
-            + "  cd \"$HERMES_DIR\"\n"
-            + "  git checkout \"$HERMES_COMMIT\" || true\n"
-            + "fi\n"
-            + "\n"
-            + "echo '=== Step 3: Validate pre-built venv ==='\n"
-            + "if [ ! -f \"$VENV_DIR/bin/python\" ]; then\n"
-            + "  echo 'FATAL: Pre-built venv not found at '$VENV_DIR\n"
-            + "  echo 'The APK must be built with CI (venv-aarch64.tar.gz in assets)'\n"
-            + "  exit 1\n"
-            + "fi\n"
-            + "if ! \"$VENV_DIR/bin/python\" -c 'import hermes_cli; print(\"venv OK: hermes_cli imported\")' 2>&1; then\n"
-            + "  echo 'FATAL: Pre-built venv validation failed (hermes_cli import)'\n"
-            + "  exit 1\n"
-            + "fi\n"
-            + "echo '=== Pre-built venv validated ==='\n"
-            + "\n"
-            + "echo '=== Step 4: Setup hermes command ==='\n"
-            + "HERMES_BIN=\"$PREFIX/bin/hermes\"\n"
-            + "VENV_HERMES=\"$VENV_DIR/bin/hermes\"\n"
-            + "if [ -f \"$VENV_HERMES\" ]; then\n"
-            + "  ln -sf \"$VENV_HERMES\" \"$HERMES_BIN\"\n"
-            + "elif [ -f \"$HERMES_DIR/hermes_cli.py\" ]; then\n"
-            + "  echo \"#!$VENV_DIR/bin/python\" > \"$HERMES_BIN\"\n"
-            + "  echo \"import sys; sys.path.insert(0, '$HERMES_DIR'); from hermes_cli import main; main()\" >> \"$HERMES_BIN\"\n"
-            + "  chmod 755 \"$HERMES_BIN\"\n"
-            + "fi\n"
-            + "\n"
-            + "echo '=== Step 5: Copy config templates ==='\n"
-            + "if [ -d \"$HERMES_DIR/config_templates\" ]; then\n"
-            + "  mkdir -p \"$HOME/.hermes\"\n"
-            + "  cp -n \"$HERMES_DIR/config_templates/\"* \"$HOME/.hermes/\" 2>/dev/null || true\n"
-            + "fi\n"
-            + "\n"
-            + "echo '=== Local install complete ==='\n";
-    }
-
-    /**
      * Execute a bash command in the Termux environment.
-     * Streams each line of output to callback.onOutput() in real time.
      */
     static void runShellCommand(String bashCommand, ProgressCallback callback) throws Exception {
         String bashPath = TermuxConstants.TERMUX_BIN_PREFIX_DIR_PATH + "/bash";
-        String curlPath = TermuxConstants.TERMUX_BIN_PREFIX_DIR_PATH + "/curl";
 
-        if (!new File(bashPath).exists() || !new File(curlPath).exists()) {
-            throw new RuntimeException("bash or curl not available yet");
+        if (!new File(bashPath).exists()) {
+            throw new RuntimeException("bash not available yet");
         }
 
         ProcessBuilder pb = new ProcessBuilder(bashPath, "-c", bashCommand);
@@ -461,16 +293,11 @@ public class HermesInstallHelper {
         pb.environment().put("TERMUX_VERSION", com.termux.BuildConfig.VERSION_NAME);
         pb.environment().put("TERMINFO", prefix + "/share/terminfo");
 
-        // LD_PRELOAD rewrites /data/data/com.termux/ → /data/data/com.hermux/
-        // at runtime. Without it, dpkg/apt cannot find their config files or
-        // admindir (compiled-in as com.termux paths that don't exist).
         String pathRewriteLib = TermuxConstants.TERMUX_LIB_PREFIX_DIR_PATH + "/libpath_rewrite.so";
         if (new File(pathRewriteLib).exists()) {
             pb.environment().put("LD_PRELOAD", pathRewriteLib);
         }
 
-        // APT_CONFIG overrides compiled-in Dir paths so apt can find its
-        // sources.list and method binaries under the renamed package path.
         String aptConfFile = prefix + "/etc/apt/apt.conf.d/99hermes-paths.conf";
         if (new File(aptConfFile).exists()) {
             pb.environment().put("APT_CONFIG", aptConfFile);

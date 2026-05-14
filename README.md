@@ -70,25 +70,51 @@ Hermes Agent 是一个 AI 助手网关，将大语言模型连接到即时通讯
 |------|------|
 | `scripts/patch-bootstrap.sh` | CI 阶段批量替换 bootstrap 中的 `com.termux` 路径 |
 | `app/src/main/cpp/path_rewrite.c` | LD_PRELOAD 库，运行时拦截文件操作，重写编译期硬编码路径 |
-| `HermesInstallHelper` | 安装逻辑，支持直连和 GitHub 镜像 fallback |
+| `HermesInstallHelper` | 安装逻辑：解压预构建 venv + 路径修正 + `hermes --help` 验证 |
 | `HermesGatewayService` | 前台服务管理 Hermes Agent 进程，自动重启和崩溃保护 |
 | `HermesConfigManager` | 管理 `~/.hermes/config.yaml` 和 `.env` 配置文件 |
 
 ## 构建
 
+需要 Android SDK 和 NDK。
+
 ```bash
-# 1. 克隆仓库
-git clone https://github.com/Bahtya/hermux.git
-cd hermux
-
-# 2. 补丁 bootstrap（替换包名路径）
-bash scripts/patch-bootstrap.sh app/src/main/cpp
-
-# 3. 构建 APK
+git clone https://github.com/Bahtya/hermux.git && cd hermux
+bash scripts/patch-bootstrap.sh app/src/main/cpp   # 替换包名路径
 ./gradlew assembleRelease
 ```
 
-构建需要 Android SDK 和 NDK。CI 会自动执行 bootstrap patching，本地构建需手动运行。
+CI 自动执行以上步骤。`downloadVenvs` task 自动从 GitHub 下载最新 venv。
+
+## 发布流程
+
+### 发布 venv（更新 hermes-agent 版本时）
+
+venv 版本号跟随 hermes-agent（如 `v0.13.0`），存储在 [hermux-venv releases](https://github.com/Bahtya/hermux-venv/releases)。
+
+```bash
+# 1. SSH 连接 Termux ARM64 真机构建
+pip install paramiko
+python scripts/build-venv-device.py \
+    --host 127.0.0.1 --port 8022 \
+    --user <user> --password <password> \
+    --hermes-commit <commit-hash>
+
+# 2. 发布到 hermux-venv（tag 用 hermes-agent 版本号）
+gh release create v0.13.0 venv-aarch64.tar.gz \
+    --repo Bahtya/hermux-venv \
+    --title "Venv v0.13.0"
+```
+
+前置条件：ADB 端口转发（`adb forward tcp:8022 tcp:8022`），Termux 设备已安装 `python rust make clang pkg-config libffi openssl ca-certificates git`。
+
+### 发布 APK
+
+```bash
+gh workflow run release.yml --ref main --field tag=v1.3.44
+```
+
+CI 自动：下载最新 venv → 构建 APK（android-7 + android-5 两个变体）→ 创建 GitHub Release → 上传 APK。
 
 ## 上游项目
 

@@ -294,12 +294,6 @@ public class HermesConfigActivity extends AppCompatActivity {
                 bgColor = 0xFFE3F2FD;
                 isInstalling = true;
                 break;
-            case DOWNLOADING:
-                text.setText(R.string.install_state_downloading);
-                text.setTextColor(0xFF1565C0);
-                bgColor = 0xFFE3F2FD;
-                isInstalling = true;
-                break;
             case INSTALLING:
                 text.setText(R.string.install_state_installing);
                 text.setTextColor(0xFF1565C0);
@@ -390,7 +384,6 @@ public class HermesConfigActivity extends AppCompatActivity {
     private String getStateString(HermesInstallHelper.InstallState state) {
         switch (state) {
             case BOOTSTRAPPING: return getString(R.string.install_state_bootstrapping);
-            case DOWNLOADING: return getString(R.string.install_state_downloading);
             case INSTALLING: return getString(R.string.install_state_installing);
             case INSTALLED: return getString(R.string.install_state_installed);
             case FAILED: return getString(R.string.install_state_failed);
