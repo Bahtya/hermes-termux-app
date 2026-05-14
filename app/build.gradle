@@ -44,8 +44,8 @@ android {
         applicationId "com.hermux"
         minSdkVersion project.properties.minSdkVersion.toInteger()
         targetSdkVersion project.properties.targetSdkVersion.toInteger()
-        versionCode 168
-        versionName "1.3.42"
+        versionCode 169
+        versionName "1.3.43"
 
         if (appVersionName) versionName = appVersionName
         validateVersionName(versionName)
@@ -199,6 +199,9 @@ clean {
         def tree = fileTree(new File(projectDir, 'src/main/cpp'))
         tree.include 'bootstrap-*.zip'
         tree.each { it.delete() }
+        def assetsTree = fileTree(new File(projectDir, 'src/main/assets'))
+        assetsTree.include 'venv-*.tar.gz'
+        assetsTree.each { it.delete() }
     }
 }
 
@@ -226,5 +229,36 @@ task downloadBootstraps() {
 afterEvaluate {
     android.applicationVariants.all { variant ->
         variant.javaCompileProvider.get().dependsOn(downloadBootstraps)
+        variant.javaCompileProvider.get().dependsOn(downloadVenvs)
+    }
+}
+
+def downloadVenv(String arch) {
+    def localUrl = "src/main/assets/venv-" + arch + ".tar.gz"
+    def file = new File(projectDir, localUrl)
+
+    // If file already exists (pre-placed by CI), skip download
+    if (file.exists()) {
+        logger.quiet("Venv ${arch} already present, skipping download")
+        return
+    }
+
+    // Download from GitHub Release
+    def apkVersion = android.defaultConfig.versionName
+    def remoteUrl = "https://github.com/Bahtya/hermux/releases/download/v${apkVersion}/venv-${arch}.tar.gz"
+    logger.quiet("Downloading " + remoteUrl + " ...")
+
+    file.parentFile.mkdirs()
+    def out = new BufferedOutputStream(new FileOutputStream(file))
+    def connection = new URL(remoteUrl).openConnection()
+    connection.setInstanceFollowRedirects(true)
+    out << connection.inputStream
+    out.close()
+}
+
+task downloadVenvs() {
+    doLast {
+        // Only arm64-v8a for now
+        downloadVenv("aarch64")
     }
 }

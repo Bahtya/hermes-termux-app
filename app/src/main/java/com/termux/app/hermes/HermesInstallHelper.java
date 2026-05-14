@@ -177,6 +177,18 @@ public class HermesInstallHelper {
         // dpkg may have half-configured packages from bootstrap; apt has no package lists.
         prepareAptEnvironment(callback);
 
+        // Phase 0.8: extract pre-built venv from APK assets
+        if (VenvExtractor.hasPrebuiltVenv(context)) {
+            if (callback != null) callback.onStatus("Extracting pre-built environment...");
+            Logger.logInfo(LOG_TAG, "Extracting pre-built venv from APK assets");
+            if (!VenvExtractor.extractVenv(context)) {
+                Logger.logError(LOG_TAG, "Pre-built venv extraction failed");
+                throw new RuntimeException("Pre-built venv extraction failed");
+            }
+        } else {
+            Logger.logWarn(LOG_TAG, "No pre-built venv in APK assets");
+        }
+
         // Phase 1: local install script (primary method)
         setState(context, InstallState.INSTALLING);
         if (callback != null && callback.isCancelled()) return;
@@ -380,8 +392,7 @@ public class HermesInstallHelper {
             + "PREFIX=\"" + prefix + "\"\n"
             + "\n"
             + "echo '=== Step 1: Install system packages ==='\n"
-            + "apt install -y python git nodejs clang rust make pkg-config "
-            + "libffi openssl openssh ca-certificates curl ripgrep ffmpeg\n"
+            + "apt install -y python git nodejs ripgrep ffmpeg\n"
             + "\n"
             + "echo '=== Step 2: Clone hermes-agent source ==='\n"
             + "if [ -d \"$HERMES_DIR/.git\" ]; then\n"
@@ -395,57 +406,19 @@ public class HermesInstallHelper {
             + "  git checkout \"$HERMES_COMMIT\" || true\n"
             + "fi\n"
             + "\n"
-            + "echo '=== Step 3: Create venv ==='\n"
-            + "rm -rf \"$VENV_DIR\"\n"
-            + "python -m venv \"$VENV_DIR\"\n"
-            + "\n"
-            + "echo '=== Step 4: Workaround path_rewrite $0 issue ==='\n"
-            + "for _tool in clang clang++ cc c++ ld.lld; do\n"
-            + "  [ -e \"$PREFIX/bin/$_tool\" ] && ln -sf \"$PREFIX/bin/$_tool\" \"$TMPDIR/$_tool\"\n"
-            + "done\n"
-            + "for _wrapper in \"$PREFIX/bin\"/*-android-*; do\n"
-            + "  [ -e \"$_wrapper\" ] || continue\n"
-            + "  ln -sf \"$_wrapper\" \"$TMPDIR/$(basename \"$_wrapper\")\"\n"
-            + "done\n"
-            + "\n"
-            + "echo '=== Step 5: Build psutil from patched source ==='\n"
-            + "_saved_ld_preload=\"$LD_PRELOAD\"\n"
-            + "PSUTIL_VER=\"7.2.2\"\n"
-            + "PSUTIL_TMP=\"$TMPDIR/psutil-build\"\n"
-            + "rm -rf \"$PSUTIL_TMP\"\n"
-            + "mkdir -p \"$PSUTIL_TMP\"\n"
-            + "cd \"$PSUTIL_TMP\"\n"
-            + "curl -fsSL --connect-timeout 30 --max-time 300 "
-            + "\"https://files.pythonhosted.org/packages/source/p/psutil/psutil-${PSUTIL_VER}.tar.gz\" "
-            + "| tar xz\n"
-            + "cd \"psutil-${PSUTIL_VER}\"\n"
-            + "sed -i 's/platform android is not supported/platform android - building with Termux toolchain/g' pyproject.toml\n"
-            + "grep -q 'Termux toolchain' pyproject.toml || echo 'WARNING: psutil pyproject.toml patch may not have applied'\n"
-            + "sed -i 's/LINUX = sys.platform.startswith(\"linux\")/LINUX = sys.platform.startswith((\"linux\", \"android\"))/g' psutil/_common.py\n"
-            + "grep -q '\"android\"' psutil/_common.py || echo 'WARNING: psutil _common.py patch may not have applied'\n"
-            + "env -u LD_PRELOAD \"$VENV_DIR/bin/pip\" install --no-build-isolation .\n"
-            + "\n"
-            + "echo '=== Step 5.5: Pre-install jiter (avoid Rust compilation) ==='\n"
-            + "if ! env -u LD_PRELOAD \"$VENV_DIR/bin/pip\" install --only-binary :all: jiter 2>/dev/null; then\n"
-            + "  echo 'No pre-built jiter wheel, attempting source build...'\n"
-            + "  apt install -y maturin 2>/dev/null || true\n"
-            + "  env -u LD_PRELOAD \"$VENV_DIR/bin/pip\" install --no-build-isolation jiter || \\\n"
-            + "    echo 'WARNING: jiter build failed, will retry during main install'\n"
+            + "echo '=== Step 3: Validate pre-built venv ==='\n"
+            + "if [ ! -f \"$VENV_DIR/bin/python\" ]; then\n"
+            + "  echo 'FATAL: Pre-built venv not found at '$VENV_DIR\n"
+            + "  echo 'The APK must be built with CI (venv-aarch64.tar.gz in assets)'\n"
+            + "  exit 1\n"
             + "fi\n"
+            + "if ! \"$VENV_DIR/bin/python\" -c 'import hermes_cli; print(\"venv OK: hermes_cli imported\")' 2>&1; then\n"
+            + "  echo 'FATAL: Pre-built venv validation failed (hermes_cli import)'\n"
+            + "  exit 1\n"
+            + "fi\n"
+            + "echo '=== Pre-built venv validated ==='\n"
             + "\n"
-            + "echo '=== Step 6: Install hermes-agent ==='\n"
-            + "cd \"$HERMES_DIR\"\n"
-            + "_constraints=\"\"\n"
-            + "[ -f \"$HERMES_DIR/constraints-termux.txt\" ] && _constraints=\"-c $HERMES_DIR/constraints-termux.txt\"\n"
-            + "env -u LD_PRELOAD \"$VENV_DIR/bin/pip\" install $_constraints -e '.[termux-all]' --no-deps || \\\n"
-            + "  env -u LD_PRELOAD \"$VENV_DIR/bin/pip\" install $_constraints -e '.[termux]' --no-deps || \\\n"
-            + "  env -u LD_PRELOAD \"$VENV_DIR/bin/pip\" install $_constraints -e . --no-deps\n"
-            + "env -u LD_PRELOAD \"$VENV_DIR/bin/pip\" install $_constraints --no-build-isolation -e '.[termux-all]' || \\\n"
-            + "  env -u LD_PRELOAD \"$VENV_DIR/bin/pip\" install $_constraints --no-build-isolation -e '.[termux]' || \\\n"
-            + "  env -u LD_PRELOAD \"$VENV_DIR/bin/pip\" install $_constraints --no-build-isolation -e . || true\n"
-            + "export LD_PRELOAD=\"$_saved_ld_preload\"\n"
-            + "\n"
-            + "echo '=== Step 7: Setup hermes command ==='\n"
+            + "echo '=== Step 4: Setup hermes command ==='\n"
             + "HERMES_BIN=\"$PREFIX/bin/hermes\"\n"
             + "VENV_HERMES=\"$VENV_DIR/bin/hermes\"\n"
             + "if [ -f \"$VENV_HERMES\" ]; then\n"
@@ -456,7 +429,7 @@ public class HermesInstallHelper {
             + "  chmod 755 \"$HERMES_BIN\"\n"
             + "fi\n"
             + "\n"
-            + "echo '=== Step 8: Copy config templates ==='\n"
+            + "echo '=== Step 5: Copy config templates ==='\n"
             + "if [ -d \"$HERMES_DIR/config_templates\" ]; then\n"
             + "  mkdir -p \"$HOME/.hermes\"\n"
             + "  cp -n \"$HERMES_DIR/config_templates/\"* \"$HOME/.hermes/\" 2>/dev/null || true\n"

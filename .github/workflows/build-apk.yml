@@ -45,12 +45,12 @@ jobs:
       - name: Build debug APK
         env:
           TERMUX_PACKAGE_VARIANT: ${{ matrix.package_variant }}
-        run: ./gradlew downloadBootstraps assembleDebug
+        run: ./gradlew downloadBootstraps downloadVenvs assembleDebug
 
       - name: Build release APK (unsigned)
         env:
           TERMUX_PACKAGE_VARIANT: ${{ matrix.package_variant }}
-        run: ./gradlew downloadBootstraps assembleRelease
+        run: ./gradlew downloadBootstraps downloadVenvs assembleRelease
 
       - name: List APK files and sizes
         run: |
