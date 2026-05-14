@@ -18,13 +18,23 @@ import java.io.OutputStream;
  */
 public class VenvExtractor {
     private static final String LOG_TAG = "VenvExtractor";
-    private static final String ASSET_NAME = "venv-aarch64.tar.gz";
+    private static final String ASSET_NAME = "venv-aarch64.tar";
 
     public static boolean hasPrebuiltVenv(Context context) {
         try {
             context.getAssets().open(ASSET_NAME).close();
             return true;
         } catch (IOException e) {
+            Logger.logError(LOG_TAG, "Asset '" + ASSET_NAME + "' not found: " + e.getMessage());
+            // List available assets for debugging
+            try {
+                String[] assets = context.getAssets().list("");
+                if (assets != null) {
+                    StringBuilder sb = new StringBuilder("Available assets: ");
+                    for (String a : assets) sb.append(a).append(", ");
+                    Logger.logInfo(LOG_TAG, sb.toString());
+                }
+            } catch (IOException ignored) {}
             return false;
         }
     }
@@ -38,7 +48,7 @@ public class VenvExtractor {
     public static boolean extractVenv(Context context) {
         String hermesDir = TermuxConstants.TERMUX_HOME_DIR_PATH + "/.hermes/hermes-agent";
         String venvDir = hermesDir + "/venv";
-        String tmpFile = TermuxConstants.TERMUX_TMP_PREFIX_DIR_PATH + "/venv-aarch64.tar.gz";
+        String tmpFile = TermuxConstants.TERMUX_TMP_PREFIX_DIR_PATH + "/venv-aarch64.tar";
 
         // Check if venv already exists and is valid
         if (new File(venvDir + "/bin/python").exists()) {
