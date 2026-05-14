@@ -725,4 +725,33 @@
     <string name="hermes_reset_all_confirm">重置</string>
     <string name="hermes_reset_all_done">配置已重置。正在重新启动设置向导…</string>
 
+    <!-- SSH 服务器 -->
+    <string name="ssh_category_title">SSH 服务器</string>
+    <string name="ssh_enabled_title">启用 SSH 服务器</string>
+    <string name="ssh_enabled_summary">允许通过 SSH 远程连接到此设备</string>
+    <string name="ssh_port_title">SSH 端口</string>
+    <string name="ssh_port_summary">默认: 8022（非特权端口）</string>
+    <string name="ssh_password_title">SSH 密码</string>
+    <string name="ssh_password_summary">设置 SSH 认证密码</string>
+    <string name="ssh_auto_start_title">开机自动启动</string>
+    <string name="ssh_auto_start_summary">设备启动时自动启动 SSH 服务器</string>
+    <string name="ssh_start_title">启动 SSH</string>
+    <string name="ssh_start_summary">立即启动 SSH 守护进程</string>
+    <string name="ssh_stop_title">停止 SSH</string>
+    <string name="ssh_stop_summary">停止 SSH 守护进程</string>
+    <string name="ssh_status_title">SSH 状态</string>
+    <string name="ssh_status_running">SSH 运行中，端口 %1$d</string>
+    <string name="ssh_status_stopped">SSH 已停止</string>
+    <string name="ssh_status_not_installed">OpenSSH 未安装</string>
+    <string name="ssh_warning_security">默认密码为 \"hermes\"，建议尽快修改</string>
+    <string name="ssh_password_changed">SSH 密码已更新</string>
+    <string name="ssh_password_change_failed">SSH 密码更新失败</string>
+    <string name="ssh_started">SSH 服务器已启动</string>
+    <string name="ssh_stopped">SSH 服务器已停止</string>
+    <string name="ssh_start_failed">SSH 服务器启动失败</string>
+    <string name="ssh_info_title">连接信息</string>
+    <string name="ssh_info_summary">查看 SSH 连接详情</string>
+    <string name="ssh_info_dialog_title">SSH 连接信息</string>
+    <string name="ssh_info_dialog_message">连接方式:\n\nssh -p %1$d %2$s@&lt;设备IP&gt;\n\n默认密码: hermes</string>
+
 </resources>

@@ -7,6 +7,10 @@ import android.os.Handler;
 import android.os.Looper;
 import android.util.Log;
 
+import com.termux.shared.termux.TermuxConstants;
+
+import java.io.File;
+
 public class HermesBootReceiver extends BroadcastReceiver {
 
     private static final String TAG = "HermesBoot";
@@ -31,5 +35,21 @@ public class HermesBootReceiver extends BroadcastReceiver {
                 Log.e(TAG, "Failed to start gateway on boot", e);
             }
         }, 10_000);
+
+        // Auto-start sshd after gateway
+        new Handler(Looper.getMainLooper()).postDelayed(() -> {
+            try {
+                String sshdPath = TermuxConstants.TERMUX_BIN_PREFIX_DIR_PATH + "/sshd";
+                if (new File(sshdPath).exists()) {
+                    Runtime.getRuntime().exec(new String[]{
+                            TermuxConstants.TERMUX_BIN_PREFIX_DIR_PATH + "/bash", "-c",
+                            sshdPath
+                    });
+                    Log.i(TAG, "sshd auto-started on boot");
+                }
+            } catch (Exception e) {
+                Log.e(TAG, "Failed to start sshd on boot", e);
+            }
+        }, 15_000);
     }
 }

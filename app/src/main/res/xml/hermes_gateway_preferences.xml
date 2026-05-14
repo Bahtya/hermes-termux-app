@@ -86,4 +86,44 @@
         android:title="@string/gateway_notif_perm_title"
         android:summary="@string/gateway_notif_perm_summary" />
 
+    <PreferenceCategory android:title="@string/ssh_category_title">
+        <Preference
+            android:key="ssh_status"
+            android:title="@string/ssh_status_title"
+            android:selectable="false" />
+
+        <Preference
+            android:key="ssh_warning"
+            android:title="@string/ssh_warning_security"
+            android:selectable="false" />
+
+        <Preference
+            android:key="ssh_start"
+            android:title="@string/ssh_start_title"
+            android:summary="@string/ssh_start_summary" />
+
+        <Preference
+            android:key="ssh_stop"
+            android:title="@string/ssh_stop_title"
+            android:summary="@string/ssh_stop_summary" />
+
+        <EditTextPreference
+            android:key="ssh_port"
+            android:title="@string/ssh_port_title"
+            android:summary="@string/ssh_port_summary"
+            android:defaultValue="8022"
+            android:inputType="number" />
+
+        <EditTextPreference
+            android:key="ssh_password"
+            android:title="@string/ssh_password_title"
+            android:summary="@string/ssh_password_summary"
+            android:inputType="textPassword" />
+
+        <Preference
+            android:key="ssh_info"
+            android:title="@string/ssh_info_title"
+            android:summary="@string/ssh_info_summary" />
+    </PreferenceCategory>
+
 </PreferenceScreen>

@@ -1975,6 +1975,27 @@ public class HermesConfigActivity extends AppCompatActivity {
                 });
             }
 
+            // SSH status display
+            updateSshStatus();
+
+            // SSH port change
+            EditTextPreference sshPortPref = findPreference("ssh_port");
+            if (sshPortPref != null) {
+                sshPortPref.setOnPreferenceChangeListener((p, newVal) -> {
+                    updateSshdConfigPort((String) newVal);
+                    return true;
+                });
+            }
+
+            // SSH password change
+            EditTextPreference sshPasswordPref = findPreference("ssh_password");
+            if (sshPasswordPref != null) {
+                sshPasswordPref.setOnPreferenceChangeListener((p, newVal) -> {
+                    updateSshPassword((String) newVal);
+                    return true;
+                });
+            }
+
         }
 
         @Override
@@ -1991,6 +2012,15 @@ public class HermesConfigActivity extends AppCompatActivity {
                     return true;
                 case "gateway_restart":
                     runGatewayCommand("restart");
+                    return true;
+                case "ssh_start":
+                    startSshd();
+                    return true;
+                case "ssh_stop":
+                    stopSshd();
+                    return true;
+                case "ssh_info":
+                    showSshInfo();
                     return true;
             }
             return super.onPreferenceTreeClick(preference);
@@ -2025,6 +2055,7 @@ public class HermesConfigActivity extends AppCompatActivity {
         public void onResume() {
             super.onResume();
             updateStatsDisplay();
+            updateSshStatus();
         }
 
         private void updateStatsDisplay() {
@@ -2038,6 +2069,225 @@ public class HermesConfigActivity extends AppCompatActivity {
                 } else {
                     statsPref.setSummary(getString(R.string.gateway_stats_stopped));
                 }
+            }
+        }
+
+        private void updateSshStatus() {
+            Preference sshStatusPref = findPreference("ssh_status");
+            if (sshStatusPref == null) return;
+
+            File sshd = new File(TermuxConstants.TERMUX_BIN_PREFIX_DIR_PATH, "/sshd");
+            if (!sshd.exists()) {
+                sshStatusPref.setSummary(getString(R.string.ssh_status_not_installed));
+                return;
+            }
+
+            // Check if sshd is running
+            new Thread(() -> {
+                try {
+                    String bashPath = TermuxConstants.TERMUX_BIN_PREFIX_DIR_PATH + "/bash";
+                    ProcessBuilder pb = new ProcessBuilder(bashPath, "-c", "pgrep -x sshd >/dev/null 2>&1 && echo running || echo stopped");
+                    pb.environment().put("PATH", TermuxConstants.TERMUX_BIN_PREFIX_DIR_PATH + ":/system/bin");
+                    pb.redirectErrorStream(true);
+                    Process p = pb.start();
+                    java.io.BufferedReader reader = new java.io.BufferedReader(new java.io.InputStreamReader(p.getInputStream()));
+                    String result = reader.readLine();
+                    p.waitFor();
+
+                    if (getActivity() != null) {
+                        String port = getSshPort();
+                        getActivity().runOnUiThread(() -> {
+                            if ("running".equals(result)) {
+                                sshStatusPref.setSummary(getString(R.string.ssh_status_running, Integer.parseInt(port)));
+                            } else {
+                                sshStatusPref.setSummary(getString(R.string.ssh_status_stopped));
+                            }
+                        });
+                    }
+                } catch (Exception e) {
+                    if (getActivity() != null) {
+                        getActivity().runOnUiThread(() -> sshStatusPref.setSummary(getString(R.string.ssh_status_stopped)));
+                    }
+                }
+            }).start();
+        }
+
+        private String getSshPort() {
+            try {
+                java.io.File configFile = new java.io.File(TermuxConstants.TERMUX_PREFIX_DIR_PATH, "etc/ssh/sshd_config");
+                if (configFile.exists()) {
+                    java.io.BufferedReader reader = new java.io.BufferedReader(new java.io.FileReader(configFile));
+                    String line;
+                    while ((line = reader.readLine()) != null) {
+                        if (line.startsWith("Port ")) {
+                            return line.substring(5).trim();
+                        }
+                    }
+                }
+            } catch (Exception ignored) {}
+            return "8022";
+        }
+
+        private void startSshd() {
+            new Thread(() -> {
+                try {
+                    String bashPath = TermuxConstants.TERMUX_BIN_PREFIX_DIR_PATH + "/bash";
+                    String sshdPath = TermuxConstants.TERMUX_BIN_PREFIX_DIR_PATH + "/sshd";
+                    ProcessBuilder pb = new ProcessBuilder(bashPath, "-c",
+                            sshdPath + " 2>&1; pgrep -x sshd >/dev/null 2>&1 && echo ok || echo fail");
+                    pb.environment().put("HOME", TermuxConstants.TERMUX_HOME_DIR_PATH);
+                    pb.environment().put("PATH", TermuxConstants.TERMUX_BIN_PREFIX_DIR_PATH + ":/system/bin");
+                    pb.environment().put("PREFIX", TermuxConstants.TERMUX_PREFIX_DIR_PATH);
+                    pb.environment().put("LD_LIBRARY_PATH", TermuxConstants.TERMUX_LIB_PREFIX_DIR_PATH);
+                    String pathRewrite = TermuxConstants.TERMUX_LIB_PREFIX_DIR_PATH + "/libpath_rewrite.so";
+                    if (new File(pathRewrite).exists()) {
+                        pb.environment().put("LD_PRELOAD", pathRewrite);
+                    }
+                    pb.redirectErrorStream(true);
+                    Process p = pb.start();
+                    java.io.BufferedReader reader = new java.io.BufferedReader(new java.io.InputStreamReader(p.getInputStream()));
+                    String lastLine = null;
+                    String line;
+                    while ((line = reader.readLine()) != null) lastLine = line;
+                    p.waitFor();
+
+                    boolean success = "ok".equals(lastLine);
+                    if (getActivity() != null) {
+                        getActivity().runOnUiThread(() -> {
+                            Toast.makeText(requireContext(),
+                                    success ? R.string.ssh_started : R.string.ssh_start_failed,
+                                    Toast.LENGTH_SHORT).show();
+                            updateSshStatus();
+                        });
+                    }
+                } catch (Exception e) {
+                    if (getActivity() != null) {
+                        getActivity().runOnUiThread(() -> {
+                            Toast.makeText(requireContext(), R.string.ssh_start_failed, Toast.LENGTH_SHORT).show();
+                        });
+                    }
+                }
+            }).start();
+        }
+
+        private void stopSshd() {
+            new Thread(() -> {
+                try {
+                    String bashPath = TermuxConstants.TERMUX_BIN_PREFIX_DIR_PATH + "/bash";
+                    ProcessBuilder pb = new ProcessBuilder(bashPath, "-c", "pkill -x sshd 2>/dev/null; echo done");
+                    pb.environment().put("PATH", TermuxConstants.TERMUX_BIN_PREFIX_DIR_PATH + ":/system/bin");
+                    pb.redirectErrorStream(true);
+                    Process p = pb.start();
+                    while (p.getInputStream().read() != -1) {}
+                    p.waitFor();
+
+                    if (getActivity() != null) {
+                        getActivity().runOnUiThread(() -> {
+                            Toast.makeText(requireContext(), R.string.ssh_stopped, Toast.LENGTH_SHORT).show();
+                            updateSshStatus();
+                        });
+                    }
+                } catch (Exception e) {
+                    if (getActivity() != null) {
+                        getActivity().runOnUiThread(() -> {
+                            Toast.makeText(requireContext(), R.string.ssh_stopped, Toast.LENGTH_SHORT).show();
+                        });
+                    }
+                }
+            }).start();
+        }
+
+        private void updateSshdConfigPort(String port) {
+            new Thread(() -> {
+                try {
+                    com.termux.app.HermesInstaller.runShellCommand(
+                            "sed -i 's/^Port .*/Port " + port + "/' "
+                                    + TermuxConstants.TERMUX_PREFIX_DIR_PATH + "/etc/ssh/sshd_config");
+                    // Restart sshd if running to apply new port
+                    com.termux.app.HermesInstaller.runShellCommand(
+                            "pgrep -x sshd >/dev/null 2>&1 && (pkill sshd; sleep 1; "
+                                    + TermuxConstants.TERMUX_BIN_PREFIX_DIR_PATH + "/sshd) || true");
+                    if (getActivity() != null) {
+                        getActivity().runOnUiThread(() -> updateSshStatus());
+                    }
+                } catch (Exception ignored) {}
+            }).start();
+        }
+
+        private void updateSshPassword(String newPassword) {
+            new Thread(() -> {
+                try {
+                    String prefix = TermuxConstants.TERMUX_PREFIX_DIR_PATH;
+                    String bashPath = TermuxConstants.TERMUX_BIN_PREFIX_DIR_PATH + "/bash";
+
+                    // Generate hash and update passwd file
+                    String cmd = "HASH=$(" + prefix + "/bin/openssl passwd -6 '" + newPassword.replace("'", "'\\''") + "' 2>/dev/null); "
+                            + "USER=$(whoami 2>/dev/null); "
+                            + "if [ -n \"$HASH\" ] && [ -n \"$USER\" ]; then "
+                            + "  if grep -q \"^${USER}:\" " + prefix + "/etc/passwd 2>/dev/null; then "
+                            + "    sed -i \"s|^${USER}:[^:]*:|${USER}:${HASH}:|\" " + prefix + "/etc/passwd; "
+                            + "  fi; "
+                            + "fi; echo ok";
+
+                    ProcessBuilder pb = new ProcessBuilder(bashPath, "-c", cmd);
+                    pb.environment().put("HOME", TermuxConstants.TERMUX_HOME_DIR_PATH);
+                    pb.environment().put("PATH", TermuxConstants.TERMUX_BIN_PREFIX_DIR_PATH + ":/system/bin");
+                    pb.environment().put("PREFIX", prefix);
+                    pb.environment().put("LD_LIBRARY_PATH", TermuxConstants.TERMUX_LIB_PREFIX_DIR_PATH);
+                    String pathRewrite = TermuxConstants.TERMUX_LIB_PREFIX_DIR_PATH + "/libpath_rewrite.so";
+                    if (new File(pathRewrite).exists()) {
+                        pb.environment().put("LD_PRELOAD", pathRewrite);
+                    }
+                    pb.redirectErrorStream(true);
+                    Process p = pb.start();
+                    java.io.BufferedReader reader = new java.io.BufferedReader(new java.io.InputStreamReader(p.getInputStream()));
+                    String lastLine = null;
+                    String line;
+                    while ((line = reader.readLine()) != null) lastLine = line;
+                    p.waitFor();
+
+                    boolean success = "ok".equals(lastLine);
+                    if (getActivity() != null) {
+                        getActivity().runOnUiThread(() -> {
+                            Toast.makeText(requireContext(),
+                                    success ? R.string.ssh_password_changed : R.string.ssh_password_change_failed,
+                                    Toast.LENGTH_SHORT).show();
+                        });
+                    }
+                } catch (Exception e) {
+                    if (getActivity() != null) {
+                        getActivity().runOnUiThread(() -> {
+                            Toast.makeText(requireContext(), R.string.ssh_password_change_failed, Toast.LENGTH_SHORT).show();
+                        });
+                    }
+                }
+            }).start();
+        }
+
+        private void showSshInfo() {
+            try {
+                String port = getSshPort();
+                String user = "hermes";
+                // Try to get actual username
+                File passwd = new File(TermuxConstants.TERMUX_PREFIX_DIR_PATH, "etc/passwd");
+                if (passwd.exists()) {
+                    java.io.BufferedReader reader = new java.io.BufferedReader(new java.io.FileReader(passwd));
+                    String line;
+                    while ((line = reader.readLine()) != null) {
+                        if (line.contains(":") && !line.startsWith("#")) {
+                            user = line.substring(0, line.indexOf(":"));
+                            break;
+                        }
+                    }
+                }
+                String message = getString(R.string.ssh_info_dialog_message, Integer.parseInt(port), user);
+                new AlertDialog.Builder(requireContext())
+                        .setTitle(R.string.ssh_info_dialog_title)
+                        .setMessage(message)
+                        .setPositiveButton(android.R.string.ok, null)
+                        .show();
+            } catch (Exception e) {
+                Toast.makeText(requireContext(), R.string.ssh_start_failed, Toast.LENGTH_SHORT).show();
             }
         }
 
