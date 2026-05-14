@@ -243,8 +243,9 @@ def downloadVenv(String arch) {
         return
     }
 
-    // Download latest venv from hermux-venv GitHub Release
-    def remoteUrl = "https://github.com/Bahtya/hermux-venv/releases/latest/download/venv-${arch}.tar.gz"
+    // Download venv from hermux GitHub Release (tag from gradle.properties)
+    def venvTag = project.property("hermesVenvVersion")
+    def remoteUrl = "https://github.com/Bahtya/hermux/releases/download/${venvTag}/venv-${arch}.tar.gz"
     logger.quiet("Downloading " + remoteUrl + " ...")
 
     file.parentFile.mkdirs()
