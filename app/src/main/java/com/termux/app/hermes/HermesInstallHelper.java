@@ -410,7 +410,6 @@ public class HermesInstallHelper {
             + "\n"
             + "echo '=== Step 5: Build psutil from patched source ==='\n"
             + "_saved_ld_preload=\"$LD_PRELOAD\"\n"
-            + "export LD_PRELOAD=\"\"\n"
             + "PSUTIL_VER=\"7.2.2\"\n"
             + "PSUTIL_TMP=\"$TMPDIR/psutil-build\"\n"
             + "rm -rf \"$PSUTIL_TMP\"\n"
