@@ -499,6 +499,8 @@ public class HermesConfigActivity extends AppCompatActivity {
 
     private void showFragment(Fragment fragment) {
         mDashboardVisible = false;
+        FrameLayout content = findViewById(R.id.hermes_config_content);
+        content.removeAllViews();
         getSupportFragmentManager()
                 .beginTransaction()
                 .replace(R.id.hermes_config_content, fragment)
