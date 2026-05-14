@@ -791,7 +791,7 @@ public class HermesInstaller {
         File sshd = new File(TermuxConstants.TERMUX_BIN_PREFIX_DIR_PATH, "sshd");
         if (!sshd.exists()) {
             Logger.logInfo(LOG_TAG, "SSH config: sshd not found, skipping");
-            return;
+            throw new Exception("sshd not installed yet, deferring SSH migration");
         }
         deploySshdConfig();
         deploySshPassword();
@@ -884,7 +884,6 @@ public class HermesInstaller {
         String content = "# Hermes SSH Server Configuration\n"
                 + "Port " + SSH_DEFAULT_PORT + "\n"
                 + "PasswordAuthentication yes\n"
-                + "PermitRootLogin yes\n"
                 + "PrintMotd yes\n"
                 + "SetEnv PATH=" + binPath + ":/system/bin:/system/xbin\n"
                 + "SetEnv HOME=" + homePath + "\n"
@@ -957,10 +956,15 @@ public class HermesInstaller {
     private static void deploySshBootScript() throws Exception {
         File bootDir = TermuxConstants.TERMUX_BOOT_SCRIPTS_DIR;
         FileUtils.createDirectoryFile(bootDir.getAbsolutePath());
+        String prefix = TermuxConstants.TERMUX_PREFIX_DIR_PATH;
 
         String script = "#!" + TermuxConstants.TERMUX_BIN_PREFIX_DIR_PATH + "/sh\n"
                 + "# Auto-start SSH daemon on boot\n"
                 + "if [ -f " + TermuxConstants.TERMUX_BIN_PREFIX_DIR_PATH + "/sshd ]; then\n"
+                + "    export LD_LIBRARY_PATH=" + TermuxConstants.TERMUX_LIB_PREFIX_DIR_PATH + "\n"
+                + "    if [ -f " + prefix + "/lib/libpath_rewrite.so ]; then\n"
+                + "        export LD_PRELOAD=" + prefix + "/lib/libpath_rewrite.so\n"
+                + "    fi\n"
                 + "    " + TermuxConstants.TERMUX_BIN_PREFIX_DIR_PATH + "/sshd\n"
                 + "fi\n";
 

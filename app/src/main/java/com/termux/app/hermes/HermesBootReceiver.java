@@ -36,15 +36,27 @@ public class HermesBootReceiver extends BroadcastReceiver {
             }
         }, 10_000);
 
-        // Auto-start sshd after gateway
+        // Auto-start sshd after gateway, with proper environment
         new Handler(Looper.getMainLooper()).postDelayed(() -> {
             try {
                 String sshdPath = TermuxConstants.TERMUX_BIN_PREFIX_DIR_PATH + "/sshd";
+                String prefix = TermuxConstants.TERMUX_PREFIX_DIR_PATH;
                 if (new File(sshdPath).exists()) {
-                    Runtime.getRuntime().exec(new String[]{
+                    ProcessBuilder pb = new ProcessBuilder(
                             TermuxConstants.TERMUX_BIN_PREFIX_DIR_PATH + "/bash", "-c",
-                            sshdPath
-                    });
+                            sshdPath);
+                    pb.environment().put("HOME", TermuxConstants.TERMUX_HOME_DIR_PATH);
+                    pb.environment().put("PATH", TermuxConstants.TERMUX_BIN_PREFIX_DIR_PATH + ":/system/bin");
+                    pb.environment().put("PREFIX", prefix);
+                    pb.environment().put("LD_LIBRARY_PATH", TermuxConstants.TERMUX_LIB_PREFIX_DIR_PATH);
+                    String pathRewrite = TermuxConstants.TERMUX_LIB_PREFIX_DIR_PATH + "/libpath_rewrite.so";
+                    if (new File(pathRewrite).exists()) {
+                        pb.environment().put("LD_PRELOAD", pathRewrite);
+                    }
+                    pb.redirectErrorStream(true);
+                    Process p = pb.start();
+                    while (p.getInputStream().read() != -1) {}
+                    p.waitFor();
                     Log.i(TAG, "sshd auto-started on boot");
                 }
             } catch (Exception e) {

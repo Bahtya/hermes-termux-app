@@ -2096,9 +2096,12 @@ public class HermesConfigActivity extends AppCompatActivity {
 
                     if (getActivity() != null) {
                         String port = getSshPort();
+                        int portNum;
+                        try { portNum = Integer.parseInt(port); } catch (NumberFormatException e) { portNum = 8022; }
+                        int finalPortNum = portNum;
                         getActivity().runOnUiThread(() -> {
                             if ("running".equals(result)) {
-                                sshStatusPref.setSummary(getString(R.string.ssh_status_running, Integer.parseInt(port)));
+                                sshStatusPref.setSummary(getString(R.string.ssh_status_running, finalPortNum));
                             } else {
                                 sshStatusPref.setSummary(getString(R.string.ssh_status_stopped));
                             }
@@ -2198,6 +2201,18 @@ public class HermesConfigActivity extends AppCompatActivity {
         }
 
         private void updateSshdConfigPort(String port) {
+            // Validate port is numeric and in valid range
+            try {
+                int portNum = Integer.parseInt(port);
+                if (portNum < 1 || portNum > 65535) {
+                    Toast.makeText(requireContext(), "Port must be 1-65535", Toast.LENGTH_SHORT).show();
+                    return;
+                }
+            } catch (NumberFormatException e) {
+                Toast.makeText(requireContext(), "Invalid port number", Toast.LENGTH_SHORT).show();
+                return;
+            }
+
             new Thread(() -> {
                 try {
                     com.termux.app.HermesInstaller.runShellCommand(
@@ -2220,8 +2235,9 @@ public class HermesConfigActivity extends AppCompatActivity {
                     String prefix = TermuxConstants.TERMUX_PREFIX_DIR_PATH;
                     String bashPath = TermuxConstants.TERMUX_BIN_PREFIX_DIR_PATH + "/bash";
 
-                    // Generate hash and update passwd file
-                    String cmd = "HASH=$(" + prefix + "/bin/openssl passwd -6 '" + newPassword.replace("'", "'\\''") + "' 2>/dev/null); "
+                    // Read password from stdin to avoid shell injection
+                    String cmd = "read -r PWD_IN; "
+                            + "HASH=$(" + prefix + "/bin/openssl passwd -6 -stdin <<< \"$PWD_IN\" 2>/dev/null); "
                             + "USER=$(whoami 2>/dev/null); "
                             + "if [ -n \"$HASH\" ] && [ -n \"$USER\" ]; then "
                             + "  if grep -q \"^${USER}:\" " + prefix + "/etc/passwd 2>/dev/null; then "
@@ -2240,6 +2256,10 @@ public class HermesConfigActivity extends AppCompatActivity {
                     }
                     pb.redirectErrorStream(true);
                     Process p = pb.start();
+                    // Pass password via stdin
+                    p.getOutputStream().write((newPassword + "\n").getBytes("UTF-8"));
+                    p.getOutputStream().flush();
+                    p.getOutputStream().close();
                     java.io.BufferedReader reader = new java.io.BufferedReader(new java.io.InputStreamReader(p.getInputStream()));
                     String lastLine = null;
                     String line;
@@ -2267,6 +2287,8 @@ public class HermesConfigActivity extends AppCompatActivity {
         private void showSshInfo() {
             try {
                 String port = getSshPort();
+                int portNum;
+                try { portNum = Integer.parseInt(port); } catch (NumberFormatException e) { portNum = 8022; }
                 String user = "hermes";
                 // Try to get actual username
                 File passwd = new File(TermuxConstants.TERMUX_PREFIX_DIR_PATH, "etc/passwd");
@@ -2280,7 +2302,7 @@ public class HermesConfigActivity extends AppCompatActivity {
                         }
                     }
                 }
-                String message = getString(R.string.ssh_info_dialog_message, Integer.parseInt(port), user);
+                String message = getString(R.string.ssh_info_dialog_message, portNum, user);
                 new AlertDialog.Builder(requireContext())
                         .setTitle(R.string.ssh_info_dialog_title)
                         .setMessage(message)
