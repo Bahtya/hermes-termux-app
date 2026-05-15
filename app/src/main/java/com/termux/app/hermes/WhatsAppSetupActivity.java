@@ -231,7 +231,7 @@ public class WhatsAppSetupActivity extends AppCompatActivity {
             if (verifyInput != null) {
                 mConfigManager.setEnvVar("WHATSAPP_VERIFY_TOKEN", verifyInput.getText().toString().trim());
             }
-            HermesConfigManager.restartGatewayIfRunning(this);
+            HermesConfigManager.ensureGatewayRunning(this);
         }
 
         LinearLayout.LayoutParams wrap = new LinearLayout.LayoutParams(

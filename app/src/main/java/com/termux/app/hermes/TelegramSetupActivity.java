@@ -182,7 +182,7 @@ public class TelegramSetupActivity extends AppCompatActivity {
             if (usersInput != null) {
                 mConfigManager.setEnvVar("TELEGRAM_ALLOWED_USERS", usersInput.getText().toString().trim());
             }
-            HermesConfigManager.restartGatewayIfRunning(this);
+            HermesConfigManager.ensureGatewayRunning(this);
         }
 
         LinearLayout.LayoutParams wrap = new LinearLayout.LayoutParams(

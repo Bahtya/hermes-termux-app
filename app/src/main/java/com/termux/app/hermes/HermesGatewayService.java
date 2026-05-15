@@ -201,12 +201,44 @@ public class HermesGatewayService extends Service {
                 pb.environment().put("TERMUX_HOME", home);
                 pb.environment().put("TERMUX_PREFIX", TermuxConstants.TERMUX_PREFIX_DIR_PATH);
 
+                // Align with HermesInstallHelper.runShellCommand() environment
+                String prefix = TermuxConstants.TERMUX_PREFIX_DIR_PATH;
+                pb.environment().put("PREFIX", prefix);
+                pb.environment().put("TMPDIR", TermuxConstants.TERMUX_TMP_PREFIX_DIR_PATH);
+                pb.environment().put("LD_LIBRARY_PATH", TermuxConstants.TERMUX_LIB_PREFIX_DIR_PATH);
+                pb.environment().put("TERMUX_VERSION", com.termux.BuildConfig.VERSION_NAME);
+                pb.environment().put("TERMINFO", prefix + "/share/terminfo");
+
+                String pathRewriteLib = TermuxConstants.TERMUX_LIB_PREFIX_DIR_PATH + "/libpath_rewrite.so";
+                if (new File(pathRewriteLib).exists()) {
+                    pb.environment().put("LD_PRELOAD", pathRewriteLib);
+                }
+
+                String aptConfFile = prefix + "/etc/apt/apt.conf.d/99hermes-paths.conf";
+                if (new File(aptConfFile).exists()) {
+                    pb.environment().put("APT_CONFIG", aptConfFile);
+                }
+
                 String envFile = home + "/.hermes/.env";
                 if (new File(envFile).exists()) {
                     pb.environment().put("HERMES_ENV_FILE", envFile);
                 }
 
                 mGatewayProcess = pb.start();
+
+                // Detect immediate crash (missing .so, bad env, etc.)
+                try {
+                    Thread.sleep(2000);
+                    if (!mGatewayProcess.isAlive()) {
+                        int exitCode = mGatewayProcess.exitValue();
+                        Log.e(TAG, "Gateway process exited immediately with code " + exitCode);
+                        updateNotification(getString(R.string.gateway_step_failed)
+                                + " (exit " + exitCode + ")");
+                        mGatewayProcess = null;
+                        return;
+                    }
+                } catch (InterruptedException ignored) {}
+
                 mRunning = true;
                 mProcessStartTime = System.currentTimeMillis();
                 if (mRestartAttempts == 0) {

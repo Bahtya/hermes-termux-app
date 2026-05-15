@@ -369,7 +369,11 @@ public class GatewayLogActivity extends AppCompatActivity {
 
     private void applyFilter() {
         if (mFullLogContent.isEmpty()) {
-            mLogText.setText(getString(R.string.gateway_log_empty));
+            if (!HermesGatewayService.isRunning()) {
+                mLogText.setText(getString(R.string.gateway_log_not_running_hint));
+            } else {
+                mLogText.setText(getString(R.string.gateway_log_empty));
+            }
             return;
         }
 
