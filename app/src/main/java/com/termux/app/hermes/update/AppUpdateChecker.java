@@ -17,9 +17,14 @@ public class AppUpdateChecker {
     private static final String TAG = "AppUpdateChecker";
     private static final int CONNECT_TIMEOUT = 8000;
     private static final int READ_TIMEOUT = 15000;
+    private static final int MAX_REDIRECTS = 5;
 
     private AppUpdateChecker() {}
 
+    /**
+     * Callbacks are invoked on a background thread.
+     * Callers must use runOnUiThread() or Handler for UI operations.
+     */
     interface UpdateCheckCallback {
         void onUpdateAvailable(AppUpdateInfo info);
         void onNoUpdate();
@@ -31,15 +36,15 @@ public class AppUpdateChecker {
             try {
                 AppUpdateInfo info = doCheck(context);
                 if (info == null) {
-                    postCallback(callback, () -> callback.onNoUpdate());
+                    if (callback != null) callback.onNoUpdate();
                 } else if (info.isNewerThan(BuildConfig.VERSION_CODE)) {
-                    postCallback(callback, () -> callback.onUpdateAvailable(info));
+                    if (callback != null) callback.onUpdateAvailable(info);
                 } else {
-                    postCallback(callback, () -> callback.onNoUpdate());
+                    if (callback != null) callback.onNoUpdate();
                 }
             } catch (Exception e) {
                 Log.e(TAG, "Update check failed", e);
-                postCallback(callback, () -> callback.onError(e.getMessage()));
+                if (callback != null) callback.onError(e.getMessage());
             }
         }, "UpdateCheck").start();
     }
@@ -65,7 +70,6 @@ public class AppUpdateChecker {
         String abi = Build.SUPPORTED_ABIS != null && Build.SUPPORTED_ABIS.length > 0
                 ? Build.SUPPORTED_ABIS[0] : "arm64-v8a";
 
-        // Try Supabase first
         try {
             String json = querySupabase(context, abi);
             if (json != null) {
@@ -79,9 +83,8 @@ public class AppUpdateChecker {
             Log.w(TAG, "Supabase check failed, trying fallback: " + e.getMessage());
         }
 
-        // Fallback to GitHub JSON
         String fallbackUrl = BuildConfig.UPDATE_FALLBACK_URL;
-        String json = httpGet(fallbackUrl, CONNECT_TIMEOUT, READ_TIMEOUT);
+        String json = httpGet(fallbackUrl, CONNECT_TIMEOUT, READ_TIMEOUT, 0);
         if (json != null) {
             AppUpdateInfo info = AppUpdateInfo.fromFallbackJson(json);
             AppUpdateConfig.setLastCheckTime(context, System.currentTimeMillis());
@@ -110,11 +113,12 @@ public class AppUpdateChecker {
             conn.setReadTimeout(READ_TIMEOUT);
             conn.setRequestMethod("GET");
             conn.setRequestProperty("apikey", BuildConfig.SUPABASE_ANON_KEY);
-            conn.setRequestProperty("Authorization", "Bearer " + BuildConfig.SUPABASE_ANON_KEY);
 
             String token = AppUpdateConfig.getAuthToken(context);
             if (token != null && !token.isEmpty()) {
                 conn.setRequestProperty("Authorization", "Bearer " + token);
+            } else {
+                conn.setRequestProperty("Authorization", "Bearer " + BuildConfig.SUPABASE_ANON_KEY);
             }
 
             int code = conn.getResponseCode();
@@ -128,7 +132,10 @@ public class AppUpdateChecker {
         }
     }
 
-    static String httpGet(String url, int connectTimeout, int readTimeout) throws Exception {
+    static String httpGet(String url, int connectTimeout, int readTimeout, int redirectCount) throws Exception {
+        if (redirectCount > MAX_REDIRECTS) {
+            throw new Exception("Too many redirects");
+        }
         HttpURLConnection conn = null;
         try {
             conn = (HttpURLConnection) URI.create(url).toURL().openConnection();
@@ -144,7 +151,7 @@ public class AppUpdateChecker {
                 String location = conn.getHeaderField("Location");
                 if (location != null) {
                     conn.disconnect();
-                    return httpGet(location, connectTimeout, readTimeout);
+                    return httpGet(location, connectTimeout, readTimeout, redirectCount + 1);
                 }
             }
             if (code == 200) {
@@ -166,9 +173,5 @@ public class AppUpdateChecker {
         }
         reader.close();
         return sb.toString();
-    }
-
-    private static void postCallback(UpdateCheckCallback cb, Runnable r) {
-        if (cb != null) r.run();
     }
 }

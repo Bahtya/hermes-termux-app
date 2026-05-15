@@ -2,8 +2,6 @@ package com.termux.app.hermes.update;
 
 import android.app.AlertDialog;
 import android.content.Context;
-import android.content.Intent;
-import android.view.View;
 import android.widget.ScrollView;
 import android.widget.TextView;
 

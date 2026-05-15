@@ -2,7 +2,6 @@ package com.termux.app.hermes.update;
 
 import android.content.Context;
 import android.content.SharedPreferences;
-import android.provider.Settings;
 
 import java.util.UUID;
 

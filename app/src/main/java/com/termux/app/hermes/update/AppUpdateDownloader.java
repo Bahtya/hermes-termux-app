@@ -4,7 +4,9 @@ import android.content.Context;
 import android.util.Log;
 
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.FileOutputStream;
+import java.io.IOException;
 import java.io.InputStream;
 import java.net.HttpURLConnection;
 import java.net.URI;
@@ -15,6 +17,7 @@ public class AppUpdateDownloader {
     private static final String TAG = "AppUpdateDownloader";
     private static final String APK_FILENAME = "hermux_update.apk";
     private static final int BUFFER_SIZE = 8192;
+    private static final int MAX_REDIRECTS = 5;
 
     interface ProgressListener {
         void onProgress(int percent, long downloadedBytes, long totalBytes);
@@ -23,19 +26,28 @@ public class AppUpdateDownloader {
         boolean isCancelled();
     }
 
-    static File getApkFile(Context context) {
+    static File getApkFile(Context context) throws Exception {
         File dir = context.getExternalFilesDir(android.os.Environment.DIRECTORY_DOWNLOADS);
-        if (dir != null && !dir.exists()) dir.mkdirs();
+        if (dir == null) {
+            // Fallback to internal storage
+            dir = new File(context.getFilesDir(), "download");
+        }
+        if (!dir.exists()) dir.mkdirs();
         return new File(dir, APK_FILENAME);
     }
 
     static void downloadApk(Context context, AppUpdateInfo info, ProgressListener listener) {
         new Thread(() -> {
-            File target = getApkFile(context);
+            File target;
             try {
-                // Try primary URL first, then mirror
-                boolean success = tryDownload(info.downloadUrl, target, info.fileSize, listener)
-                        || tryDownload(info.downloadUrlMirror, target, info.fileSize, listener);
+                target = getApkFile(context);
+            } catch (Exception e) {
+                listener.onError("Storage unavailable");
+                return;
+            }
+            try {
+                boolean success = tryDownload(info.downloadUrl, target, info.fileSize, listener, 0)
+                        || tryDownload(info.downloadUrlMirror, target, info.fileSize, listener, 0);
 
                 if (listener.isCancelled()) return;
 
@@ -45,7 +57,6 @@ public class AppUpdateDownloader {
                     return;
                 }
 
-                // Verify SHA-256
                 if (info.sha256 != null && !info.sha256.isEmpty()) {
                     String actual = computeSha256(target);
                     if (!info.sha256.equalsIgnoreCase(actual)) {
@@ -65,8 +76,11 @@ public class AppUpdateDownloader {
     }
 
     private static boolean tryDownload(String url, File target, long expectedSize,
-                                        ProgressListener listener) throws Exception {
+                                        ProgressListener listener, int redirectCount) throws Exception {
         if (url == null || url.isEmpty()) return false;
+        if (redirectCount > MAX_REDIRECTS) {
+            throw new Exception("Too many redirects");
+        }
 
         long existingSize = target.exists() ? target.length() : 0;
         HttpURLConnection conn = null;
@@ -77,7 +91,6 @@ public class AppUpdateDownloader {
             conn.setReadTimeout(30000);
             conn.setRequestMethod("GET");
 
-            // Resume support
             if (existingSize > 0) {
                 conn.setRequestProperty("Range", "bytes=" + existingSize + "-");
             }
@@ -85,14 +98,13 @@ public class AppUpdateDownloader {
             conn.setInstanceFollowRedirects(false);
             int code = conn.getResponseCode();
 
-            // Handle redirects
             if (code == HttpURLConnection.HTTP_MOVED_PERM
                     || code == HttpURLConnection.HTTP_MOVED_TEMP
                     || code == 307) {
                 String location = conn.getHeaderField("Location");
                 conn.disconnect();
                 if (location != null) {
-                    return tryDownload(location, target, expectedSize, listener);
+                    return tryDownload(location, target, expectedSize, listener, redirectCount + 1);
                 }
             }
 
@@ -100,7 +112,6 @@ public class AppUpdateDownloader {
             long totalSize = expectedSize;
 
             if (code == 206) {
-                // Partial content — resume
                 append = true;
                 String contentRange = conn.getHeaderField("Content-Range");
                 if (contentRange != null) {
@@ -110,7 +121,6 @@ public class AppUpdateDownloader {
                     }
                 }
             } else if (code == 200) {
-                // Full content — start fresh
                 append = false;
                 existingSize = 0;
                 String contentLength = conn.getHeaderField("Content-Length");
@@ -121,33 +131,36 @@ public class AppUpdateDownloader {
                 return false;
             }
 
-            InputStream in = conn.getInputStream();
-            FileOutputStream out = new FileOutputStream(target, append);
-            byte[] buffer = new byte[BUFFER_SIZE];
-            long downloaded = existingSize;
-            int lastPercent = -1;
-            int bytesRead;
+            InputStream in = null;
+            FileOutputStream out = null;
+            try {
+                in = conn.getInputStream();
+                out = new FileOutputStream(target, append);
+                byte[] buffer = new byte[BUFFER_SIZE];
+                long downloaded = existingSize;
+                int lastPercent = -1;
+                int bytesRead;
 
-            while ((bytesRead = in.read(buffer)) != -1) {
-                if (listener.isCancelled()) {
-                    in.close();
-                    out.close();
-                    return false;
-                }
-                out.write(buffer, 0, bytesRead);
-                downloaded += bytesRead;
+                while ((bytesRead = in.read(buffer)) != -1) {
+                    if (listener.isCancelled()) {
+                        return false;
+                    }
+                    out.write(buffer, 0, bytesRead);
+                    downloaded += bytesRead;
 
-                int percent = totalSize > 0 ? (int) (downloaded * 100 / totalSize) : 0;
-                if (percent != lastPercent) {
-                    lastPercent = percent;
-                    listener.onProgress(percent, downloaded, totalSize);
+                    int percent = totalSize > 0 ? (int) (downloaded * 100 / totalSize) : 0;
+                    if (percent != lastPercent) {
+                        lastPercent = percent;
+                        listener.onProgress(percent, downloaded, totalSize);
+                    }
                 }
+
+                out.flush();
+                return true;
+            } finally {
+                if (in != null) try { in.close(); } catch (IOException ignored) {}
+                if (out != null) try { out.close(); } catch (IOException ignored) {}
             }
-
-            out.flush();
-            out.close();
-            in.close();
-            return true;
         } finally {
             if (conn != null) conn.disconnect();
         }
@@ -155,13 +168,13 @@ public class AppUpdateDownloader {
 
     static String computeSha256(File file) throws Exception {
         MessageDigest digest = MessageDigest.getInstance("SHA-256");
-        java.io.FileInputStream fis = new java.io.FileInputStream(file);
-        byte[] buffer = new byte[BUFFER_SIZE];
-        int bytesRead;
-        while ((bytesRead = fis.read(buffer)) != -1) {
-            digest.update(buffer, 0, bytesRead);
+        try (FileInputStream fis = new FileInputStream(file)) {
+            byte[] buffer = new byte[BUFFER_SIZE];
+            int bytesRead;
+            while ((bytesRead = fis.read(buffer)) != -1) {
+                digest.update(buffer, 0, bytesRead);
+            }
         }
-        fis.close();
 
         byte[] hash = digest.digest();
         StringBuilder sb = new StringBuilder();

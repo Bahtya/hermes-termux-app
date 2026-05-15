@@ -37,6 +37,11 @@ import androidx.preference.SwitchPreferenceCompat;
 import com.google.android.material.navigation.NavigationView;
 import com.termux.R;
 import com.termux.app.TermuxActivity;
+import com.termux.app.hermes.update.AppUpdateChecker;
+import com.termux.app.hermes.update.AppUpdateConfig;
+import com.termux.app.hermes.update.AppUpdateDialog;
+import com.termux.app.hermes.update.AppUpdateInfo;
+import com.termux.app.hermes.update.AppUpdateService;
 import com.termux.shared.termux.TermuxConstants;
 
 import androidx.core.content.ContextCompat;
@@ -273,23 +278,22 @@ public class HermesConfigActivity extends AppCompatActivity {
         Toast.makeText(this, R.string.update_checking, Toast.LENGTH_SHORT).show();
         AppUpdateChecker.checkForUpdate(this, new AppUpdateChecker.UpdateCheckCallback() {
             @Override
-            public void onUpdateAvailable(com.termux.app.hermes.update.AppUpdateInfo info) {
+            public void onUpdateAvailable(AppUpdateInfo info) {
                 runOnUiThread(() ->
-                    com.termux.app.hermes.update.AppUpdateDialog.show(
-                        HermesConfigActivity.this, info,
-                        new com.termux.app.hermes.update.AppUpdateDialog.Callbacks() {
+                    AppUpdateDialog.show(HermesConfigActivity.this, info,
+                        new AppUpdateDialog.Callbacks() {
                             @Override
-                            public void onUpdateNow(com.termux.app.hermes.update.AppUpdateInfo info) {
-                                com.termux.app.hermes.update.AppUpdateService.setPendingUpdate(info);
+                            public void onUpdateNow(AppUpdateInfo info) {
+                                AppUpdateService.setPendingUpdate(info);
                                 Intent svc = new Intent(HermesConfigActivity.this,
-                                        com.termux.app.hermes.update.AppUpdateService.class);
-                                svc.setAction(com.termux.app.hermes.update.AppUpdateService.ACTION_DOWNLOAD);
+                                        AppUpdateService.class);
+                                svc.setAction(AppUpdateService.ACTION_DOWNLOAD);
                                 startForegroundService(svc);
                             }
                             @Override
                             public void onSkip(int versionCode) {
-                                com.termux.app.hermes.update.AppUpdateConfig
-                                        .setSkipVersionCode(HermesConfigActivity.this, versionCode);
+                                AppUpdateConfig.setSkipVersionCode(
+                                        HermesConfigActivity.this, versionCode);
                             }
                         }
                     )
