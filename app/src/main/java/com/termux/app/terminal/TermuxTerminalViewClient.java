@@ -184,6 +184,7 @@ public class TermuxTerminalViewClient extends TermuxTerminalViewClientBase {
 
     @Override
     public void onSingleTapUp(MotionEvent e) {
+        if (!mActivity.getTerminalDelegate().isTerminalTabActive()) return;
         TerminalEmulator term = mActivity.getCurrentSession().getEmulator();
 
         if (mActivity.getProperties().shouldOpenTerminalTranscriptURLOnClick()) {
@@ -223,6 +224,7 @@ public class TermuxTerminalViewClient extends TermuxTerminalViewClientBase {
 
     @Override
     public boolean isTerminalViewSelected() {
+        if (!mActivity.getTerminalDelegate().isTerminalTabActive()) return false;
         return mActivity.getTerminalToolbarViewPager() == null || mActivity.isTerminalViewSelected() || mActivity.getTerminalView().hasFocus();
     }
 
@@ -230,8 +232,23 @@ public class TermuxTerminalViewClient extends TermuxTerminalViewClientBase {
 
     @Override
     public void copyModeChanged(boolean copyMode) {
-        // Disable drawer while copying.
-        mActivity.getDrawer().setDrawerLockMode(copyMode ? DrawerLayout.LOCK_MODE_LOCKED_CLOSED : DrawerLayout.LOCK_MODE_UNLOCKED);
+        // Keep DrawerLayout locked (no edge swipe). During copy, remove the hamburger
+        // click listener so the drawer cannot be opened; restore it when copy ends.
+        com.google.android.material.appbar.MaterialToolbar toolbar =
+                mActivity.findViewById(R.id.main_toolbar);
+        if (toolbar == null) return;
+        if (copyMode) {
+            toolbar.setNavigationOnClickListener(null);
+        } else {
+            toolbar.setNavigationOnClickListener(v -> {
+                androidx.drawerlayout.widget.DrawerLayout drawer = mActivity.getDrawer();
+                if (drawer.isDrawerOpen(androidx.core.view.GravityCompat.START)) {
+                    drawer.closeDrawer(androidx.core.view.GravityCompat.START);
+                } else {
+                    drawer.openDrawer(androidx.core.view.GravityCompat.START);
+                }
+            });
+        }
     }
 
 

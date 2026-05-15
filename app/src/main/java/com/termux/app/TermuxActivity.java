@@ -29,6 +29,7 @@ import android.widget.Toast;
 import com.termux.R;
 import com.termux.app.api.file.FileReceiverActivity;
 import com.termux.app.terminal.TermuxActivityRootView;
+import com.termux.app.terminal.TerminalDelegate;
 import com.termux.app.terminal.TermuxTerminalSessionActivityClient;
 import com.termux.app.terminal.io.TermuxTerminalExtraKeys;
 import com.termux.shared.activities.ReportActivity;
@@ -209,6 +210,9 @@ public final class TermuxActivity extends AppCompatActivity implements ServiceCo
     private BottomNavigationView mBottomNavigation;
     private int mSelectedNavItemId = R.id.nav_sessions;
     private Fragment mCurrentFragment;
+    private TerminalDelegate mTerminalDelegate;
+
+    public TerminalDelegate getTerminalDelegate() { return mTerminalDelegate; }
 
     private static final String LOG_TAG = "TermuxActivity";
 
@@ -536,6 +540,9 @@ public final class TermuxActivity extends AppCompatActivity implements ServiceCo
 
         if (mTermuxTerminalSessionActivityClient != null)
             mTermuxTerminalSessionActivityClient.onCreate();
+
+        mTerminalDelegate = new TerminalDelegate(this);
+        mTerminalDelegate.onCreate();
     }
 
     private void setTermuxSessionsListView() {
@@ -637,22 +644,15 @@ public final class TermuxActivity extends AppCompatActivity implements ServiceCo
     private static final String TAG_PROFILE = "profile";
 
     private void switchFragment(int navItemId) {
-        View terminalView = findViewById(R.id.terminal_view);
-        View fragmentContainer = findViewById(R.id.fragment_container);
-        View extraKeys = findViewById(R.id.terminal_toolbar_view_pager);
-
         if (navItemId == R.id.nav_terminal) {
-            fragmentContainer.setVisibility(View.GONE);
-            terminalView.setVisibility(View.VISIBLE);
-            if (extraKeys != null && mPreferences != null && mPreferences.shouldShowTerminalToolbar())
-                extraKeys.setVisibility(View.VISIBLE);
+            mTerminalDelegate.onTerminalTabActivated();
             mCurrentFragment = null;
             return;
         }
 
-        terminalView.setVisibility(View.GONE);
-        if (extraKeys != null) extraKeys.setVisibility(View.GONE);
-        fragmentContainer.setVisibility(View.VISIBLE);
+        if (mTerminalDelegate.isTerminalTabActive()) {
+            mTerminalDelegate.onTerminalTabDeactivated();
+        }
 
         String tag;
         Class<? extends Fragment> cls;
