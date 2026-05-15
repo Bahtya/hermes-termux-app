@@ -238,7 +238,7 @@ jobs:
 
           # Download APKs from GitHub release
           mkdir -p /tmp/apks
-          gh release download "$TAG_NAME" -D /tmp/apks '*.apk'
+          gh release download "$TAG_NAME" -D /tmp/apks --pattern '*.apk'
 
           # Extract versionCode from build.gradle (match defaultConfig block only)
           VERSION_CODE=$(grep -A2 "defaultConfig" app/build.gradle | grep "versionCode" | head -1 | awk '{print $2}')
