@@ -114,13 +114,6 @@ public class AppUpdateChecker {
             conn.setRequestMethod("GET");
             conn.setRequestProperty("apikey", BuildConfig.SUPABASE_ANON_KEY);
 
-            String token = AppUpdateConfig.getAuthToken(context);
-            if (token != null && !token.isEmpty()) {
-                conn.setRequestProperty("Authorization", "Bearer " + token);
-            } else {
-                conn.setRequestProperty("Authorization", "Bearer " + BuildConfig.SUPABASE_ANON_KEY);
-            }
-
             int code = conn.getResponseCode();
             if (code == 200) {
                 return readStream(conn);

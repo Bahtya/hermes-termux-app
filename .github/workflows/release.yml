@@ -273,7 +273,7 @@ jobs:
             echo "Uploading to Storage: $STORAGE_PATH"
             HTTP_CODE=$(curl -s -o /tmp/upload_resp.json -w "%{http_code}" \
               -X POST "${SUPABASE_URL}/storage/v1/object/apk-releases/${STORAGE_PATH}" \
-              -H "Authorization: Bearer ${SUPABASE_SERVICE_KEY}" \
+              -H "apikey: ${SUPABASE_SERVICE_KEY}" \
               -H "Content-Type: application/vnd.android.package-archive" \
               --data-binary @"$APK")
 
@@ -292,7 +292,6 @@ jobs:
             PATCH_CODE=$(curl -s -o /dev/null -w "%{http_code}" \
               -X PATCH "${SUPABASE_URL}/rest/v1/app_versions?abi=eq.${ABI}&channel=eq.stable" \
               -H "apikey: ${SUPABASE_SERVICE_KEY}" \
-              -H "Authorization: Bearer ${SUPABASE_SERVICE_KEY}" \
               -H "Content-Type: application/json" \
               -H "Prefer: return=minimal" \
               -d '{"is_latest":false}')
@@ -301,27 +300,29 @@ jobs:
             fi
 
             # Insert version record
+            cat > /tmp/insert_body.json <<JSONEOF
+            {
+              "version_name": "${VERSION}",
+              "version_code": ${VERSION_CODE},
+              "min_supported_version_code": 0,
+              "abi": "${ABI}",
+              "download_url": "${DOWNLOAD_URL}",
+              "download_url_mirror": "${MIRROR_URL}",
+              "sha256": "${SHA256}",
+              "file_size": ${FILE_SIZE},
+              "release_notes": ${RELEASE_NOTES},
+              "release_notes_zh": ${RELEASE_NOTES_ZH},
+              "force_update": false,
+              "channel": "stable",
+              "is_latest": true
+            }
+JSONEOF
             INSERT_CODE=$(curl -s -o /tmp/insert_resp.json -w "%{http_code}" \
               -X POST "${SUPABASE_URL}/rest/v1/app_versions" \
               -H "apikey: ${SUPABASE_SERVICE_KEY}" \
-              -H "Authorization: Bearer ${SUPABASE_SERVICE_KEY}" \
               -H "Content-Type: application/json" \
               -H "Prefer: return=minimal" \
-              -d "{
-                \"version_name\": \"${VERSION}\",
-                \"version_code\": ${VERSION_CODE},
-                \"min_supported_version_code\": 0,
-                \"abi\": \"${ABI}\",
-                \"download_url\": \"${DOWNLOAD_URL}\",
-                \"download_url_mirror\": \"${MIRROR_URL}\",
-                \"sha256\": \"${SHA256}\",
-                \"file_size\": ${FILE_SIZE},
-                \"release_notes\": ${RELEASE_NOTES},
-                \"release_notes_zh\": ${RELEASE_NOTES_ZH},
-                \"force_update\": false,
-                \"channel\": \"stable\",
-                \"is_latest\": true
-              }")
+              -d @/tmp/insert_body.json)
             if [ "$INSERT_CODE" -ge 400 ]; then
               echo "::error::Failed to insert version record (HTTP $INSERT_CODE)"
               cat /tmp/insert_resp.json 2>/dev/null || true
