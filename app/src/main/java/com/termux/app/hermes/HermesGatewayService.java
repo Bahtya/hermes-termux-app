@@ -183,6 +183,12 @@ public class HermesGatewayService extends Service {
 
         mExecutor.execute(() -> {
             try {
+                // Fix known dependency issues on first start
+                if (mRestartAttempts == 0) {
+                    updateStartupProgress(1, "Checking dependencies...");
+                    runDepFixScript();
+                }
+
                 // Step 2: Connecting to LLM provider
                 updateStartupProgress(2, getString(R.string.gateway_step_connecting_llm));
 
@@ -260,6 +266,68 @@ public class HermesGatewayService extends Service {
                 updateNotification(getString(R.string.gateway_step_failed));
             }
         });
+    }
+
+    /**
+     * Fix known Python dependency issues in the pre-built venv.
+     * Only runs on first start (mRestartAttempts == 0).
+     * - Install lark-oapi + qrcode (feishu SDK, not in termux-all)
+     * - Install pycryptodome (needs CC=clang on Termux)
+     * - Uninstall watchfiles (crashes on Android ARM64)
+     * - Pin websockets <16 (lark-oapi requirement)
+     */
+    private void runDepFixScript() {
+        String binPath = TermuxConstants.TERMUX_BIN_PREFIX_DIR_PATH;
+        String venvPip = TermuxConstants.TERMUX_HOME_DIR_PATH + "/.hermes/hermes-agent/venv/bin/pip";
+        String prefix = TermuxConstants.TERMUX_PREFIX_DIR_PATH;
+
+        if (!new File(venvPip).exists()) {
+            Log.w(TAG, "pip not found, skipping dep fix");
+            return;
+        }
+
+        String script = "set -e\n"
+            + "PIP=\"" + venvPip + "\"\n"
+            + "echo '=== Checking lark-oapi ==='\n"
+            + "$PIP install lark-oapi qrcode 2>&1 | tail -3\n"
+            + "echo '=== Checking pycryptodome ==='\n"
+            + "CC=clang $PIP install pycryptodome 2>&1 | tail -3\n"
+            + "echo '=== Removing watchfiles ==='\n"
+            + "$PIP uninstall -y watchfiles 2>/dev/null || true\n"
+            + "echo '=== Pinning websockets <16 ==='\n"
+            + "$PIP install 'websockets<16' 2>&1 | tail -3\n"
+            + "echo '=== Dep fix done ==='\n";
+
+        try {
+            ProcessBuilder pb = new ProcessBuilder(binPath + "/bash", "-c", script);
+            pb.environment().put("HOME", TermuxConstants.TERMUX_HOME_DIR_PATH);
+            pb.environment().put("PATH", binPath + ":/system/bin:/system/xbin");
+            pb.environment().put("PREFIX", prefix);
+            pb.environment().put("TMPDIR", TermuxConstants.TERMUX_TMP_PREFIX_DIR_PATH);
+            pb.environment().put("LD_LIBRARY_PATH", TermuxConstants.TERMUX_LIB_PREFIX_DIR_PATH);
+            pb.environment().put("TERMUX_HOME", TermuxConstants.TERMUX_HOME_DIR_PATH);
+            pb.environment().put("TERMUX_PREFIX", prefix);
+            String pathRewriteLib = TermuxConstants.TERMUX_LIB_PREFIX_DIR_PATH + "/libpath_rewrite.so";
+            if (new File(pathRewriteLib).exists()) {
+                pb.environment().put("LD_PRELOAD", pathRewriteLib);
+            }
+            pb.redirectErrorStream(true);
+
+            Process p = pb.start();
+            try (java.io.InputStream is = p.getInputStream()) {
+                byte[] buf = new byte[1024];
+                while (is.read(buf) != -1) {}
+            }
+            boolean finished = p.waitFor(180, java.util.concurrent.TimeUnit.SECONDS);
+            if (!finished) {
+                p.destroyForcibly();
+                Log.w(TAG, "Dep fix timed out");
+            } else {
+                Log.i(TAG, "Dep fix completed (exit " + p.exitValue() + ")");
+            }
+        } catch (Exception e) {
+            Log.w(TAG, "Dep fix failed: " + e.getMessage());
+        }
     }
 
     private void stopGateway() {
