@@ -232,10 +232,22 @@ public class TermuxTerminalViewClient extends TermuxTerminalViewClientBase {
 
     @Override
     public void copyModeChanged(boolean copyMode) {
-        // Keep DrawerLayout locked (no edge swipe), just disable/enable hamburger menu during copy
-        View toolbar = mActivity.findViewById(R.id.main_toolbar);
-        if (toolbar != null) {
-            toolbar.setClickable(!copyMode);
+        // Keep DrawerLayout locked (no edge swipe). During copy, remove the hamburger
+        // click listener so the drawer cannot be opened; restore it when copy ends.
+        com.google.android.material.appbar.MaterialToolbar toolbar =
+                mActivity.findViewById(R.id.main_toolbar);
+        if (toolbar == null) return;
+        if (copyMode) {
+            toolbar.setNavigationOnClickListener(null);
+        } else {
+            toolbar.setNavigationOnClickListener(v -> {
+                androidx.drawerlayout.widget.DrawerLayout drawer = mActivity.getDrawer();
+                if (drawer.isDrawerOpen(androidx.core.view.GravityCompat.START)) {
+                    drawer.closeDrawer(androidx.core.view.GravityCompat.START);
+                } else {
+                    drawer.openDrawer(androidx.core.view.GravityCompat.START);
+                }
+            });
         }
     }
 

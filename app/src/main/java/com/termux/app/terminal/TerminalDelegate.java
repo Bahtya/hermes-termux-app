@@ -16,8 +16,6 @@ import com.termux.view.TerminalView;
 
 public class TerminalDelegate {
 
-    private static final String LOG_TAG = "TerminalDelegate";
-
     private final TermuxActivity mActivity;
 
     private boolean mTerminalTabActive = false;
