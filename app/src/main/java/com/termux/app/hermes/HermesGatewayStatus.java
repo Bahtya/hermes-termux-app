@@ -90,7 +90,7 @@ public class HermesGatewayStatus {
                 long start = System.currentTimeMillis();
                 ProcessBuilder pb = new ProcessBuilder(curlPath, "-s", "-o", "/dev/null",
                         "-w", "%{http_code}", "--connect-timeout", "5", "--max-time", "10",
-                        "http://127.0.0.1:8080/health");
+                        "http://127.0.0.1:9119/health");
                 pb.environment().put("PATH", TermuxConstants.TERMUX_BIN_PREFIX_DIR_PATH
                         + ":/system/bin:/system/xbin");
                 pb.redirectErrorStream(true);

@@ -18,6 +18,8 @@ import androidx.appcompat.app.AppCompatActivity;
 import com.termux.R;
 import com.termux.shared.termux.TermuxConstants;
 
+import android.util.Base64;
+
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.InputStreamReader;
@@ -28,11 +30,16 @@ public class HermesWebActivity extends AppCompatActivity {
 
     private static final String LOG_TAG = "HermesWebActivity";
 
-    private static final int[] WEB_PORTS = {8080, 3000, 5000, 8000, 8888};
+    private static final int[] WEB_PORTS = {9119, 8080, 3000, 5000, 8000, 8888};
+    static final int DEFAULT_PORT = 9119;
     private static final String LOCALHOST = "127.0.0.1";
 
     private WebView mWebView;
     private ProgressBar mProgressBar;
+    private String mSessionToken;
+
+    static String sDetectedPort;
+    static String sSessionToken;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -95,6 +102,7 @@ public class HermesWebActivity extends AppCompatActivity {
             for (int port : WEB_PORTS) {
                 if (checkPort(port)) {
                     foundUrl = "http://" + LOCALHOST + ":" + port;
+                    sDetectedPort = String.valueOf(port);
                     break;
                 }
             }
@@ -111,10 +119,44 @@ public class HermesWebActivity extends AppCompatActivity {
                             .show();
                 });
             } else {
+                String token = fetchSessionToken(foundUrl);
+                if (token != null) {
+                    mSessionToken = token;
+                    sSessionToken = token;
+                }
                 String url = foundUrl;
                 runOnUiThread(() -> mWebView.loadUrl(url));
             }
         }).start();
+    }
+
+    static String fetchSessionToken(String baseUrl) {
+        try {
+            HttpURLConnection conn = (HttpURLConnection)
+                    new URL(baseUrl + "/").openConnection();
+            conn.setConnectTimeout(2000);
+            conn.setReadTimeout(2000);
+            conn.setRequestMethod("GET");
+            BufferedReader reader = new BufferedReader(
+                    new InputStreamReader(conn.getInputStream()));
+            StringBuilder sb = new StringBuilder();
+            String line;
+            while ((line = reader.readLine()) != null) sb.append(line);
+            reader.close();
+            conn.disconnect();
+            String html = sb.toString();
+            String marker = "window.__HERMES_SESSION_TOKEN__";
+            int idx = html.indexOf(marker);
+            if (idx < 0) return null;
+            int eq = html.indexOf('=', idx + marker.length());
+            if (eq < 0) return null;
+            int start = html.indexOf('"', eq) + 1;
+            int end = html.indexOf('"', start);
+            if (start <= 0 || end <= start) return null;
+            return html.substring(start, end);
+        } catch (Exception e) {
+            return null;
+        }
     }
 
     private boolean checkPort(int port) {
