@@ -138,6 +138,25 @@ def main():
                 timeout=1800,
             )
 
+        # Step 5b: Install feishu dependencies (not included in termux-all)
+        print("\n=== Step 5b: Install feishu dependencies ===")
+        ssh_exec(
+            ssh,
+            f"{env} && cd {HERMES_DIR} && {VENV_DIR}/bin/pip install -c constraints-termux.txt '.[feishu]' 2>&1",
+            timeout=600,
+        )
+
+        # Step 5c: Install pycryptodome (needs CC=clang on Termux)
+        print("\n=== Step 5c: Install pycryptodome ===")
+        ssh_exec(ssh, f"{env} && CC=clang {VENV_DIR}/bin/pip install pycryptodome 2>&1", timeout=300)
+
+        # Step 5d: Fix Android compatibility issues
+        print("\n=== Step 5d: Fix Android compatibility ===")
+        # watchfiles C extension crashes on Android ARM64 (SIGABRT)
+        ssh_exec(ssh, f"{env} && {VENV_DIR}/bin/pip uninstall -y watchfiles 2>&1")
+        # websockets version conflict: lark-oapi requires <16
+        ssh_exec(ssh, f"{env} && {VENV_DIR}/bin/pip install 'websockets<16' 2>&1", timeout=120)
+
         # Step 6: Validate
         print("\n=== Step 6: Validate venv ===")
         exit_code, out, _ = ssh_exec(
@@ -148,6 +167,8 @@ def main():
             f"import cryptography; print(f'cryptography: {{cryptography.__version__}}'); "
             f"import jiter; print(f'jiter: {{jiter.__version__}}'); "
             f"import openai; print(f'openai: {{openai.__version__}}'); "
+            f"import lark_oapi; print('lark_oapi: OK'); "
+            f"import Crypto; print('pycryptodome: OK'); "
             f"print('ALL IMPORTS OK!')\" 2>&1",
         )
         if "ALL IMPORTS OK" not in out:
