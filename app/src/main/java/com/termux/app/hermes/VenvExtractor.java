@@ -118,32 +118,19 @@ public class VenvExtractor {
             return false;
         }
 
-        // Verify
-        File pythonBin = new File(venvDir + "/bin/python");
-        File venvDirFile = new File(venvDir);
+        // Verify — check bin/ directory has content; python may be a dangling symlink
+        // (target $PREFIX/bin/python doesn't exist until apt install python runs later)
         File binDir = new File(venvDir + "/bin");
-        Logger.logInfo(LOG_TAG, "Verify: venvDir exists=" + venvDirFile.exists()
-            + " bin exists=" + binDir.exists() + " python exists=" + pythonBin.exists());
-        if (binDir.exists()) {
-            String[] binContents = binDir.list();
-            if (binContents != null && binContents.length > 0) {
-                StringBuilder sb = new StringBuilder("bin/ (first 10): ");
-                for (int i = 0; i < Math.min(10, binContents.length); i++) sb.append(binContents[i]).append(" ");
-                Logger.logInfo(LOG_TAG, sb.toString());
-            } else {
-                Logger.logError(LOG_TAG, "bin/ is empty or null");
-            }
-        } else if (venvDirFile.exists()) {
-            String[] venvContents = venvDirFile.list();
-            if (venvContents != null && venvContents.length > 0) {
-                StringBuilder sb = new StringBuilder("venvDir contents: ");
-                for (String s : venvContents) sb.append(s).append(" ");
-                Logger.logInfo(LOG_TAG, sb.toString());
-            } else {
-                Logger.logError(LOG_TAG, "venvDir is empty or doesn't exist");
-            }
+        String[] binContents = binDir.list();
+        if (binContents == null || binContents.length == 0) {
+            Logger.logError(LOG_TAG, "venv/bin/ is empty — extraction may have failed");
+            return false;
         }
-        if (!pythonBin.exists()) {
+        boolean hasPython = false;
+        for (String name : binContents) {
+            if (name.equals("python")) { hasPython = true; break; }
+        }
+        if (!hasPython) {
             Logger.logError(LOG_TAG, "venv/bin/python not found after extraction");
             return false;
         }
