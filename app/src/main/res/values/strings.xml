@@ -1543,4 +1543,22 @@
     <string name="update_notification_title">Hermux Update Available</string>
     <string name="update_notification_text">Version %1$s is ready to download</string>
 
+    <!-- Bottom navigation -->
+    <string name="nav_sessions">Sessions</string>
+    <string name="nav_terminal">Terminal</string>
+    <string name="nav_dashboard">Dashboard</string>
+    <string name="nav_profile">Me</string>
+    <string name="hermes_gateway_status">Gateway Status</string>
+    <string name="hermes_start_gateway">Start Gateway</string>
+    <string name="profile_quick_actions">Quick Actions</string>
+    <string name="profile_ai_config">AI Config</string>
+    <string name="profile_im_setup">IM Setup</string>
+    <string name="profile_logs">Logs</string>
+    <string name="profile_diagnostics">Diagnostics</string>
+    <string name="profile_about">About</string>
+    <string name="profile_help">Help &amp; FAQ</string>
+    <string name="profile_installed">Hermes Agent installed</string>
+    <string name="profile_not_installed">Hermes Agent not installed</string>
+    <string name="profile_version_unavailable">Version info unavailable</string>
+
 </resources>

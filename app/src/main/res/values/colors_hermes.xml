@@ -1,18 +1,26 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <!-- Hermes status colors (light mode) -->
+    <!-- Hermes Teal theme (from web frontend #041c1c / #ffe6cb) -->
+    <color name="hermes_teal_background">#FF041C1C</color>
+    <color name="hermes_teal_dark">#FF031515</color>
+    <color name="hermes_teal_surface">#FF0A2A2A</color>
+    <color name="hermes_accent">#FFFFE6CB</color>
+    <color name="hermes_accent_muted">#80FFE6CB</color>
+    <color name="hermes_text_primary">#FFE0E0E0</color>
+    <color name="hermes_text_secondary">#FF9E9E9E</color>
+    <color name="hermes_text_hint">#FF888888</color>
+    <color name="hermes_card_background">#FF0D2D2D</color>
+    <color name="hermes_card_border">#FF1A3D3D</color>
+    <color name="hermes_divider">#FF1A3D3D</color>
+    <color name="hermes_separator">#33000000</color>
     <color name="hermes_status_running">#FF4CAF50</color>
     <color name="hermes_status_stopped">#FFF44336</color>
     <color name="hermes_status_not_installed">#FF9E9E9E</color>
+    <color name="hermes_ripple">#1AFFE6CB</color>
 
-    <!-- Hermes UI colors (light mode) -->
-    <color name="hermes_text_secondary">#FF666666</color>
-    <color name="hermes_text_hint">#FF888888</color>
+    <!-- Step wizard colors -->
     <color name="hermes_step_number_bg">#FF4A90D9</color>
     <color name="hermes_step_number_text">#FFFFFFFF</color>
-    <color name="hermes_divider">#FFE0E0E0</color>
-    <color name="hermes_card_background">#FFF5F5F5</color>
-    <color name="hermes_separator">#33000000</color>
     <color name="hermes_validation_warning">#FFFF9800</color>
     <color name="hermes_validation_success">#FF4CAF50</color>
     <color name="hermes_paste_button_bg">#FF4CAF50</color>

@@ -65,8 +65,18 @@ import com.termux.view.TerminalViewClient;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.view.GravityCompat;
 import androidx.drawerlayout.widget.DrawerLayout;
+import androidx.fragment.app.Fragment;
+import androidx.fragment.app.FragmentManager;
+import androidx.fragment.app.FragmentTransaction;
 import androidx.viewpager.widget.ViewPager;
+
+import com.google.android.material.bottomnavigation.BottomNavigationView;
+import com.google.android.material.appbar.MaterialToolbar;
+import com.termux.app.hermes.fragments.SessionsFragment;
+import com.termux.app.hermes.fragments.DashboardFragment;
+import com.termux.app.hermes.fragments.ProfileFragment;
 
 import java.util.Arrays;
 
@@ -194,6 +204,11 @@ public final class TermuxActivity extends AppCompatActivity implements ServiceCo
 
     private static final String ARG_TERMINAL_TOOLBAR_TEXT_INPUT = "terminal_toolbar_text_input";
     private static final String ARG_ACTIVITY_RECREATED = "activity_recreated";
+    private static final String ARG_SELECTED_NAV_ITEM = "selected_nav_item";
+
+    private BottomNavigationView mBottomNavigation;
+    private int mSelectedNavItemId = R.id.nav_sessions;
+    private Fragment mCurrentFragment;
 
     private static final String LOG_TAG = "TermuxActivity";
 
@@ -247,6 +262,10 @@ public final class TermuxActivity extends AppCompatActivity implements ServiceCo
         setTermuxTerminalViewAndClients();
 
         setTerminalToolbarView(savedInstanceState);
+
+        setupToolbarAndDrawer();
+
+        setupBottomNavigation(savedInstanceState);
 
         setSettingsButtonView();
 
@@ -377,6 +396,8 @@ public final class TermuxActivity extends AppCompatActivity implements ServiceCo
         super.onSaveInstanceState(savedInstanceState);
         saveTerminalToolbarTextInput(savedInstanceState);
         savedInstanceState.putBoolean(ARG_ACTIVITY_RECREATED, true);
+        if (mBottomNavigation != null)
+            savedInstanceState.putInt(ARG_SELECTED_NAV_ITEM, mBottomNavigation.getSelectedItemId());
     }
 
 
@@ -583,6 +604,87 @@ public final class TermuxActivity extends AppCompatActivity implements ServiceCo
 
 
 
+    private void setupToolbarAndDrawer() {
+        DrawerLayout drawer = getDrawer();
+        drawer.setDrawerLockMode(DrawerLayout.LOCK_MODE_LOCKED_CLOSED);
+
+        MaterialToolbar toolbar = findViewById(R.id.main_toolbar);
+        toolbar.setNavigationOnClickListener(v -> {
+            if (drawer.isDrawerOpen(GravityCompat.START)) {
+                drawer.closeDrawer(GravityCompat.START);
+            } else {
+                drawer.openDrawer(GravityCompat.START);
+            }
+        });
+    }
+
+    private void setupBottomNavigation(Bundle savedInstanceState) {
+        mBottomNavigation = findViewById(R.id.bottom_navigation);
+
+        if (savedInstanceState != null)
+            mSelectedNavItemId = savedInstanceState.getInt(ARG_SELECTED_NAV_ITEM, R.id.nav_sessions);
+
+        mBottomNavigation.setOnItemSelectedListener(item -> {
+            switchFragment(item.getItemId());
+            return true;
+        });
+
+        mBottomNavigation.setSelectedItemId(mSelectedNavItemId);
+    }
+
+    private static final String TAG_SESSIONS = "sessions";
+    private static final String TAG_DASHBOARD = "dashboard";
+    private static final String TAG_PROFILE = "profile";
+
+    private void switchFragment(int navItemId) {
+        View terminalView = findViewById(R.id.terminal_view);
+        View fragmentContainer = findViewById(R.id.fragment_container);
+        View extraKeys = findViewById(R.id.terminal_toolbar_view_pager);
+
+        if (navItemId == R.id.nav_terminal) {
+            fragmentContainer.setVisibility(View.GONE);
+            terminalView.setVisibility(View.VISIBLE);
+            if (extraKeys != null && mPreferences != null && mPreferences.shouldShowTerminalToolbar())
+                extraKeys.setVisibility(View.VISIBLE);
+            mCurrentFragment = null;
+            return;
+        }
+
+        terminalView.setVisibility(View.GONE);
+        if (extraKeys != null) extraKeys.setVisibility(View.GONE);
+        fragmentContainer.setVisibility(View.VISIBLE);
+
+        String tag;
+        Class<? extends Fragment> cls;
+        if (navItemId == R.id.nav_sessions) {
+            tag = TAG_SESSIONS;
+            cls = SessionsFragment.class;
+        } else if (navItemId == R.id.nav_dashboard) {
+            tag = TAG_DASHBOARD;
+            cls = DashboardFragment.class;
+        } else if (navItemId == R.id.nav_profile) {
+            tag = TAG_PROFILE;
+            cls = ProfileFragment.class;
+        } else {
+            return;
+        }
+
+        FragmentManager fm = getSupportFragmentManager();
+        Fragment fragment = fm.findFragmentByTag(tag);
+        if (fragment == null) {
+            try {
+                fragment = cls.getDeclaredConstructor().newInstance();
+            } catch (Exception e) {
+                return;
+            }
+        }
+
+        fm.beginTransaction()
+            .replace(R.id.fragment_container, fragment, tag)
+            .commit();
+        mCurrentFragment = fragment;
+    }
+
     private void setSettingsButtonView() {
         ImageButton settingsButton = findViewById(R.id.settings_button);
         settingsButton.setOnClickListener(v -> {
@@ -647,6 +749,8 @@ public final class TermuxActivity extends AppCompatActivity implements ServiceCo
     public void onBackPressed() {
         if (getDrawer().isDrawerOpen(Gravity.LEFT)) {
             getDrawer().closeDrawers();
+        } else if (mBottomNavigation != null && mBottomNavigation.getSelectedItemId() != R.id.nav_sessions) {
+            mBottomNavigation.setSelectedItemId(R.id.nav_sessions);
         } else {
             finishActivityIfNotFinishing();
         }
