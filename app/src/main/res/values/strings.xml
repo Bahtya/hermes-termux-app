@@ -819,6 +819,10 @@
     <string name="conversation_gateway_log">Gateway Log (%d messages)</string>
     <string name="conversation_platform_general">General</string>
     <string name="conversation_platform_whatsapp">WhatsApp</string>
+    <string name="conversation_error_connect">Gateway not running. Please start the Hermes gateway first.</string>
+    <string name="conversation_error_auth">Authentication failed. Please restart the gateway.</string>
+    <string name="conversation_error_server">Server error (HTTP %d). Please try again later.</string>
+    <string name="conversation_error_generic">Failed to load conversations: %s</string>
     <string name="gateway_diagnostic_title">Gateway Diagnostic</string>
     <string name="gateway_diagnostic_summary">Run connectivity diagnostic</string>
     <string name="gateway_notif_perm_title">Notification Permission</string>

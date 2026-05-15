@@ -18,7 +18,6 @@ import androidx.appcompat.app.AppCompatActivity;
 import com.termux.R;
 import com.termux.shared.termux.TermuxConstants;
 
-import android.util.Base64;
 
 import java.io.BufferedReader;
 import java.io.File;
@@ -38,8 +37,8 @@ public class HermesWebActivity extends AppCompatActivity {
     private ProgressBar mProgressBar;
     private String mSessionToken;
 
-    static String sDetectedPort;
-    static String sSessionToken;
+    static volatile String sDetectedPort;
+    static volatile String sSessionToken;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {

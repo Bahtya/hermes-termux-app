@@ -41,6 +41,8 @@ public class HermesConversationActivity extends AppCompatActivity {
     private Spinner mFilterSpinner;
     private String mCurrentFilter = "all";
 
+    private String mLoadError;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -128,6 +130,7 @@ public class HermesConversationActivity extends AppCompatActivity {
         mListLayout.removeAllViews();
 
         new Thread(() -> {
+            mLoadError = null;
             List<ConvEntry> entries = fetchSessionsFromApi();
 
             // Apply filter
@@ -153,7 +156,13 @@ public class HermesConversationActivity extends AppCompatActivity {
 
             runOnUiThread(() -> {
                 mProgressBar.setVisibility(View.GONE);
-                if (filtered.isEmpty()) {
+                if (mLoadError != null) {
+                    TextView error = new TextView(this);
+                    error.setText(mLoadError);
+                    error.setGravity(Gravity.CENTER);
+                    error.setPadding(0, dp(48), 0, 0);
+                    mListLayout.addView(error);
+                } else if (filtered.isEmpty()) {
                     TextView empty = new TextView(this);
                     empty.setText(R.string.conversation_empty);
                     empty.setGravity(Gravity.CENTER);
@@ -182,12 +191,13 @@ public class HermesConversationActivity extends AppCompatActivity {
         List<ConvEntry> entries = new ArrayList<>();
         int port = getAgentPort();
         String token = getSessionToken();
+        HttpURLConnection conn = null;
 
         try {
-            HttpURLConnection conn = (HttpURLConnection)
+            conn = (HttpURLConnection)
                     new URL("http://127.0.0.1:" + port + "/api/sessions").openConnection();
-            conn.setConnectTimeout(3000);
-            conn.setReadTimeout(5000);
+            conn.setConnectTimeout(5000);
+            conn.setReadTimeout(10000);
             conn.setRequestMethod("GET");
             conn.setRequestProperty("Accept", "application/json");
             if (token != null && !token.isEmpty()) {
@@ -195,8 +205,12 @@ public class HermesConversationActivity extends AppCompatActivity {
             }
 
             int code = conn.getResponseCode();
+            if (code == 401 || code == 403) {
+                mLoadError = getString(R.string.conversation_error_auth);
+                return entries;
+            }
             if (code != 200) {
-                conn.disconnect();
+                mLoadError = getString(R.string.conversation_error_server, code);
                 return entries;
             }
 
@@ -206,7 +220,6 @@ public class HermesConversationActivity extends AppCompatActivity {
             String line;
             while ((line = reader.readLine()) != null) sb.append(line);
             reader.close();
-            conn.disconnect();
 
             JSONArray sessions = new JSONArray(sb.toString());
             for (int i = 0; i < sessions.length(); i++) {
@@ -222,7 +235,13 @@ public class HermesConversationActivity extends AppCompatActivity {
             }
 
             Collections.sort(entries, (a, b) -> Long.compare(b.timestamp, a.timestamp));
-        } catch (Exception ignored) {}
+        } catch (java.net.ConnectException e) {
+            mLoadError = getString(R.string.conversation_error_connect);
+        } catch (Exception e) {
+            mLoadError = getString(R.string.conversation_error_generic, e.getMessage());
+        } finally {
+            if (conn != null) conn.disconnect();
+        }
 
         return entries;
     }
