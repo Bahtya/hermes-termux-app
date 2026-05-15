@@ -222,7 +222,7 @@ jobs:
             echo "GITHUB_OUTPUT_EOF"
           } >> $GITHUB_OUTPUT
 
-      - name: Upload APKs to Supabase
+      - name: Register versions in Supabase
         if: ${{ env.SUPABASE_URL != '' }}
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -268,25 +268,9 @@ jobs:
             SHA256=$(sha256sum "$APK" | cut -d' ' -f1)
             FILE_SIZE=$(stat --printf="%s" "$APK" 2>/dev/null || stat -f%z "$APK")
 
-            # Upload APK to Supabase Storage (upload endpoint, NOT /public/)
-            STORAGE_PATH="hermux_${VERSION}_${ABI}.apk"
-            echo "Uploading to Storage: $STORAGE_PATH"
-            HTTP_CODE=$(curl -s -o /tmp/upload_resp.json -w "%{http_code}" \
-              -X POST "${SUPABASE_URL}/storage/v1/object/apk-releases/${STORAGE_PATH}" \
-              -H "apikey: ${SUPABASE_SERVICE_KEY}" \
-              -H "Content-Type: application/vnd.android.package-archive" \
-              --data-binary @"$APK")
-
-            if [ "$HTTP_CODE" = "200" ] || [ "$HTTP_CODE" = "201" ]; then
-              DOWNLOAD_URL="${SUPABASE_URL}/storage/v1/object/public/apk-releases/${STORAGE_PATH}"
-              MIRROR_URL="https://github.com/${{ github.repository }}/releases/download/${TAG_NAME}/${BASENAME}"
-              echo "Upload successful: $DOWNLOAD_URL"
-            else
-              echo "::warning::Storage upload failed (HTTP $HTTP_CODE), using GitHub mirror only"
-              cat /tmp/upload_resp.json 2>/dev/null || true
-              DOWNLOAD_URL=""
-              MIRROR_URL="https://github.com/${{ github.repository }}/releases/download/${TAG_NAME}/${BASENAME}"
-            fi
+            # Use ghfast.top proxy for Chinese users, direct GitHub URL as mirror
+            DOWNLOAD_URL="https://ghfast.top/https://github.com/${{ github.repository }}/releases/download/${TAG_NAME}/${BASENAME}"
+            MIRROR_URL="https://github.com/${{ github.repository }}/releases/download/${TAG_NAME}/${BASENAME}"
 
             # Clear previous is_latest flag for this ABI
             PATCH_CODE=$(curl -s -o /dev/null -w "%{http_code}" \
@@ -299,10 +283,10 @@ jobs:
               echo "::warning::Failed to clear is_latest (HTTP $PATCH_CODE)"
             fi
 
-            # Insert version record
-            echo "DEBUG VERSION=$VERSION VERSION_CODE=$VERSION_CODE ABI=$ABI FILE_SIZE=$FILE_SIZE"
-            JSON_BODY=$(printf '{"version_name":"%s","version_code":%s,"min_supported_version_code":0,"abi":"%s","download_url":"%s","download_url_mirror":"%s","sha256":"%s","file_size":%s,"release_notes":"","release_notes_zh":"","force_update":false,"channel":"stable","is_latest":true}' "$VERSION" "$VERSION_CODE" "$ABI" "$DOWNLOAD_URL" "$MIRROR_URL" "$SHA256" "$FILE_SIZE")
-            echo "DEBUG JSON_BODY=$JSON_BODY"
+            # Build and insert version record
+            printf -v JSON_BODY '{"version_name":"%s","version_code":%s,"min_supported_version_code":0,"abi":"%s","download_url":"%s","download_url_mirror":"%s","sha256":"%s","file_size":%s,"release_notes":%s,"release_notes_zh":%s,"force_update":false,"channel":"stable","is_latest":true}' \
+              "$VERSION" "$VERSION_CODE" "$ABI" "$DOWNLOAD_URL" "$MIRROR_URL" "$SHA256" "$FILE_SIZE" "$RELEASE_NOTES" "$RELEASE_NOTES_ZH"
+
             INSERT_CODE=$(curl -s -o /tmp/insert_resp.json -w "%{http_code}" \
               -X POST "${SUPABASE_URL}/rest/v1/app_versions" \
               -H "apikey: ${SUPABASE_SERVICE_KEY}" \

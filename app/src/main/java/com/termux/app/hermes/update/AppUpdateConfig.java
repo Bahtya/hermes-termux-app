@@ -12,7 +12,6 @@ public class AppUpdateConfig {
     private static final String PREF_LAST_CHECK_TIME = "last_check_time";
     private static final String PREF_SKIP_VERSION_CODE = "skip_version_code";
     private static final String PREF_DEVICE_ID = "device_id";
-    private static final String PREF_AUTH_TOKEN = "auth_token";
 
     static final long CHECK_INTERVAL_MS = 24 * 60 * 60 * 1000L;
 
@@ -48,13 +47,5 @@ public class AppUpdateConfig {
             prefs.edit().putString(PREF_DEVICE_ID, id).apply();
         }
         return id;
-    }
-
-    static String getAuthToken(Context context) {
-        return getPrefs(context).getString(PREF_AUTH_TOKEN, "");
-    }
-
-    static void setAuthToken(Context context, String token) {
-        getPrefs(context).edit().putString(PREF_AUTH_TOKEN, token).apply();
     }
 }
