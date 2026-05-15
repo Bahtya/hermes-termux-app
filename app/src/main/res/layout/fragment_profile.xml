@@ -77,7 +77,7 @@
                 <TextView
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:text="Quick Actions"
+                    android:text="@string/profile_quick_actions"
                     android:textColor="@color/hermes_text_primary"
                     android:textSize="16sp"
                     android:textStyle="bold" />
@@ -94,7 +94,7 @@
                         android:layout_width="0dp"
                         android:layout_height="wrap_content"
                         android:layout_weight="1"
-                        android:text="AI Config"
+                        android:text="@string/profile_ai_config"
                         android:textColor="@color/hermes_accent" />
 
                     <com.google.android.material.button.MaterialButton
@@ -103,7 +103,7 @@
                         android:layout_width="0dp"
                         android:layout_height="wrap_content"
                         android:layout_weight="1"
-                        android:text="IM Setup"
+                        android:text="@string/profile_im_setup"
                         android:textColor="@color/hermes_accent" />
 
                 </LinearLayout>
@@ -119,7 +119,7 @@
                         android:layout_width="0dp"
                         android:layout_height="wrap_content"
                         android:layout_weight="1"
-                        android:text="Logs"
+                        android:text="@string/profile_logs"
                         android:textColor="@color/hermes_accent" />
 
                     <com.google.android.material.button.MaterialButton
@@ -128,7 +128,7 @@
                         android:layout_width="0dp"
                         android:layout_height="wrap_content"
                         android:layout_weight="1"
-                        android:text="Diagnostics"
+                        android:text="@string/profile_diagnostics"
                         android:textColor="@color/hermes_accent" />
 
                 </LinearLayout>
@@ -156,7 +156,7 @@
                 <TextView
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:text="About"
+                    android:text="@string/profile_about"
                     android:textColor="@color/hermes_text_primary"
                     android:textSize="16sp"
                     android:textStyle="bold" />
@@ -175,7 +175,7 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_marginTop="8dp"
-                    android:text="Help &amp; FAQ"
+                    android:text="@string/profile_help"
                     android:textColor="@color/hermes_accent" />
 
             </LinearLayout>

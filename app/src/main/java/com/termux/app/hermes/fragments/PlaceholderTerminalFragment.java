@@ -1,11 +1,9 @@
 package com.termux.app.hermes.fragments;
 
-import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.FrameLayout;
-import android.widget.TextView;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -16,9 +14,6 @@ public class PlaceholderTerminalFragment extends Fragment {
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container,
                              @Nullable Bundle savedInstanceState) {
-        // This fragment is a placeholder - the actual terminal is shown via TerminalView visibility toggle
-        // This fragment should never actually be visible
-        FrameLayout frame = new FrameLayout(requireContext());
-        return frame;
+        return new FrameLayout(requireContext());
     }
 }

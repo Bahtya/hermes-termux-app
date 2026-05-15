@@ -2,13 +2,10 @@ package com.termux.app.hermes.fragments;
 
 import android.content.Intent;
 import android.os.Bundle;
-import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
-import android.widget.LinearLayout;
-import android.widget.ScrollView;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -18,10 +15,8 @@ import androidx.core.content.ContextCompat;
 import androidx.fragment.app.Fragment;
 
 import com.termux.R;
-import com.termux.app.hermes.HermesConfigActivity;
 import com.termux.app.hermes.HermesGatewayService;
 import com.termux.app.hermes.HermesGatewayStatus;
-import com.termux.app.hermes.HermesInstallHelper;
 import com.termux.app.hermes.HermesInstallActivity;
 
 import java.io.File;
@@ -54,11 +49,10 @@ public class ProfileFragment extends Fragment {
             mGatewayToggleButton.setOnClickListener(v -> toggleGateway());
         }
 
-        // Quick action buttons
-        setupQuickAction(view, R.id.btn_ai_config, "AI Config");
-        setupQuickAction(view, R.id.btn_im_setup, "IM Setup");
-        setupQuickAction(view, R.id.btn_logs, "Logs");
-        setupQuickAction(view, R.id.btn_diagnostics, "Diagnostics");
+        setupQuickAction(view, R.id.btn_ai_config, getString(R.string.profile_ai_config));
+        setupQuickAction(view, R.id.btn_im_setup, getString(R.string.profile_im_setup));
+        setupQuickAction(view, R.id.btn_logs, getString(R.string.profile_logs));
+        setupQuickAction(view, R.id.btn_diagnostics, getString(R.string.profile_diagnostics));
 
         // About card
         TextView versionText = view.findViewById(R.id.version_text);
@@ -68,10 +62,8 @@ public class ProfileFragment extends Fragment {
 
         Button helpButton = view.findViewById(R.id.btn_help);
         if (helpButton != null) {
-            helpButton.setOnClickListener(v -> {
-                // TODO: Launch help activity or fragment
-                Toast.makeText(requireContext(), "Help coming soon", Toast.LENGTH_SHORT).show();
-            });
+            helpButton.setOnClickListener(v ->
+                    Toast.makeText(requireContext(), R.string.profile_help, Toast.LENGTH_SHORT).show());
         }
     }
 
@@ -171,44 +163,20 @@ public class ProfileFragment extends Fragment {
         Button btn = parent.findViewById(buttonId);
         if (btn == null) return;
 
-        switch (label) {
-            case "AI Config":
-                btn.setOnClickListener(v -> {
-                    // TODO: Navigate to LLM config fragment or launch config activity
-                    Toast.makeText(requireContext(), "AI Config — coming soon", Toast.LENGTH_SHORT).show();
-                });
-                break;
-            case "IM Setup":
-                btn.setOnClickListener(v -> {
-                    // TODO: Navigate to IM setup fragment or launch config activity
-                    Toast.makeText(requireContext(), "IM Setup — coming soon", Toast.LENGTH_SHORT).show();
-                });
-                break;
-            case "Logs":
-                btn.setOnClickListener(v -> {
-                    // TODO: Navigate to log viewer or launch log activity
-                    Toast.makeText(requireContext(), "Logs — coming soon", Toast.LENGTH_SHORT).show();
-                });
-                break;
-            case "Diagnostics":
-                btn.setOnClickListener(v -> {
-                    // TODO: Navigate to diagnostics or launch diagnostic activity
-                    Toast.makeText(requireContext(), "Diagnostics — coming soon", Toast.LENGTH_SHORT).show();
-                });
-                break;
-        }
+        btn.setOnClickListener(v ->
+                Toast.makeText(requireContext(), label + " — coming soon", Toast.LENGTH_SHORT).show());
     }
 
     private String getVersionDisplay() {
         try {
             String hermesPath = TermuxConstants.TERMUX_BIN_PREFIX_DIR_PATH + "/hermes";
             if (new File(hermesPath).exists()) {
-                return "Hermes Agent installed";
+                return getString(R.string.profile_installed);
             } else {
-                return "Hermes Agent not installed";
+                return getString(R.string.profile_not_installed);
             }
         } catch (Exception e) {
-            return "Version info unavailable";
+            return getString(R.string.profile_version_unavailable);
         }
     }
 }
