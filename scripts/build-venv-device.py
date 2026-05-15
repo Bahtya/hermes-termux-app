@@ -31,6 +31,14 @@ import sys
 import paramiko
 
 
+def safe_print(text):
+    """Print text safely on Windows (handle GBK encoding)."""
+    try:
+        print(text)
+    except UnicodeEncodeError:
+        print(text.encode("ascii", errors="replace").decode("ascii"))
+
+
 def ssh_exec(ssh, cmd, timeout=600):
     """Execute command via SSH, print output, return exit code."""
     print(f"\n>>> {cmd[:120]}{'...' if len(cmd) > 120 else ''}")
@@ -44,11 +52,11 @@ def ssh_exec(ssh, cmd, timeout=600):
         # Print last 2000 chars to keep output manageable
         if len(out) > 2000:
             print(f"... (truncated, showing last 2000 chars)")
-            print(out[-2000:])
+            safe_print(out[-2000:])
         else:
-            print(out)
+            safe_print(out)
     if err and "WARNING" not in err:
-        print(f"STDERR: {err[-500:]}")
+        safe_print(f"STDERR: {err[-500:]}")
 
     return exit_code, out, err
 
@@ -92,6 +100,11 @@ def main():
         HERMES_DIR = "$HOME/.hermes/hermes-agent"
         VENV_DIR = f"{HERMES_DIR}/venv"
 
+        # Expanded paths for subprocess calls (no shell expansion)
+        EXPANDED_HOME = "/data/data/com.termux/files/home"
+        EXPANDED_HERMES_DIR = f"{EXPANDED_HOME}/.hermes/hermes-agent"
+        EXPANDED_VENV_DIR = f"{EXPANDED_HERMES_DIR}/venv"
+
         # Step 1: Fix missing package headers (known Termux issue)
         print("\n=== Step 1: Fix missing package headers ===")
         ssh_exec(ssh, f"{env} && apt install --reinstall -y python ndk-sysroot libffi 2>&1 | tail -5", timeout=120)
@@ -111,7 +124,7 @@ def main():
         print("\n=== Step 4: Build psutil (official Android patch) ===")
         exit_code, _, _ = ssh_exec(
             ssh,
-            f"{env} && python {HERMES_DIR}/scripts/install_psutil_android.py --pip '{VENV_DIR}/bin/pip' 2>&1",
+            f"{env} && python {HERMES_DIR}/scripts/install_psutil_android.py --pip '{EXPANDED_VENV_DIR}/bin/pip' 2>&1",
             timeout=600,
         )
         if exit_code != 0:
