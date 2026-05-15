@@ -757,11 +757,11 @@ public class FeishuSetupActivity extends AppCompatActivity {
         mConfigManager.setEnvVar("FEISHU_APP_SECRET", mResultAppSecret);
         mConfigManager.setEnvVar("FEISHU_DOMAIN", mResultDomain);
         mConfigManager.setEnvVar("FEISHU_CONNECTION_MODE", "websocket");
-        mConfigManager.setEnvVar("FEISHU_ALLOW_ALL_USERS", "false");
+        mConfigManager.setEnvVar("FEISHU_ALLOW_ALL_USERS", "true");
         mConfigManager.setEnvVar("FEISHU_GROUP_POLICY", "open");
         mConfigManager.setEnvVar("FEISHU_ALLOWED_USERS", "");
 
-        HermesConfigManager.restartGatewayIfRunning(this);
+        HermesConfigManager.ensureGatewayRunning(this);
 
         TextView checkTv = new TextView(this);
         checkTv.setText("✅");

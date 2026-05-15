@@ -1537,6 +1537,19 @@ public class HermesConfigManager {
         return prefs.getInt(KEY_SESSION_COUNT, 0);
     }
 
+    /** Restart gateway if running, or start it if not. */
+    public static void ensureGatewayRunning(Context context) {
+        if (HermesGatewayService.isRunning()) {
+            Intent intent = new Intent(context, HermesGatewayService.class);
+            intent.setAction(HermesGatewayService.ACTION_RESTART);
+            context.startService(intent);
+        } else {
+            Intent intent = new Intent(context, HermesGatewayService.class);
+            intent.setAction(HermesGatewayService.ACTION_START);
+            context.startService(intent);
+        }
+    }
+
     public static void restartGatewayIfRunning(Context context) {
         HermesGatewayStatus.checkAsync((status, detail) -> {
             if (status == HermesGatewayStatus.Status.RUNNING) {

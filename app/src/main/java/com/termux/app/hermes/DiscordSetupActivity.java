@@ -284,7 +284,7 @@ public class DiscordSetupActivity extends AppCompatActivity {
             if (usersInput != null) {
                 mConfigManager.setEnvVar("DISCORD_ALLOWED_USERS", usersInput.getText().toString().trim());
             }
-            HermesConfigManager.restartGatewayIfRunning(this);
+            HermesConfigManager.ensureGatewayRunning(this);
         }
 
         LinearLayout.LayoutParams wrap = new LinearLayout.LayoutParams(
