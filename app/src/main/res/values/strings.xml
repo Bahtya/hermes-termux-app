@@ -1480,6 +1480,7 @@
     <string name="hermes_action_im_setup">Configure IM</string>
     <string name="hermes_action_view_logs">View Logs</string>
     <string name="hermes_action_diagnostics">Run Diagnostics</string>
+    <string name="hermes_action_check_update">Check for App Update</string>
     <string name="hermes_restore_backup_message">This will restore configuration from the last backup. Current settings will be overwritten. Continue?</string>
     <string name="hermes_restore_success">Configuration restored from backup</string>
     <string name="hermes_restore_no_backup">No backup found</string>
@@ -1518,5 +1519,24 @@
     <string name="ssh_info_summary">View SSH connection details</string>
     <string name="ssh_info_dialog_title">SSH Connection Info</string>
     <string name="ssh_info_dialog_message">Connect via:\n\nssh -p %1$d %2$s@&lt;device-ip&gt;\n\nDefault password: hermes</string>
+
+    <!-- App Update -->
+    <string name="update_checking">Checking for updates…</string>
+    <string name="update_up_to_date">You are running the latest version</string>
+    <string name="update_error">Update check failed: %1$s</string>
+    <string name="update_available_title">Update Available</string>
+    <string name="update_available_message">Version %1$s is available (current: %2$s)</string>
+    <string name="update_size">Download size: %1$s</string>
+    <string name="update_now">Update Now</string>
+    <string name="update_later">Later</string>
+    <string name="update_skip">Skip This Version</string>
+    <string name="update_downloading">Downloading update…</string>
+    <string name="update_download_progress">Downloading: %1$d%%</string>
+    <string name="update_ready_title">Update Downloaded</string>
+    <string name="update_ready_text">Tap to install the update</string>
+    <string name="update_install">Install</string>
+    <string name="update_notification_channel">App Updates</string>
+    <string name="update_notification_title">Hermux Update Available</string>
+    <string name="update_notification_text">Version %1$s is ready to download</string>
 
 </resources>

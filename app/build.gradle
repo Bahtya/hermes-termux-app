@@ -52,6 +52,11 @@ android {
 
         buildConfigField "String", "TERMUX_PACKAGE_VARIANT", "\"" + project.ext.packageVariant + "\"" // Used by TermuxApplication class
 
+        // App update — Supabase
+        buildConfigField "String", "SUPABASE_URL", "\"https://YOUR_PROJECT.supabase.co\""
+        buildConfigField "String", "SUPABASE_ANON_KEY", "\"YOUR_ANON_KEY\""
+        buildConfigField "String", "UPDATE_FALLBACK_URL", "\"https://raw.githubusercontent.com/Bahtya/hermux/main/version.json\""
+
         manifestPlaceholders.TERMUX_PACKAGE_NAME = "com.hermux"
         manifestPlaceholders.TERMUX_APP_NAME = "Hermux"
         manifestPlaceholders.TERMUX_API_APP_NAME = "Hermux:API"

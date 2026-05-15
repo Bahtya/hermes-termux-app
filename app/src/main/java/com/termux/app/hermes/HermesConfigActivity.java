@@ -230,6 +230,7 @@ public class HermesConfigActivity extends AppCompatActivity {
         addQuickAction(layout, R.string.hermes_action_im_setup, "action_im", v -> showImSetupPage());
         addQuickAction(layout, R.string.hermes_action_view_logs, "action_logs", v -> startActivity(new Intent(this, GatewayLogActivity.class)));
         addQuickAction(layout, R.string.hermes_action_diagnostics, "action_diag", v -> startActivity(new Intent(this, HermesDiagnosticActivity.class)));
+        addQuickAction(layout, R.string.hermes_action_check_update, "action_update", v -> checkForAppUpdate());
 
         // Reset section
         addSpacer(layout, dp(24));
@@ -260,6 +261,53 @@ public class HermesConfigActivity extends AppCompatActivity {
 
         // Check item in nav
         mNavigationView.setCheckedItem(R.id.nav_dashboard);
+
+        // Handle update notification tap
+        if (getIntent() != null && "com.hermux.SHOW_UPDATE".equals(getIntent().getAction())) {
+            getIntent().setAction(null);
+            checkForAppUpdate();
+        }
+    }
+
+    private void checkForAppUpdate() {
+        Toast.makeText(this, R.string.update_checking, Toast.LENGTH_SHORT).show();
+        AppUpdateChecker.checkForUpdate(this, new AppUpdateChecker.UpdateCheckCallback() {
+            @Override
+            public void onUpdateAvailable(com.termux.app.hermes.update.AppUpdateInfo info) {
+                runOnUiThread(() ->
+                    com.termux.app.hermes.update.AppUpdateDialog.show(
+                        HermesConfigActivity.this, info,
+                        new com.termux.app.hermes.update.AppUpdateDialog.Callbacks() {
+                            @Override
+                            public void onUpdateNow(com.termux.app.hermes.update.AppUpdateInfo info) {
+                                com.termux.app.hermes.update.AppUpdateService.setPendingUpdate(info);
+                                Intent svc = new Intent(HermesConfigActivity.this,
+                                        com.termux.app.hermes.update.AppUpdateService.class);
+                                svc.setAction(com.termux.app.hermes.update.AppUpdateService.ACTION_DOWNLOAD);
+                                startForegroundService(svc);
+                            }
+                            @Override
+                            public void onSkip(int versionCode) {
+                                com.termux.app.hermes.update.AppUpdateConfig
+                                        .setSkipVersionCode(HermesConfigActivity.this, versionCode);
+                            }
+                        }
+                    )
+                );
+            }
+            @Override
+            public void onNoUpdate() {
+                runOnUiThread(() ->
+                    Toast.makeText(HermesConfigActivity.this,
+                            R.string.update_up_to_date, Toast.LENGTH_SHORT).show());
+            }
+            @Override
+            public void onError(String message) {
+                runOnUiThread(() ->
+                    Toast.makeText(HermesConfigActivity.this,
+                            getString(R.string.update_error, message), Toast.LENGTH_LONG).show());
+            }
+        });
     }
 
     private android.os.Handler mInstallPollHandler;

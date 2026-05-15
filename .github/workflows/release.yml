@@ -171,7 +171,7 @@ jobs:
   publish-release:
     needs: [create-release, build-and-upload]
     runs-on: ubuntu-latest
-    timeout-minutes: 5
+    timeout-minutes: 10
     steps:
       - name: Checkout repository
         uses: actions/checkout@v6
@@ -182,6 +182,102 @@ jobs:
         run: |
           TAG_NAME="${{ needs.create-release.outputs.tag_name }}"
           gh release edit "$TAG_NAME" --draft=false
+
+      - name: Upload APKs to Supabase
+        if: ${{ secrets.SUPABASE_URL != '' }}
+        env:
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_ANON_KEY: ${{ secrets.SUPABASE_ANON_KEY }}
+          SUPABASE_SERVICE_KEY: ${{ secrets.SUPABASE_SERVICE_KEY }}
+          TAG_NAME: ${{ needs.create-release.outputs.tag_name }}
+        run: |
+          TAG_NAME="${{ needs.create-release.outputs.tag_name }}"
+          VERSION="${TAG_NAME#v}"
+
+          # Download APKs from GitHub release
+          mkdir -p /tmp/apks
+          gh release download "$TAG_NAME" -D /tmp/apks '*.apk'
+
+          for APK in /tmp/apks/*.apk; do
+            BASENAME=$(basename "$APK")
+            echo "Processing $BASENAME"
+
+            # Determine ABI from filename
+            ABI="arm64-v8a"
+            if echo "$BASENAME" | grep -q "armeabi"; then ABI="armeabi-v7a"; fi
+            if echo "$BASENAME" | grep -q "x86_64"; then ABI="x86_64"; fi
+            if echo "$BASENAME" | grep -q "x86[^_]"; then ABI="x86"; fi
+            if echo "$BASENAME" | grep -q "universal"; then ABI="universal"; fi
+
+            # Determine variant (android7 or android5)
+            VARIANT="android7"
+            if echo "$BASENAME" | grep -q "android5"; then VARIANT="android5"; fi
+
+            # Skip android5 variants for Supabase (primary target is android7)
+            if [ "$VARIANT" = "android5" ]; then
+              echo "Skipping android5 variant: $BASENAME"
+              continue
+            fi
+
+            SHA256=$(sha256sum "$APK" | cut -d' ' -f1)
+            FILE_SIZE=$(stat --printf="%s" "$APK" 2>/dev/null || stat -f%z "$APK")
+
+            # Upload APK to Supabase Storage
+            STORAGE_PATH="hermux_${VERSION}_${ABI}.apk"
+            echo "Uploading to Storage: $STORAGE_PATH"
+            HTTP_CODE=$(curl -s -o /dev/null -w "%{http_code}" \
+              -X POST "${SUPABASE_URL}/storage/v1/object/public/apk-releases/${STORAGE_PATH}" \
+              -H "Authorization: Bearer ${SUPABASE_SERVICE_KEY}" \
+              -H "Content-Type: application/vnd.android.package-archive" \
+              --data-binary @"$APK")
+
+            if [ "$HTTP_CODE" = "200" ] || [ "$HTTP_CODE" = "201" ]; then
+              DOWNLOAD_URL="${SUPABASE_URL}/storage/v1/object/public/apk-releases/${STORAGE_PATH}"
+              MIRROR_URL="https://github.com/${{ github.repository }}/releases/download/${TAG_NAME}/${BASENAME}"
+              echo "Upload successful: $DOWNLOAD_URL"
+            else
+              echo "Storage upload failed (HTTP $HTTP_CODE), using GitHub mirror only"
+              DOWNLOAD_URL=""
+              MIRROR_URL="https://github.com/${{ github.repository }}/releases/download/${TAG_NAME}/${BASENAME}"
+            fi
+
+            # Clear previous is_latest flag for this ABI
+            curl -s -o /dev/null \
+              -X PATCH "${SUPABASE_URL}/rest/v1/app_versions?abi=eq.${ABI}&channel=eq.stable" \
+              -H "apikey: ${SUPABASE_SERVICE_KEY}" \
+              -H "Authorization: Bearer ${SUPABASE_SERVICE_KEY}" \
+              -H "Content-Type: application/json" \
+              -H "Prefer: return=minimal" \
+              -d '{"is_latest":false}'
+
+            # Insert version record
+            # Extract versionCode from build.gradle (fallback to simple calc)
+            VERSION_CODE=$(grep "versionCode" app/build.gradle | head -1 | awk '{print $2}')
+
+            curl -s -o /dev/null \
+              -X POST "${SUPABASE_URL}/rest/v1/app_versions" \
+              -H "apikey: ${SUPABASE_SERVICE_KEY}" \
+              -H "Authorization: Bearer ${SUPABASE_SERVICE_KEY}" \
+              -H "Content-Type: application/json" \
+              -H "Prefer: return=minimal" \
+              -d "{
+                \"version_name\": \"${VERSION}\",
+                \"version_code\": ${VERSION_CODE},
+                \"min_supported_version_code\": 0,
+                \"abi\": \"${ABI}\",
+                \"download_url\": \"${DOWNLOAD_URL}\",
+                \"download_url_mirror\": \"${MIRROR_URL}\",
+                \"sha256\": \"${SHA256}\",
+                \"file_size\": ${FILE_SIZE},
+                \"release_notes\": \"\",
+                \"release_notes_zh\": \"\",
+                \"force_update\": false,
+                \"channel\": \"stable\",
+                \"is_latest\": true
+              }"
+
+            echo "Version record created for ${ABI}"
+          done
 
       - name: Summary
         run: |
