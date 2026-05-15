@@ -4,7 +4,7 @@ import android.content.Context;
 import android.os.Build;
 import android.util.Log;
 
-import com.termux.app.BuildConfig;
+import com.termux.BuildConfig;
 
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
@@ -25,13 +25,13 @@ public class AppUpdateChecker {
      * Callbacks are invoked on a background thread.
      * Callers must use runOnUiThread() or Handler for UI operations.
      */
-    interface UpdateCheckCallback {
+    public interface UpdateCheckCallback {
         void onUpdateAvailable(AppUpdateInfo info);
         void onNoUpdate();
         void onError(String message);
     }
 
-    static void checkForUpdate(Context context, UpdateCheckCallback callback) {
+    public static void checkForUpdate(Context context, UpdateCheckCallback callback) {
         new Thread(() -> {
             try {
                 AppUpdateInfo info = doCheck(context);

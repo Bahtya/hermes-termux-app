@@ -6,7 +6,7 @@ import android.widget.ScrollView;
 import android.widget.TextView;
 
 import com.termux.R;
-import com.termux.app.BuildConfig;
+import com.termux.BuildConfig;
 
 import java.util.Locale;
 
@@ -14,12 +14,12 @@ public class AppUpdateDialog {
 
     private AppUpdateDialog() {}
 
-    interface Callbacks {
+    public interface Callbacks {
         void onUpdateNow(AppUpdateInfo info);
         void onSkip(int versionCode);
     }
 
-    static void show(Context context, AppUpdateInfo info, Callbacks callbacks) {
+    public static void show(Context context, AppUpdateInfo info, Callbacks callbacks) {
         boolean forced = info.isForcedFor(BuildConfig.VERSION_CODE);
         String notes = info.getDisplayNotes(Locale.getDefault().getLanguage());
         String sizeStr = formatFileSize(info.fileSize);

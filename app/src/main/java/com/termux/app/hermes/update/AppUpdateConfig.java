@@ -36,7 +36,7 @@ public class AppUpdateConfig {
         return getPrefs(context).getInt(PREF_SKIP_VERSION_CODE, 0);
     }
 
-    static void setSkipVersionCode(Context context, int versionCode) {
+    public static void setSkipVersionCode(Context context, int versionCode) {
         getPrefs(context).edit().putInt(PREF_SKIP_VERSION_CODE, versionCode).apply();
     }
 
