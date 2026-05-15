@@ -224,6 +224,10 @@
     <string name="conversation_gateway_log">网关日志（%d 条消息）</string>
     <string name="conversation_platform_general">通用</string>
     <string name="conversation_platform_whatsapp">WhatsApp</string>
+    <string name="conversation_error_connect">网关未运行，请先启动 Hermes 网关。</string>
+    <string name="conversation_error_auth">认证失败，请重启网关。</string>
+    <string name="conversation_error_server">服务器错误（HTTP %d），请稍后重试。</string>
+    <string name="conversation_error_generic">加载对话失败：%s</string>
 
     <!-- Status labels -->
     <string name="llm_configured">已配置（%1$s）</string>

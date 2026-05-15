@@ -17,29 +17,31 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
 
 import com.termux.R;
-import com.termux.shared.termux.TermuxConstants;
+
+import org.json.JSONArray;
+import org.json.JSONObject;
 
 import java.io.BufferedReader;
-import java.io.File;
-import java.io.FileReader;
+import java.io.InputStreamReader;
+import java.net.HttpURLConnection;
+import java.net.URL;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collections;
-import java.util.Comparator;
 import java.util.Date;
 import java.util.List;
 import java.util.Locale;
 
 public class HermesConversationActivity extends AppCompatActivity {
 
-    private static final String CONVERSATIONS_DIR = TermuxConstants.TERMUX_HOME_DIR_PATH + "/.hermes/conversations";
-    private static final String GATEWAY_LOG_DIR = TermuxConstants.TERMUX_HOME_DIR_PATH + "/.hermes/logs";
+    private static final String SESSION_TOKEN_HEADER = "X-Hermes-Session-Token";
 
     private LinearLayout mListLayout;
     private ProgressBar mProgressBar;
     private Spinner mFilterSpinner;
     private String mCurrentFilter = "all";
+
+    private String mLoadError;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -111,27 +113,25 @@ public class HermesConversationActivity extends AppCompatActivity {
         return super.onOptionsItemSelected(item);
     }
 
+    private int getAgentPort() {
+        if (HermesWebActivity.sDetectedPort != null) {
+            try { return Integer.parseInt(HermesWebActivity.sDetectedPort); }
+            catch (NumberFormatException ignored) {}
+        }
+        return HermesWebActivity.DEFAULT_PORT;
+    }
+
+    private String getSessionToken() {
+        return HermesWebActivity.sSessionToken;
+    }
+
     private void loadConversations() {
         mProgressBar.setVisibility(View.VISIBLE);
         mListLayout.removeAllViews();
 
         new Thread(() -> {
-            List<ConvEntry> entries = new ArrayList<>();
-
-            // Scan conversations directory
-            File convDir = new File(CONVERSATIONS_DIR);
-            if (convDir.exists() && convDir.isDirectory()) {
-                scanDirectory(convDir, entries);
-            }
-
-            // Also scan gateway logs for message patterns
-            File logDir = new File(GATEWAY_LOG_DIR);
-            if (logDir.exists() && logDir.isDirectory()) {
-                scanLogDirectory(logDir, entries);
-            }
-
-            // Sort by timestamp descending
-            Collections.sort(entries, (a, b) -> Long.compare(b.timestamp, a.timestamp));
+            mLoadError = null;
+            List<ConvEntry> entries = fetchSessionsFromApi();
 
             // Apply filter
             long now = System.currentTimeMillis();
@@ -156,7 +156,13 @@ public class HermesConversationActivity extends AppCompatActivity {
 
             runOnUiThread(() -> {
                 mProgressBar.setVisibility(View.GONE);
-                if (filtered.isEmpty()) {
+                if (mLoadError != null) {
+                    TextView error = new TextView(this);
+                    error.setText(mLoadError);
+                    error.setGravity(Gravity.CENTER);
+                    error.setPadding(0, dp(48), 0, 0);
+                    mListLayout.addView(error);
+                } else if (filtered.isEmpty()) {
                     TextView empty = new TextView(this);
                     empty.setText(R.string.conversation_empty);
                     empty.setGravity(Gravity.CENTER);
@@ -181,46 +187,72 @@ public class HermesConversationActivity extends AppCompatActivity {
         }).start();
     }
 
-    private void scanDirectory(File dir, List<ConvEntry> entries) {
-        File[] files = dir.listFiles();
-        if (files == null) return;
+    private List<ConvEntry> fetchSessionsFromApi() {
+        List<ConvEntry> entries = new ArrayList<>();
+        int port = getAgentPort();
+        String token = getSessionToken();
+        HttpURLConnection conn = null;
 
-        for (File file : files) {
-            if (file.isDirectory()) {
-                scanDirectory(file, entries);
-            } else if (file.getName().endsWith(".json") || file.getName().endsWith(".jsonl")
-                    || file.getName().endsWith(".log")) {
-                entries.add(new ConvEntry(file.getName(), file.getAbsolutePath(),
-                        file.lastModified(), file.length(), guessPlatform(file)));
+        try {
+            conn = (HttpURLConnection)
+                    new URL("http://127.0.0.1:" + port + "/api/sessions").openConnection();
+            conn.setConnectTimeout(5000);
+            conn.setReadTimeout(10000);
+            conn.setRequestMethod("GET");
+            conn.setRequestProperty("Accept", "application/json");
+            if (token != null && !token.isEmpty()) {
+                conn.setRequestProperty(SESSION_TOKEN_HEADER, token);
             }
+
+            int code = conn.getResponseCode();
+            if (code == 401 || code == 403) {
+                mLoadError = getString(R.string.conversation_error_auth);
+                return entries;
+            }
+            if (code != 200) {
+                mLoadError = getString(R.string.conversation_error_server, code);
+                return entries;
+            }
+
+            BufferedReader reader = new BufferedReader(
+                    new InputStreamReader(conn.getInputStream()));
+            StringBuilder sb = new StringBuilder();
+            String line;
+            while ((line = reader.readLine()) != null) sb.append(line);
+            reader.close();
+
+            JSONArray sessions = new JSONArray(sb.toString());
+            for (int i = 0; i < sessions.length(); i++) {
+                JSONObject s = sessions.getJSONObject(i);
+                String id = s.optString("id", "");
+                String name = s.optString("name", s.optString("title", id));
+                long ts = s.optLong("updated_at", s.optLong("created_at", 0));
+                if (ts == 0) ts = System.currentTimeMillis();
+                int msgCount = s.optInt("message_count", 0);
+                String platform = s.optString("platform", s.optString("source", ""));
+                if (platform.isEmpty()) platform = guessPlatformFromId(id);
+                entries.add(new ConvEntry(name, id, ts, msgCount, platform));
+            }
+
+            Collections.sort(entries, (a, b) -> Long.compare(b.timestamp, a.timestamp));
+        } catch (java.net.ConnectException e) {
+            mLoadError = getString(R.string.conversation_error_connect);
+        } catch (Exception e) {
+            mLoadError = getString(R.string.conversation_error_generic, e.getMessage());
+        } finally {
+            if (conn != null) conn.disconnect();
         }
+
+        return entries;
     }
 
-    private void scanLogDirectory(File dir, List<ConvEntry> entries) {
-        File[] files = dir.listFiles();
-        if (files == null) return;
-
-        for (File file : files) {
-            if (file.getName().endsWith(".log")) {
-                try (BufferedReader reader = new BufferedReader(new FileReader(file))) {
-                    String line;
-                    long msgCount = 0;
-                    while ((line = reader.readLine()) != null) {
-                        if (line.contains("\"role\":\"user\"") || line.contains("\"role\":\"assistant\"")) {
-                            msgCount++;
-                        }
-                    }
-                    if (msgCount > 0) {
-                        entries.add(new ConvEntry(
-                                getString(R.string.conversation_gateway_log, msgCount),
-                                file.getAbsolutePath(),
-                                file.lastModified(),
-                                file.length(),
-                                "gateway"));
-                    }
-                } catch (Exception ignored) {}
-            }
-        }
+    private String guessPlatformFromId(String id) {
+        String lower = id.toLowerCase();
+        if (lower.contains("feishu") || lower.contains("lark")) return "Feishu";
+        if (lower.contains("telegram")) return "Telegram";
+        if (lower.contains("discord")) return "Discord";
+        if (lower.contains("whatsapp")) return getString(R.string.conversation_platform_whatsapp);
+        return getString(R.string.conversation_platform_general);
     }
 
     private void addConversationItem(ConvEntry entry) {
@@ -252,19 +284,20 @@ public class HermesConversationActivity extends AppCompatActivity {
         platform.setTextSize(12);
         details.addView(platform);
 
-        TextView sep2 = new TextView(this);
-        sep2.setText(" · ");
-        sep2.setTextSize(12);
-        details.addView(sep2);
+        if (entry.size > 0) {
+            TextView sep2 = new TextView(this);
+            sep2.setText(" · ");
+            sep2.setTextSize(12);
+            details.addView(sep2);
 
-        TextView size = new TextView(this);
-        size.setText(formatSize(entry.size));
-        size.setTextSize(12);
-        details.addView(size);
+            TextView msgCount = new TextView(this);
+            msgCount.setText(entry.size + " msgs");
+            msgCount.setTextSize(12);
+            details.addView(msgCount);
+        }
 
         item.addView(details);
 
-        // Add divider
         View divider = new View(this);
         divider.setBackgroundColor(0x1F000000);
         LinearLayout.LayoutParams divParams = new LinearLayout.LayoutParams(
@@ -276,32 +309,16 @@ public class HermesConversationActivity extends AppCompatActivity {
         mListLayout.addView(item);
     }
 
-    private String guessPlatform(File file) {
-        String name = file.getName().toLowerCase();
-        if (name.contains("feishu") || name.contains("lark")) return "Feishu";
-        if (name.contains("telegram")) return "Telegram";
-        if (name.contains("discord")) return "Discord";
-        if (name.contains("whatsapp")) return getString(R.string.conversation_platform_whatsapp);
-        return getString(R.string.conversation_platform_general);
-    }
-
     private String formatDate(long millis) {
-        Date date = new Date(millis);
         long now = System.currentTimeMillis();
         long diff = now - millis;
         if (diff < 86_400_000) return getString(R.string.conversation_date_today);
         if (diff < 2 * 86_400_000) return getString(R.string.conversation_date_yesterday);
-        return new SimpleDateFormat("MMMM d, yyyy", Locale.getDefault()).format(date);
+        return new SimpleDateFormat("MMMM d, yyyy", Locale.getDefault()).format(new Date(millis));
     }
 
     private String formatTime(long millis) {
         return DateFormat.getTimeFormat(this).format(new Date(millis));
-    }
-
-    private String formatSize(long bytes) {
-        if (bytes < 1024) return bytes + " B";
-        if (bytes < 1024 * 1024) return String.format(Locale.US, "%.1f KB", bytes / 1024.0);
-        return String.format(Locale.US, "%.1f MB", bytes / (1024.0 * 1024.0));
     }
 
     private int dp(int value) {
