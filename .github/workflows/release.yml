@@ -241,8 +241,12 @@ jobs:
           mkdir -p /tmp/apks
           gh release download "$TAG_NAME" -D /tmp/apks --pattern '*.apk'
 
-          # Extract versionCode from build.gradle (match defaultConfig block only)
-          VERSION_CODE=$(grep -A2 "defaultConfig" app/build.gradle | grep "versionCode" | head -1 | awk '{print $2}')
+          # Extract versionCode from build.gradle
+          VERSION_CODE=$(grep "versionCode " app/build.gradle | head -1 | awk '{print $2}')
+          if [ -z "$VERSION_CODE" ]; then
+            echo "::error::Failed to extract versionCode from build.gradle"
+            exit 1
+          fi
 
           for APK in /tmp/apks/*.apk; do
             BASENAME=$(basename "$APK")
@@ -286,6 +290,8 @@ jobs:
             # Build and insert version record
             printf -v JSON_BODY '{"version_name":"%s","version_code":%s,"min_supported_version_code":0,"abi":"%s","download_url":"%s","download_url_mirror":"%s","sha256":"%s","file_size":%s,"release_notes":%s,"release_notes_zh":%s,"force_update":false,"channel":"stable","is_latest":true}' \
               "$VERSION" "$VERSION_CODE" "$ABI" "$DOWNLOAD_URL" "$MIRROR_URL" "$SHA256" "$FILE_SIZE" "$RELEASE_NOTES" "$RELEASE_NOTES_ZH"
+
+            echo "DEBUG version_code=$VERSION_CODE json_len=${#JSON_BODY}"
 
             INSERT_CODE=$(curl -s -o /tmp/insert_resp.json -w "%{http_code}" \
               -X POST "${SUPABASE_URL}/rest/v1/app_versions" \
