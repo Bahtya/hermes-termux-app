@@ -305,14 +305,14 @@ public class SessionsFragment extends Fragment {
 
     private static class ConvEntry {
         final String name;
-        final String path;
+        final String sessionId;
         final long timestamp;
         final long size;
         final String platform;
 
-        ConvEntry(String name, String path, long timestamp, long size, String platform) {
+        ConvEntry(String name, String sessionId, long timestamp, long size, String platform) {
             this.name = name;
-            this.path = path;
+            this.sessionId = sessionId;
             this.timestamp = timestamp;
             this.size = size;
             this.platform = platform;

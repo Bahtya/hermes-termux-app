@@ -141,9 +141,8 @@ public class ProfileFragment extends Fragment {
         requireContext().startService(startIntent);
         Toast.makeText(requireContext(), R.string.gateway_started, Toast.LENGTH_SHORT).show();
 
-        // Refresh status after a short delay
-        new android.os.Handler(android.os.Looper.getMainLooper()).postDelayed(
-                this::refreshGatewayStatus, 2000);
+        View view = getView();
+        if (view != null) view.postDelayed(this::refreshGatewayStatus, 2000);
     }
 
     private void stopGateway() {
@@ -152,9 +151,8 @@ public class ProfileFragment extends Fragment {
         requireContext().startService(stopIntent);
         Toast.makeText(requireContext(), R.string.gateway_stopped, Toast.LENGTH_SHORT).show();
 
-        // Refresh status after a short delay
-        new android.os.Handler(android.os.Looper.getMainLooper()).postDelayed(
-                this::refreshGatewayStatus, 2000);
+        View view = getView();
+        if (view != null) view.postDelayed(this::refreshGatewayStatus, 2000);
     }
 
     private void setupQuickAction(View parent, int buttonId, String label) {

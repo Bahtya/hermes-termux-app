@@ -68,6 +68,7 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.view.GravityCompat;
 import androidx.drawerlayout.widget.DrawerLayout;
 import androidx.fragment.app.Fragment;
+import androidx.fragment.app.FragmentManager;
 import androidx.fragment.app.FragmentTransaction;
 import androidx.viewpager.widget.ViewPager;
 
@@ -631,6 +632,10 @@ public final class TermuxActivity extends AppCompatActivity implements ServiceCo
         mBottomNavigation.setSelectedItemId(mSelectedNavItemId);
     }
 
+    private static final String TAG_SESSIONS = "sessions";
+    private static final String TAG_DASHBOARD = "dashboard";
+    private static final String TAG_PROFILE = "profile";
+
     private void switchFragment(int navItemId) {
         View terminalView = findViewById(R.id.terminal_view);
         View fragmentContainer = findViewById(R.id.fragment_container);
@@ -649,20 +654,33 @@ public final class TermuxActivity extends AppCompatActivity implements ServiceCo
         if (extraKeys != null) extraKeys.setVisibility(View.GONE);
         fragmentContainer.setVisibility(View.VISIBLE);
 
-        Fragment fragment;
+        String tag;
+        Class<? extends Fragment> cls;
         if (navItemId == R.id.nav_sessions) {
-            fragment = new SessionsFragment();
+            tag = TAG_SESSIONS;
+            cls = SessionsFragment.class;
         } else if (navItemId == R.id.nav_dashboard) {
-            fragment = new DashboardFragment();
+            tag = TAG_DASHBOARD;
+            cls = DashboardFragment.class;
         } else if (navItemId == R.id.nav_profile) {
-            fragment = new ProfileFragment();
+            tag = TAG_PROFILE;
+            cls = ProfileFragment.class;
         } else {
             return;
         }
 
-        getSupportFragmentManager().beginTransaction()
-            .replace(R.id.fragment_container, fragment)
-            .setTransition(FragmentTransaction.TRANSIT_FRAGMENT_FADE)
+        FragmentManager fm = getSupportFragmentManager();
+        Fragment fragment = fm.findFragmentByTag(tag);
+        if (fragment == null) {
+            try {
+                fragment = cls.getDeclaredConstructor().newInstance();
+            } catch (Exception e) {
+                return;
+            }
+        }
+
+        fm.beginTransaction()
+            .replace(R.id.fragment_container, fragment, tag)
             .commit();
         mCurrentFragment = fragment;
     }
