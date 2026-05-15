@@ -300,8 +300,9 @@ jobs:
             fi
 
             # Insert version record
+            echo "DEBUG VERSION=$VERSION VERSION_CODE=$VERSION_CODE ABI=$ABI FILE_SIZE=$FILE_SIZE"
             JSON_BODY=$(printf '{"version_name":"%s","version_code":%s,"min_supported_version_code":0,"abi":"%s","download_url":"%s","download_url_mirror":"%s","sha256":"%s","file_size":%s,"release_notes":"","release_notes_zh":"","force_update":false,"channel":"stable","is_latest":true}' "$VERSION" "$VERSION_CODE" "$ABI" "$DOWNLOAD_URL" "$MIRROR_URL" "$SHA256" "$FILE_SIZE")
-            echo "Inserting: $JSON_BODY" >> /tmp/supabase_debug.log
+            echo "DEBUG JSON_BODY=$JSON_BODY"
             INSERT_CODE=$(curl -s -o /tmp/insert_resp.json -w "%{http_code}" \
               -X POST "${SUPABASE_URL}/rest/v1/app_versions" \
               -H "apikey: ${SUPABASE_SERVICE_KEY}" \
