@@ -175,8 +175,6 @@ jobs:
     steps:
       - name: Checkout repository
         uses: actions/checkout@v6
-        with:
-          fetch-depth: 0
 
       - name: Publish release
         env:
@@ -195,12 +193,7 @@ jobs:
           BODY=$(gh release view "$TAG_NAME" --json body -q '.body')
 
           # Extract changelog section (everything between "## What's Changed" and "---")
-          CHANGES=$(echo "$BODY" | sed -n '/## What.*Changed/,/^---/p' | head -n -1 | tail -n +2 | sed '/^$/d; /^$/d')
-
-          # Build English release notes from commits
-          if [ -z "$CHANGES" ]; then
-            CHANGES=$(git log --pretty=format:"- %s" --no-merges -10 HEAD)
-          fi
+          CHANGES=$(echo "$BODY" | sed -n '/## What.*Changed/,/^---/p' | head -n -1 | tail -n +2 | sed '/^$/d')
 
           # Escape for JSON (newlines → \n, quotes → \")
           RELEASE_NOTES=$(echo "$CHANGES" | python3 -c 'import sys,json; print(json.dumps(sys.stdin.read().strip()))' 2>/dev/null || echo '""')
@@ -218,8 +211,16 @@ jobs:
             -e 's/^- build:/- 构建:/' \
             | python3 -c 'import sys,json; print(json.dumps(sys.stdin.read().strip()))' 2>/dev/null || echo '""')
 
-          echo "en=${RELEASE_NOTES}" >> $GITHUB_OUTPUT
-          echo "zh=${RELEASE_NOTES_ZH}" >> $GITHUB_OUTPUT
+          {
+            echo "en<<GITHUB_OUTPUT_EOF"
+            echo "${RELEASE_NOTES}"
+            echo "GITHUB_OUTPUT_EOF"
+          } >> $GITHUB_OUTPUT
+          {
+            echo "zh<<GITHUB_OUTPUT_EOF"
+            echo "${RELEASE_NOTES_ZH}"
+            echo "GITHUB_OUTPUT_EOF"
+          } >> $GITHUB_OUTPUT
 
       - name: Upload APKs to Supabase
         if: ${{ env.SUPABASE_URL != '' }}
