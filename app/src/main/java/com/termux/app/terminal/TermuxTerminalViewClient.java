@@ -184,6 +184,7 @@ public class TermuxTerminalViewClient extends TermuxTerminalViewClientBase {
 
     @Override
     public void onSingleTapUp(MotionEvent e) {
+        if (!mActivity.getTerminalDelegate().isTerminalTabActive()) return;
         TerminalEmulator term = mActivity.getCurrentSession().getEmulator();
 
         if (mActivity.getProperties().shouldOpenTerminalTranscriptURLOnClick()) {
@@ -223,6 +224,7 @@ public class TermuxTerminalViewClient extends TermuxTerminalViewClientBase {
 
     @Override
     public boolean isTerminalViewSelected() {
+        if (!mActivity.getTerminalDelegate().isTerminalTabActive()) return false;
         return mActivity.getTerminalToolbarViewPager() == null || mActivity.isTerminalViewSelected() || mActivity.getTerminalView().hasFocus();
     }
 
@@ -230,8 +232,11 @@ public class TermuxTerminalViewClient extends TermuxTerminalViewClientBase {
 
     @Override
     public void copyModeChanged(boolean copyMode) {
-        // Disable drawer while copying.
-        mActivity.getDrawer().setDrawerLockMode(copyMode ? DrawerLayout.LOCK_MODE_LOCKED_CLOSED : DrawerLayout.LOCK_MODE_UNLOCKED);
+        // Keep DrawerLayout locked (no edge swipe), just disable/enable hamburger menu during copy
+        View toolbar = mActivity.findViewById(R.id.main_toolbar);
+        if (toolbar != null) {
+            toolbar.setClickable(!copyMode);
+        }
     }
 
 
