@@ -49,7 +49,7 @@ public class AppUpdateChecker {
         }, "UpdateCheck").start();
     }
 
-    static void silentCheckIfNeeded(Context context) {
+    public static void silentCheckIfNeeded(Context context) {
         if (!AppUpdateConfig.shouldCheckUpdate(context)) return;
 
         new Thread(() -> {
