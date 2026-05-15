@@ -184,7 +184,7 @@ jobs:
           gh release edit "$TAG_NAME" --draft=false
 
       - name: Upload APKs to Supabase
-        if: ${{ secrets.SUPABASE_URL != '' }}
+        if: ${{ env.SUPABASE_URL != '' }}
         env:
           SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
           SUPABASE_ANON_KEY: ${{ secrets.SUPABASE_ANON_KEY }}
