@@ -650,18 +650,14 @@ public final class TermuxActivity extends AppCompatActivity implements ServiceCo
         fragmentContainer.setVisibility(View.VISIBLE);
 
         Fragment fragment;
-        switch (navItemId) {
-            case R.id.nav_sessions:
-                fragment = new SessionsFragment();
-                break;
-            case R.id.nav_dashboard:
-                fragment = new DashboardFragment();
-                break;
-            case R.id.nav_profile:
-                fragment = new ProfileFragment();
-                break;
-            default:
-                return;
+        if (navItemId == R.id.nav_sessions) {
+            fragment = new SessionsFragment();
+        } else if (navItemId == R.id.nav_dashboard) {
+            fragment = new DashboardFragment();
+        } else if (navItemId == R.id.nav_profile) {
+            fragment = new ProfileFragment();
+        } else {
+            return;
         }
 
         getSupportFragmentManager().beginTransaction()

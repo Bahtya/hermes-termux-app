@@ -26,7 +26,6 @@ import com.termux.shared.termux.TermuxConstants;
 public class ProfileFragment extends Fragment {
 
     private TextView mGatewayStatusText;
-    private View mGatewayStatusDot;
     private Button mGatewayToggleButton;
 
     @Nullable
@@ -42,8 +41,7 @@ public class ProfileFragment extends Fragment {
 
         // Gateway status card
         mGatewayStatusText = view.findViewById(R.id.gateway_status_text);
-        mGatewayStatusDot = view.findViewById(R.id.gateway_status_dot);
-        mGatewayToggleButton = view.findViewById(R.id.gateway_toggle_button);
+        mGatewayToggleButton = view.findViewById(R.id.btn_gateway_toggle);
 
         if (mGatewayToggleButton != null) {
             mGatewayToggleButton.setOnClickListener(v -> toggleGateway());
@@ -81,7 +79,7 @@ public class ProfileFragment extends Fragment {
     }
 
     private void updateGatewayStatusUI(HermesGatewayStatus.Status status) {
-        if (mGatewayStatusText == null || mGatewayStatusDot == null || mGatewayToggleButton == null) return;
+        if (mGatewayStatusText == null || mGatewayToggleButton == null) return;
 
         int colorRes;
         String statusText;
@@ -106,7 +104,7 @@ public class ProfileFragment extends Fragment {
         }
 
         mGatewayStatusText.setText(statusText);
-        mGatewayStatusDot.setBackgroundColor(ContextCompat.getColor(requireContext(), colorRes));
+        mGatewayStatusText.setTextColor(ContextCompat.getColor(requireContext(), colorRes));
         mGatewayToggleButton.setText(buttonText);
     }
 

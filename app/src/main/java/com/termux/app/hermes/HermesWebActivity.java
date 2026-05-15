@@ -30,15 +30,15 @@ public class HermesWebActivity extends AppCompatActivity {
     private static final String LOG_TAG = "HermesWebActivity";
 
     private static final int[] WEB_PORTS = {9119, 8080, 3000, 5000, 8000, 8888};
-    static final int DEFAULT_PORT = 9119;
+    public static final int DEFAULT_PORT = 9119;
     private static final String LOCALHOST = "127.0.0.1";
 
     private WebView mWebView;
     private ProgressBar mProgressBar;
     private String mSessionToken;
 
-    static volatile String sDetectedPort;
-    static volatile String sSessionToken;
+    public static volatile String sDetectedPort;
+    public static volatile String sSessionToken;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
