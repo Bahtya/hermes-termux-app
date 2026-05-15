@@ -69,6 +69,9 @@ public class TermuxApplication extends Application {
             Logger.logErrorExtended(LOG_TAG, "Termux files directory is not accessible\n" + error);
         }
 
+        // Silent app update check (once per 24h)
+        com.termux.app.hermes.update.AppUpdateChecker.silentCheckIfNeeded(context);
+
         // Init TermuxShellEnvironment constants and caches after everything has been setup including termux-am-socket server
         TermuxShellEnvironment.init(this);
 
