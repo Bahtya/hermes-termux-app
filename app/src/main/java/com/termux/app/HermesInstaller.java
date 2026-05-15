@@ -61,7 +61,7 @@ public class HermesInstaller {
     private static final String HERMES_PATH_REWRITE_VERSION = "3";
     private static final String HERMES_SYMLINK_FIX_VERSION = "2";
     private static final String HERMES_DPKG_DB_FIX_VERSION = "2";
-    private static final String HERMES_SSH_SETUP_VERSION = "1";
+    private static final String HERMES_SSH_SETUP_VERSION = "2";
 
     private static final String SSH_BOOT_SCRIPT =
             TermuxConstants.TERMUX_BOOT_SCRIPTS_DIR_PATH + "/hermes-sshd";
@@ -856,7 +856,14 @@ public class HermesInstaller {
 
         // Start sshd if not already running
         try {
-            runShellCommand("pgrep -x sshd >/dev/null 2>&1 || " + TermuxConstants.TERMUX_BIN_PREFIX_DIR_PATH + "/sshd");
+            String sshdPath = TermuxConstants.TERMUX_BIN_PREFIX_DIR_PATH + "/sshd";
+            String errLog = TermuxConstants.TERMUX_HOME_DIR_PATH + "/.hermes/logs/sshd.err";
+            // Test config first, then start with error logging
+            String startCmd = sshdPath + " -t 2>>" + errLog + " && ("
+                    + "pgrep -f '" + sshdPath + "' >/dev/null 2>&1 || "
+                    + sshdPath + " -E " + errLog + " 2>&1"
+                    + ") || echo 'sshd config test failed, see " + errLog + "'";
+            runShellCommand(startCmd);
         } catch (Exception e) {
             Logger.logWarn(LOG_TAG, "SSH: failed to start sshd (non-fatal): " + e.getMessage());
         }
@@ -885,12 +892,7 @@ public class HermesInstaller {
                 + "Port " + SSH_DEFAULT_PORT + "\n"
                 + "PasswordAuthentication yes\n"
                 + "PrintMotd yes\n"
-                + "SetEnv PATH=" + binPath + ":/system/bin:/system/xbin\n"
-                + "SetEnv HOME=" + homePath + "\n"
-                + "SetEnv PREFIX=" + prefix + "\n"
-                + "SetEnv LD_LIBRARY_PATH=" + libPath + "\n"
-                + "SetEnv LD_PRELOAD=" + pathRewriteLib + "\n"
-                + "SetEnv TERMUX_VERSION=" + com.termux.BuildConfig.VERSION_NAME + "\n"
+                + "PermitUserEnvironment yes\n"
                 + "Subsystem sftp " + prefix + "/libexec/sftp-server\n";
 
         try (FileOutputStream out = new FileOutputStream(configFile)) {
@@ -961,6 +963,9 @@ public class HermesInstaller {
         String script = "#!" + TermuxConstants.TERMUX_BIN_PREFIX_DIR_PATH + "/sh\n"
                 + "# Auto-start SSH daemon on boot\n"
                 + "if [ -f " + TermuxConstants.TERMUX_BIN_PREFIX_DIR_PATH + "/sshd ]; then\n"
+                + "    export HOME=" + TermuxConstants.TERMUX_HOME_DIR_PATH + "\n"
+                + "    export PATH=" + TermuxConstants.TERMUX_BIN_PREFIX_DIR_PATH + ":/system/bin:/system/xbin\n"
+                + "    export PREFIX=" + prefix + "\n"
                 + "    export LD_LIBRARY_PATH=" + TermuxConstants.TERMUX_LIB_PREFIX_DIR_PATH + "\n"
                 + "    if [ -f " + prefix + "/lib/libpath_rewrite.so ]; then\n"
                 + "        export LD_PRELOAD=" + prefix + "/lib/libpath_rewrite.so\n"
