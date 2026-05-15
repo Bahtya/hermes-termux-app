@@ -346,4 +346,10 @@
     <string name="update_notification_title">Hermux 有新版本</string>
     <string name="update_notification_text">版本 %1$s 可以下载</string>
 
+    <!-- Bottom navigation -->
+    <string name="nav_sessions">会话</string>
+    <string name="nav_terminal">终端</string>
+    <string name="nav_dashboard">仪表盘</string>
+    <string name="nav_profile">我的</string>
+
 </resources>

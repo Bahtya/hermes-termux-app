@@ -1543,4 +1543,10 @@
     <string name="update_notification_title">Hermux Update Available</string>
     <string name="update_notification_text">Version %1$s is ready to download</string>
 
+    <!-- Bottom navigation -->
+    <string name="nav_sessions">Sessions</string>
+    <string name="nav_terminal">Terminal</string>
+    <string name="nav_dashboard">Dashboard</string>
+    <string name="nav_profile">Me</string>
+
 </resources>

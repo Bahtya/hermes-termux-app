@@ -46,4 +46,11 @@
         <item name="extraKeysButtonActiveBackgroundColor">@color/grey_500</item>
     </style>
 
+    <style name="Theme.TermuxActivity.Hermes" parent="Theme.TermuxActivity.DayNight.NoActionBar">
+        <item name="colorPrimary">@color/hermes_teal_dark</item>
+        <item name="colorPrimaryVariant">@color/hermes_teal_dark</item>
+        <item name="colorOnPrimary">@color/hermes_accent</item>
+        <item name="android:windowBackground">@color/hermes_teal_background</item>
+    </style>
+
 </resources>
