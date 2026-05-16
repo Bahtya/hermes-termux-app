@@ -1,0 +1,14 @@
+#!/bin/bash
+# hermes-type — Type text into the focused input field
+# Usage: hermes-type "要输入的文字"
+set -euo pipefail
+
+if [[ $# -lt 1 ]]; then
+    echo "Usage: hermes-type <text>" >&2
+    exit 1
+fi
+
+curl -s -X POST http://localhost:18720/type \
+    -H "Content-Type: application/json" \
+    -d "$(python3 -c 'import json,sys; print(json.dumps({"text": sys.argv[1]}))' "$1")"
+echo

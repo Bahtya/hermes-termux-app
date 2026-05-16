@@ -1,0 +1,33 @@
+#!/bin/bash
+# hermes-click — Click a UI element
+# Usage: hermes-click --text "按钮" | --id com.app:id/btn | --x 540 --y 960
+set -euo pipefail
+
+TEXT="" ID="" X="" Y=""
+while [[ $# -gt 0 ]]; do
+    case "$1" in
+        --text) TEXT="$2"; shift 2 ;;
+        --id)   ID="$2";   shift 2 ;;
+        --x)    X="$2";    shift 2 ;;
+        --y)    Y="$2";    shift 2 ;;
+        *) echo "Usage: hermes-click --text <text> | --id <id> | --x <x> --y <y>" >&2; exit 1 ;;
+    esac
+done
+
+BODY=$(python3 -c "
+import json, sys
+d = {}
+for i in range(1, len(sys.argv), 2):
+    d[sys.argv[i]] = sys.argv[i+1]
+print(json.dumps(d))
+" -- ${TEXT:+--text "$TEXT"} ${ID:+--id "$ID"} ${X:+--x "$X"} ${Y:+--y "$Y"})
+
+if [[ "$BODY" == "{}" ]]; then
+    echo "Usage: hermes-click --text <text> | --id <id> | --x <x> --y <y>" >&2
+    exit 1
+fi
+
+curl -s -X POST http://localhost:18720/click \
+    -H "Content-Type: application/json" \
+    -d "$BODY"
+echo

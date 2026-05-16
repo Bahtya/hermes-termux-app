@@ -24,6 +24,7 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
 
 import com.termux.R;
+import com.termux.app.hermes.device.DeviceControlDeployer;
 import com.termux.shared.termux.TermuxConstants;
 
 import java.io.BufferedReader;
@@ -626,6 +627,9 @@ public class HermesSetupWizardActivity extends AppCompatActivity {
     }
 
     private void showDoneStep() {
+        // Silently deploy device control skill in background
+        new Thread(() -> DeviceControlDeployer.deployIfNeeded(this)).start();
+
         addTitle(R.string.hermes_setup_done_title);
         addParagraph(R.string.hermes_setup_done_text);
 

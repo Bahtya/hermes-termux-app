@@ -1,0 +1,15 @@
+#!/bin/bash
+# hermes-adb — Execute an ADB shell command on the connected device
+# Usage: hermes-adb <command>
+# Example: hermes-adb "settings get system screen_brightness"
+set -euo pipefail
+
+if [[ $# -lt 1 ]]; then
+    echo "Usage: hermes-adb <command>" >&2
+    exit 1
+fi
+
+curl -s -X POST http://localhost:18720/adb/shell \
+    -H "Content-Type: application/json" \
+    -d "$(python3 -c 'import json,sys; print(json.dumps({"command": sys.argv[1]}))' "$*")"
+echo
