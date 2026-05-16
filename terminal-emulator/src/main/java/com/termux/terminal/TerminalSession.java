@@ -377,13 +377,20 @@ public final class TerminalSession extends TerminalOutput {
                                 lastOutput = sb.toString();
                             }
                         }
-                    } catch (Exception ignored) {}
+                    } catch (Exception e) {
+                        Log.d(LOG_TAG, "Failed to capture transcript for crash log", e);
+                    }
 
                     String signalInfo = exitCode < 0 ? "signal " + (-exitCode) : "code " + exitCode;
-                    Log.e(LOG_TAG, "Process exited (" + signalInfo + "), shell=" + mShellPath
-                        + (mSessionName != null ? ", session=" + mSessionName : ""));
-                    if (!lastOutput.isEmpty()) {
-                        Log.e(LOG_TAG, "Last terminal output:\n" + lastOutput);
+                    if (exitCode < 0) {
+                        Log.e(LOG_TAG, "Process exited (" + signalInfo + "), shell=" + mShellPath
+                            + (mSessionName != null ? ", session=" + mSessionName : ""));
+                        if (!lastOutput.isEmpty()) {
+                            Log.e(LOG_TAG, "Last terminal output:\n" + lastOutput);
+                        }
+                    } else {
+                        Log.d(LOG_TAG, "Process exited (" + signalInfo + "), shell=" + mShellPath
+                            + (mSessionName != null ? ", session=" + mSessionName : ""));
                     }
                 }
 

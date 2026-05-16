@@ -745,6 +745,14 @@ public class HermesInstaller {
         Logger.logInfo(LOG_TAG, "Bootstrap text file patching: " + patched + " files patched");
     }
 
+    private static final java.util.Set<String> BINARY_EXTENSIONS = java.util.Set.of(
+        ".gz", ".xz", ".bz2", ".lz4", ".zst",
+        ".pyc", ".pyo",
+        ".mo", ".gmo",
+        ".a", ".o", ".so",
+        ".png", ".jpg", ".ico", ".pdf"
+    );
+
     private static int patchTextFilesRecursive(File dir, String oldStr, String newStr) {
         File[] files = dir.listFiles();
         if (files == null) return 0;
@@ -753,6 +761,9 @@ public class HermesInstaller {
             if (f.isDirectory()) {
                 patched += patchTextFilesRecursive(f, oldStr, newStr);
             } else {
+                String name = f.getName();
+                int dot = name.lastIndexOf('.');
+                if (dot >= 0 && BINARY_EXTENSIONS.contains(name.substring(dot).toLowerCase())) continue;
                 if (patchTextFileSafe(f, oldStr, newStr)) patched++;
             }
         }
