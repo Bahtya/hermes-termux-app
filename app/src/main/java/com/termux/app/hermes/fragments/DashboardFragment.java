@@ -18,6 +18,7 @@ import androidx.appcompat.app.AlertDialog;
 import androidx.fragment.app.Fragment;
 
 import com.termux.R;
+import com.termux.app.hermes.HermesGatewayService;
 import com.termux.app.hermes.HermesWebActivity;
 import com.termux.shared.termux.TermuxConstants;
 
