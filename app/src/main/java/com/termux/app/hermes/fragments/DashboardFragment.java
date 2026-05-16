@@ -18,6 +18,7 @@ import androidx.appcompat.app.AlertDialog;
 import androidx.fragment.app.Fragment;
 
 import com.termux.R;
+import com.termux.app.hermes.HermesGatewayService;
 import com.termux.app.hermes.HermesWebActivity;
 import com.termux.shared.termux.TermuxConstants;
 
@@ -98,12 +99,34 @@ public class DashboardFragment extends Fragment {
     private void detectAndLoadHermesWeb() {
         new Thread(() -> {
             String foundUrl = null;
+            int maxAttempts = HermesGatewayService.isRunning() ? 6 : 1;
 
-            for (int port : WEB_PORTS) {
-                if (checkPort(port)) {
-                    foundUrl = "http://" + LOCALHOST + ":" + port;
-                    HermesWebActivity.sDetectedPort = String.valueOf(port);
-                    break;
+            for (int attempt = 0; attempt < maxAttempts; attempt++) {
+                if (getActivity() == null) return;
+
+                for (int port : WEB_PORTS) {
+                    if (checkPort(port)) {
+                        foundUrl = "http://" + LOCALHOST + ":" + port;
+                        HermesWebActivity.sDetectedPort = String.valueOf(port);
+                        break;
+                    }
+                }
+                if (foundUrl != null) break;
+
+                if (attempt < maxAttempts - 1) {
+                    if (getActivity() != null) {
+                        int next = attempt + 2;
+                        int total = maxAttempts;
+                        requireActivity().runOnUiThread(() -> {
+                            if (mWebView != null) {
+                                mWebView.loadData("<html><body style='background:#1A1A2E;color:#4AF626;"
+                                    + "font-family:monospace;text-align:center;padding-top:40%'>"
+                                    + "Scanning for web UI... (" + next + "/" + total + ")</body></html>",
+                                    "text/html", "UTF-8");
+                            }
+                        });
+                    }
+                    try { Thread.sleep(3000); } catch (InterruptedException ignored) { return; }
                 }
             }
 
