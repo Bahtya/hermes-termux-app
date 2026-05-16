@@ -68,7 +68,7 @@ public class DeviceControlDeployer {
     }
 
     private static void markDeployed() {
-        HermesConfigManager.writeStringToFile(MARKER_FILE, CURRENT_VERSION);
+        writeStringToFile(MARKER_FILE, CURRENT_VERSION);
     }
 
     private static void deployInternal(Context context) throws IOException {
@@ -150,7 +150,7 @@ public class DeviceControlDeployer {
             } catch (Exception e) {
                 // Fallback: create a wrapper script
                 try {
-                    HermesConfigManager.writeStringToFile(link,
+                    writeStringToFile(link,
                             "#!/data/data/com.hermux/files/usr/bin/bash\n"
                                     + "exec " + target + " \"$@\"\n");
                     new File(link).setExecutable(true, false);
@@ -161,4 +161,14 @@ public class DeviceControlDeployer {
         }
     }
 
+    private static void writeStringToFile(String path, String content) {
+        File file = new File(path);
+        File parent = file.getParentFile();
+        if (parent != null && !parent.exists()) parent.mkdirs();
+        try (OutputStream os = new BufferedOutputStream(new FileOutputStream(file))) {
+            os.write(content.getBytes("UTF-8"));
+        } catch (IOException e) {
+            Log.e(TAG, "Failed to write " + path + ": " + e.getMessage());
+        }
+    }
 }

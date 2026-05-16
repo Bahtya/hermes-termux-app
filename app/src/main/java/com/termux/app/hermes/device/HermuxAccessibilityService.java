@@ -220,7 +220,7 @@ public class HermuxAccessibilityService extends AccessibilityService {
     private boolean dispatchGestureAndWait(GestureDescription gesture) throws Exception {
         CountDownLatch latch = new CountDownLatch(1);
         boolean[] result = {false};
-        dispatchGesture(gesture, null, new GestureResultCallback() {
+        dispatchGesture(gesture, new GestureResultCallback() {
             @Override
             public void onCompleted(GestureDescription gestureDescription) {
                 result[0] = true;
