@@ -363,5 +363,15 @@
     <string name="profile_installed">Hermes Agent 已安装</string>
     <string name="profile_not_installed">Hermes Agent 未安装</string>
     <string name="profile_version_unavailable">版本信息不可用</string>
+    <string name="profile_export_config">导出配置</string>
+    <string name="profile_import_config">导入配置</string>
+    <string name="profile_restore_backup">恢复备份</string>
+    <string name="profile_config_exported">配置已导出</string>
+    <string name="profile_config_imported">配置已导入</string>
+    <string name="profile_config_import_failed">导入配置失败</string>
+    <string name="profile_backup_restored">已从备份恢复配置</string>
+    <string name="profile_no_backup">未找到备份</string>
+    <string name="profile_restore_confirm_title">恢复备份？</string>
+    <string name="profile_restore_confirm_message">这将用上次备份替换当前配置，继续吗？</string>
 
 </resources>

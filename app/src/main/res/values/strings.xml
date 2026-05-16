@@ -1560,5 +1560,15 @@
     <string name="profile_installed">Hermes Agent installed</string>
     <string name="profile_not_installed">Hermes Agent not installed</string>
     <string name="profile_version_unavailable">Version info unavailable</string>
+    <string name="profile_export_config">Export Config</string>
+    <string name="profile_import_config">Import Config</string>
+    <string name="profile_restore_backup">Restore Backup</string>
+    <string name="profile_config_exported">Config exported successfully</string>
+    <string name="profile_config_imported">Config imported successfully</string>
+    <string name="profile_config_import_failed">Failed to import config</string>
+    <string name="profile_backup_restored">Config restored from backup</string>
+    <string name="profile_no_backup">No backup found</string>
+    <string name="profile_restore_confirm_title">Restore Backup?</string>
+    <string name="profile_restore_confirm_message">This will replace your current configuration with the last backup. Continue?</string>
 
 </resources>
