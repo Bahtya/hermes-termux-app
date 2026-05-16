@@ -72,6 +72,9 @@ public class TermuxApplication extends Application {
         // Silent app update check (once per 24h)
         com.termux.app.hermes.update.AppUpdateChecker.silentCheckIfNeeded(context);
 
+        // Silent license verification (once per 24h)
+        com.termux.app.hermes.license.LicenseManager.getInstance().verifyIfNeeded(context);
+
         // Init TermuxShellEnvironment constants and caches after everything has been setup including termux-am-socket server
         TermuxShellEnvironment.init(this);
 
