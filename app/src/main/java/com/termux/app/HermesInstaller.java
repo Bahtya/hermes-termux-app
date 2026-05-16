@@ -61,7 +61,7 @@ public class HermesInstaller {
     private static final String HERMES_PATH_REWRITE_VERSION = "3";
     private static final String HERMES_SYMLINK_FIX_VERSION = "2";
     private static final String HERMES_DPKG_DB_FIX_VERSION = "2";
-    private static final String HERMES_SSH_SETUP_VERSION = "2";
+    private static final String HERMES_SSH_SETUP_VERSION = "3";
 
     private static final String SSH_BOOT_SCRIPT =
             TermuxConstants.TERMUX_BOOT_SCRIPTS_DIR_PATH + "/hermes-sshd";
@@ -183,7 +183,7 @@ public class HermesInstaller {
                 TermuxConstants.TERMUX_HOME_DIR_PATH + "/.bashrc");
         runMigration("SSH setup", HERMES_SSH_SETUP_VERSION,
                 HERMES_SSH_SETUP_MARKER_FILE, HermesInstaller::deploySshConfig,
-                SSHD_CONFIG_PATH);
+                SSHD_CONFIG_PATH, true);
     }
 
     /**
@@ -198,11 +198,17 @@ public class HermesInstaller {
 
     private static void runMigration(String name, String version,
             String markerPath, ThrowingRunnable deployAction) {
-        runMigration(name, version, markerPath, deployAction, null);
+        runMigration(name, version, markerPath, deployAction, null, false);
     }
 
     private static void runMigration(String name, String version,
             String markerPath, ThrowingRunnable deployAction, String targetFilePath) {
+        runMigration(name, version, markerPath, deployAction, targetFilePath, false);
+    }
+
+    private static void runMigration(String name, String version,
+            String markerPath, ThrowingRunnable deployAction, String targetFilePath,
+            boolean deferIsExpected) {
         boolean needsDeploy = true;
         File marker = new File(markerPath);
         if (marker.exists()) {
@@ -228,7 +234,11 @@ public class HermesInstaller {
                 }
                 Logger.logInfo(LOG_TAG, name + " migration complete (v" + version + ")");
             } catch (Exception e) {
-                Logger.logErrorExtended(LOG_TAG, "Failed " + name + " migration: " + e.getMessage());
+                if (deferIsExpected) {
+                    Logger.logInfo(LOG_TAG, name + " migration deferred: " + e.getMessage());
+                } else {
+                    Logger.logErrorExtended(LOG_TAG, "Failed " + name + " migration: " + e.getMessage());
+                }
             }
         }
     }
@@ -856,14 +866,7 @@ public class HermesInstaller {
 
         // Start sshd if not already running
         try {
-            String sshdPath = TermuxConstants.TERMUX_BIN_PREFIX_DIR_PATH + "/sshd";
-            String errLog = TermuxConstants.TERMUX_HOME_DIR_PATH + "/.hermes/logs/sshd.err";
-            // Test config first, then start with error logging
-            String startCmd = sshdPath + " -t 2>>" + errLog + " && ("
-                    + "pgrep -f '" + sshdPath + "' >/dev/null 2>&1 || "
-                    + sshdPath + " -E " + errLog + " 2>&1"
-                    + ") || echo 'sshd config test failed, see " + errLog + "'";
-            runShellCommand(startCmd);
+            runShellCommand("pgrep -x sshd >/dev/null 2>&1 || " + TermuxConstants.TERMUX_BIN_PREFIX_DIR_PATH + "/sshd");
         } catch (Exception e) {
             Logger.logWarn(LOG_TAG, "SSH: failed to start sshd (non-fatal): " + e.getMessage());
         }
@@ -892,7 +895,12 @@ public class HermesInstaller {
                 + "Port " + SSH_DEFAULT_PORT + "\n"
                 + "PasswordAuthentication yes\n"
                 + "PrintMotd yes\n"
-                + "PermitUserEnvironment yes\n"
+                + "SetEnv PATH=" + binPath + ":/system/bin:/system/xbin\n"
+                + "SetEnv HOME=" + homePath + "\n"
+                + "SetEnv PREFIX=" + prefix + "\n"
+                + "SetEnv LD_LIBRARY_PATH=" + libPath + "\n"
+                + "SetEnv LD_PRELOAD=" + pathRewriteLib + "\n"
+                + "SetEnv TERMUX_VERSION=" + com.termux.BuildConfig.VERSION_NAME + "\n"
                 + "Subsystem sftp " + prefix + "/libexec/sftp-server\n";
 
         try (FileOutputStream out = new FileOutputStream(configFile)) {
@@ -906,14 +914,14 @@ public class HermesInstaller {
         String prefix = TermuxConstants.TERMUX_PREFIX_DIR_PATH;
         String passwdFile = prefix + "/etc/passwd";
 
-        // Generate password hash using openssl
-        String hash = runShellCommandCapture("openssl passwd -6 hermes");
+        // Generate password hash using openssl with explicit salt
+        String hash = runShellCommandCapture("openssl passwd -6 -salt hermes hermes");
         if (hash == null || hash.isEmpty() || hash.startsWith("$0$") || hash.contains("error")) {
-            // Fallback: try crypt format
-            hash = runShellCommandCapture("openssl passwd -1 hermes");
+            // Fallback: try MD5 crypt format
+            hash = runShellCommandCapture("openssl passwd -1 -salt hermes hermes");
         }
         if (hash == null || hash.isEmpty()) {
-            Logger.logWarn(LOG_TAG, "SSH: failed to generate password hash, using openssl in shell");
+            Logger.logWarn(LOG_TAG, "SSH: failed to generate password hash, using shell passwd");
             // Last resort: set password via shell passwd command
             try {
                 runShellCommand("printf 'hermes\\nhermes\\n' | passwd 2>/dev/null || true");
@@ -963,9 +971,6 @@ public class HermesInstaller {
         String script = "#!" + TermuxConstants.TERMUX_BIN_PREFIX_DIR_PATH + "/sh\n"
                 + "# Auto-start SSH daemon on boot\n"
                 + "if [ -f " + TermuxConstants.TERMUX_BIN_PREFIX_DIR_PATH + "/sshd ]; then\n"
-                + "    export HOME=" + TermuxConstants.TERMUX_HOME_DIR_PATH + "\n"
-                + "    export PATH=" + TermuxConstants.TERMUX_BIN_PREFIX_DIR_PATH + ":/system/bin:/system/xbin\n"
-                + "    export PREFIX=" + prefix + "\n"
                 + "    export LD_LIBRARY_PATH=" + TermuxConstants.TERMUX_LIB_PREFIX_DIR_PATH + "\n"
                 + "    if [ -f " + prefix + "/lib/libpath_rewrite.so ]; then\n"
                 + "        export LD_PRELOAD=" + prefix + "/lib/libpath_rewrite.so\n"
@@ -1101,6 +1106,7 @@ public class HermesInstaller {
                 while (reader.readLine() != null) {}
             }
             int exit = p.waitFor();
+            p.destroy();
             if (exit != 0) {
                 Logger.logWarn(LOG_TAG, "Validation: hermes --help exited with code " + exit);
                 return false;
@@ -1158,6 +1164,7 @@ public class HermesInstaller {
             while (reader.readLine() != null) {}
         }
         int exit = p.waitFor();
+        p.destroy();
         if (exit != 0) {
             throw new RuntimeException("Shell command failed (" + exit + "): " + command);
         }
@@ -1190,6 +1197,7 @@ public class HermesInstaller {
                 while (reader.readLine() != null) {}
             }
             p.waitFor();
+            p.destroy();
             return result;
         } catch (Exception e) {
             return null;
