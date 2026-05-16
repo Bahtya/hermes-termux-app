@@ -237,6 +237,7 @@ public class SessionsFragment extends Fragment {
         item.setClickable(true);
         item.setFocusable(true);
         item.setOnClickListener(v -> {
+            if (entry.sessionId == null || entry.sessionId.isEmpty()) return;
             Intent intent = new Intent(requireContext(), HermesWebActivity.class);
             intent.putExtra(HermesWebActivity.EXTRA_URL_PATH, "/sessions/" + entry.sessionId);
             startActivity(intent);

@@ -222,7 +222,7 @@ public class ProfileFragment extends Fragment {
             requireActivity().runOnUiThread(() -> {
                 try {
                     Uri uri = FileProvider.getUriForFile(requireContext(),
-                            requireContext().getPackageName() + ".fileprovider", file);
+                            requireContext().getPackageName() + ".update.fileprovider", file);
                     Intent share = new Intent(Intent.ACTION_SEND);
                     share.setType("application/json");
                     share.putExtra(Intent.EXTRA_STREAM, uri);
