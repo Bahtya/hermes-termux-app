@@ -1100,15 +1100,36 @@ public class HermesInstaller {
             throw new Exception("Failed to create " + libDir.getAbsolutePath());
         }
 
+        // Write to a temp file first, then rename atomically. Overwriting the
+        // destination in-place can kill processes that have it loaded via
+        // LD_PRELOAD (the kernel invalidates the mmap'd pages).
+        File tmpFile = new File(dstFile.getAbsolutePath() + ".tmp");
+        tmpFile.delete(); // clean up stale temp from a previous failed deploy
         try (FileInputStream fis = new FileInputStream(srcFile);
-             FileOutputStream fos = new FileOutputStream(dstFile)) {
+             FileOutputStream fos = new FileOutputStream(tmpFile)) {
             byte[] buf = new byte[8192];
             int len;
             while ((len = fis.read(buf)) != -1) {
                 fos.write(buf, 0, len);
             }
         }
-        Os.chmod(dstFile.getAbsolutePath(), 0644);
+        Os.chmod(tmpFile.getAbsolutePath(), 0644);
+        if (!tmpFile.renameTo(dstFile)) {
+            // renameTo may fail across mount points; fall back to direct write.
+            // This may kill processes with the library mmap'd, but is better
+            // than leaving no library at all.
+            Logger.logWarn(LOG_TAG, "Atomic rename failed for libpath_rewrite.so, falling back to direct write");
+            tmpFile.delete();
+            try (FileInputStream fis = new FileInputStream(srcFile);
+                 FileOutputStream fos = new FileOutputStream(dstFile)) {
+                byte[] buf = new byte[8192];
+                int len;
+                while ((len = fis.read(buf)) != -1) {
+                    fos.write(buf, 0, len);
+                }
+            }
+            Os.chmod(dstFile.getAbsolutePath(), 0644);
+        }
         Logger.logInfo(LOG_TAG, "Deployed path rewrite lib to " + dstFile.getAbsolutePath());
     }
 
