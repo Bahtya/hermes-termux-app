@@ -58,7 +58,7 @@ public class HermesInstaller {
     private static final String HERMES_APT_CONF_VERSION = "4";
     private static final String HERMES_DPKG_CONF_VERSION = "1";
     private static final String HERMES_SHELL_PROFILE_VERSION = "1";
-    private static final String HERMES_PATH_REWRITE_VERSION = "3";
+    private static final String HERMES_PATH_REWRITE_VERSION = "4";
     private static final String HERMES_SYMLINK_FIX_VERSION = "2";
     private static final String HERMES_DPKG_DB_FIX_VERSION = "2";
     private static final String HERMES_SSH_SETUP_VERSION = "3";
