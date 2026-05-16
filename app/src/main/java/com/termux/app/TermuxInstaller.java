@@ -442,19 +442,31 @@ final class TermuxInstaller {
 
             Process p = pb.start();
             StringBuilder output = new StringBuilder();
+            int lineCount = 0;
             try (BufferedReader reader = new BufferedReader(new InputStreamReader(p.getInputStream()))) {
                 String line;
                 while ((line = reader.readLine()) != null) {
-                    output.append(line).append("\n");
+                    if (lineCount < 20) {
+                        output.append(line).append("\n");
+                    }
+                    lineCount++;
                 }
             }
-            int exitCode = p.waitFor();
+
+            if (!p.waitFor(60, java.util.concurrent.TimeUnit.SECONDS)) {
+                p.destroyForcibly();
+                Logger.logWarn(LOG_TAG, "dpkg --configure -a timed out after 60s (non-fatal)");
+                return;
+            }
+            int exitCode = p.exitValue();
 
             if (exitCode == 0) {
                 Logger.logInfo(LOG_TAG, "dpkg --configure -a completed successfully");
             } else {
+                String summary = output.length() > 0 ? output.toString().trim() : "(no output)";
+                if (lineCount > 20) summary += "\n... (" + lineCount + " lines total)";
                 Logger.logWarn(LOG_TAG, "dpkg --configure -a exited with code " + exitCode
-                    + " (non-fatal): " + output.toString().trim());
+                    + " (non-fatal): " + summary);
             }
         } catch (Exception e) {
             Logger.logWarn(LOG_TAG, "dpkg --configure -a failed (non-fatal): " + e.getMessage());
