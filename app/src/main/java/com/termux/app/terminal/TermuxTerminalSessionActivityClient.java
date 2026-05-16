@@ -143,7 +143,15 @@ public class TermuxTerminalSessionActivityClient extends TermuxTerminalSessionCl
 
         if (service == null || service.wantsToStop()) {
             // The service wants to stop as soon as possible.
-            mActivity.finishActivityIfNotFinishing();
+            // But if this session just started, keep the activity open so the user
+            // can see what went wrong.
+            long uptimeMs = System.currentTimeMillis() - finishedSession.getCreateTimeMs();
+            if (uptimeMs < 10_000 && service.getTermuxSessionsSize() <= 1) {
+                Logger.logWarn(LOG_TAG, "Service stopping but last session only lived " + uptimeMs
+                    + "ms, keeping activity for debugging");
+            } else {
+                mActivity.finishActivityIfNotFinishing();
+            }
             return;
         }
 
@@ -200,6 +208,19 @@ public class TermuxTerminalSessionActivityClient extends TermuxTerminalSessionCl
                 Logger.logWarn(LOG_TAG, "Terminal crashed with signal 11 after " + uptimeMs
                     + "ms, disabling LD_PRELOAD and restarting session");
                 TermuxShellEnvironment.reportTerminalSignal11();
+                removeFinishedSession(finishedSession);
+                addNewSession(false, null);
+            }
+        }
+
+        // Auto-recover from Signal 9 (SIGKILL), typically caused by the OOM
+        // killer or by deployPathRewrite() overwriting libpath_rewrite.so while
+        // the terminal's bash has it loaded via LD_PRELOAD.
+        if (exitCode == -9) {
+            long uptimeMs = System.currentTimeMillis() - finishedSession.getCreateTimeMs();
+            if (uptimeMs < 30_000) {
+                Logger.logWarn(LOG_TAG, "Terminal killed with signal 9 after " + uptimeMs
+                    + "ms, restarting session");
                 removeFinishedSession(finishedSession);
                 addNewSession(false, null);
             }
@@ -470,8 +491,16 @@ public class TermuxTerminalSessionActivityClient extends TermuxTerminalSessionCl
 
         int size = service.getTermuxSessionsSize();
         if (size == 0) {
-            // There are no sessions to show, so finish the activity.
-            mActivity.finishActivityIfNotFinishing();
+            // If the session lived less than 10 seconds, keep the activity open
+            // so the user can see the error output instead of the app closing instantly.
+            long uptimeMs = System.currentTimeMillis() - finishedSession.getCreateTimeMs();
+            if (uptimeMs < 10_000) {
+                Logger.logWarn(LOG_TAG, "Last session removed after " + uptimeMs
+                    + "ms, keeping activity open for debugging");
+            } else {
+                // There are no sessions to show, so finish the activity.
+                mActivity.finishActivityIfNotFinishing();
+            }
         } else {
             if (index >= size) {
                 index = size - 1;
