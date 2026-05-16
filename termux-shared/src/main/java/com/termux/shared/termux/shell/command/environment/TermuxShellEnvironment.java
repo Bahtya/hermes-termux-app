@@ -25,6 +25,30 @@ public class TermuxShellEnvironment extends AndroidShellEnvironment {
 
     private static final String LOG_TAG = "TermuxShellEnvironment";
 
+    /**
+     * Consecutive Signal 11 (SIGSEGV) crash counter for terminal sessions.
+     * Incremented when a terminal session exits with signal 11.
+     * Reset to 0 when a session runs for more than 5 seconds (considered successful).
+     * LD_PRELOAD is skipped after 1 crash to allow recovery.
+     */
+    private static volatile int sSignal11CrashCount = 0;
+
+    public static void reportTerminalSignal11() {
+        sSignal11CrashCount++;
+        Logger.logWarn(LOG_TAG, "Terminal signal 11 crash count: " + sSignal11CrashCount);
+    }
+
+    public static void reportTerminalHealthy() {
+        if (sSignal11CrashCount != 0) {
+            sSignal11CrashCount = 0;
+            Logger.logInfo(LOG_TAG, "Terminal healthy, reset signal 11 crash count");
+        }
+    }
+
+    public static boolean isPathRewriteDisabled() {
+        return sSignal11CrashCount >= 1;
+    }
+
     /** Environment variable for the termux {@link TermuxConstants#TERMUX_PREFIX_DIR_PATH}. */
     public static final String ENV_PREFIX = "PREFIX";
 
@@ -110,9 +134,14 @@ public class TermuxShellEnvironment extends AndroidShellEnvironment {
             // Set LD_PRELOAD to load the path rewrite library. This intercepts all
             // filesystem calls and rewrites /data/data/com.termux/ to the correct path,
             // fixing ALL binaries with compiled-in old paths (dpkg, apt, bash, etc.).
-            String pathRewriteLib = TermuxConstants.TERMUX_LIB_PREFIX_DIR_PATH + "/libpath_rewrite.so";
-            if (new java.io.File(pathRewriteLib).exists()) {
-                environment.put("LD_PRELOAD", pathRewriteLib);
+            // Skip if terminal has crashed with signal 11 to allow recovery.
+            if (!isPathRewriteDisabled()) {
+                String pathRewriteLib = TermuxConstants.TERMUX_LIB_PREFIX_DIR_PATH + "/libpath_rewrite.so";
+                if (new java.io.File(pathRewriteLib).exists()) {
+                    environment.put("LD_PRELOAD", pathRewriteLib);
+                }
+            } else {
+                Logger.logWarn(LOG_TAG, "Skipping LD_PRELOAD due to previous signal 11 crash");
             }
         }
 

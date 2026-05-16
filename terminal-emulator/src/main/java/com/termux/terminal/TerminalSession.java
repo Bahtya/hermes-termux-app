@@ -60,6 +60,9 @@ public final class TerminalSession extends TerminalOutput {
     /** The exit status of the shell process. Only valid if ${@link #mShellPid} is -1. */
     int mShellExitStatus;
 
+    /** Timestamp (System.currentTimeMillis()) when the process was started. */
+    private long mCreateTimeMs;
+
     /**
      * The file descriptor referencing the master half of a pseudo-terminal pair, resulting from calling
      * {@link JNI#createSubprocess(String, String, String[], String[], int[], int, int, int, int)}.
@@ -127,7 +130,16 @@ public final class TerminalSession extends TerminalOutput {
         int[] processId = new int[1];
         mTerminalFileDescriptor = JNI.createSubprocess(mShellPath, mCwd, mArgs, mEnv, processId, rows, columns, cellWidthPixels, cellHeightPixels);
         mShellPid = processId[0];
+        mCreateTimeMs = System.currentTimeMillis();
         mClient.setTerminalShellPid(this, mShellPid);
+
+        // Post a delayed health check: if the process is still running after 5s,
+        // it's considered healthy and we reset the signal 11 crash counter.
+        mMainThreadHandler.postDelayed(() -> {
+            if (isRunning()) {
+                mClient.onTerminalHealthCheck(this);
+            }
+        }, 5000);
 
         final FileDescriptor terminalFileDescriptorWrapped = wrapFileDescriptor(mTerminalFileDescriptor, mClient);
 
@@ -294,6 +306,11 @@ public final class TerminalSession extends TerminalOutput {
         return mShellPid;
     }
 
+    /** Returns timestamp when the process was created, for crash timing. */
+    public long getCreateTimeMs() {
+        return mCreateTimeMs;
+    }
+
     /** Returns the shell's working directory or null if it was unavailable. */
     public String getCwd() {
         if (mShellPid < 1) {
@@ -382,11 +399,25 @@ public final class TerminalSession extends TerminalOutput {
                     }
 
                     String signalInfo = exitCode < 0 ? "signal " + (-exitCode) : "code " + exitCode;
+                    long uptimeMs = System.currentTimeMillis() - mCreateTimeMs;
                     if (exitCode < 0) {
+                        // Find LD_PRELOAD value from env for diagnostics
+                        String ldPreload = "unknown";
+                        for (String env : mEnv) {
+                            if (env != null && env.startsWith("LD_PRELOAD=")) {
+                                ldPreload = env.substring("LD_PRELOAD=".length());
+                                break;
+                            }
+                        }
                         Log.e(LOG_TAG, "Process exited (" + signalInfo + "), shell=" + mShellPath
+                            + ", uptime=" + uptimeMs + "ms"
+                            + ", LD_PRELOAD=" + ldPreload
                             + (mSessionName != null ? ", session=" + mSessionName : ""));
                         if (!lastOutput.isEmpty()) {
                             Log.e(LOG_TAG, "Last terminal output:\n" + lastOutput);
+                        }
+                        if (exitCode == -11 && uptimeMs < 5000) {
+                            Log.e(LOG_TAG, "Signal 11 within " + uptimeMs + "ms — likely LD_PRELOAD crash");
                         }
                     } else {
                         Log.d(LOG_TAG, "Process exited (" + signalInfo + "), shell=" + mShellPath
