@@ -3,7 +3,4 @@
     <external-files-path
         name="update_downloads"
         path="Download/" />
-    <cache-path
-        name="config_export"
-        path="." />
 </paths>

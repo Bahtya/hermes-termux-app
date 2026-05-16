@@ -14,7 +14,6 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AlertDialog;
 import androidx.core.content.ContextCompat;
-import androidx.core.content.FileProvider;
 import androidx.fragment.app.Fragment;
 
 import com.termux.R;
@@ -27,15 +26,14 @@ import com.termux.app.hermes.HermesGatewayStatus;
 import com.termux.app.hermes.HermesHelpActivity;
 import com.termux.app.hermes.HermesInstallActivity;
 
-import java.io.BufferedWriter;
 import java.io.File;
-import java.io.FileWriter;
 
 import com.termux.shared.termux.TermuxConstants;
 
 public class ProfileFragment extends Fragment {
 
     private static final int REQUEST_IMPORT_CONFIG = 1001;
+    private static final int REQUEST_EXPORT_CONFIG = 1002;
 
     private TextView mGatewayStatusText;
     private Button mGatewayToggleButton;
@@ -203,40 +201,16 @@ public class ProfileFragment extends Fragment {
     }
 
     private void exportConfig() {
-        new Thread(() -> {
-            HermesConfigManager mgr = HermesConfigManager.getInstance();
-            String json = mgr.exportConfigMasked();
-            File file = new File(requireContext().getCacheDir(), "hermes_config_export.json");
-            try (BufferedWriter writer = new BufferedWriter(new FileWriter(file))) {
-                writer.write(json);
-            } catch (Exception e) {
-                if (getActivity() == null) return;
-                requireActivity().runOnUiThread(() ->
-                        Toast.makeText(requireContext(), e.getMessage(), Toast.LENGTH_LONG).show());
-                return;
-            }
-
-            if (getActivity() == null) return;
-            requireActivity().runOnUiThread(() -> {
-                try {
-                    Uri uri = FileProvider.getUriForFile(requireContext(),
-                            requireContext().getPackageName() + ".update.fileprovider", file);
-                    Intent share = new Intent(Intent.ACTION_SEND);
-                    share.setType("application/json");
-                    share.putExtra(Intent.EXTRA_STREAM, uri);
-                    share.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
-                    startActivity(Intent.createChooser(share, getString(R.string.profile_export_config)));
-                } catch (Exception e) {
-                    Toast.makeText(requireContext(),
-                            getString(R.string.profile_config_exported) + ": " + file.getAbsolutePath(),
-                            Toast.LENGTH_LONG).show();
-                }
-            });
-        }).start();
+        Intent intent = new Intent(Intent.ACTION_CREATE_DOCUMENT);
+        intent.addCategory(Intent.CATEGORY_OPENABLE);
+        intent.setType("application/json");
+        intent.putExtra(Intent.EXTRA_TITLE, "hermes_config_export.json");
+        startActivityForResult(intent, REQUEST_EXPORT_CONFIG);
     }
 
     private void openConfigPicker() {
-        Intent intent = new Intent(Intent.ACTION_GET_CONTENT);
+        Intent intent = new Intent(Intent.ACTION_OPEN_DOCUMENT);
+        intent.addCategory(Intent.CATEGORY_OPENABLE);
         intent.setType("application/json");
         startActivityForResult(intent, REQUEST_IMPORT_CONFIG);
     }
@@ -261,12 +235,37 @@ public class ProfileFragment extends Fragment {
 
     @Override
     public void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
-        if (requestCode == REQUEST_IMPORT_CONFIG && resultCode == android.app.Activity.RESULT_OK
-                && data != null && data.getData() != null) {
+        if (resultCode != android.app.Activity.RESULT_OK || data == null || data.getData() == null) {
+            super.onActivityResult(requestCode, resultCode, data);
+            return;
+        }
+        if (requestCode == REQUEST_EXPORT_CONFIG) {
+            exportConfigToUri(data.getData());
+        } else if (requestCode == REQUEST_IMPORT_CONFIG) {
             importConfigFromUri(data.getData());
         } else {
             super.onActivityResult(requestCode, resultCode, data);
         }
+    }
+
+    private void exportConfigToUri(Uri uri) {
+        new Thread(() -> {
+            try {
+                String json = HermesConfigManager.getInstance().exportConfigMasked();
+                java.io.OutputStream os = requireContext().getContentResolver().openOutputStream(uri);
+                if (os == null) return;
+                os.write(json.getBytes("UTF-8"));
+                os.close();
+                if (getActivity() == null) return;
+                requireActivity().runOnUiThread(() ->
+                        Toast.makeText(requireContext(), R.string.profile_config_exported,
+                                Toast.LENGTH_SHORT).show());
+            } catch (Exception e) {
+                if (getActivity() == null) return;
+                requireActivity().runOnUiThread(() ->
+                        Toast.makeText(requireContext(), e.getMessage(), Toast.LENGTH_LONG).show());
+            }
+        }).start();
     }
 
     private void importConfigFromUri(Uri uri) {
