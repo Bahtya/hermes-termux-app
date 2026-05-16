@@ -246,11 +246,15 @@ public class HermesInstallHelper {
      */
     private static void ensureBashReady(Context context, ProgressCallback callback) throws Exception {
         String bashPath = TermuxConstants.TERMUX_BIN_PREFIX_DIR_PATH + "/bash";
-        int maxWaitAttempts = 20;
+        int maxWaitAttempts = 40;
 
         for (int i = 0; i < maxWaitAttempts; i++) {
             if (callback != null && callback.isCancelled()) return;
-            if (new File(bashPath).exists()) {
+
+            if (!new File(bashPath).exists()) {
+                Logger.logInfo(LOG_TAG, "Bootstrap not ready: bash not found at " + bashPath
+                        + " (" + (i + 1) + "/" + maxWaitAttempts + ")");
+            } else {
                 try {
                     ProcessBuilder pb = new ProcessBuilder(bashPath, "-c", "echo ok");
                     pb.environment().put("LD_LIBRARY_PATH", TermuxConstants.TERMUX_LIB_PREFIX_DIR_PATH);
@@ -265,16 +269,24 @@ public class HermesInstallHelper {
                         while (is.read(buf) != -1) {}
                     }
                     int exit = p.waitFor();
-                    if (exit == 0) return;
-                } catch (Exception ignored) {}
+                    if (exit == 0) {
+                        Logger.logInfo(LOG_TAG, "Bootstrap ready: bash executed successfully");
+                        return;
+                    }
+                    Logger.logWarn(LOG_TAG, "Bootstrap not ready: bash exited with code " + exit
+                            + " (" + (i + 1) + "/" + maxWaitAttempts + ")");
+                } catch (Exception e) {
+                    Logger.logWarn(LOG_TAG, "Bootstrap not ready: bash execution failed: "
+                            + e.getMessage() + " (" + (i + 1) + "/" + maxWaitAttempts + ")");
+                }
             }
+
             if (callback != null) {
                 callback.onStatus(context.getString(R.string.install_waiting_bootstrap, (i + 1), maxWaitAttempts));
             }
-            Logger.logInfo(LOG_TAG, "Bootstrap not ready, waiting... (" + (i + 1) + "/" + maxWaitAttempts + ")");
             Thread.sleep(3000);
         }
-        String bootstrapError = "Termux bootstrap packages are not ready after 60 seconds";
+        String bootstrapError = "Termux bootstrap packages are not ready after " + (maxWaitAttempts * 3) + " seconds";
         setLastError(context, bootstrapError);
         setState(context, InstallState.FAILED);
         throw new RuntimeException(bootstrapError);
