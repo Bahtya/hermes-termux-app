@@ -183,7 +183,7 @@ public class HermesInstaller {
                 TermuxConstants.TERMUX_HOME_DIR_PATH + "/.bashrc");
         runMigration("SSH setup", HERMES_SSH_SETUP_VERSION,
                 HERMES_SSH_SETUP_MARKER_FILE, HermesInstaller::deploySshConfig,
-                SSHD_CONFIG_PATH);
+                SSHD_CONFIG_PATH, true);
     }
 
     /**
@@ -198,11 +198,17 @@ public class HermesInstaller {
 
     private static void runMigration(String name, String version,
             String markerPath, ThrowingRunnable deployAction) {
-        runMigration(name, version, markerPath, deployAction, null);
+        runMigration(name, version, markerPath, deployAction, null, false);
     }
 
     private static void runMigration(String name, String version,
             String markerPath, ThrowingRunnable deployAction, String targetFilePath) {
+        runMigration(name, version, markerPath, deployAction, targetFilePath, false);
+    }
+
+    private static void runMigration(String name, String version,
+            String markerPath, ThrowingRunnable deployAction, String targetFilePath,
+            boolean deferIsExpected) {
         boolean needsDeploy = true;
         File marker = new File(markerPath);
         if (marker.exists()) {
@@ -228,7 +234,7 @@ public class HermesInstaller {
                 }
                 Logger.logInfo(LOG_TAG, name + " migration complete (v" + version + ")");
             } catch (Exception e) {
-                if ("SSH setup".equals(name)) {
+                if (deferIsExpected) {
                     Logger.logInfo(LOG_TAG, name + " migration deferred: " + e.getMessage());
                 } else {
                     Logger.logErrorExtended(LOG_TAG, "Failed " + name + " migration: " + e.getMessage());
@@ -909,7 +915,7 @@ public class HermesInstaller {
         String passwdFile = prefix + "/etc/passwd";
 
         // Generate password hash using openssl with explicit salt
-        String hash = runShellCommandCapture("openssl passwd -6 -salt hermes $(openssl rand -hex 8) <<< hermes");
+        String hash = runShellCommandCapture("openssl passwd -6 -salt hermes hermes");
         if (hash == null || hash.isEmpty() || hash.startsWith("$0$") || hash.contains("error")) {
             // Fallback: try MD5 crypt format
             hash = runShellCommandCapture("openssl passwd -1 -salt hermes hermes");
