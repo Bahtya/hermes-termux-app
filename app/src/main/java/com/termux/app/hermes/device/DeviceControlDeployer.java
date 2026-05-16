@@ -100,17 +100,10 @@ public class DeviceControlDeployer {
     }
 
     private static void deployAsset(Context context, String assetPath, String targetPath) throws IOException {
-        // Try assets first
         try (InputStream is = context.getAssets().open(assetPath)) {
             writeStream(is, targetPath);
-            return;
-        } catch (IOException ignored) {
-            // Asset not found, try inline generation
-        }
-
-        // Fallback: generate inline for the MCP server
-        if (assetPath.endsWith("device_control.py")) {
-            writeStringToFile(targetPath, generateMcpServerScript());
+        } catch (IOException e) {
+            throw new IOException("Asset not found: " + assetPath, e);
         }
     }
 
@@ -126,67 +119,6 @@ public class DeviceControlDeployer {
                 os.write(buf, 0, len);
             }
         }
-    }
-
-    /**
-     * Generate the MCP server script inline as a fallback.
-     * This ensures deployment works even without assets.
-     */
-    private static String generateMcpServerScript() {
-        return "#!/usr/bin/env python3\n"
-                + "# Hermux Device Control MCP Server\n"
-                + "# Auto-deployed by Hermux app\n"
-                + "import json, sys, urllib.request, urllib.error\n"
-                + "SERVER = \"http://localhost:18720\"\n"
-                + "def send_result(r):\n"
-                + "    sys.stdout.write(json.dumps(r) + \"\\n\"); sys.stdout.flush()\n"
-                + "def make_resp(rid, r): return {\"jsonrpc\":\"2.0\",\"id\":rid,\"result\":r}\n"
-                + "def make_err(rid, c, m): return {\"jsonrpc\":\"2.0\",\"id\":rid,\"error\":{\"code\":c,\"message\":m}}\n"
-                + "def http_get(p):\n"
-                + "    try:\n"
-                + "        with urllib.request.urlopen(SERVER+p, timeout=10) as r: return json.loads(r.read().decode())\n"
-                + "    except Exception as e: return {\"ok\":False,\"error\":str(e)}\n"
-                + "def http_post(p, b):\n"
-                + "    try:\n"
-                + "        d=json.dumps(b).encode()\n"
-                + "        req=urllib.request.Request(SERVER+p,data=d,headers={\"Content-Type\":\"application/json\"})\n"
-                + "        with urllib.request.urlopen(req, timeout=10) as r: return json.loads(r.read().decode())\n"
-                + "    except Exception as e: return {\"ok\":False,\"error\":str(e)}\n"
-                + "TOOLS=[\n"
-                + "  {\"name\":\"click\",\"description\":\"Click a UI element. Use text, id, or x/y.\",\"inputSchema\":{\"type\":\"object\",\"properties\":{\"text\":{\"type\":\"string\"},\"id\":{\"type\":\"string\"},\"x\":{\"type\":\"integer\"},\"y\":{\"type\":\"integer\"}}}},\n"
-                + "  {\"name\":\"type_text\",\"description\":\"Type text into focused input field.\",\"inputSchema\":{\"type\":\"object\",\"required\":[\"text\"],\"properties\":{\"text\":{\"type\":\"string\"}}}},\n"
-                + "  {\"name\":\"swipe\",\"description\":\"Swipe gesture.\",\"inputSchema\":{\"type\":\"object\",\"required\":[\"x1\",\"y1\",\"x2\",\"y2\"],\"properties\":{\"x1\":{\"type\":\"integer\"},\"y1\":{\"type\":\"integer\"},\"x2\":{\"type\":\"integer\"},\"y2\":{\"type\":\"integer\"},\"duration\":{\"type\":\"integer\"}}}},\n"
-                + "  {\"name\":\"press_key\",\"description\":\"Press global key: back,home,recents,notifications,quick_settings,power_dialog,lock_screen,take_screenshot.\",\"inputSchema\":{\"type\":\"object\",\"required\":[\"key\"],\"properties\":{\"key\":{\"type\":\"string\"}}}},\n"
-                + "  {\"name\":\"scroll\",\"description\":\"Scroll forward or backward.\",\"inputSchema\":{\"type\":\"object\",\"properties\":{\"direction\":{\"type\":\"string\",\"enum\":[\"forward\",\"backward\"]}}}},\n"
-                + "  {\"name\":\"dump_ui\",\"description\":\"Dump current UI hierarchy as JSON.\",\"inputSchema\":{\"type\":\"object\",\"properties\":{}}},\n"
-                + "  {\"name\":\"get_current_app\",\"description\":\"Get current foreground app info.\",\"inputSchema\":{\"type\":\"object\",\"properties\":{}}},\n"
-                + "  {\"name\":\"adb_shell\",\"description\":\"Execute ADB shell command.\",\"inputSchema\":{\"type\":\"object\",\"required\":[\"command\"],\"properties\":{\"command\":{\"type\":\"string\"}}}},\n"
-                + "  {\"name\":\"adb_connect\",\"description\":\"Connect ADB over TCP.\",\"inputSchema\":{\"type\":\"object\",\"properties\":{\"host\":{\"type\":\"string\"},\"port\":{\"type\":\"integer\"}}}},\n"
-                + "  {\"name\":\"device_status\",\"description\":\"Check device control status.\",\"inputSchema\":{\"type\":\"object\",\"properties\":{}}},\n"
-                + "]\n"
-                + "def call_tool(n, a):\n"
-                + "    m={\"click\":lambda:http_post(\"/click\",a),\"type_text\":lambda:http_post(\"/type\",a),\"swipe\":lambda:http_post(\"/swipe\",a),\"press_key\":lambda:http_post(\"/key\",a),\"scroll\":lambda:http_post(\"/scroll\",a),\"dump_ui\":lambda:http_get(\"/ui\"),\"get_current_app\":lambda:http_get(\"/current_app\"),\"adb_shell\":lambda:http_post(\"/adb/shell\",{\"command\":a.get(\"command\",\"\")}),\"adb_connect\":lambda:http_post(\"/adb/connect\",{\"host\":a.get(\"host\",\"localhost\"),\"port\":a.get(\"port\",5555)}),\"device_status\":lambda:http_get(\"/status\")}\n"
-                + "    f=m.get(n)\n"
-                + "    return f() if f else {\"ok\":False,\"error\":\"Unknown tool: \"+n}\n"
-                + "def handle(req):\n"
-                + "    rid=req.get(\"id\"); method=req.get(\"method\"); params=req.get(\"params\",{})\n"
-                + "    if method==\"initialize\": return make_resp(rid,{\"protocolVersion\":\"2024-11-05\",\"capabilities\":{\"tools\":{}},\"serverInfo\":{\"name\":\"hermux-device-control\",\"version\":\"1.0.0\"}})\n"
-                + "    if method==\"notifications/initialized\": return None\n"
-                + "    if method==\"tools/list\": return make_resp(rid,{\"tools\":TOOLS})\n"
-                + "    if method==\"tools/call\":\n"
-                + "        r=call_tool(params.get(\"name\",\"\"),params.get(\"arguments\",{}))\n"
-                + "        txt=json.dumps(r,ensure_ascii=False) if \"ui\" in r or \"app\" in r else r.get(\"output\",r.get(\"message\",\"ok\" if r.get(\"ok\") else r.get(\"error\",\"error\")))\n"
-                + "        return make_resp(rid,{\"content\":[{\"type\":\"text\",\"text\":str(txt)}]})\n"
-                + "    if method==\"shutdown\": return make_resp(rid,{})\n"
-                + "    return make_err(rid,-32601,\"Method not found\")\n"
-                + "for line in sys.stdin:\n"
-                + "    line=line.strip()\n"
-                + "    if not line: continue\n"
-                + "    try: req=json.loads(line)\n"
-                + "    except: continue\n"
-                + "    resp=handle(req)\n"
-                + "    if resp is not None: send_result(resp)\n"
-                + "    if req.get(\"method\")==\"shutdown\": break\n";
     }
 
     private static void registerMcpServer() {
@@ -229,15 +161,4 @@ public class DeviceControlDeployer {
         }
     }
 
-    /** Write a string to a file (package-private utility for marker). */
-    static void writeStringToFile(String path, String content) {
-        File file = new File(path);
-        File parent = file.getParentFile();
-        if (parent != null && !parent.exists()) parent.mkdirs();
-        try (OutputStream os = new BufferedOutputStream(new FileOutputStream(file))) {
-            os.write(content.getBytes("UTF-8"));
-        } catch (IOException e) {
-            Log.e(TAG, "Failed to write " + path + ": " + e.getMessage());
-        }
-    }
 }

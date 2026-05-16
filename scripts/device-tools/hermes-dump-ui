@@ -1,7 +1,0 @@
-#!/bin/bash
-# hermes-dump-ui — Dump current UI hierarchy as JSON
-# Usage: hermes-dump-ui
-set -euo pipefail
-
-curl -s http://localhost:18720/ui | python3 -m json.tool 2>/dev/null || curl -s http://localhost:18720/ui
-echo

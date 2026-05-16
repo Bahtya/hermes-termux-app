@@ -201,7 +201,7 @@ public class DeviceControlServer {
             }
             try {
                 JSONObject body = "POST".equals(exchange.getRequestMethod()) ? readBody(exchange) : new JSONObject();
-                JSONObject result = handleA11y(mService, body);
+                JSONObject result = mService.callOnMainThread(() -> handleA11y(mService, body));
                 sendJson(exchange, 200, result);
             } catch (Exception e) {
                 sendJson(exchange, 500, HermuxAccessibilityService.errorResult(e.getMessage()));

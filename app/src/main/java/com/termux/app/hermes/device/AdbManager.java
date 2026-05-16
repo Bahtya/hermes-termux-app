@@ -66,6 +66,9 @@ public class AdbManager {
         if (!sConnected) {
             return HermuxAccessibilityService.errorResult("adb not connected. POST /adb/connect first");
         }
+        if (command.matches(".*[;|&`$()].*")) {
+            return HermuxAccessibilityService.errorResult("shell metacharacters not allowed in command");
+        }
         try {
             String output = execRaw("adb shell " + command);
             JSONObject result = HermuxAccessibilityService.okResult("ok");

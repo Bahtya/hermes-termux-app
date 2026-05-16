@@ -9,10 +9,7 @@ if [[ $# -lt 1 ]]; then
     exit 1
 fi
 
-CMD="$*"
-ESCAPED=$(printf '%s' "$CMD" | sed 's/\\/\\\\/g; s/"/\\"/g')
-
 curl -s -X POST http://localhost:18720/adb/shell \
     -H "Content-Type: application/json" \
-    -d "{\"command\":\"$ESCAPED\"}"
+    -d "$(python3 -c 'import json,sys; print(json.dumps({"command": sys.argv[1]}))' "$*")"
 echo

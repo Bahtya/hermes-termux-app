@@ -8,11 +8,7 @@ if [[ $# -lt 1 ]]; then
     exit 1
 fi
 
-TEXT="$1"
-# Escape JSON special characters
-ESCAPED=$(printf '%s' "$TEXT" | sed 's/\\/\\\\/g; s/"/\\"/g; s/\n/\\n/g')
-
 curl -s -X POST http://localhost:18720/type \
     -H "Content-Type: application/json" \
-    -d "{\"text\":\"$ESCAPED\"}"
+    -d "$(python3 -c 'import json,sys; print(json.dumps({"text": sys.argv[1]}))' "$1")"
 echo

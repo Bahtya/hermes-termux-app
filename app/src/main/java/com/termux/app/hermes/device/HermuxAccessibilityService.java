@@ -15,6 +15,7 @@ import org.json.JSONObject;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.Callable;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
@@ -59,6 +60,33 @@ public class HermuxAccessibilityService extends AccessibilityService {
     }
 
     // --- Public API ---
+
+    /**
+     * Run an a11y callable on the main thread and wait for the result.
+     * Callers (HTTP handlers) are on the server executor thread.
+     */
+    public JSONObject callOnMainThread(Callable<JSONObject> callable) throws Exception {
+        if (Looper.myLooper() == Looper.getMainLooper()) {
+            return callable.call();
+        }
+        final Exception[] error = {null};
+        final JSONObject[] result = {null};
+        CountDownLatch latch = new CountDownLatch(1);
+        mHandler.post(() -> {
+            try {
+                result[0] = callable.call();
+            } catch (Exception e) {
+                error[0] = e;
+            } finally {
+                latch.countDown();
+            }
+        });
+        if (!latch.await(5, TimeUnit.SECONDS)) {
+            throw new RuntimeException("main thread call timed out");
+        }
+        if (error[0] != null) throw error[0];
+        return result[0];
+    }
 
     public JSONObject clickByText(String text) throws Exception {
         AccessibilityNodeInfo root = getRootInActiveWindow();
@@ -210,9 +238,16 @@ public class HermuxAccessibilityService extends AccessibilityService {
     private AccessibilityNodeInfo findClickableAncestor(AccessibilityNodeInfo node) {
         AccessibilityNodeInfo current = node;
         while (current != null) {
-            if (current.isClickable()) return AccessibilityNodeInfo.obtain(current);
-            if (current.getParent() == null) return current;
+            if (current.isClickable()) {
+                AccessibilityNodeInfo result = AccessibilityNodeInfo.obtain(current);
+                if (current != node) current.recycle();
+                return result;
+            }
             AccessibilityNodeInfo parent = current.getParent();
+            if (parent == null) {
+                if (current != node) current.recycle();
+                return null;
+            }
             if (current != node) current.recycle();
             current = parent;
         }
@@ -236,7 +271,11 @@ public class HermuxAccessibilityService extends AccessibilityService {
             }
         }
         for (int i = 0; i < node.getChildCount(); i++) {
-            findNodesByAction(node.getChild(i), action, out);
+            AccessibilityNodeInfo child = node.getChild(i);
+            if (child != null) {
+                findNodesByAction(child, action, out);
+                child.recycle();
+            }
         }
     }
 
@@ -262,8 +301,12 @@ public class HermuxAccessibilityService extends AccessibilityService {
 
         JSONArray children = new JSONArray();
         for (int i = 0; i < node.getChildCount(); i++) {
-            JSONObject child = nodeToJson(node.getChild(i), depth + 1);
-            if (child != null) children.put(child);
+            AccessibilityNodeInfo childNode = node.getChild(i);
+            if (childNode != null) {
+                JSONObject child = nodeToJson(childNode, depth + 1);
+                if (child != null) children.put(child);
+                childNode.recycle();
+            }
         }
         obj.put("children", children);
         return obj;

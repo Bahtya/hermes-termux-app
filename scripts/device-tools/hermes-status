@@ -1,7 +1,0 @@
-#!/bin/bash
-# hermes-status — Show device control server status
-# Usage: hermes-status
-set -euo pipefail
-
-curl -s http://localhost:18720/status | python3 -m json.tool 2>/dev/null || curl -s http://localhost:18720/status
-echo
