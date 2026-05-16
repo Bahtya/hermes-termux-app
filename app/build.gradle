@@ -228,6 +228,27 @@ task downloadBootstraps() {
         } else {
             throw new GradleException("Unsupported TERMUX_PACKAGE_VARIANT \"" + packageVariant + "\"")
         }
+
+        // Patch all downloaded bootstrap ZIPs in one pass
+        patchBootstraps()
+    }
+}
+
+def patchBootstraps() {
+    def patchScript = new File(project.rootDir, "scripts/patch-bootstrap.sh")
+    if (!patchScript.exists()) {
+        logger.warn("patch-bootstrap.sh not found, skipping bootstrap patching")
+        return
+    }
+    logger.quiet("Patching bootstrap ZIPs ...")
+    def bootstrapDir = new File(projectDir, 'src/main/cpp').absolutePath
+    def process = new ProcessBuilder('bash', patchScript.absolutePath, bootstrapDir)
+        .redirectErrorStream(true)
+        .start()
+    process.inputStream.eachLine { line -> logger.quiet("  " + line) }
+    def exitCode = process.waitFor()
+    if (exitCode != 0) {
+        throw new GradleException("patch-bootstrap.sh failed with exit code " + exitCode)
     }
 }
 
