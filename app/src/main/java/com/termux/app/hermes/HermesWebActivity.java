@@ -130,7 +130,8 @@ public class HermesWebActivity extends AppCompatActivity {
                 if (path != null && !path.isEmpty()) {
                     url = url + path;
                 }
-                runOnUiThread(() -> mWebView.loadUrl(url));
+                String finalUrl = url;
+                runOnUiThread(() -> mWebView.loadUrl(finalUrl));
             }
         }).start();
     }
