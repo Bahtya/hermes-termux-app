@@ -194,9 +194,9 @@ public class HermesInstallHelper {
             + "\n"
             // venv's bin/python is a symlink to $PREFIX/bin/python — install it
             + "echo '=== Update package lists ==='\n"
-            + "apt update 2>&1 | tail -3\n"
+            + "apt update 2>&1\n"
             + "echo '=== Install Python ==='\n"
-            + "apt install -y python 2>&1 | tail -3\n"
+            + "apt install -y python 2>&1\n"
             + "\n"
             + "echo '=== Setup hermes command ==='\n"
             + "HERMES_BIN=\"$PREFIX/bin/hermes\"\n"
