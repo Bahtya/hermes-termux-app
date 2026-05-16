@@ -422,6 +422,11 @@ public final class TermuxActivity extends AppCompatActivity implements ServiceCo
         // Ensure Hermes Agent is installed (idempotent)
         HermesInstaller.installIfNeeded(this);
 
+        // License gate check
+        if (!com.termux.app.hermes.license.LicenseGate.checkOrShowGate(this)) {
+            return;
+        }
+
         // Show welcome dialog on first launch if not configured
         if (HermesSetupWizardActivity.needsSetup(this)
                 && !getSharedPreferences("hermes_setup", MODE_PRIVATE).getBoolean("welcome_dialog_shown", false)) {

@@ -159,6 +159,12 @@
             android:theme="@style/Theme.TermuxApp.DayNight.NoActionBar" />
 
         <activity
+            android:name="com.termux.app.hermes.license.LicenseActivationActivity"
+            android:exported="false"
+            android:label="许可证激活"
+            android:theme="@style/Theme.TermuxApp.DayNight.NoActionBar" />
+
+        <activity
             android:name="com.termux.app.hermes.HermesInstallActivity"
             android:exported="false"
             android:label="@string/install_title"

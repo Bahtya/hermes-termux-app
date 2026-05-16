@@ -19,7 +19,7 @@ mkdir -p "$BOOTSTRAP_DIR"
 for arch in aarch64 arm i686 x86_64; do
   ZIP="${BOOTSTRAP_DIR}/bootstrap-${arch}.zip"
   if [ -f "${ZIP}" ]; then
-    echo "${arch}: already exists, skipping"
+    echo "${arch}: already exists, skipping download"
     continue
   fi
   URL="https://github.com/termux/termux-packages/releases/download/bootstrap-${VERSION}/bootstrap-${arch}.zip"

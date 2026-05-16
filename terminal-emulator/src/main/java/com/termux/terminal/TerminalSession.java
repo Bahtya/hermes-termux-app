@@ -6,6 +6,7 @@ import android.os.Message;
 import android.system.ErrnoException;
 import android.system.Os;
 import android.system.OsConstants;
+import android.util.Log;
 
 import java.io.File;
 import java.io.FileDescriptor;
@@ -359,6 +360,39 @@ public final class TerminalSession extends TerminalOutput {
                     exitDescription += " (signal " + (-exitCode) + ")";
                 }
                 exitDescription += " - press Enter]";
+
+                // Log abnormal exits at app level for crash diagnostics
+                if (exitCode != 0) {
+                    String lastOutput = "";
+                    try {
+                        if (mEmulator != null && mEmulator.getScreen() != null) {
+                            String transcript = mEmulator.getScreen().getTranscriptTextWithoutJoinedLines();
+                            if (transcript != null && transcript.length() > 0) {
+                                String[] lines = transcript.split("\n");
+                                int start = Math.max(0, lines.length - 30);
+                                StringBuilder sb = new StringBuilder();
+                                for (int i = start; i < lines.length; i++) {
+                                    sb.append(lines[i]).append('\n');
+                                }
+                                lastOutput = sb.toString();
+                            }
+                        }
+                    } catch (Exception e) {
+                        Log.d(LOG_TAG, "Failed to capture transcript for crash log", e);
+                    }
+
+                    String signalInfo = exitCode < 0 ? "signal " + (-exitCode) : "code " + exitCode;
+                    if (exitCode < 0) {
+                        Log.e(LOG_TAG, "Process exited (" + signalInfo + "), shell=" + mShellPath
+                            + (mSessionName != null ? ", session=" + mSessionName : ""));
+                        if (!lastOutput.isEmpty()) {
+                            Log.e(LOG_TAG, "Last terminal output:\n" + lastOutput);
+                        }
+                    } else {
+                        Log.d(LOG_TAG, "Process exited (" + signalInfo + "), shell=" + mShellPath
+                            + (mSessionName != null ? ", session=" + mSessionName : ""));
+                    }
+                }
 
                 byte[] bytesToWrite = exitDescription.getBytes(StandardCharsets.UTF_8);
                 mEmulator.append(bytesToWrite, bytesToWrite.length);
