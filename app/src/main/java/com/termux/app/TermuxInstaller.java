@@ -231,6 +231,18 @@ final class TermuxInstaller {
                     HermesInstaller.patchBootstrapTextFiles(TERMUX_PREFIX_DIR_PATH);
                     HermesInstaller.patchDpkgDatabase(TERMUX_PREFIX_DIR_PATH);
 
+                    // Deploy critical configs BEFORE terminal session starts.
+                    // This must be synchronous to prevent race conditions:
+                    // apt.conf, dpkg.conf, libpath_rewrite.so must all be in place
+                    // before bash sources profiles that trigger dpkg postinst scripts.
+                    Logger.logInfo(LOG_TAG, "Deploying install prerequisites...");
+                    HermesInstaller.deployInstallPrerequisites(activity);
+
+                    // Configure all bootstrap packages (run postinst scripts).
+                    // This happens AFTER dpkg database patching + config deployment,
+                    // so postinst scripts use correct com.hermux paths.
+                    runDpkgConfigureAll();
+
                     // Recreate env file since termux prefix was wiped earlier
                     TermuxShellEnvironment.writeEnvironmentToFile(activity);
 
@@ -398,6 +410,68 @@ final class TermuxInstaller {
     }
 
     public static native byte[] getZip();
+
+    /**
+     * Run dpkg --configure -a to configure all bootstrap packages.
+     * Called synchronously during bootstrap extraction so that postinst
+     * scripts run in a controlled environment with patched paths and
+     * deployed configs (apt.conf, dpkg.conf, libpath_rewrite.so).
+     * Non-fatal: failures are logged but don't block bootstrap.
+     */
+    private static void runDpkgConfigureAll() {
+        String bashPath = TERMUX_BIN_PREFIX_DIR_PATH + "/bash";
+        String dpkgPath = TERMUX_BIN_PREFIX_DIR_PATH + "/dpkg";
+        if (!new File(dpkgPath).exists()) {
+            Logger.logWarn(LOG_TAG, "dpkg not found, skipping configure");
+            return;
+        }
+
+        try {
+            ProcessBuilder pb = new ProcessBuilder(bashPath, "-c",
+                dpkgPath + " --configure -a 2>&1");
+            pb.environment().put("HOME", TermuxConstants.TERMUX_HOME_DIR_PATH);
+            pb.environment().put("PATH", TERMUX_BIN_PREFIX_DIR_PATH + ":/system/bin:/system/xbin");
+            pb.environment().put("PREFIX", TERMUX_PREFIX_DIR_PATH);
+            pb.environment().put("TMPDIR", TermuxConstants.TERMUX_TMP_PREFIX_DIR_PATH);
+            pb.environment().put("LD_LIBRARY_PATH", TermuxConstants.TERMUX_LIB_PREFIX_DIR_PATH);
+            String pathRewriteLib = TermuxConstants.TERMUX_LIB_PREFIX_DIR_PATH + "/libpath_rewrite.so";
+            if (new File(pathRewriteLib).exists()) {
+                pb.environment().put("LD_PRELOAD", pathRewriteLib);
+            }
+            pb.redirectErrorStream(true);
+
+            Process p = pb.start();
+            StringBuilder output = new StringBuilder();
+            int lineCount = 0;
+            try (BufferedReader reader = new BufferedReader(new InputStreamReader(p.getInputStream()))) {
+                String line;
+                while ((line = reader.readLine()) != null) {
+                    if (lineCount < 20) {
+                        output.append(line).append("\n");
+                    }
+                    lineCount++;
+                }
+            }
+
+            if (!p.waitFor(60, java.util.concurrent.TimeUnit.SECONDS)) {
+                p.destroyForcibly();
+                Logger.logWarn(LOG_TAG, "dpkg --configure -a timed out after 60s (non-fatal)");
+                return;
+            }
+            int exitCode = p.exitValue();
+
+            if (exitCode == 0) {
+                Logger.logInfo(LOG_TAG, "dpkg --configure -a completed successfully");
+            } else {
+                String summary = output.length() > 0 ? output.toString().trim() : "(no output)";
+                if (lineCount > 20) summary += "\n... (" + lineCount + " lines total)";
+                Logger.logWarn(LOG_TAG, "dpkg --configure -a exited with code " + exitCode
+                    + " (non-fatal): " + summary);
+            }
+        } catch (Exception e) {
+            Logger.logWarn(LOG_TAG, "dpkg --configure -a failed (non-fatal): " + e.getMessage());
+        }
+    }
 
 
 
