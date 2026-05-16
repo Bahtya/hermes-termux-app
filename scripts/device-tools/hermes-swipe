@@ -1,0 +1,17 @@
+#!/bin/bash
+# hermes-swipe — Swipe gesture
+# Usage: hermes-swipe <x1> <y1> <x2> <y2> [duration_ms]
+set -euo pipefail
+
+if [[ $# -lt 4 ]]; then
+    echo "Usage: hermes-swipe <x1> <y1> <x2> <y2> [duration_ms]" >&2
+    exit 1
+fi
+
+X1="$1" Y1="$2" X2="$3" Y2="$4"
+DURATION="${5:-300}"
+
+curl -s -X POST http://localhost:18720/swipe \
+    -H "Content-Type: application/json" \
+    -d "{\"x1\":$X1,\"y1\":$Y1,\"x2\":$X2,\"y2\":$Y2,\"duration\":$DURATION}"
+echo

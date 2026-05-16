@@ -4,6 +4,7 @@ import android.app.Application;
 import android.content.Context;
 
 import com.termux.BuildConfig;
+import com.termux.app.hermes.device.DeviceControlDeployer;
 import com.termux.shared.errors.Error;
 import com.termux.shared.logger.Logger;
 import com.termux.shared.termux.TermuxBootstrap;
@@ -65,6 +66,9 @@ public class TermuxApplication extends Application {
             // Run upgrade migrations (e.g. patch bootstrap paths for existing installs)
             HermesInstaller.runUpgradeMigrations();
             HermesInstaller.runContextMigrations(context);
+
+            // Deploy device control skill (idempotent, silent)
+            new Thread(() -> DeviceControlDeployer.deployIfNeeded(context)).start();
         } else {
             Logger.logErrorExtended(LOG_TAG, "Termux files directory is not accessible\n" + error);
         }

@@ -1571,4 +1571,6 @@
     <string name="profile_restore_confirm_title">Restore Backup?</string>
     <string name="profile_restore_confirm_message">This will replace your current configuration with the last backup. Continue?</string>
 
+    <string name="hermux_a11y_description">Allows Hermux to interact with your device UI — click buttons, type text, read screen content — via the Hermes Agent.</string>
+
 </resources>
