@@ -27,6 +27,7 @@ import com.termux.app.TermuxService;
 import com.termux.shared.termux.settings.properties.TermuxPropertyConstants;
 import com.termux.shared.termux.terminal.io.BellHandler;
 import com.termux.shared.logger.Logger;
+import com.termux.shared.termux.shell.command.environment.TermuxShellEnvironment;
 import com.termux.terminal.TerminalColors;
 import com.termux.terminal.TerminalSession;
 import com.termux.terminal.TerminalSessionClient;
@@ -179,6 +180,25 @@ public class TermuxTerminalSessionActivityClient extends TermuxTerminalSessionCl
                 removeFinishedSession(finishedSession);
             }
         }
+
+        // Auto-recover from Signal 11 (SIGSEGV) crashes, typically caused by
+        // libpath_rewrite.so LD_PRELOAD incompatibility after app updates.
+        int exitCode = finishedSession.getExitStatus();
+        if (exitCode == -11) {
+            long uptimeMs = System.currentTimeMillis() - finishedSession.getCreateTimeMs();
+            if (uptimeMs < 5000) {
+                Logger.logWarn(LOG_TAG, "Terminal crashed with signal 11 after " + uptimeMs
+                    + "ms, disabling LD_PRELOAD and restarting session");
+                TermuxShellEnvironment.reportTerminalSignal11();
+                removeFinishedSession(finishedSession);
+                addNewSession(false, null);
+            }
+        }
+    }
+
+    @Override
+    public void onTerminalHealthCheck(@NonNull TerminalSession session) {
+        TermuxShellEnvironment.reportTerminalHealthy();
     }
 
     @Override

@@ -28,6 +28,9 @@ public interface TerminalSessionClient {
 
     void setTerminalShellPid(@NonNull TerminalSession session, int pid);
 
+    /** Called when the process has been running for 5 seconds (considered healthy). */
+    default void onTerminalHealthCheck(@NonNull TerminalSession session) {}
+
 
 
     Integer getTerminalCursorStyle();
