@@ -177,6 +177,16 @@ public class TermuxTerminalSessionActivityClient extends TermuxTerminalSessionCl
             // Once we have a separate launcher icon for the failsafe session, it
             // should be safe to auto-close session on exit code '0' or '130'.
             if (finishedSession.getExitStatus() == 0 || finishedSession.getExitStatus() == 130 || isPluginExecutionCommandWithPendingResult) {
+                // Don't auto-remove the last session if it died within 10 seconds —
+                // keep it visible so the user can see the error output.
+                if (service.getTermuxSessionsSize() <= 1 && !isPluginExecutionCommandWithPendingResult) {
+                    long uptimeMs = System.currentTimeMillis() - finishedSession.getCreateTimeMs();
+                    if (uptimeMs < 10_000) {
+                        Logger.logWarn(LOG_TAG, "Last session exited after " + uptimeMs
+                            + "ms, keeping visible for debugging (exit=" + finishedSession.getExitStatus() + ")");
+                        return;
+                    }
+                }
                 removeFinishedSession(finishedSession);
             }
         }
