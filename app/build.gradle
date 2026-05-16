@@ -241,7 +241,7 @@ def patchBootstraps() {
         return
     }
     logger.quiet("Patching bootstrap ZIPs ...")
-    exec {
+    project.exec {
         commandLine 'bash', patchScript.absolutePath, new File(projectDir, 'src/main/cpp').absolutePath
     }
 }
