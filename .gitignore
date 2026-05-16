@@ -19,6 +19,8 @@ local.properties
 
 # Signing files
 .signing/
+*.jks
+*.keystore
 
 # Intellij
 .idea/

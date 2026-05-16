@@ -45,10 +45,17 @@ jobs:
         shell: bash
         run: bash scripts/patch-bootstrap.sh "$GITHUB_WORKSPACE/app/src/main/cpp"
 
+      - name: Decode signing keystore
+        shell: bash
+        run: echo "${{ secrets.KEYSTORE_BASE64 }}" | base64 -d > app/testkey_untrusted.jks
+
       - name: Build debug APK
         shell: bash {0}
         env:
           PACKAGE_VARIANT: ${{ matrix.package_variant }}
+          KEYSTORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}
+          KEY_ALIAS: ${{ secrets.KEY_ALIAS }}
+          KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
         run: |
           exit_on_error() { echo "$1"; exit 1; }
 
@@ -104,6 +111,9 @@ jobs:
         if: github.event_name == 'push'
         env:
           TERMUX_PACKAGE_VARIANT: ${{ matrix.package_variant }}
+          KEYSTORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}
+          KEY_ALIAS: ${{ secrets.KEY_ALIAS }}
+          KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
         run: ./gradlew assembleRelease
 
       - name: APK size summary

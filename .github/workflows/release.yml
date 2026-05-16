@@ -121,11 +121,18 @@ jobs:
         shell: bash
         run: bash scripts/patch-bootstrap.sh "$GITHUB_WORKSPACE/app/src/main/cpp"
 
+      - name: Decode signing keystore
+        shell: bash
+        run: echo "${{ secrets.KEYSTORE_BASE64 }}" | base64 -d > app/testkey_untrusted.jks
+
       - name: Build release APK
         shell: bash
         env:
           TERMUX_PACKAGE_VARIANT: ${{ matrix.package_variant }}
           TERMUX_SPLIT_APKS_FOR_RELEASE_BUILDS: "1"
+          KEYSTORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}
+          KEY_ALIAS: ${{ secrets.KEY_ALIAS }}
+          KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
         run: |
           TAG_NAME="${{ needs.create-release.outputs.tag_name }}"
           APK_DIR_PATH="./app/build/outputs/apk/release"

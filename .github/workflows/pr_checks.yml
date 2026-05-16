@@ -51,9 +51,16 @@ jobs:
           restore-keys: |
             gradle-${{ runner.os }}-${{ matrix.package_variant }}-
 
+      - name: Decode signing keystore
+        shell: bash
+        run: echo "${{ secrets.KEYSTORE_BASE64 }}" | base64 -d > app/testkey_untrusted.jks
+
       - name: Build APK
         env:
           TERMUX_PACKAGE_VARIANT: ${{ matrix.package_variant }}
+          KEYSTORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}
+          KEY_ALIAS: ${{ secrets.KEY_ALIAS }}
+          KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
         run: ./gradlew downloadBootstraps assembleDebug -x lint
 
       - name: Run lint
@@ -61,6 +68,9 @@ jobs:
         continue-on-error: true
         env:
           TERMUX_PACKAGE_VARIANT: ${{ matrix.package_variant }}
+          KEYSTORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}
+          KEY_ALIAS: ${{ secrets.KEY_ALIAS }}
+          KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
         run: |
           ./gradlew :app:lint -Pandroid.lint.abortOnError=false -Pandroid.lint.warningsAsErrors=false 2>&1 | tee lint-output.txt || true
           ERRORS=$(grep -c "Severity: Error" lint-output.txt || echo "0")
@@ -112,9 +122,16 @@ jobs:
           restore-keys: |
             gradle-${{ runner.os }}-${{ matrix.package_variant }}-
 
+      - name: Decode signing keystore
+        shell: bash
+        run: echo "${{ secrets.KEYSTORE_BASE64 }}" | base64 -d > app/testkey_untrusted.jks
+
       - name: Execute tests
         env:
           TERMUX_PACKAGE_VARIANT: ${{ matrix.package_variant }}
+          KEYSTORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}
+          KEY_ALIAS: ${{ secrets.KEY_ALIAS }}
+          KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
         run: ./gradlew downloadBootstraps test
 
       - name: Upload test report

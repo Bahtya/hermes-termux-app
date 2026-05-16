@@ -24,10 +24,17 @@ jobs:
         with:
           ref: ${{ env.GITHUB_REF }}
 
+      - name: Decode signing keystore
+        shell: bash
+        run: echo "${{ secrets.KEYSTORE_BASE64 }}" | base64 -d > app/testkey_untrusted.jks
+
       - name: Build and attach APKs to release
         shell: bash {0}
         env:
           PACKAGE_VARIANT: ${{ matrix.package_variant }}
+          KEYSTORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}
+          KEY_ALIAS: ${{ secrets.KEY_ALIAS }}
+          KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
         run: |
           exit_on_error() {
               echo "$1"
