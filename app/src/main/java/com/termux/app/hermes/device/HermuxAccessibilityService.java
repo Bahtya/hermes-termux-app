@@ -318,11 +318,19 @@ public class HermuxAccessibilityService extends AccessibilityService {
         return r.left + "," + r.top + " - " + r.right + "," + r.bottom;
     }
 
-    static JSONObject okResult(String msg) throws JSONException {
-        return new JSONObject().put("ok", true).put("message", msg);
+    static JSONObject okResult(String msg) {
+        try {
+            return new JSONObject().put("ok", true).put("message", msg);
+        } catch (JSONException e) {
+            return new JSONObject();
+        }
     }
 
-    static JSONObject errorResult(String msg) throws JSONException {
-        return new JSONObject().put("ok", false).put("error", msg);
+    static JSONObject errorResult(String msg) {
+        try {
+            return new JSONObject().put("ok", false).put("error", msg);
+        } catch (JSONException e) {
+            return new JSONObject();
+        }
     }
 }
