@@ -203,7 +203,7 @@ public class LicenseActivationActivity extends AppCompatActivity {
         setContentView(root);
 
         // Prevent back navigation when not licensed
-        getOnBackPressedDispatcher().setOnBackCallback(
+        getOnBackPressedDispatcher().addCallback(this,
                 new androidx.activity.OnBackPressedCallback(true) {
                     @Override
                     public void handleOnBackPressed() {
