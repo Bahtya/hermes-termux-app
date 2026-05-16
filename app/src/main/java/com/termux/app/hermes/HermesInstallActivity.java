@@ -318,10 +318,7 @@ public class HermesInstallActivity extends AppCompatActivity {
         // Load output accumulated so far
         String buffered = HermesInstallHelper.getOutputBuffer();
         if (!buffered.isEmpty()) {
-            for (String line : buffered.split("\n")) {
-                appendTerminal(line, false);
-                mTerminalBuffer.append("\n");
-            }
+            mTerminalBuffer.append(stripAnsi(buffered));
             mLastBufferPos = buffered.length();
             mHandler.post(() -> {
                 mTerminalOutput.setText(mTerminalBuffer.toString());
@@ -340,10 +337,12 @@ public class HermesInstallActivity extends AppCompatActivity {
                 int pos = Math.min(mLastBufferPos, current.length());
                 if (current.length() > pos) {
                     String newOutput = current.substring(pos);
-                    for (String line : newOutput.split("\n")) {
-                        if (!line.isEmpty()) appendTerminal(line, false);
-                    }
+                    mTerminalBuffer.append(stripAnsi(newOutput));
                     mLastBufferPos = current.length();
+                    mHandler.post(() -> {
+                        mTerminalOutput.setText(mTerminalBuffer.toString());
+                        mTerminalScroll.post(() -> mTerminalScroll.fullScroll(View.FOCUS_DOWN));
+                    });
                 }
 
                 if (!HermesInstallHelper.isInstallRunning()) {
