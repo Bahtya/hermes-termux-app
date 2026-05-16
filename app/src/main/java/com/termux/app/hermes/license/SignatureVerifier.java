@@ -17,7 +17,7 @@ public class SignatureVerifier {
     // 开发者签名的 SHA-256 哈希（release 签名证书）
     // 部署时需要替换为实际的签名证书哈希
     private static final String EXPECTED_SIGNING_CERT_HASH =
-            "REPLACE_WITH_YOUR_SIGNING_CERT_SHA256";
+            "b6da01480eefd5fbf2cd3771b8d1021ec791304bdd6c4bf41d3faabad48ee5e1";
 
     private SignatureVerifier() {}
 
@@ -41,10 +41,6 @@ public class SignatureVerifier {
      * @return true = 签名匹配（正版 APK），false = 签名不匹配（重打包）
      */
     public static boolean verifySignature(Context context) {
-        if ("REPLACE_WITH_YOUR_SIGNING_CERT_SHA256".equals(EXPECTED_SIGNING_CERT_HASH)) {
-            // 未配置预期哈希时跳过验证（开发阶段）
-            return true;
-        }
         byte[] hash = getSigningCertHash(context);
         if (hash == null) return false;
         String hashHex = bytesToHex(hash);
