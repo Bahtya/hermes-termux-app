@@ -680,6 +680,7 @@ public final class TermuxActivity extends AppCompatActivity implements ServiceCo
         }
 
         fm.beginTransaction()
+            .setTransition(FragmentTransaction.TRANSIT_FRAGMENT_FADE)
             .replace(R.id.fragment_container, fragment, tag)
             .commit();
         mCurrentFragment = fragment;

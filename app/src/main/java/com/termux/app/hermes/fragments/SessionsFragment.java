@@ -1,5 +1,6 @@
 package com.termux.app.hermes.fragments;
 
+import android.content.Intent;
 import android.os.Bundle;
 import android.text.format.DateFormat;
 import android.view.LayoutInflater;
@@ -233,6 +234,14 @@ public class SessionsFragment extends Fragment {
         LinearLayout item = new LinearLayout(requireContext());
         item.setOrientation(LinearLayout.VERTICAL);
         item.setPadding(0, dp(4), 0, dp(4));
+        item.setClickable(true);
+        item.setFocusable(true);
+        item.setOnClickListener(v -> {
+            if (entry.sessionId == null || entry.sessionId.isEmpty()) return;
+            Intent intent = new Intent(requireContext(), HermesWebActivity.class);
+            intent.putExtra(HermesWebActivity.EXTRA_URL_PATH, "/sessions/" + entry.sessionId);
+            startActivity(intent);
+        });
 
         TextView title = new TextView(requireContext());
         title.setText(entry.name);

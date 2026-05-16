@@ -54,6 +54,8 @@ import java.util.List;
 
 public class HermesConfigActivity extends AppCompatActivity {
 
+    public static final String EXTRA_NAV_SECTION = "nav_section";
+
     private DrawerLayout mDrawerLayout;
     private NavigationView mNavigationView;
     private HermesConfigManager mConfigManager;
@@ -97,9 +99,14 @@ public class HermesConfigActivity extends AppCompatActivity {
         // Update drawer header status
         updateDrawerHeader();
 
-        // Show dashboard by default
+        // Handle incoming navigation request (e.g. from ProfileFragment quick actions)
         if (savedInstanceState == null) {
-            showDashboard();
+            int navSection = getIntent().getIntExtra(EXTRA_NAV_SECTION, -1);
+            if (navSection != -1) {
+                handleNavigation(navSection);
+            } else {
+                showDashboard();
+            }
         }
     }
 

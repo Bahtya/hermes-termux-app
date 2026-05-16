@@ -178,6 +178,41 @@
                     android:text="@string/profile_help"
                     android:textColor="@color/hermes_accent" />
 
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal"
+                    android:layout_marginTop="4dp">
+
+                    <com.google.android.material.button.MaterialButton
+                        android:id="@+id/btn_export_config"
+                        style="@style/Widget.MaterialComponents.Button.TextButton"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:text="@string/profile_export_config"
+                        android:textColor="@color/hermes_accent" />
+
+                    <com.google.android.material.button.MaterialButton
+                        android:id="@+id/btn_import_config"
+                        style="@style/Widget.MaterialComponents.Button.TextButton"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:text="@string/profile_import_config"
+                        android:textColor="@color/hermes_accent" />
+
+                    <com.google.android.material.button.MaterialButton
+                        android:id="@+id/btn_restore_backup"
+                        style="@style/Widget.MaterialComponents.Button.TextButton"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:text="@string/profile_restore_backup"
+                        android:textColor="@color/hermes_accent" />
+
+                </LinearLayout>
+
             </LinearLayout>
         </com.google.android.material.card.MaterialCardView>
 

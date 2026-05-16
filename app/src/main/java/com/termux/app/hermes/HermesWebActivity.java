@@ -33,6 +33,8 @@ public class HermesWebActivity extends AppCompatActivity {
     public static final int DEFAULT_PORT = 9119;
     private static final String LOCALHOST = "127.0.0.1";
 
+    public static final String EXTRA_URL_PATH = "url_path";
+
     private WebView mWebView;
     private ProgressBar mProgressBar;
     private String mSessionToken;
@@ -124,7 +126,12 @@ public class HermesWebActivity extends AppCompatActivity {
                     sSessionToken = token;
                 }
                 String url = foundUrl;
-                runOnUiThread(() -> mWebView.loadUrl(url));
+                String path = getIntent().getStringExtra(EXTRA_URL_PATH);
+                if (path != null && !path.isEmpty()) {
+                    url = url + path;
+                }
+                String finalUrl = url;
+                runOnUiThread(() -> mWebView.loadUrl(finalUrl));
             }
         }).start();
     }
