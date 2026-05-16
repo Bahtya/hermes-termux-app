@@ -225,21 +225,6 @@ public class HermesInstallActivity extends AppCompatActivity {
                     mProgressBar.setProgress(10);
                 });
 
-                String bashPath = TermuxConstants.TERMUX_BIN_PREFIX_DIR_PATH + "/bash";
-                String curlPath = TermuxConstants.TERMUX_BIN_PREFIX_DIR_PATH + "/curl";
-
-                if (!new File(bashPath).exists()) {
-                    appendTerminal("ERROR: bash not found — bootstrap may still be installing");
-                    throw new RuntimeException("bash not found — bootstrap may still be installing");
-                }
-                if (!new File(curlPath).exists()) {
-                    appendTerminal("ERROR: curl not found — bootstrap may still be installing");
-                    throw new RuntimeException("curl not found — bootstrap may still be installing");
-                }
-
-                appendTerminal("Prerequisites OK: bash and curl available");
-                Thread.sleep(500);
-
                 // Step 2: Download and install
                 mHandler.post(() -> {
                     updateStepIndicators(2);
