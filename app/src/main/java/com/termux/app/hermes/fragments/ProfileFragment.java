@@ -206,9 +206,7 @@ public class ProfileFragment extends Fragment {
         new Thread(() -> {
             HermesConfigManager mgr = HermesConfigManager.getInstance();
             String json = mgr.exportConfigMasked();
-            File exportDir = new File(TermuxConstants.TERMUX_HOME_DIR_PATH, ".hermes");
-            if (!exportDir.exists()) exportDir.mkdirs();
-            File file = new File(exportDir, "hermes_config_export.json");
+            File file = new File(requireContext().getCacheDir(), "hermes_config_export.json");
             try (BufferedWriter writer = new BufferedWriter(new FileWriter(file))) {
                 writer.write(json);
             } catch (Exception e) {

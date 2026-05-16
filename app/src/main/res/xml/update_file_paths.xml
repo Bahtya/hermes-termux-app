@@ -3,7 +3,7 @@
     <external-files-path
         name="update_downloads"
         path="Download/" />
-    <root-path
-        name="hermes_config"
-        path="/data/data/com.termux/files/home/.hermes/" />
+    <cache-path
+        name="config_export"
+        path="." />
 </paths>
