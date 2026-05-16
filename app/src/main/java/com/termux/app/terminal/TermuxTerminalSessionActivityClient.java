@@ -218,7 +218,7 @@ public class TermuxTerminalSessionActivityClient extends TermuxTerminalSessionCl
         // the terminal's bash has it loaded via LD_PRELOAD.
         if (exitCode == -9) {
             long uptimeMs = System.currentTimeMillis() - finishedSession.getCreateTimeMs();
-            if (uptimeMs < 30_000) {
+            if (uptimeMs < 10_000) {
                 Logger.logWarn(LOG_TAG, "Terminal killed with signal 9 after " + uptimeMs
                     + "ms, restarting session");
                 removeFinishedSession(finishedSession);
