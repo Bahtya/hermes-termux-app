@@ -224,6 +224,13 @@ final class TermuxInstaller {
 
                     Logger.logInfo(LOG_TAG, "Bootstrap packages installed successfully.");
 
+                    // Patch com.termux → com.hermux in extracted bootstrap files.
+                    // This is a safety net: CI patches the ZIP before packaging,
+                    // but runtime patching catches anything missed at build time.
+                    Logger.logInfo(LOG_TAG, "Patching bootstrap text files...");
+                    HermesInstaller.patchBootstrapTextFiles(TERMUX_PREFIX_DIR_PATH);
+                    HermesInstaller.patchDpkgDatabase(TERMUX_PREFIX_DIR_PATH);
+
                     // Recreate env file since termux prefix was wiped earlier
                     TermuxShellEnvironment.writeEnvironmentToFile(activity);
 

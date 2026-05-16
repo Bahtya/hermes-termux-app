@@ -118,6 +118,16 @@ public class HermesInstaller {
             Logger.logWarn(LOG_TAG, "Integrity: libpath_rewrite.so missing, will be healed in runContextMigrations");
         }
 
+        // pip.conf must not contain com.termux paths
+        File pipConf = new File(prefix, "etc/pip.conf");
+        if (fileContains(pipConf, "/data/data/com.termux")) {
+            try {
+                patchTextFileSafe(pipConf, "/data/data/com.termux", "/data/data/com.hermux");
+                healed++;
+                Logger.logInfo(LOG_TAG, "Integrity: patched com.termux paths in pip.conf");
+            } catch (Exception e) { Logger.logWarn(LOG_TAG, "Integrity: failed to patch pip.conf: " + e.getMessage()); }
+        }
+
         if (healed > 0) {
             Logger.logInfo(LOG_TAG, "Integrity check: " + healed + " files healed");
         }
@@ -716,7 +726,40 @@ public class HermesInstaller {
      * These were NOT patched by earlier CI scripts, causing dpkg to fail
      * with error code (1) when running maintainer scripts or checking files.
      */
-    private static void patchDpkgDatabase(String prefixPath) {
+    /**
+     * Patch text config files under $PREFIX/etc and $PREFIX/share to replace
+     * /data/data/com.termux paths. Called after bootstrap extraction as a safety
+     * net in case the CI patch-bootstrap step missed some files.
+     */
+    static void patchBootstrapTextFiles(String prefixPath) {
+        final String oldPrefix = "/data/data/com.termux";
+        final String newPrefix = "/data/data/com.hermux";
+        int patched = 0;
+
+        for (String dir : new String[]{"etc", "share"}) {
+            File root = new File(prefixPath, dir);
+            if (!root.isDirectory()) continue;
+            patched += patchTextFilesRecursive(root, oldPrefix, newPrefix);
+        }
+
+        Logger.logInfo(LOG_TAG, "Bootstrap text file patching: " + patched + " files patched");
+    }
+
+    private static int patchTextFilesRecursive(File dir, String oldStr, String newStr) {
+        File[] files = dir.listFiles();
+        if (files == null) return 0;
+        int patched = 0;
+        for (File f : files) {
+            if (f.isDirectory()) {
+                patched += patchTextFilesRecursive(f, oldStr, newStr);
+            } else {
+                if (patchTextFileSafe(f, oldStr, newStr)) patched++;
+            }
+        }
+        return patched;
+    }
+
+    static void patchDpkgDatabase(String prefixPath) {
         final String oldPrefix = "/data/data/com.termux";
         final String newPrefix = "/data/data/com.hermux";
         int patched = 0;

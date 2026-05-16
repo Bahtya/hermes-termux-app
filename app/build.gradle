@@ -197,6 +197,21 @@ def downloadBootstrap(String arch, String expectedChecksum, String version) {
     connection.setInstanceFollowRedirects(true)
     out << connection.inputStream
     out.close()
+
+    // Patch com.termux → com.hermux paths in the downloaded bootstrap ZIP
+    patchBootstrap(arch)
+}
+
+def patchBootstrap(String arch) {
+    def patchScript = new File(project.rootDir, "scripts/patch-bootstrap.sh")
+    if (!patchScript.exists()) {
+        logger.warn("patch-bootstrap.sh not found, skipping bootstrap patching for ${arch}")
+        return
+    }
+    logger.quiet("Patching bootstrap-${arch}.zip ...")
+    exec {
+        commandLine 'bash', patchScript.absolutePath, new File(projectDir, 'src/main/cpp').absolutePath
+    }
 }
 
 clean {
